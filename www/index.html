@@ -241,12 +241,13 @@ Start recording
   z-index:100;
 "></div>
 
+<!-- ✅ FIX: все 5 кнопок внутри toolsPanel, высота 560px -->
 <div id="toolsPanel" style="
   position:fixed;
-  bottom:-460px;
+  bottom:-560px;
   left:0;
   width:100%;
-  max-height:460px;
+  max-height:560px;
   background:#e0e5ec;
   border-radius:24px 24px 0 0;
   padding:20px 20px 110px 20px;
@@ -261,7 +262,7 @@ Start recording
     color:#555; font-size:18px; cursor:pointer;
   ">🫁 Дыхание</div>
 
-<div id="toolsMeditation" style="
+  <div id="toolsMeditation" style="
     padding:16px; margin-bottom:12px;
     border-radius:16px; background:#e0e5ec;
     box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
@@ -269,25 +270,27 @@ Start recording
   ">🧘 Медитация</div>
 
   <div id="toolsVisualFocus" style="
-  padding:16px; margin-bottom:12px;
-  border-radius:16px; background:#e0e5ec;
-  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-  color:#555; font-size:18px; cursor:pointer;
-">👁 Зрительный якорь</div>
+    padding:16px; margin-bottom:12px;
+    border-radius:16px; background:#e0e5ec;
+    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    color:#555; font-size:18px; cursor:pointer;
+  ">👁 Зрительный якорь</div>
 
-<div id="toolsMindDump" style="
-  padding:16px; margin-bottom:12px;
-  border-radius:16px; background:#e0e5ec;
-  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-  color:#555; font-size:18px; cursor:pointer;
-">🧠 Выгрузка мыслей</div>
+  <div id="toolsMindDump" style="
+    padding:16px; margin-bottom:12px;
+    border-radius:16px; background:#e0e5ec;
+    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    color:#555; font-size:18px; cursor:pointer;
+  ">🧠 Выгрузка мыслей</div>
 
-<div id="toolsTapCalm" style="
-  padding:16px; margin-bottom:12px;
-  border-radius:16px; background:#e0e5ec;
-  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-  color:#555; font-size:18px; cursor:pointer;
-">✋ Тактильная разрядка</div>
+  <div id="toolsTapCalm" style="
+    padding:16px; margin-bottom:12px;
+    border-radius:16px; background:#e0e5ec;
+    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    color:#555; font-size:18px; cursor:pointer;
+  ">✋ Тактильная разрядка</div>
+
+</div>
 
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
