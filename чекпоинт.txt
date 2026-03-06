@@ -1,0 +1,542 @@
+MoodOS — Full Development Checkpoint (March 2026)
+Project Overview
+MoodOS is a mobile-first web application designed as an adaptive emotional regulation system rather than just a mood tracker.
+The goal of the app is to help users:
+1.	Observe emotional states
+2.	Understand patterns
+3.	Regulate emotions using tools
+4.	Improve long-term emotional stability
+The application works offline-first and runs as a mobile web app / hybrid app.
+________________________________________
+Core Concept
+MoodOS collects three main types of data:
+1. Mood Tracking
+Users record mood values on a 0–100 scale.
+Each mood entry stores:
+value
+state
+timestamp
+State is calculated by the Mood State Engine.
+________________________________________
+2. Emotional State Engine
+File:
+/js/services/state-engine.js
+Function:
+detectMoodState(mood)
+States:
+LOW        (0–24)
+STRESSED   (25–39)
+NEUTRAL    (40–59)
+GOOD       (60–79)
+HIGH       (80–100)
+This abstraction allows analytics and recommendations.
+________________________________________
+3. Practice Sessions
+Users can perform tools:
+•	Breathing
+•	Meditation
+Each session stores:
+type
+moodBefore
+stateBefore
+moodAfter
+stateAfter
+result
+duration
+timestamp
+Example:
+{
+ type: "breathing",
+ moodBefore: 32,
+ stateBefore: "STRESSED",
+ moodAfter: 47,
+ stateAfter: "NEUTRAL",
+ result: "positive",
+ duration: 120,
+ timestamp: 171000000
+}
+________________________________________
+Architecture
+Main structure:
+www/
+
+ index.html
+
+ css/
+   style.css
+
+ js/
+
+   app.js
+   state.js
+   navigation.js
+   ui-controller.js
+   breathing.js
+   language.js
+
+   services/
+     memory.js
+     analytics.js
+     state-engine.js
+     session-analytics.js
+     voice-service.js
+
+   screens/
+     home.js
+     insight.js
+     report.js
+     stability.js
+     tools.js
+     meditation.js
+     history.js
+     settings.js
+     voice.js
+________________________________________
+Data Storage
+LocalStorage keys:
+mood_history
+notes_history
+voice_history
+session_history
+Handled in:
+/js/services/memory.js
+________________________________________
+Session Analytics Module
+File:
+/js/services/session-analytics.js
+Capabilities:
+getEffectivenessRate(type)
+Returns success percentage for a tool.
+Example:
+Breathing success rate: 63%
+________________________________________
+getAverageMoodLift(type)
+Average mood increase after a tool.
+Example:
++8.4 mood points
+________________________________________
+getEffectivenessByState(type)
+Shows which emotional states respond best to the tool.
+Example:
+STRESSED → 68% success
+NEUTRAL → 42%
+________________________________________
+getBestToolForState(state)
+Determines the best tool for the current emotional state.
+Example:
+STRESSED → Breathing
+LOW → Meditation
+________________________________________
+getPersonalRecommendation(state)
+Returns a ready text recommendation.
+Example:
+Breathing helped users in similar states in 62% of cases.
+Consider trying it now.
+________________________________________
+getFullSessionStats()
+Returns full statistics for reporting.
+________________________________________
+getSessionsByDay(type)
+Aggregates sessions per day for charts.
+Used in Report screen.
+________________________________________
+Insight Screen
+File:
+/js/screens/insight.js
+Features:
+Flip Cards (interactive)
+Cards flip to reveal charts.
+Cards include:
+1.	Stability
+2.	Average Mood
+3.	Mood Trend
+4.	Golden Hours
+________________________________________
+Practice Cards
+Two cards with pie charts:
+•	Breathing effectiveness
+•	Meditation effectiveness
+Charts built with:
+Chart.js
+________________________________________
+State Effectiveness Table
+Shows which tools work best per emotional state.
+Example:
+State        Breathing   Meditation
+STRESSED     68%         45%
+LOW          40%         61%
+________________________________________
+Known UI Issues
+Current problems:
+Charts
+•	Charts too small
+•	Sometimes not rendering after quick card flip
+•	Chart.js needs resize trigger after flip animation
+________________________________________
+Layout
+•	Pie charts overlap on mobile
+•	Cards not spacing correctly
+________________________________________
+Visual Design
+Design system not unified yet.
+Buttons and shadows vary across screens.
+Need a consistent friendly neumorphism style.
+________________________________________
+Target Design System
+Colors:
+Background:
+#f6f3ef (warm milk tone)
+#ffffff
+#f0f0f0
+Text:
+#111111
+#333333
+Accent colors:
+calm blue
+soft purple
+soft green
+________________________________________
+UI Style
+Friendly neumorphism:
+Soft shadows
+6px 6px 12px #d0d0d0
+-6px -6px 12px #ffffff
+Rounded cards:
+border-radius: 20px
+________________________________________
+Screens
+Home
+Features:
+•	Mood slider
+•	Daily reflection
+•	Voice reflection
+•	Stability index
+•	Today insight
+•	Golden hours
+________________________________________
+Insight
+Analytics dashboard.
+Charts and flip cards.
+________________________________________
+Report
+Planned:
+•	Mood timeline
+•	Practice effectiveness
+•	State transitions
+Will generate PDF for therapist.
+________________________________________
+Stability
+Mood stability analysis.
+________________________________________
+Tools
+Contains:
+•	Breathing
+•	Meditation
+Both tools save session data.
+________________________________________
+Future Features
+PDF Export for Doctor
+Planned stack:
+Chart.js
+html2canvas
+jsPDF
+Report includes:
+•	mood timeline
+•	stability
+•	practice effectiveness
+•	session stats
+________________________________________
+Emotion Calendar
+GitHub-style heatmap of mood history.
+________________________________________
+AI Insight Engine
+Offline AI analysis already integrated.
+Files:
+/js/ai/offline-ai.js
+/js/ai/voice.js
+/js/ai/voice-analysis.js
+________________________________________
+Current Priority
+1.	Fix Insight screen charts and layout
+2.	Unify design system across all screens
+3.	Improve mobile layout
+4.	Implement Report screen charts
+5.	Implement PDF export for therapist
+6.	Stabilize flip-card rendering
+
+ДОПОЛНЕНИЕ К ЧЕКПОИНТУ ПРОЕКТА
+Общая философия UX
+Главное правило приложения:
+Не перегружать пользователя данными.
+UI показывает максимум:
+•	1 объяснение состояния
+•	1 рекомендацию
+•	1 ключевой показатель
+Вся остальная аналитика работает в фоне и используется для:
+•	Insight
+•	Report
+•	Email отчётов
+•	персональных рекомендаций
+________________________________________
+Email отчёты пользователю
+Добавляется функция автоматических отчётов на почту.
+Экран настроек:
+Settings → Email Reports
+Поля:
+Email
+Frequency:
+- daily
+- weekly
+- monthly
+
+Send time:
+- morning
+- evening
+Ограничения:
+не более 3 писем в день
+Пример отчёта:
+Ваше состояние за неделю
+
+Среднее настроение: 6.3
+
+Лучшее время дня:
+11:00 – 14:00
+
+Что помогает:
+• дыхание
+• прогулка после 16:00
+
+Что ухудшает:
+• недосып
+• перегрузка вечером
+
+Эмоциональная устойчивость:
++9% за 2 недели
+Технологии отправки:
+•	SendGrid
+•	Mailgun
+________________________________________
+Новая архитектура аналитики
+Чтобы реализовать большинство новых функций, добавляются 3 сервиса.
+________________________________________
+1. pattern-engine.js
+Движок поиска закономерностей.
+Анализирует:
+•	настроение
+•	время суток
+•	дни недели
+•	заметки
+•	практики
+•	поведенческие события
+Находит:
+эмоциональные триггеры
+лучшее время дня
+падения настроения
+повторяющиеся паттерны
+Пример выводов:
+После 18:00 настроение падает
+Кофе → тревожность через 3 часа
+Недосып → раздражение +28%
+________________________________________
+2. insight-engine.js
+Движок объяснения состояния.
+Формирует человеческое объяснение, а не просто совет.
+Пример:
+Причина вашего состояния вероятно:
+
+• накопленная усталость
+• недосып
+• социальная перегрузка
+Также генерирует:
+Прогноз состояния
+Пример:
+Сегодня высокая вероятность усталости.
+Плохой сон + 3 рабочих дня подряд.
+________________________________________
+3. resilience-engine.js
+Рассчитывает индекс эмоциональной устойчивости.
+Метрики:
+скорость восстановления
+стабильность
+волатильность настроения
+Вывод:
+Ваша устойчивость выросла на 18% за 2 месяца
+Это ключевая мотивационная метрика приложения.
+________________________________________
+Новый тип данных — активности
+Сейчас приложение анализирует:
+breathing
+meditation
+Добавляется новый тип:
+activity
+Примеры:
+gym
+walk
+social
+work
+hobby
+sleep
+Пример записи:
+{
+ type: "activity",
+ name: "gym",
+ moodBefore: 38,
+ moodAfter: 62,
+ timestamp: 171000000
+}
+Это позволит находить:
+Gym → +18 mood
+Walk → +9 mood
+Meditation → +12 mood
+И строить персональные рекомендации.
+________________________________________
+Поведенческая аналитика
+Приложение сможет выявлять:
+что реально улучшает состояние пользователя
+Например:
+Физическая активность помогает вам больше,
+чем медитация.
+________________________________________
+Emotional Trigger Engine
+Функция обнаружения скрытых триггеров.
+Экран:
+Ваши скрытые триггеры
+Примеры:
+☕ 2+ кофе → -1.4 через 3 часа
+📉 Мало сна → тревожность +28%
+🌧 Дождь + одиночество → 70% плохих оценок
+________________________________________
+Прогноз состояния
+Формируется на основе:
+•	сна
+•	активности
+•	предыдущих дней
+•	внешних факторов
+В будущем возможно подключение:
+•	носимых устройств
+•	давления
+•	погоды
+•	магнитных бурь
+Пример:
+Сегодня высокая вероятность усталости.
+Недосып + 3 рабочих дня подряд.
+________________________________________
+Когнитивные искажения
+AI анализирует текст заметок.
+Пример:
+Обнаружена катастрофизация.
+Вы склонны ожидать худший исход ситуации.
+Краткое объяснение + мягкая рекомендация.
+________________________________________
+Эмоциональная амнезия
+Функция напоминания прошлых восстановлений.
+Пример:
+Вы уже переживали подобное состояние 4 месяца назад.
+Через 6 дней состояние улучшилось.
+Это сильный психологический якорь.
+________________________________________
+Микро-привычки восстановления
+Персональные рекомендации на основе данных.
+Пример:
+Ваше настроение стабилизируется,
+если вы делаете 7-минутную прогулку после 16:00.
+Это заменяет классические челленджи.
+________________________________________
+Итоговая архитектура данных
+DATA LAYER
+
+memory.js
+state-engine.js
+
+
+ANALYTICS LAYER
+
+session-analytics.js
+pattern-engine.js
+resilience-engine.js
+
+
+INSIGHT LAYER
+
+insight-engine.js
+________________________________________
+Поток данных
+user input
+↓
+memory.js
+↓
+session analytics
+↓
+pattern engine
+↓
+resilience engine
+↓
+insight engine
+↓
+UI / report / email
+________________________________________
+Если завтра продолжим, я могу показать 3 вещи, которые резко поднимут уровень проекта:
+1️⃣ как сделать Emotional Trigger Engine (150 строк JS)
+2️⃣ как автоматически извлекать активности из текста заметок
+3️⃣ как строить прогноз состояния пользователя на завтра
+Дополнительные практики с высоким retention
+Практики, которые показывают самый высокий уровень удержания пользователей (retention) в mental-health приложениях. Они короткие (1–3 минуты) и дают быстрый эффект.
+1. Visual Anchor (Зрительный якорь)
+Пользователь следит глазами за движущимся объектом на экране (точка/шар).
+Механика:
+•	объект движется слева направо
+•	медленный ритм
+•	длительность 2 минуты
+Эффект:
+•	снижает тревожность
+•	стабилизирует внимание
+•	уменьшает перегрузку нервной системы
+Основано на принципах терапии EMDR.
+________________________________________
+2. Thought Unload / Mind Dump (Выгрузка мыслей)
+Экран предлагает быстро написать всё, что сейчас в голове.
+Механика:
+•	таймер 30–60 секунд
+•	пользователь пишет поток мыслей
+•	после завершения текст можно сжать / удалить / сохранить
+Эффект:
+•	снижает когнитивную перегрузку
+•	уменьшает тревожное мышление
+•	помогает быстро разгрузить голову
+________________________________________
+3. Tap Calm / Release Tap (Тактильная разрядка)
+Пользователь быстро или ритмично нажимает на экран.
+Механика:
+•	длительность 30–60 секунд
+•	экран реагирует волнами / рябью
+•	можно задать ритм
+Эффект:
+•	снимает напряжение
+•	снижает раздражение
+•	помогает при фрустрации
+________________________________________
+Почему именно эти практики
+Причины высокого retention:
+•	не требуют подготовки
+•	занимают меньше 2 минут
+•	дают быстрый физиологический эффект
+•	легко запускать несколько раз в день
+Такие практики хорошо работают как быстрые инструменты стабилизации состояния между более длинными практиками (дыхание, медитация).
+________________________________________
+План интеграции в приложение
+Экран Tools:
+Breathing
+Meditation
+Visual Focus
+Mind Dump
+Tap Calm
+Каждая практика:
+•	1–3 минуты
+•	после завершения пользователь отмечает результат
+•	данные записываются в session-analytics.js
+Это позволит системе анализировать:
+•	какая практика лучше работает
+•	при каком состоянии она эффективнее
+•	какие инструменты стоит рекомендовать пользователю.
+
+
