@@ -123,8 +123,11 @@ export function getFullSessionStats() {
 
   return {
     totalSessions:    sessions.length,
-    breathingSessions: breathing.length,
-    meditationSessions: meditation.length,
+    breathingSessions:   breathing.length,
+meditationSessions:  meditation.length,
+visualFocusSessions: visualFocus.length,
+mindDumpSessions:    mindDump.length,
+tapCalmSessions:     tapCalm.length,
     totalMinutes:     minutes,
 
     breathingRate:    getEffectivenessRate("breathing"),
