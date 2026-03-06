@@ -22,13 +22,13 @@ import {
   getTodayForecast,
   getAmnesiaReminder,
   getMicroHabit
-} from "../insight-engine.js";
+} from "../services/insight-engine.js";
 import {
   getResilienceIndex,
   getResilienceLabel,
   getResilienceTrend
-} from "../resilience-engine.js";
-import { getNoteTriggers, hasEveningDip } from "../pattern-engine.js";
+} from "../services/resilience-engine.js";
+import { getNoteTriggers, hasEveningDip } from "../services/pattern-engine.js";
 
 export function onEnter() {
   const container = document.getElementById("insight-content");
