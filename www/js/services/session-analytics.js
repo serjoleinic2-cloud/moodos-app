@@ -54,7 +54,7 @@ export function getEffectivenessByState(type) {
 // Принимает текущее состояние ("STRESSED", "LOW" и т.д.)
 // Возвращает "breathing" | "meditation" | null
 export function getBestToolForState(currentState) {
-  const types = ["breathing", "meditation"];
+  const types = ["breathing", "meditation", "visual-focus", "mind-dump", "tap-calm"];
   let bestTool = null;
   let bestRate = -1;
 
