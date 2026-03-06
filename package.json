@@ -1,0 +1,24 @@
+{
+  "name": "moodos-app",
+  "version": "1.0.0",
+  "description": "MoodOS Emotional AI App",
+  "scripts": {
+    "start": "npx cap serve",
+    "build": "echo build complete"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/local-notifications": "^8.0.1",
+    "@capacitor/preferences": "^8.0.1",
+    "chart.js": "^4.5.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

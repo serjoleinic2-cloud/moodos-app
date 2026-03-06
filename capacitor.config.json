@@ -1,0 +1,8 @@
+{
+  "appId": "com.moodos.app",
+  "appName": "MoodOS",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
