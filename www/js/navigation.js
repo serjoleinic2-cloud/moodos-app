@@ -43,7 +43,7 @@ export function initNavigation() {
   }
 
   function closeToolsMenu() {
-    toolsPanel.style.bottom = "-260px";
+    toolsPanel.style.bottom = "-560px";
     setTimeout(() => { toolsOverlay.style.display = "none"; }, 350);
   }
 
@@ -124,6 +124,34 @@ export function initNavigation() {
     const { initMeditation } = await import("./screens/meditation.js");
     const content = document.getElementById("tools-content");
     if (content) { content.innerHTML = ""; initMeditation(content); }
+  };
+
+  // ✅ НОВЫЕ ОБРАБОТЧИКИ
+  document.getElementById("toolsVisualFocus").onclick = async () => {
+    closeToolsMenu();
+    openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    const { initVisualFocus } = await import("./visual-focus.js");
+    const content = document.getElementById("tools-content");
+    if (content) { content.innerHTML = ""; initVisualFocus(content); }
+  };
+
+  document.getElementById("toolsMindDump").onclick = async () => {
+    closeToolsMenu();
+    openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    const { initMindDump } = await import("./mind-dump.js");
+    const content = document.getElementById("tools-content");
+    if (content) { content.innerHTML = ""; initMindDump(content); }
+  };
+
+  document.getElementById("toolsTapCalm").onclick = async () => {
+    closeToolsMenu();
+    openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    const { initTapCalm } = await import("./tap-calm.js");
+    const content = document.getElementById("tools-content");
+    if (content) { content.innerHTML = ""; initTapCalm(content); }
   };
 
   // ---- НАВИГАЦИЯ ----
