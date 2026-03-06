@@ -4,6 +4,9 @@ import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import { analyzeLatestVoice } from "./ai/voice-analysis.js";
+import { isOnboardingDone } from "./services/user-profile.js";
+import { initOnboarding }   from "./onboarding.js";
+import { maybeShowMonthlyCheck } from "./monthly-check.js";
 import {
   getMoodHistory,
   saveMoodHistory,
@@ -76,7 +79,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initState();
   initUI();
+  if (!isOnboardingDone()) {
+  initOnboarding(() => { initNavigation(); });
+} else {
   initNavigation();
+  maybeShowMonthlyCheck();
+}
   
   // MOOD SLIDER CONNECT
 
