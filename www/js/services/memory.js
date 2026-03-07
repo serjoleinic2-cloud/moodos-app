@@ -73,3 +73,13 @@ export function addActivityEntry(entry) {
   saveActivityHistory(history);
   console.log("ACTIVITY SAVED:", JSON.stringify(entry));
 }
+
+/* ---------- PHOTO HISTORY ---------- */
+
+export function getPhotoHistory() {
+  return JSON.parse(localStorage.getItem("photo_history")) || [];
+}
+
+export function savePhotoHistory(history) {
+  localStorage.setItem("photo_history", JSON.stringify(history));
+}

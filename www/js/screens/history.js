@@ -129,11 +129,11 @@ function showDeleteDialog(item, onConfirm) {
       <div style="display:flex; gap:12px; justify-content:center;">
         <div id="delCancel" style="
           flex:1; padding:14px; border-radius:16px; cursor:pointer; text-align:center;
-          background:#e0e5ec; box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
+          background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
           color:#888; font-size:15px;">Отмена</div>
         <div id="delConfirm" style="
           flex:1; padding:14px; border-radius:16px; cursor:pointer; text-align:center;
-          background:#e0e5ec; box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
+          background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
           color:#e05555; font-size:15px; font-weight:600;">Удалить</div>
       </div>
     </div>
@@ -187,7 +187,7 @@ function renderCard(item) {
   const deleteBtn = `
     <div class="hist-delete-btn" data-ts="${item.ts}" data-type="${item.type}" style="
       padding:8px; margin-left:4px; border-radius:10px; cursor:pointer; flex-shrink:0;
-      background:#e0e5ec; box-shadow:3px 3px 6px #b8bec7,-3px -3px 6px #ffffff;
+      background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:3px 3px 6px #b8bec7,-3px -3px 6px #ffffff;
       font-size:16px; display:flex; align-items:center; justify-content:center;
       -webkit-tap-highlight-color:transparent;">🗑</div>`;
 
@@ -221,16 +221,34 @@ function renderCard(item) {
   }
 
   if (item.type === "voice") {
-    const preview = item.text.length > 60 ? item.text.slice(0, 60) + "..." : item.text;
+    const preview = item.text && item.text.length > 60 ? item.text.slice(0, 60) + "..." : (item.text || "");
+    const audioId = `audio_${item.ts}`;
     return `
-      <div class="hist-card" data-ts="${item.ts}" data-type="voice">
-        <div class="hist-card-left" style="background:#9f7aea"><span style="font-size:20px;">🎙️</span></div>
-        <div class="hist-card-body">
-          <div class="hist-card-title">Голосовая запись</div>
-          <div class="hist-card-sub">${preview || "—"}</div>
+      <div class="hist-card" data-ts="${item.ts}" data-type="voice" style="flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:12px; width:100%;">
+          <div class="hist-card-left" style="background:#9f7aea"><span style="font-size:20px;">🎙️</span></div>
+          <div class="hist-card-body">
+            <div class="hist-card-title">Голосовая запись</div>
+            <div class="hist-card-sub">${preview || "нет транскрипции"}</div>
+          </div>
+          <div class="hist-card-time">${time}</div>
+          ${deleteBtn}
         </div>
-        <div class="hist-card-time">${time}</div>
-        ${deleteBtn}
+        ${item.audio ? `
+        <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px solid #d0d5de;">
+          <audio id="${audioId}" src="${item.audio}"></audio>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="hist-play-btn" data-audio="${audioId}" style="
+              width:38px; height:38px; border-radius:50%; flex-shrink:0;
+              background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
+              display:flex; align-items:center; justify-content:center;
+              font-size:16px; cursor:pointer; -webkit-tap-highlight-color:transparent;">▶</div>
+            <div style="flex:1; height:6px; border-radius:3px; background:#d0d5de; overflow:hidden;">
+              <div class="hist-audio-progress" data-audio="${audioId}" style="height:100%; width:0%; background:#9f7aea; border-radius:3px; transition:width 0.5s;"></div>
+            </div>
+            <div class="hist-audio-time" data-audio="${audioId}" style="font-size:12px; color:#888; min-width:36px; text-align:right;">0:00</div>
+          </div>
+        </div>` : ""}
       </div>`;
   }
 
@@ -355,7 +373,7 @@ function renderDetail(item) {
       position:fixed; bottom:calc(88px + env(safe-area-inset-bottom));
       left:0; width:100%; display:flex; justify-content:center; z-index:50;">
       <div id="histBackBtn" style="
-        padding:14px 48px; border-radius:20px; background:#e0e5ec;
+        padding:14px 48px; border-radius:20px; background:linear-gradient(160deg,#f5ede0,#ddd5cb);
         box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
         font-size:16px; color:#555; cursor:pointer;
         -webkit-tap-highlight-color:transparent;">‹ Назад</div>
@@ -455,15 +473,15 @@ function renderHistory(filterDate = null) {
         <div style="display:flex; flex-direction:column; gap:12px;">
           <div id="photoCamera" style="
             padding:16px; border-radius:16px; cursor:pointer; text-align:center;
-            background:#e0e5ec; box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
+            background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
             color:#555; font-size:17px;">📸 Сделать фото</div>
           <div id="photoGallery" style="
             padding:16px; border-radius:16px; cursor:pointer; text-align:center;
-            background:#e0e5ec; box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
+            background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
             color:#555; font-size:17px;">🖼 Выбрать из галереи</div>
           <div id="photoCancel" style="
             padding:16px; border-radius:16px; cursor:pointer; text-align:center;
-            background:#e0e5ec; box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
+            background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;
             color:#aaa; font-size:17px;">Отмена</div>
         </div>
       </div>`;
@@ -517,6 +535,56 @@ function renderHistory(filterDate = null) {
         deleteItem(item);
         renderHistory(filterDate);
       });
+    };
+  });
+
+  // ---- Аудио плееры ----
+  container.querySelectorAll(".hist-play-btn").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const audioId  = btn.dataset.audio;
+      const audio    = document.getElementById(audioId);
+      if (!audio) return;
+
+      // Пауза всех остальных
+      container.querySelectorAll("audio").forEach(a => {
+        if (a.id !== audioId) {
+          a.pause();
+          a.currentTime = 0;
+          const pb = container.querySelector(`.hist-play-btn[data-audio="${a.id}"]`);
+          if (pb) pb.textContent = "▶";
+          const pr = container.querySelector(`.hist-audio-progress[data-audio="${a.id}"]`);
+          if (pr) pr.style.width = "0%";
+        }
+      });
+
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = "⏸";
+      } else {
+        audio.pause();
+        btn.textContent = "▶";
+      }
+
+      audio.ontimeupdate = () => {
+        if (!audio.duration) return;
+        const pct = (audio.currentTime / audio.duration) * 100;
+        const pr  = container.querySelector(`.hist-audio-progress[data-audio="${audioId}"]`);
+        const tm  = container.querySelector(`.hist-audio-time[data-audio="${audioId}"]`);
+        if (pr) pr.style.width = pct + "%";
+        if (tm) {
+          const s = Math.floor(audio.currentTime);
+          tm.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+        }
+      };
+
+      audio.onended = () => {
+        btn.textContent = "▶";
+        const pr = container.querySelector(`.hist-audio-progress[data-audio="${audioId}"]`);
+        if (pr) pr.style.width = "0%";
+        const tm = container.querySelector(`.hist-audio-time[data-audio="${audioId}"]`);
+        if (tm) tm.textContent = "0:00";
+      };
     };
   });
 }
