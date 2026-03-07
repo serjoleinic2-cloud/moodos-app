@@ -43,7 +43,7 @@ export function initNavigation() {
   }
 
   function closeToolsMenu() {
-    toolsPanel.style.bottom = "-560px";
+    toolsPanel.style.bottom = "-460px";
     setTimeout(() => { toolsOverlay.style.display = "none"; }, 350);
   }
 
@@ -108,50 +108,43 @@ export function initNavigation() {
   toolsOverlay.addEventListener("click", () => closeToolsMenu());
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
+  // Вспомогательная функция — открыть Tools-экран и запустить модуль
+  async function openTool(initFn) {
+    closeToolsMenu();
+    openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    const content = document.getElementById("tools-content");
+    if (content) { content.innerHTML = ""; initFn(content); }
+  }
+
+  // 🫁 Дыхание
   document.getElementById("toolsBreathing").onclick = async () => {
-    closeToolsMenu();
-    openScreen("tools");
-    await new Promise(r => setTimeout(r, 50));
     const { initBreathing } = await import("./breathing.js");
-    const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; initBreathing(content); }
+    openTool(initBreathing);
   };
 
+  // 🧘 Медитация
   document.getElementById("toolsMeditation").onclick = async () => {
-    closeToolsMenu();
-    openScreen("tools");
-    await new Promise(r => setTimeout(r, 50));
     const { initMeditation } = await import("./screens/meditation.js");
-    const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; initMeditation(content); }
+    openTool(initMeditation);
   };
 
-  // ✅ НОВЫЕ ОБРАБОТЧИКИ
+  // 👁 Зрительный якорь
   document.getElementById("toolsVisualFocus").onclick = async () => {
-    closeToolsMenu();
-    openScreen("tools");
-    await new Promise(r => setTimeout(r, 50));
-    const { initVisualFocus } = await import("./visual-focus.js");
-    const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; initVisualFocus(content); }
+    const { initVisualFocus } = await import("./screens/visual-focus.js");
+    openTool(initVisualFocus);
   };
 
+  // 🧠 Выгрузка мыслей
   document.getElementById("toolsMindDump").onclick = async () => {
-    closeToolsMenu();
-    openScreen("tools");
-    await new Promise(r => setTimeout(r, 50));
-    const { initMindDump } = await import("./mind-dump.js");
-    const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; initMindDump(content); }
+    const { initMindDump } = await import("./screens/mind-dump.js");
+    openTool(initMindDump);
   };
 
+  // ✋ Тактильная разрядка
   document.getElementById("toolsTapCalm").onclick = async () => {
-    closeToolsMenu();
-    openScreen("tools");
-    await new Promise(r => setTimeout(r, 50));
-    const { initTapCalm } = await import("./tap-calm.js");
-    const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; initTapCalm(content); }
+    const { initTapCalm } = await import("./screens/tap-calm.js");
+    openTool(initTapCalm);
   };
 
   // ---- НАВИГАЦИЯ ----

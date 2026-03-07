@@ -454,7 +454,8 @@ function renderHistory(filterDate = null) {
   container.querySelector("#histDateFilter").onchange = e => {
     renderHistory(e.target.value || null);
   };
-  container.querySelector("#histClearDate")?.onclick = () => renderHistory(null);
+  const clearBtn = container.querySelector("#histClearDate");
+  if (clearBtn) clearBtn.onclick = () => renderHistory(null);
 
   // Добавить фото
   container.querySelector("#histAddPhoto").onclick = () => addPhoto();
