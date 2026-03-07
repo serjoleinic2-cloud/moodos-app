@@ -131,19 +131,19 @@ export function initNavigation() {
 
   // 👁 Зрительный якорь
   document.getElementById("toolsVisualFocus").onclick = async () => {
-    const { initVisualFocus } = await import("./screens/visual-focus.js");
+    const { initVisualFocus } = await import("./visual-focus.js");
     openTool(initVisualFocus);
   };
 
   // 🧠 Выгрузка мыслей
   document.getElementById("toolsMindDump").onclick = async () => {
-    const { initMindDump } = await import("./screens/mind-dump.js");
+    const { initMindDump } = await import("./mind-dump.js");
     openTool(initMindDump);
   };
 
   // ✋ Тактильная разрядка
   document.getElementById("toolsTapCalm").onclick = async () => {
-    const { initTapCalm } = await import("./screens/tap-calm.js");
+    const { initTapCalm } = await import("./tap-calm.js");
     openTool(initTapCalm);
   };
 
