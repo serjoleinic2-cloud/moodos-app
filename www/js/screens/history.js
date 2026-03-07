@@ -156,7 +156,7 @@ function buildTimeline() {
   });
 
   getVoiceHistory().forEach(entry => {
-    items.push({ type: "voice", ts: entry.timestamp || new Date(entry.time).getTime(), text: entry.text || entry.transcript || "" });
+    items.push({ type: "voice", ts: entry.timestamp || new Date(entry.time).getTime(), text: entry.text || entry.transcript || "", audio: entry.audio || "" });
   });
 
   getSessionHistory().forEach(entry => {
@@ -221,34 +221,29 @@ function renderCard(item) {
   }
 
   if (item.type === "voice") {
-    const preview = item.text && item.text.length > 60 ? item.text.slice(0, 60) + "..." : (item.text || "");
     const audioId = `audio_${item.ts}`;
     return `
-      <div class="hist-card" data-ts="${item.ts}" data-type="voice" style="flex-wrap:wrap;">
+      <div class="hist-card" data-ts="${item.ts}" data-type="voice" style="flex-wrap:wrap; cursor:default;">
         <div style="display:flex; align-items:center; gap:12px; width:100%;">
           <div class="hist-card-left" style="background:#9f7aea"><span style="font-size:20px;">🎙️</span></div>
           <div class="hist-card-body">
             <div class="hist-card-title">Голосовая запись</div>
-            <div class="hist-card-sub">${preview || "нет транскрипции"}</div>
+            <div class="hist-card-sub">${time}</div>
           </div>
-          <div class="hist-card-time">${time}</div>
           ${deleteBtn}
         </div>
-        ${item.audio ? `
-        <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px solid #d0d5de;">
-          <audio id="${audioId}" src="${item.audio}"></audio>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div class="hist-play-btn" data-audio="${audioId}" style="
-              width:38px; height:38px; border-radius:50%; flex-shrink:0;
-              background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
-              display:flex; align-items:center; justify-content:center;
-              font-size:16px; cursor:pointer; -webkit-tap-highlight-color:transparent;">▶</div>
-            <div style="flex:1; height:6px; border-radius:3px; background:#d0d5de; overflow:hidden;">
-              <div class="hist-audio-progress" data-audio="${audioId}" style="height:100%; width:0%; background:#9f7aea; border-radius:3px; transition:width 0.5s;"></div>
-            </div>
-            <div class="hist-audio-time" data-audio="${audioId}" style="font-size:12px; color:#888; min-width:36px; text-align:right;">0:00</div>
+        <div style="width:100%; margin-top:12px; display:flex; align-items:center; gap:10px;">
+          <audio id="${audioId}" src="${item.audio || ""}"></audio>
+          <div class="hist-play-btn" data-audio="${audioId}" style="
+            width:42px; height:42px; border-radius:50%; flex-shrink:0;
+            background:linear-gradient(160deg,#f5ede0,#ddd5cb); box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; cursor:pointer; -webkit-tap-highlight-color:transparent;">▶</div>
+          <div style="flex:1; height:6px; border-radius:3px; background:#d0d5de; overflow:hidden;">
+            <div class="hist-audio-progress" data-audio="${audioId}" style="height:100%; width:0%; background:#9f7aea; border-radius:3px; transition:width 0.3s;"></div>
           </div>
-        </div>` : ""}
+          <div class="hist-audio-time" data-audio="${audioId}" style="font-size:12px; color:#666; min-width:36px; text-align:right;">0:00</div>
+        </div>
       </div>`;
   }
 
@@ -315,11 +310,26 @@ function renderDetail(item) {
   }
 
   if (item.type === "voice") {
+    const detAudioId = `detaudio_${item.ts}`;
     body = `
-      <div style="margin-top:20px; padding:18px; border-radius:16px; background:#e0e5ec;
-        box-shadow:4px 4px 10px #b8bec7,-4px -4px 10px #ffffff;">
-        <div style="font-size:13px; color:#888; margin-bottom:8px;">Транскрипция:</div>
-        <div style="font-size:16px; line-height:1.7; color:#444;">${item.text || "Нет текста"}</div>
+      <div style="margin-top:24px; padding:20px; border-radius:18px; background:#e0e5ec;
+        box-shadow:6px 6px 14px #b8bec7,-6px -6px 14px #ffffff;">
+        <div style="font-size:14px; color:#666; margin-bottom:16px; font-weight:600;">🎙️ Голосовая запись</div>
+        <audio id="${detAudioId}" src="${item.audio || ""}"></audio>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="hist-play-btn" data-audio="${detAudioId}" style="
+            width:52px; height:52px; border-radius:50%; flex-shrink:0;
+            background:linear-gradient(160deg,#f5ede0,#ddd5cb);
+            box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;
+            display:flex; align-items:center; justify-content:center;
+            font-size:22px; cursor:pointer; -webkit-tap-highlight-color:transparent;">▶</div>
+          <div style="flex:1;">
+            <div style="height:8px; border-radius:4px; background:#d0d5de; overflow:hidden; margin-bottom:6px;">
+              <div class="hist-audio-progress" data-audio="${detAudioId}" style="height:100%; width:0%; background:#9f7aea; border-radius:4px; transition:width 0.3s;"></div>
+            </div>
+            <div class="hist-audio-time" data-audio="${detAudioId}" style="font-size:13px; color:#666; text-align:right;">0:00</div>
+          </div>
+        </div>
       </div>`;
   }
 
