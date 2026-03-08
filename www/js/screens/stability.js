@@ -68,7 +68,7 @@ export function onEnter() {
     .slice()
     .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
     .slice(-10)
-    .reverse(); // новые сверху
+	.reverse(); // новые сверху
   const notes  = getNotesHistory ? getNotesHistory() : [];
 
   function infoBtn(key) {
