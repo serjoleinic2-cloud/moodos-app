@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta 
@@ -28,7 +28,7 @@
 <div class="card">
 
   <div class="mood-header">
-    <div class="card-title">How do you feel?</div>
+    <div class="card-title">Как ты себя чувствуешь?</div>
     <div id="moodSavedLabel" class="saved-label"></div>
   </div>
 
@@ -40,7 +40,7 @@
 
   <div class="mood-value-row">
     <span id="moodValue">50%</span>
-    <button id="moodConfirmBtn" class="mood-ok-btn">OK</button>
+    <button id="moodConfirmBtn" class="mood-ok-btn">ОК</button>
   </div>
 
 </div>
@@ -49,19 +49,19 @@
 <!-- AI REFLECTION -->
 
 <div class="card">
-<div class="card-title">Daily reflection</div>
+<div class="card-title">Дневная рефлексия</div>
 
 <textarea
 id="dailyNote"
-placeholder="Write a few words about your day..."
+placeholder="Напиши несколько слов о своём дне..."
 ></textarea>
 
 <button id="analyzeNoteBtn">
-Get insight
+Получить инсайт
 </button>
 
 <div id="aiResponse">
-AI is listening...
+ИИ слушает...
 </div>
 
 </div>
@@ -69,13 +69,13 @@ AI is listening...
 <!-- VOICE REFLECTION -->
 
 <div class="card">
-<div class="card-title">Voice reflection (10 sec)</div>
+<div class="card-title">Голосовая рефлексия (10 сек)</div>
 
 <button id="recordVoiceBtn">
-Start recording
+Начать запись
 </button>
 
-<div id="voiceStatus">Idle</div>
+<div id="voiceStatus">Ожидание</div>
 <div id="voiceAIResponse"></div>
 
 </div>
@@ -83,22 +83,22 @@ Start recording
 
 <!-- STABILITY -->
 <div class="card">
-<div class="card-title">Stability Index</div>
+<div class="card-title">Индекс устойчивости</div>
 
 <div id="stabilityValue">--%</div>
-<div id="stabilityTrend">→ stable</div>
+<div id="stabilityTrend">→ стабильно</div>
 </div>
 
 <!-- INSIGHT -->
 <div class="card insight-card">
-<div class="insight-title">Today Insight</div>
-<div id="todayInsight">Analyzing...</div>
+<div class="insight-title">Инсайт дня</div>
+<div id="todayInsight">Анализирую...</div>
 </div>
 
 <!-- GOLDEN HOURS -->
 <div class="card golden-card">
-<div class="golden-title">Golden Hours</div>
-<div id="goldenHours">learning...</div>
+<div class="golden-title">Золотые часы</div>
+<div id="goldenHours">изучаю...</div>
 </div>
 
 </div>
@@ -110,19 +110,19 @@ Start recording
 <!-- ================= OTHER SCREENS ================= -->
 
 <div class="screen" data-screen="insight">
-<h1>Insight</h1>
+<h1>Инсайт</h1>
 <div id="insight-content"></div>
 </div>
 
 
 <div class="screen" data-screen="report">
-<h1>Report</h1>
+<h1>Отчёт</h1>
 <div id="report-content"></div>
 </div>
 
 
 <div class="screen" data-screen="stability">
-<h1>Stability</h1>
+<h1>Устойчивость</h1>
 <div id="stability-content"></div>
 </div>
 
@@ -134,7 +134,7 @@ Start recording
 
 
 <div class="screen" data-screen="settings">
-<h1>Settings</h1>
+<h1>Настройки</h1>
 </div>
 
 
@@ -146,35 +146,33 @@ Start recording
 <nav class="bottom-nav">
 
 <button data-nav="home" class="active">
-<span>1</span>
-<small>Home</small>
+<span>🏠</span>
+<small>Главная</small>
 </button>
 
 <button data-nav="insight">
-<span>2</span>
-<small>Insight</small>
+<span>💡</span>
+<small>Инсайт</small>
 </button>
 
 <button data-nav="report">
-<span>3</span>
-<small>Report</small>
+<span>📊</span>
+<small>Отчёт</small>
 </button>
 
 <button data-nav="stability">
-<span>4</span>
-<small>Stability</small>
+<span>🧘</span>
+<small>Баланс</small>
 </button>
 
 <button data-nav="tools">
-<span>5</span>
-<small>Tools</small>
+<span>🛠</span>
+<small>Практики</small>
 </button>
-
-
 
 <button id="hamburgerBtn">
 <span>☰</span>
-<small>Menu</small>
+<small>Меню</small>
 </button>
 
 </nav>
@@ -194,7 +192,7 @@ Start recording
   left:0;
   width:100%;
   max-height:300px;
-  background:#e0e5ec;
+  background:#e8ede6;
   border-radius:24px 24px 0 0;
   padding:20px 20px 120px 20px;
   max-height:340px;
@@ -206,8 +204,8 @@ Start recording
   <div class="menuItem" data-nav="history" style="
     padding:16px; margin-bottom:12px;
     border-radius:16px;
-    background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555;
     font-size:18px; cursor:pointer;
   ">📖 История</div>
@@ -215,8 +213,8 @@ Start recording
   <div class="menuItem" data-nav="settings" style="
     padding:16px; margin-bottom:12px;
     border-radius:16px;
-    background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555;
     font-size:18px; cursor:pointer;
   ">⚙️ Настройки</div>
@@ -224,11 +222,11 @@ Start recording
   <div class="menuItem" data-nav="premium" style="
     padding:16px; margin-bottom:20px;
     border-radius:16px;
-    background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#9f7aea;
     font-size:18px; cursor:pointer;
-  ">👑 Premium</div>
+  ">👑 Премиум</div>
 
 </div>
 
@@ -247,51 +245,50 @@ Start recording
   left:0;
   width:100%;
   max-height:460px;
-  background:#e0e5ec;
+  background:#e8ede6;
   border-radius:24px 24px 0 0;
   padding:20px 20px 110px 20px;
   z-index:101;
   box-sizing:border-box;
   transition: bottom 0.35s ease;
-  overflow-y: auto;
 ">
   <div id="toolsBreathing" style="
     padding:16px; margin-bottom:12px;
-    border-radius:16px; background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    border-radius:16px; background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555; font-size:18px; cursor:pointer;
   ">🫁 Дыхание</div>
 
   <div id="toolsMeditation" style="
     padding:16px; margin-bottom:12px;
-    border-radius:16px; background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    border-radius:16px; background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555; font-size:18px; cursor:pointer;
   ">🧘 Медитация</div>
 
   <div id="toolsVisualFocus" style="
     padding:16px; margin-bottom:12px;
-    border-radius:16px; background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    border-radius:16px; background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555; font-size:18px; cursor:pointer;
   ">👁 Зрительный якорь</div>
 
   <div id="toolsMindDump" style="
     padding:16px; margin-bottom:12px;
-    border-radius:16px; background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    border-radius:16px; background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555; font-size:18px; cursor:pointer;
   ">🧠 Выгрузка мыслей</div>
 
   <div id="toolsTapCalm" style="
     padding:16px; margin-bottom:12px;
-    border-radius:16px; background:#e0e5ec;
-    box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+    border-radius:16px; background:#e8ede6;
+    box-shadow: 6px 6px 12px #c4c9c2, -6px -6px 12px #ffffff;
     color:#555; font-size:18px; cursor:pointer;
   ">✋ Тактильная разрядка</div>
-
 </div>
 
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script type="module" src="js/app.js"></script>
 

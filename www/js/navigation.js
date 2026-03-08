@@ -36,13 +36,6 @@ export function initNavigation() {
   const toolsPanel   = document.getElementById("toolsPanel");
   const toolsOverlay = document.getElementById("toolsOverlay");
 
-  // ---- ПОДСВЕТКА КНОПКИ (отдельно от переключения экрана) ----
-  function setActiveButton(name) {
-    buttons.forEach(b => b.classList.remove("active"));
-    const btn = document.querySelector(`[data-nav="${name}"]`);
-    if (btn) btn.classList.add("active");
-  }
-
   // ---- CLOSE ФУНКЦИИ ----
   function closeMenu() {
     menuPanel.style.bottom = "-300px";
@@ -57,9 +50,6 @@ export function initNavigation() {
   // ---- OPEN ФУНКЦИИ ----
   function openMenu() {
     closeToolsMenu();
-    // Подсвечиваем hamburger при открытии
-    buttons.forEach(b => b.classList.remove("active"));
-    hamburgerBtn.classList.add("active");
     menuPanel.style.bottom    = "0";
     menuOverlay.style.display = "block";
     menuOverlay.style.zIndex  = "100";
@@ -68,7 +58,6 @@ export function initNavigation() {
 
   function openToolsMenu() {
     closeMenu();
-    setActiveButton("tools"); // подсвечиваем кнопку 5 сразу
     toolsPanel.style.bottom    = "0";
     toolsOverlay.style.display = "block";
     toolsOverlay.style.zIndex  = "100";
@@ -80,29 +69,37 @@ export function initNavigation() {
     closeMenu();
     closeToolsMenu();
 
+    if (currentScreen === name) return;
+
     screenElements.forEach(s => s.classList.remove("active"));
+
+    // Снимаем active только с nav-кнопок (не с hamburgerBtn)
+    buttons.forEach(b => {
+      if (b.id !== "hamburgerBtn") b.classList.remove("active");
+    });
+
     const targetScreen = document.querySelector(`[data-screen="${name}"]`);
+    const targetButton = document.querySelector(`[data-nav="${name}"]`);
+
     if (!targetScreen) return;
+
     targetScreen.classList.add("active");
 
-    setActiveButton(name);
+    // Подсвечиваем только если кнопка есть И это не hamburger
+    if (targetButton && targetButton.id !== "hamburgerBtn") {
+      targetButton.classList.add("active");
+    }
+
     currentScreen = name;
     loadScreen(name);
   }
 
-  // Закрытие панели без выбора — восстанавливаем подсветку текущего экрана
-  function closeToolsMenuWithRestore() {
-    closeToolsMenu();
-    if (currentScreen) setActiveButton(currentScreen);
-  }
-
-  // ---- HAMBURGER ----
-  hamburgerBtn.addEventListener("click", () => openMenu());
-  menuOverlay.addEventListener("click", (e) => {
-    e.stopPropagation();
-    closeMenu();
-    if (currentScreen) setActiveButton(currentScreen); // восстанавливаем подсветку
+  // ---- HAMBURGER СОБЫТИЯ ----
+  hamburgerBtn.addEventListener("click", () => {
+    // hamburgerBtn никогда не получает класс active
+    openMenu();
   });
+  menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); });
   menuPanel.addEventListener("click", (e) => e.stopPropagation());
 
   document.querySelectorAll(".menuItem").forEach(item => {
@@ -112,53 +109,81 @@ export function initNavigation() {
     });
   });
 
-  // ---- TOOLS ----
+  // ---- TOOLS СОБЫТИЯ ----
   toolsBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     openToolsMenu();
   });
 
-  toolsOverlay.addEventListener("click", () => closeToolsMenuWithRestore());
+  toolsOverlay.addEventListener("click", () => closeToolsMenu());
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
-  // Вспомогательная функция — открыть инструмент
-  async function openTool(importFn, initKey) {
+  document.getElementById("toolsBreathing").onclick = async () => {
     closeToolsMenu();
-    screenElements.forEach(s => s.classList.remove("active"));
-    const toolScreen = document.querySelector('[data-screen="tools"]');
-    if (toolScreen) toolScreen.classList.add("active");
-    setActiveButton("tools");
-    currentScreen = "tools";
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const mod = await importFn();
+    const { initBreathing } = await import("./breathing.js");
     const content = document.getElementById("tools-content");
-    if (content) { content.innerHTML = ""; mod[initKey](content); }
+    if (content) { content.innerHTML = ""; initBreathing(content); }
+  };
+
+  document.getElementById("toolsMeditation").onclick = async () => {
+    closeToolsMenu();
+    openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    const { initMeditation } = await import("./screens/meditation.js");
+    const content = document.getElementById("tools-content");
+    if (content) { content.innerHTML = ""; initMeditation(content); }
+  };
+
+  // Дополнительные инструменты (если есть)
+  const visualFocus = document.getElementById("toolsVisualFocus");
+  if (visualFocus) {
+    visualFocus.onclick = async () => {
+      closeToolsMenu();
+      openScreen("tools");
+      await new Promise(r => setTimeout(r, 50));
+      try {
+        const { initVisualFocus } = await import("./screens/visual-focus.js");
+        const content = document.getElementById("tools-content");
+        if (content) { content.innerHTML = ""; initVisualFocus(content); }
+      } catch(e) {}
+    };
   }
 
-  // 🫁 Дыхание
-  document.getElementById("toolsBreathing").onclick = () =>
-    openTool(() => import("./breathing.js"), "initBreathing");
+  const mindDump = document.getElementById("toolsMindDump");
+  if (mindDump) {
+    mindDump.onclick = async () => {
+      closeToolsMenu();
+      openScreen("tools");
+      await new Promise(r => setTimeout(r, 50));
+      try {
+        const { initMindDump } = await import("./screens/mind-dump.js");
+        const content = document.getElementById("tools-content");
+        if (content) { content.innerHTML = ""; initMindDump(content); }
+      } catch(e) {}
+    };
+  }
 
-  // 🧘 Медитация
-  document.getElementById("toolsMeditation").onclick = () =>
-    openTool(() => import("./screens/meditation.js"), "initMeditation");
+  const tapCalm = document.getElementById("toolsTapCalm");
+  if (tapCalm) {
+    tapCalm.onclick = async () => {
+      closeToolsMenu();
+      openScreen("tools");
+      await new Promise(r => setTimeout(r, 50));
+      try {
+        const { initTapCalm } = await import("./screens/tap-calm.js");
+        const content = document.getElementById("tools-content");
+        if (content) { content.innerHTML = ""; initTapCalm(content); }
+      } catch(e) {}
+    };
+  }
 
-  // 👁 Зрительный якорь
-  document.getElementById("toolsVisualFocus").onclick = () =>
-    openTool(() => import("./visual-focus.js"), "initVisualFocus");
-
-  // 🧠 Выгрузка мыслей
-  document.getElementById("toolsMindDump").onclick = () =>
-    openTool(() => import("./mind-dump.js"), "initMindDump");
-
-  // ✋ Тактильная разрядка
-  document.getElementById("toolsTapCalm").onclick = () =>
-    openTool(() => import("./tap-calm.js"), "initTapCalm");
-
-  // ---- НАВИГАЦИЯ (остальные кнопки) ----
+  // ---- НАВИГАЦИЯ ----
   buttons.forEach(btn => {
     if (btn.dataset.nav === "tools") return;
+    if (btn.id === "hamburgerBtn") return; // hamburger обрабатывается отдельно
     btn.addEventListener("click", e => {
       e.preventDefault();
       e.stopPropagation();
