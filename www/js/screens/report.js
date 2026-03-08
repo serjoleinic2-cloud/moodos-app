@@ -1,15 +1,21 @@
 // ===============================
 // MoodOS Report Screen
 // ===============================
-
 import { getMoodHistory } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 
 let currentPeriod = 7;
 
-export function onEnter() {
-  renderReport();
-}
+const TOOLTIPS = {
+  avg:      "Среднее значение всех замеров настроения за выбранный период (0–100%).",
+  stab:     "Насколько ровным было твоё состояние. 100% = нет скачков, 0% = сильная волатильность.",
+  entries:  "Количество раз, когда ты фиксировал настроение за период.",
+  days:     "Количество дней, в которые ты делал хотя бы одну запись.",
+  best:     "Самая высокая отметка настроения за период с датой и временем.",
+  worst:    "Самая низкая отметка настроения за период с датой и временем."
+};
+
+export function onEnter() { renderReport(); }
 
 function renderReport() {
   const container = document.getElementById("report-content");
@@ -18,238 +24,144 @@ function renderReport() {
   const history = getMoodHistory();
 
   if (!history || history.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; margin-top:60px; color:#888;">
-        <div style="font-size:48px;">📊</div>
-        <div style="margin-top:12px;">Нет данных для отчёта. Начни отслеживать настроение!</div>
-      </div>`;
+    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">Нет данных. Начни отслеживать настроение!</div></div>`;
     return;
   }
 
   const filtered = filterByDays(history, currentPeriod);
 
+  // Кнопки переключения периода всегда рендерим
+  const periodBtns = `
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      ${[7,30,99999].map(d=>`<button class="mo-btn period-btn ${currentPeriod===d?'active-period':''}" data-days="${d}" style="flex:1;">${d>3650?'Всё время':d+' дней'}</button>`).join('')}
+    </div>`;
+
   if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; margin-top:60px; color:#888;">
-        <div style="font-size:48px;">📭</div>
-        <div style="margin-top:12px;">Нет записей за выбранный период.</div>
-      </div>`;
-    renderPeriodButtons(container, history);
+    container.innerHTML = `<div style="padding:4px 0 100px;">${periodBtns}
+      <div style="text-align:center;margin-top:40px;color:#888;"><div style="font-size:48px;">📭</div><div style="margin-top:12px;">Нет записей за этот период.</div></div></div>`;
+    bindPeriodBtns(container);
     return;
   }
 
-  const average = Math.round(
-    filtered.reduce((s, h) => s + h.value, 0) / filtered.length
-  );
+  const average  = Math.round(filtered.reduce((s,h)=>s+h.value,0)/filtered.length);
+  const best     = filtered.reduce((a,b)=>a.value>b.value?a:b);
+  const worst    = filtered.reduce((a,b)=>a.value<b.value?a:b);
+  const stability= calculateStabilityScore(filtered);
+  const activeDays = countActiveDays(filtered);
 
-  const best  = filtered.reduce((a, b) => a.value > b.value ? a : b);
-  const worst = filtered.reduce((a, b) => a.value < b.value ? a : b);
-  const stability = calculateStabilityScore(filtered);
+  function mc(v){ return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
+  function sc(s){ if(!s) return "#888"; return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
 
-  let stateText = "Сбалансированное состояние.";
-  if (average < 40) stateText = "Возможно, ты под эмоциональным давлением. Обрати внимание на отдых и практики.";
-  if (average > 70) stateText = "Ты в целом в хорошем эмоциональном состоянии. Так держать!";
-
-  function moodColor(v) {
-    if (v >= 70) return "#4caf87";
-    if (v >= 40) return "#f0a500";
-    return "#e05555";
-  }
-
-  function stabilityColor(s) {
-    if (!s) return "#888";
-    if (s >= 75) return "#4caf87";
-    if (s >= 50) return "#f0a500";
-    return "#e05555";
-  }
+  let stateText = "Сбалансированное состояние. Продолжай в том же духе.";
+  if (average < 40) stateText = "Возможно, ты под эмоциональным давлением. Попробуй практики дыхания или медитации.";
+  if (average > 70) stateText = "Ты в хорошем эмоциональном состоянии. Отличная работа!";
 
   const periodLabel = currentPeriod > 3650 ? "всё время" : `${currentPeriod} дней`;
 
   container.innerHTML = `
-    <style>
-      .rep-section-title {
-        font-size: 13px; color: #888; font-weight: 600;
-        margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
-      }
-      .rep-card {
-        padding: 16px; border-radius: 18px;
-        background: rgba(232, 237, 230, 0.85);
-        box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
-        margin-bottom: 12px;
-      }
-      .rep-card-label {
-        font-size: 12px; color: #aaa; margin-bottom: 4px;
-      }
-      .rep-card-value {
-        font-size: 28px; font-weight: bold; color: #444;
-      }
-      .rep-card-sub {
-        font-size: 13px; color: #888; margin-top: 4px;
-      }
-      .rep-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        margin-bottom: 12px;
-      }
-      .period-btn {
-        padding: 10px 0; border: none; border-radius: 14px; cursor: pointer;
-        font-size: 14px; font-weight: 600; flex: 1;
-        background: linear-gradient(145deg, #f5efe6, #ede5d8);
-        box-shadow: 4px 4px 8px #c8bfb2, -4px -4px 8px #ffffff;
-        color: #7a6a58;
-        transition: 0.2s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .period-btn.active-period {
-        box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
-        color: #4caf87;
-        font-weight: 700;
-      }
-      .chart-wrap {
-        padding: 16px; border-radius: 18px;
-        background: rgba(232, 237, 230, 0.85);
-        box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
-        margin-bottom: 12px;
-      }
-    </style>
+    <div style="padding:4px 0 100px;">
+      <div style="font-size:13px;color:#888;margin-bottom:16px;">За ${periodLabel}</div>
 
-    <div style="padding:16px; padding-bottom:100px;">
+      ${periodBtns}
 
-      <h2 style="margin-bottom:6px;">Как я живу в целом?</h2>
-      <div style="font-size:13px; color:#888; margin-bottom:20px;">За ${periodLabel}</div>
-
-      <!-- ПЕРИОД -->
-      <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <button class="period-btn ${currentPeriod === 7 ? 'active-period' : ''}" data-days="7">7 дней</button>
-        <button class="period-btn ${currentPeriod === 30 ? 'active-period' : ''}" data-days="30">30 дней</button>
-        <button class="period-btn ${currentPeriod > 3650 ? 'active-period' : ''}" data-days="99999">Всё время</button>
+      <div class="mo-section-title">📊 Сводка</div>
+      <div class="mo-grid-2">
+        ${metricCard("Среднее настроение", `<span style="color:${mc(average)}">${average}%</span>`, "за период", "avg")}
+        ${metricCard("Стабильность", `<span style="color:${sc(stability)}">${stability??'—'}%</span>`, "индекс", "stab")}
+        ${metricCard("Записей", `<span style="color:#4db8ff">${filtered.length}</span>`, "всего", "entries")}
+        ${metricCard("Активных дней", `<span style="color:#9f7aea">${activeDays}</span>`, "с записями", "days")}
       </div>
 
-      <!-- СЕТКА 2×2 -->
-      <div class="rep-section-title">📊 Сводка</div>
-      <div class="rep-grid">
-        <div class="rep-card">
-          <div class="rep-card-label">Среднее настроение</div>
-          <div class="rep-card-value" style="color:${moodColor(average)}">${average}%</div>
-          <div class="rep-card-sub">за период</div>
-        </div>
-        <div class="rep-card">
-          <div class="rep-card-label">Стабильность</div>
-          <div class="rep-card-value" style="color:${stabilityColor(stability)}">${stability ?? "—"}%</div>
-          <div class="rep-card-sub">индекс</div>
-        </div>
-        <div class="rep-card">
-          <div class="rep-card-label">Записей</div>
-          <div class="rep-card-value" style="color:#4db8ff">${filtered.length}</div>
-          <div class="rep-card-sub">всего</div>
-        </div>
-        <div class="rep-card">
-          <div class="rep-card-label">Активных дней</div>
-          <div class="rep-card-value" style="color:#9f7aea">${countActiveDays(filtered)}</div>
-          <div class="rep-card-sub">с записями</div>
-        </div>
-      </div>
-
-      <!-- ГРАФИК -->
-      <div class="rep-section-title" style="margin-top:8px;">📈 Динамика настроения</div>
-      <div class="chart-wrap">
+      <div class="mo-section-title" style="margin-top:16px;">📈 Динамика настроения</div>
+      <div class="mo-metric" style="padding:12px;margin-bottom:16px;">
         <canvas id="reportChart" height="130"></canvas>
       </div>
 
-      <!-- ЛУЧШИЙ / СЛОЖНЫЙ -->
-      <div class="rep-section-title">🏆 Моменты</div>
-      <div class="rep-card">
-        <div class="rep-card-label">😊 Лучший момент</div>
-        <div style="font-size:15px; color:#4caf87; font-weight:600; margin-top:4px;">${best.value}%</div>
-        <div class="rep-card-sub">${formatDate(best.time)}</div>
-      </div>
-      <div class="rep-card">
-        <div class="rep-card-label">😔 Сложный момент</div>
-        <div style="font-size:15px; color:#e05555; font-weight:600; margin-top:4px;">${worst.value}%</div>
-        <div class="rep-card-sub">${formatDate(worst.time)}</div>
+      <div class="mo-section-title">🏆 Моменты</div>
+      <div class="mo-grid-2">
+        ${metricCard("Лучший момент", `<span style="color:#4caf87">${best.value}%</span>`, formatDate(best.time), "best")}
+        ${metricCard("Сложный момент", `<span style="color:#e05555">${worst.value}%</span>`, formatDate(worst.time), "worst")}
       </div>
 
-      <!-- ВЫВОД -->
-      <div class="rep-section-title" style="margin-top:8px;">💬 Общий вывод</div>
-      <div class="rep-card">
-        <div style="font-size:15px; color:#444; line-height:1.6;">${stateText}</div>
+      <div class="mo-section-title" style="margin-top:16px;">💬 Вывод</div>
+      <div class="mo-metric">
+        <div style="font-size:15px;color:#444;line-height:1.6;">${stateText}</div>
       </div>
+    </div>`;
 
-    </div>
-  `;
-
-  // Кнопки периода
-  container.querySelectorAll(".period-btn").forEach(btn => {
-    btn.onclick = () => {
-      currentPeriod = Number(btn.dataset.days);
-      renderReport();
-    };
-  });
-
-  // График
-  requestAnimationFrame(() => drawReportChart(filtered));
+  bindPeriodBtns(container);
+  bindTooltips(container);
+  requestAnimationFrame(() => drawChart(filtered));
 }
 
-function drawReportChart(filtered) {
+function metricCard(label, valueHTML, sub, tooltipKey) {
+  return `
+    <div class="mo-metric" style="position:relative;">
+      <div class="mo-info-btn" data-tip="${tooltipKey}">i</div>
+      <div class="mo-tooltip">${TOOLTIPS[tooltipKey]||''}</div>
+      <div class="mo-metric-label">${label}</div>
+      <div class="mo-metric-value">${valueHTML}</div>
+      <div class="mo-metric-sub">${sub}</div>
+    </div>`;
+}
+
+function bindPeriodBtns(container) {
+  container.querySelectorAll(".period-btn").forEach(btn => {
+    btn.onclick = () => { currentPeriod = Number(btn.dataset.days); renderReport(); };
+  });
+}
+
+function bindTooltips(container) {
+  container.querySelectorAll(".mo-info-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const wasOpen = btn.classList.contains("open");
+      container.querySelectorAll(".mo-info-btn").forEach(b => b.classList.remove("open"));
+      if (!wasOpen) btn.classList.add("open");
+    });
+  });
+  document.addEventListener("click", () => {
+    container.querySelectorAll(".mo-info-btn").forEach(b => b.classList.remove("open"));
+  }, { once: true });
+}
+
+function drawChart(filtered) {
   const canvas = document.getElementById("reportChart");
   if (!canvas || !window.Chart) return;
+  const ex = window.Chart.getChart(canvas);
+  if (ex) ex.destroy();
 
-  const existing = window.Chart.getChart(canvas);
-  if (existing) existing.destroy();
-
-  // Суточная агрегация
   const byDay = {};
   filtered.forEach(e => {
-    const d = new Date(e.time);
-    const key = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}`;
-    if (!byDay[key]) byDay[key] = [];
-    byDay[key].push(e.value);
+    const d  = new Date(e.time);
+    const k  = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}`;
+    if (!byDay[k]) byDay[k] = [];
+    byDay[k].push(e.value);
   });
   const labels = Object.keys(byDay);
-  const data = labels.map(k => Math.round(byDay[k].reduce((a,b) => a+b, 0) / byDay[k].length));
-
-  canvas.width = canvas.parentElement.offsetWidth - 32;
+  const data   = labels.map(k=>Math.round(byDay[k].reduce((a,b)=>a+b,0)/byDay[k].length));
+  canvas.width = canvas.parentElement.offsetWidth - 24;
 
   new window.Chart(canvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        data,
-        borderColor: "#4caf87",
-        backgroundColor: "rgba(76,175,135,0.1)",
-        tension: 0.4,
-        pointRadius: 3,
-        fill: true
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
-        x: { ticks: { font: { size: 9 }, maxRotation: 45 } }
-      }
-    }
+    type:"line",
+    data:{ labels, datasets:[{ data, borderColor:"#4caf87", backgroundColor:"rgba(76,175,135,0.12)", tension:0.4, pointRadius:3, fill:true }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0,max:100,ticks:{font:{size:10}}}, x:{ticks:{font:{size:9},maxRotation:45}} }}
   });
 }
 
 function countActiveDays(history) {
   const days = new Set();
-  history.forEach(e => {
-    const d = new Date(e.time);
-    days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
-  });
+  history.forEach(e => { const d=new Date(e.time); days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`); });
   return days.size;
 }
 
 function formatDate(ts) {
-  return new Date(ts).toLocaleString("ru-RU", {
-    day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
-  });
+  return new Date(ts).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
 }
 
 function filterByDays(history, days) {
-  if (days > 3650) return history;
+  if (days>3650) return history;
   const now = Date.now();
-  const limit = days * 24 * 60 * 60 * 1000;
-  return history.filter(entry => now - new Date(entry.time).getTime() <= limit);
+  const limit = days*24*60*60*1000;
+  return history.filter(e => now - new Date(e.time).getTime() <= limit);
 }
