@@ -151,6 +151,17 @@ function renderHistory(filterDate=null) {
     photoInput.value = "";
   });
 
+  // Кнопки удаления 🗑
+  container.querySelectorAll(".hist-del-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const ts   = parseInt(btn.dataset.ts);
+      const type = btn.dataset.type;
+      const item = allItemsCache.find(i => i.ts === ts && i.type === type);
+      if (item) deleteItem(item, filterDate);
+    });
+  });
+
   // Клики по обычным карточкам
   container.querySelectorAll(".hist-card[data-clickable='1']").forEach(card => {
     card.onclick = () => {
@@ -242,6 +253,42 @@ function savePhoto(dataUrl) {
   } catch(e) {}
 }
 
+// ---- Удаление записи ----
+function deleteItem(item, filterDate) {
+  const ok = confirm("Удалить эту запись?");
+  if (!ok) return;
+
+  try {
+    if (item.type === "mood") {
+      const arr = JSON.parse(localStorage.getItem("mood_history")||"[]");
+      const idx = arr.findIndex(e => new Date(e.time).getTime() === item.ts);
+      if (idx !== -1) { arr.splice(idx, 1); localStorage.setItem("mood_history", JSON.stringify(arr)); }
+    }
+    if (item.type === "note") {
+      const arr = JSON.parse(localStorage.getItem("notes_history")||"[]");
+      const idx = arr.findIndex(e => (e.timestamp||new Date(e.time).getTime()) === item.ts);
+      if (idx !== -1) { arr.splice(idx, 1); localStorage.setItem("notes_history", JSON.stringify(arr)); }
+    }
+    if (item.type === "voice") {
+      const arr = JSON.parse(localStorage.getItem("voice_history")||"[]");
+      const idx = arr.findIndex(e => (e.timestamp||e.time||0) === item.ts);
+      if (idx !== -1) { arr.splice(idx, 1); localStorage.setItem("voice_history", JSON.stringify(arr)); }
+    }
+    if (item.type === "photo") {
+      const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
+      const idx = arr.findIndex(e => (e.timestamp||e.time||0) === item.ts);
+      if (idx !== -1) { arr.splice(idx, 1); localStorage.setItem("photo_history", JSON.stringify(arr)); }
+    }
+    if (item.type === "session") {
+      const arr = JSON.parse(localStorage.getItem("session_history")||"[]");
+      const idx = arr.findIndex(e => (e.timestamp||0) === item.ts);
+      if (idx !== -1) { arr.splice(idx, 1); localStorage.setItem("session_history", JSON.stringify(arr)); }
+    }
+  } catch(e) { console.error("delete error", e); }
+
+  renderHistory(filterDate);
+}
+
 // ---- Рендер карточки ----
 function renderCard(item) {
   const time = formatTime(item.ts);
@@ -252,6 +299,7 @@ function renderCard(item) {
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
       <div class="hist-card-body"><div class="hist-card-title">Настроение</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
       <div class="hist-card-time">${time}</div>
+      <div class="hist-del-btn" data-ts="${item.ts}" data-type="mood">🗑</div>
     </div>`;
   }
 
@@ -261,6 +309,7 @@ function renderCard(item) {
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">Заметка</div><div class="hist-card-sub">${prev||"—"}</div></div>
       <div class="hist-card-time">${time}</div>
+      <div class="hist-del-btn" data-ts="${item.ts}" data-type="note">🗑</div>
     </div>`;
   }
 
@@ -271,6 +320,7 @@ function renderCard(item) {
       </div>
       <div class="hist-card-body"><div class="hist-card-title">Фото</div><div class="hist-card-sub">${item.note||"Фотозапись настроения"}</div></div>
       <div class="hist-card-time">${time}</div>
+      <div class="hist-del-btn" data-ts="${item.ts}" data-type="photo">🗑</div>
     </div>`;
   }
 
@@ -283,6 +333,7 @@ function renderCard(item) {
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
         <div class="hist-card-body"><div class="hist-card-title">Голосовая запись</div><div class="hist-card-sub">${prev||"Голосовой дневник"}</div></div>
         <div class="hist-card-time">${time}</div>
+        <div class="hist-del-btn" data-ts="${ts}" data-type="voice">🗑</div>
       </div>
       ${hasAudio ? `
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
@@ -322,6 +373,7 @@ function renderCard(item) {
         ${mdPreview}
       </div>
       <div class="hist-card-time">${time}</div>
+      <div class="hist-del-btn" data-ts="${item.ts}" data-type="session">🗑</div>
     </div>`;
   }
 
