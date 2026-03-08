@@ -63,8 +63,12 @@ export function onEnter() {
   else if (stability>=45) levelText = "Заметные перепады настроения.";
   else levelText = "Высокая волатильность.";
 
-  // Последние 10 записей — уникальные по времени
-  const last10 = history.slice(-10).reverse();
+  // Последние 10 записей — сортируем по времени, берём 10 последних
+  const last10 = history
+    .slice()
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    .slice(-10)
+    .reverse(); // новые сверху
   const notes  = getNotesHistory ? getNotesHistory() : [];
 
   function infoBtn(key) {
@@ -77,8 +81,13 @@ export function onEnter() {
       const ds   = d.toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
       const col  = mc(e.value);
       const emoji= e.value>=70?"😊":e.value>=40?"😐":"😔";
-      const nearNote = notes.find(n => Math.abs((n.timestamp||new Date(n.time).getTime()) - e.time) < 30*60*1000);
+      // Ищем заметку в пределах 30 минут от записи
+      const nearNote = notes.find(n => Math.abs((n.timestamp||new Date(n.time).getTime()) - new Date(e.time).getTime()) < 30*60*1000);
       const noteText = nearNote ? (nearNote.text||nearNote.note||"") : "";
+      // Состояние на момент записи
+      const stateLabel = e.state
+        ? ({ "LOW":"Сниженное","STRESSED":"Напряжение","NEUTRAL":"Нейтральное","GOOD":"Хорошее","HIGH":"Отличное" }[e.state] || e.state)
+        : null;
       return `
         <div class="stab-entry">
           <div class="stab-entry-header" data-idx="${idx}">
@@ -92,9 +101,18 @@ export function onEnter() {
             <div style="font-size:17px;font-weight:700;color:${col};flex-shrink:0;margin-left:8px;">${e.value}%</div>
             <div class="stab-chevron" data-idx="${idx}" style="font-size:16px;color:#bbb;margin-left:6px;transition:transform 0.2s;">›</div>
           </div>
-          <div class="stab-entry-detail" data-idx="${idx}" style="display:none;padding:0 14px 12px;">
-            <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.4);box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;font-size:14px;color:#555;line-height:1.6;">
-              ${noteText ? `<div style="font-size:11px;color:#aaa;margin-bottom:5px;">📝 Заметка</div>${noteText}` : `<span style="color:#bbb;font-style:italic;">Заметка не добавлена</span>`}
+          <div class="stab-entry-detail" data-idx="${idx}" style="display:none;padding:0 14px 14px;">
+            <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.45);box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;font-size:14px;color:#555;line-height:1.7;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span style="color:#999;font-size:12px;">Настроение</span>
+                <span style="font-weight:700;color:${col};">${e.value}%</span>
+              </div>
+              ${stateLabel ? `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#999;font-size:12px;">Состояние</span><span style="font-weight:600;color:#555;">${stateLabel}</span></div>` : ""}
+              <div style="display:flex;justify-content:space-between;margin-bottom:${noteText?'10px':'0'};">
+                <span style="color:#999;font-size:12px;">Время</span>
+                <span style="color:#555;">${ds}</span>
+              </div>
+              ${noteText ? `<div style="border-top:1px solid rgba(0,0,0,0.06);padding-top:8px;"><div style="font-size:11px;color:#aaa;margin-bottom:4px;">📝 Заметка рядом</div><div style="color:#444;">${noteText}</div></div>` : ""}
             </div>
           </div>
         </div>`;
@@ -118,7 +136,8 @@ export function onEnter() {
         <canvas id="stabilityChart14" height="120"></canvas>
       </div>
 
-      <div class="mo-section-title">🕐 Последние записи</div>
+      <div class="mo-section-title">🕐 Последние 10 замеров настроения</div>
+      <div style="font-size:12px;color:#aaa;margin:-6px 0 10px 2px;">Нажми на запись чтобы раскрыть детали</div>
       ${entryCards(last10)}
     </div>`;
 
