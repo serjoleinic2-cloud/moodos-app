@@ -277,7 +277,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
     destroyChart("chartStability");
     const c = document.getElementById("chartStability"); if (!c) return;
     const wrap = document.getElementById("flip-stability");
-    const maxH = Math.min(window.innerHeight * 0.55, 320);
+    const maxH = 140;
     c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
     c.height = maxH;
     const pts = [];
@@ -295,7 +295,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
     destroyChart("chartMood");
     const c = document.getElementById("chartMood"); if (!c) return;
     const wrap = document.getElementById("flip-mood");
-    const maxH = Math.min(window.innerHeight * 0.55, 320);
+    const maxH = 140;
     c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
     c.height = maxH;
     const daily = buildDailyMood(history);
@@ -306,7 +306,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
     destroyChart("chartHours");
     const c = document.getElementById("chartHours"); if (!c) return;
     const wrap = document.getElementById("flip-golden");
-    const maxH = Math.min(window.innerHeight * 0.55, 320);
+    const maxH = 140;
     c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
     c.height = maxH;
     const hours={};
