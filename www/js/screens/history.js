@@ -27,7 +27,8 @@ function buildTimeline() {
   const items = [];
 
   getMoodHistory().forEach(e => items.push({
-    type:"mood", ts: new Date(e.time).getTime(), value: e.value
+    type:"mood", ts: new Date(e.time).getTime(), value: e.value,
+    state: e.state || "—"
   }));
 
   // Заметки — НЕ включаем mind-dump записи (они уже есть в session)
@@ -295,9 +296,17 @@ function renderCard(item) {
 
   if (item.type === "mood") {
     const col=moodColor(item.value), emo=moodEmoji(item.value);
+    const STATE_RU = {"LOW":"Сниженное","STRESSED":"Напряжение","NEUTRAL":"Нейтральное","GOOD":"Хорошее","HIGH":"Отличное"};
+    const stateLabel = item.state && item.state !== "—"
+      ? (STATE_RU[item.state] || item.state)
+      : "—";
     return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1">
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">Настроение</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
+      <div class="hist-card-body">
+        <div class="hist-card-title">Настроение</div>
+        <div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px;">${stateLabel}</div>
+      </div>
       <div class="hist-card-time">${time}</div>
       <div class="hist-del-btn" data-ts="${item.ts}" data-type="mood">🗑</div>
     </div>`;
@@ -437,11 +446,61 @@ function renderDetail(item, filterDate) {
       </div>
       ${body}
     </div>
-    <div style="position:fixed;bottom:calc(88px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;z-index:50;">
-      <div id="histBackBtn" style="padding:14px 48px;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#555;cursor:pointer;">‹ Назад</div>
+    <div style="position:fixed;bottom:calc(88px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;gap:16px;z-index:50;padding:0 20px;box-sizing:border-box;">
+      <div id="histBackBtn" style="flex:1;max-width:200px;padding:14px 0;text-align:center;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#555;cursor:pointer;">‹ Назад</div>
+      <div id="histDeleteBtn" style="width:52px;height:52px;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:20px;color:#e05555;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑</div>
     </div>`;
 
   document.getElementById("histBackBtn").onclick = () => renderHistory(filterDate);
+
+  document.getElementById("histDeleteBtn").onclick = () => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;";
+    overlay.innerHTML = `
+      <div style="width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 20px 50px;box-shadow:0 -8px 30px rgba(0,0,0,0.12);">
+        <div style="font-size:16px;font-weight:600;color:#3a3530;margin-bottom:8px;text-align:center;">Удалить запись?</div>
+        <div style="font-size:13px;color:#888;text-align:center;margin-bottom:20px;">Это действие нельзя отменить</div>
+        <div id="delConfirm" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#e05555;font-size:17px;font-weight:600;cursor:pointer;text-align:center;">🗑 Удалить</div>
+        <div id="delCancel"  style="padding:16px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#888;font-size:17px;cursor:pointer;text-align:center;">Отмена</div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector("#delCancel").onclick  = () => overlay.remove();
+    overlay.querySelector("#delConfirm").onclick = () => {
+      overlay.remove();
+      deleteItem(item);
+      renderHistory(filterDate);
+    };
+  };
+}
+
+function deleteItem(item) {
+  try {
+    if (item.type === "mood") {
+      const h = JSON.parse(localStorage.getItem("mood_history")||"[]");
+      const filtered = h.filter(e => new Date(e.time).getTime() !== item.ts);
+      localStorage.setItem("mood_history", JSON.stringify(filtered));
+    }
+    if (item.type === "note") {
+      const h = JSON.parse(localStorage.getItem("notes_history")||"[]");
+      const filtered = h.filter(e => (e.timestamp||new Date(e.time).getTime()) !== item.ts);
+      localStorage.setItem("notes_history", JSON.stringify(filtered));
+    }
+    if (item.type === "voice") {
+      const h = JSON.parse(localStorage.getItem("voice_history")||"[]");
+      const filtered = h.filter(e => (e.timestamp||e.time||0) !== item.ts);
+      localStorage.setItem("voice_history", JSON.stringify(filtered));
+    }
+    if (item.type === "photo") {
+      const h = JSON.parse(localStorage.getItem("photo_history")||"[]");
+      const filtered = h.filter(e => (e.timestamp||e.time||0) !== item.ts);
+      localStorage.setItem("photo_history", JSON.stringify(filtered));
+    }
+    if (item.type === "session") {
+      const h = JSON.parse(localStorage.getItem("session_history")||"[]");
+      const filtered = h.filter(e => (e.timestamp||0) !== item.ts);
+      localStorage.setItem("session_history", JSON.stringify(filtered));
+    }
+  } catch(e) { console.error("deleteItem error", e); }
 }
 
 function detRow(label, valHTML) {
