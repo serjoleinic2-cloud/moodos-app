@@ -1,15 +1,25 @@
+import { detectMoodState } from "../services/state-engine.js";
+import { addMoodEntry } from "../services/memory.js";
+
 export function onEnter() {
   const slider     = document.getElementById("moodSlider");
   const valueLabel = document.getElementById("moodValue");
+  const confirmBtn = document.getElementById("moodConfirmBtn");
+  const savedLabel = document.getElementById("moodSavedLabel");
 
   if (!slider) return;
+
   valueLabel.textContent = slider.value + "%";
 
-  // Обновляем только отображение — сохранение делает app.js
-  // Используем replaceWith-трюк чтобы не накапливались дубли listener при каждом onEnter
-  const newSlider = slider.cloneNode(true);
-  slider.parentNode.replaceChild(newSlider, slider);
-  newSlider.addEventListener("input", () => {
-    valueLabel.textContent = newSlider.value + "%";
+  slider.addEventListener("input", () => {
+    valueLabel.textContent = slider.value + "%";
+  });
+
+  confirmBtn.addEventListener("click", () => {
+    const moodValue = Number(slider.value);
+    const state     = detectMoodState(moodValue);
+    addMoodEntry({ value: moodValue, state, time: Date.now() });
+    savedLabel.textContent = "Сохранено ✓";
+    setTimeout(() => { savedLabel.textContent = ""; }, 2000);
   });
 }
