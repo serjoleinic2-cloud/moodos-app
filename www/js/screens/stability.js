@@ -19,7 +19,20 @@ export function onEnter() {
   const rawHistory = getMoodHistory();
 
   if (!rawHistory || rawHistory.length < 2) {
-    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">Нужно минимум 2 записи для анализа устойчивости.</div></div>`;
+    // Диагностика
+    let raw = "—";
+    try { raw = localStorage.getItem("mood_history") || "пусто"; } catch(e) { raw = "ошибка"; }
+    const keys = Object.keys(localStorage).join(", ") || "нет ключей";
+    container.innerHTML = `
+      <div style="padding:20px;color:#555;">
+        <div style="font-size:48px;text-align:center;">🧘</div>
+        <div style="margin-top:12px;text-align:center;color:#888;">Нужно минимум 2 записи для анализа устойчивости.</div>
+        <div style="margin-top:24px;padding:14px;background:rgba(255,255,255,0.5);border-radius:14px;font-size:12px;line-height:1.8;word-break:break-all;">
+          <b>getMoodHistory().length:</b> ${rawHistory ? rawHistory.length : "null"}<br>
+          <b>Все ключи localStorage:</b> ${keys}<br>
+          <b>mood_history (первые 200 символов):</b><br>${raw.slice(0,200)}
+        </div>
+      </div>`;
     return;
   }
 
