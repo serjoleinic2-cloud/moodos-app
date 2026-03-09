@@ -16,28 +16,10 @@ export function onEnter() {
   const container = document.getElementById("stability-content");
   if (!container) return;
 
-  // Диагностика: читаем напрямую из localStorage
-  let rawFromStorage = [];
-  try {
-    rawFromStorage = JSON.parse(localStorage.getItem("mood_history") || "[]");
-  } catch(e) { rawFromStorage = []; }
-
   const rawHistory = getMoodHistory();
 
-  // Если getMoodHistory возвращает меньше чем в localStorage — проблема в memory.js
-  // Показываем оба числа для диагностики
   if (!rawHistory || rawHistory.length < 2) {
-    container.innerHTML = `
-      <div style="text-align:center;margin-top:60px;color:#888;">
-        <div style="font-size:48px;">🧘</div>
-        <div style="margin-top:12px;">Нужно минимум 2 записи для анализа устойчивости.</div>
-        <div style="margin-top:16px;font-size:12px;color:#bbb;text-align:left;padding:12px;background:rgba(255,255,255,0.4);border-radius:12px;">
-          <b>Диагностика:</b><br>
-          getMoodHistory(): ${rawHistory ? rawHistory.length : 'null'} записей<br>
-          localStorage["mood_history"]: ${rawFromStorage.length} записей<br>
-          Все ключи: ${Object.keys(localStorage).join(', ')}
-        </div>
-      </div>`;
+    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">Нужно минимум 2 записи для анализа устойчивости.</div></div>`;
     return;
   }
 
