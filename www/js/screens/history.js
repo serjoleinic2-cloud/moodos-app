@@ -1,7 +1,7 @@
 // ===============================
 // MoodOS History Screen
 // ===============================
-import { getMoodHistory, getNotesHistory, getVoiceHistory, getSessionHistory } from "../services/memory.js";
+import { getMoodHistory, saveMoodHistory, getNotesHistory, saveNotesHistory, getVoiceHistory, saveVoiceHistory, getSessionHistory, saveSessionHistory } from "../services/memory.js";
 
 export function onEnter() { renderHistory(); }
 
@@ -21,6 +21,17 @@ const SESSION_META = {
   "tap-calm":      { icon:"✋", label:"Тактильная разрядка" }
 };
 
+// Стиль кнопки удаления
+const DEL_BTN = `style="
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  background:rgba(232,237,230,0.9);
+  box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;opacity:0.55;
+  -webkit-tap-highlight-color:transparent;"
+  onpointerdown="this.style.opacity='1'"
+  onpointerup="this.style.opacity='0.55'"`;
+
 let currentAudio = null;
 let allItemsCache = [];
 
@@ -31,22 +42,19 @@ function buildTimeline() {
     type:"mood", ts: new Date(e.time).getTime(), value: e.value
   }));
 
-  // Заметки — НЕ включаем mind-dump записи (они уже есть в session)
   getNotesHistory().forEach(e => {
-    if (e.type === "mind-dump") return; // пропускаем — они дублируют session
+    if (e.type === "mind-dump") return;
     items.push({ type:"note", ts: e.timestamp||new Date(e.time).getTime(), text: e.text||e.note||"" });
   });
 
-  // Голосовые — поле может называться audio или audioUrl
   getVoiceHistory().forEach(e => items.push({
     type:"voice",
     ts: e.timestamp||e.time||Date.now(),
     text: e.text||e.transcript||"",
-    audioUrl: e.audioUrl || e.audio || null,   // ← voice.js сохраняет как "audio"
+    audioUrl: e.audioUrl || e.audio || null,
     audioDuration: e.duration||0
   }));
 
-  // Фото
   try {
     const photos = JSON.parse(localStorage.getItem("photo_history")||"[]");
     photos.forEach(e => items.push({
@@ -56,7 +64,6 @@ function buildTimeline() {
     }));
   } catch(e) {}
 
-  // Сессии практик — все типы
   getSessionHistory().forEach(e => items.push({
     type:"session",
     ts: e.timestamp||Date.now(),
@@ -67,7 +74,6 @@ function buildTimeline() {
     result:     e.result,
     duration:   e.duration,
     tapCount:   e.tapCount||null,
-    // mind-dump: текст сохраняется отдельно в notes, здесь только мета
   }));
 
   items.sort((a,b) => b.ts - a.ts);
@@ -82,6 +88,33 @@ function groupByDay(items) {
     g[d].push(i);
   });
   return g;
+}
+
+// ---- Удаление записи ----
+function deleteItem(ts, type, filterDate) {
+  if (!confirm("Удалить эту запись?")) return;
+
+  try {
+    if (type === "mood") {
+      const arr = getMoodHistory().filter(e => new Date(e.time).getTime() !== ts);
+      saveMoodHistory(arr);
+    } else if (type === "note") {
+      const arr = getNotesHistory().filter(e => (e.timestamp||new Date(e.time).getTime()) !== ts);
+      saveNotesHistory(arr);
+    } else if (type === "voice") {
+      const arr = getVoiceHistory().filter(e => (e.timestamp||e.time) !== ts);
+      saveVoiceHistory(arr);
+    } else if (type === "photo") {
+      const arr = JSON.parse(localStorage.getItem("photo_history")||"[]")
+        .filter(e => (e.timestamp||e.time) !== ts);
+      localStorage.setItem("photo_history", JSON.stringify(arr));
+    } else if (type === "session") {
+      const arr = getSessionHistory().filter(e => (e.timestamp) !== ts);
+      saveSessionHistory(arr);
+    }
+  } catch(e) { console.error("delete error", e); }
+
+  renderHistory(filterDate);
 }
 
 function renderHistory(filterDate=null) {
@@ -107,59 +140,51 @@ function renderHistory(filterDate=null) {
     <div style="padding:4px 0 100px 0;">
       <h2 style="margin-bottom:16px;">История</h2>
 
-      <!-- СТРОКА ПОИСКА + КАМЕРА -->
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
         <input type="date" id="histDateFilter" class="hist-date-input" value="${filterDate||''}">
-
-        <!-- Кнопка камеры -->
-        <div id="histCameraBtn" style="
-          width:48px;height:48px;border-radius:14px;flex-shrink:0;cursor:pointer;
-          background:rgba(232,237,230,0.9);
-          box-shadow:4px 4px 8px #b8c4b4,-4px -4px 8px #ffffff;
-          display:flex;align-items:center;justify-content:center;font-size:22px;">📷</div>
-
+        <div id="histCameraBtn" style="width:48px;height:48px;border-radius:14px;flex-shrink:0;cursor:pointer;background:rgba(232,237,230,0.9);box-shadow:4px 4px 8px #b8c4b4,-4px -4px 8px #ffffff;display:flex;align-items:center;justify-content:center;font-size:22px;">📷</div>
         <div id="histClearDate" style="display:${filterDate?'flex':'none'};width:48px;height:48px;border-radius:14px;cursor:pointer;background:rgba(232,237,230,0.9);color:#888;font-size:18px;box-shadow:4px 4px 8px #b8c4b4,-4px -4px 8px #ffffff;align-items:center;justify-content:center;flex-shrink:0;">✕</div>
       </div>
 
-      <!-- Скрытый input для камеры/галереи -->
       <input type="file" id="histPhotoInput" accept="image/*" capture="environment" style="display:none;">
 
       ${cardsHTML}
     </div>`;
 
-  // Фильтр по дате
   document.getElementById("histDateFilter").onchange = e => renderHistory(e.target.value||null);
   document.getElementById("histClearDate").onclick = () => renderHistory(null);
 
-  // Камера
   const cameraBtn  = document.getElementById("histCameraBtn");
   const photoInput = document.getElementById("histPhotoInput");
-
-  cameraBtn.addEventListener("click", () => {
-    // Показываем выбор: камера или галерея
-    showPhotoMenu(container, photoInput);
-  });
-
+  cameraBtn.addEventListener("click", () => showPhotoMenu(container, photoInput));
   photoInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      savePhoto(ev.target.result);
-      renderHistory(filterDate);
-    };
+    reader.onload = (ev) => { savePhoto(ev.target.result); renderHistory(filterDate); };
     reader.readAsDataURL(file);
     photoInput.value = "";
   });
 
-  // Клики по обычным карточкам
+  // Клики по карточкам (не по ведру)
   container.querySelectorAll(".hist-card[data-clickable='1']").forEach(card => {
-    card.onclick = () => {
+    card.onclick = (e) => {
+      if (e.target.closest(".hist-del-btn")) return;
       const ts   = parseInt(card.dataset.ts);
       const type = card.dataset.type;
       const item = allItemsCache.find(i=>i.ts===ts&&i.type===type);
       if (item) renderDetail(item, filterDate);
     };
+  });
+
+  // Ведро — удаление
+  container.querySelectorAll(".hist-del-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const ts   = parseInt(btn.dataset.ts);
+      const type = btn.dataset.type;
+      deleteItem(ts, type, filterDate);
+    });
   });
 
   // Плееры голосовых
@@ -172,7 +197,6 @@ function renderHistory(filterDate=null) {
       const seekEl = container.querySelector(`.voice-seek[data-ts="${ts}"]`);
       const curEl  = container.querySelector(`.voice-cur[data-ts="${ts}"]`);
       const totEl  = container.querySelector(`.voice-tot[data-ts="${ts}"]`);
-
       if (btn._audio && !btn._audio.paused) { btn._audio.pause(); btn.textContent="▶"; return; }
       if (currentAudio && currentAudio !== btn._audio) {
         currentAudio.pause(); currentAudio.currentTime=0;
@@ -202,15 +226,12 @@ function renderHistory(filterDate=null) {
   });
 }
 
-// ---- Меню выбора фото ----
 function showPhotoMenu(container, photoInput) {
   const existing = document.getElementById("photoMenuOverlay");
   if (existing) existing.remove();
-
   const overlay = document.createElement("div");
   overlay.id = "photoMenuOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:flex-end;";
-
   overlay.innerHTML = `
     <div style="width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 20px 50px;box-shadow:0 -8px 30px rgba(0,0,0,0.12);">
       <div style="font-size:16px;font-weight:600;color:#3a3530;margin-bottom:16px;text-align:center;">Добавить фото</div>
@@ -218,19 +239,9 @@ function showPhotoMenu(container, photoInput) {
       <div id="pmGallery" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;">🖼 Выбрать из галереи</div>
       <div id="pmCancel"  style="padding:16px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#888;font-size:17px;cursor:pointer;text-align:center;">Отмена</div>
     </div>`;
-
   document.body.appendChild(overlay);
-
-  overlay.querySelector("#pmCamera").onclick = () => {
-    overlay.remove();
-    photoInput.setAttribute("capture","environment");
-    photoInput.click();
-  };
-  overlay.querySelector("#pmGallery").onclick = () => {
-    overlay.remove();
-    photoInput.removeAttribute("capture");
-    photoInput.click();
-  };
+  overlay.querySelector("#pmCamera").onclick  = () => { overlay.remove(); photoInput.setAttribute("capture","environment"); photoInput.click(); };
+  overlay.querySelector("#pmGallery").onclick = () => { overlay.remove(); photoInput.removeAttribute("capture"); photoInput.click(); };
   overlay.querySelector("#pmCancel").onclick  = () => overlay.remove();
   overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
 }
@@ -246,6 +257,7 @@ function savePhoto(dataUrl) {
 // ---- Рендер карточки ----
 function renderCard(item) {
   const time = formatTime(item.ts);
+  const delBtn = `<div class="hist-del-btn" data-ts="${item.ts}" data-type="${item.type}" ${DEL_BTN}>🗑</div>`;
 
   if (item.type === "mood") {
     const col=moodColor(item.value), emo=moodEmoji(item.value);
@@ -253,6 +265,7 @@ function renderCard(item) {
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
       <div class="hist-card-body"><div class="hist-card-title">Настроение</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
       <div class="hist-card-time">${time}</div>
+      ${delBtn}
     </div>`;
   }
 
@@ -262,6 +275,7 @@ function renderCard(item) {
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">Заметка</div><div class="hist-card-sub">${prev||"—"}</div></div>
       <div class="hist-card-time">${time}</div>
+      ${delBtn}
     </div>`;
   }
 
@@ -272,6 +286,7 @@ function renderCard(item) {
       </div>
       <div class="hist-card-body"><div class="hist-card-title">Фото</div><div class="hist-card-sub">${item.note||"Фотозапись настроения"}</div></div>
       <div class="hist-card-time">${time}</div>
+      ${delBtn}
     </div>`;
   }
 
@@ -284,6 +299,7 @@ function renderCard(item) {
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
         <div class="hist-card-body"><div class="hist-card-title">Голосовая запись</div><div class="hist-card-sub">${prev||"Голосовой дневник"}</div></div>
         <div class="hist-card-time">${time}</div>
+        ${delBtn}
       </div>
       ${hasAudio ? `
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
@@ -311,7 +327,6 @@ function renderCard(item) {
     const sec  = (item.duration||0)%60;
     const dur  = min>0 ? `${min} мин ${sec} сек` : `${sec} сек`;
     const extra = item.tapCount ? ` · ${item.tapCount} нажатий` : "";
-    // Для mind-dump показываем превью текста
     const mdPreview = item.sessionType==="mind-dump" && item.text
       ? `<div class="hist-card-sub" style="color:#999;font-size:12px;margin-top:2px;">${item.text.slice(0,50)}${item.text.length>50?"...":""}</div>`
       : "";
@@ -323,6 +338,7 @@ function renderCard(item) {
         ${mdPreview}
       </div>
       <div class="hist-card-time">${time}</div>
+      ${delBtn}
     </div>`;
   }
 
