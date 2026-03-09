@@ -30,7 +30,7 @@ function render() {
   // Счётчик дней
   const daysEl = document.getElementById("daysTogether");
   if (daysEl) {
-    const days = getUsageDays ? getUsageDays() : getDaysFromStorage();
+    const days = getUsageDays();
     const label = days === 1 ? "день" : days >= 2 && days <= 4 ? "дня" : "дней";
     daysEl.textContent = `Я с тобой уже ${days} ${label}`;
   }
@@ -52,16 +52,6 @@ function render() {
   if (goldenEl) goldenEl.textContent = calculateGoldenHour(getMoodHistory());
 }
 
-// Запасной счётчик дней если getUsageDays не работает
-function getDaysFromStorage() {
-  try {
-    const start = localStorage.getItem("startDate");
-    if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
-    const diff = Date.now() - parseInt(start);
-    return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  } catch(e) { return 1; }
-}
-
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   initState();
@@ -76,10 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const confirmBtnRaw = document.getElementById("moodConfirmBtn");
-  if (confirmBtnRaw && slider) {
-    const confirmBtn = confirmBtnRaw.cloneNode(true);
-    confirmBtnRaw.parentNode.replaceChild(confirmBtn, confirmBtnRaw);
+  const confirmBtn = document.getElementById("moodConfirmBtn");
+  if (confirmBtn && slider) {
     confirmBtn.addEventListener("click", () => {
       const newMood = Number(slider.value);
       setMood(newMood);
@@ -146,6 +134,8 @@ function updateStabilityHistory() {
   const mood    = getMood();
   let history   = getMoodHistory();
   const now     = Date.now();
+  const last    = history[history.length - 1];
+  if (last && last.value === mood) return;
   if (now - lastHistorySaveTime < HISTORY_COOLDOWN) return;
 
   const state = detectMoodState(mood);
