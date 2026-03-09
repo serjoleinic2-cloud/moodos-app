@@ -9,10 +9,9 @@ import {
   getMedReminder,
   markOnboardingDone
 } from "../services/user-profile.js";
+import { showPdfReportModal } from "../pdf-report.js";
 
 export function onEnter() {
-  const container = document.getElementById("stability-content");
-  // Settings использует свой контейнер
   const el = document.querySelector('[data-screen="settings"]');
   if (!el) return;
   el.innerHTML = renderSettings();
@@ -49,111 +48,26 @@ function renderSettings() {
 
   return `
     <style>
-      .settings-wrap {
-        padding: 20px 16px 100px;
-        font-family: -apple-system, 'SF Pro Display', sans-serif;
-      }
-      .settings-title {
-        font-size: 22px; font-weight: 700; color: #3d3d3d;
-        margin-bottom: 24px;
-      }
-      .settings-section {
-        margin-bottom: 28px;
-      }
-      .settings-section-label {
-        font-size: 11px; font-weight: 700;
-        letter-spacing: 1.2px; text-transform: uppercase;
-        color: #b0b8c4; margin-bottom: 10px; padding-left: 4px;
-      }
-      .neo-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        background: #e0e5ec;
-        border-radius: 18px;
-        box-shadow: 6px 6px 14px #b8bec7, -6px -6px 14px #ffffff;
-        margin-bottom: 10px;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .neo-row:active {
-        box-shadow: inset 4px 4px 8px #b8bec7, inset -4px -4px 8px #ffffff;
-      }
-      .neo-row-label {
-        font-size: 15px; color: #555; font-weight: 500;
-      }
-      .neo-row-value {
-        font-size: 13px; color: #aaa;
-      }
-      .neo-row-icon {
-        font-size: 18px; margin-right: 12px;
-      }
-      .neo-row-left {
-        display: flex; align-items: center;
-      }
-
-      /* МОДАЛКА РЕДАКТИРОВАНИЯ */
-      .health-modal-overlay {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.35);
-        z-index: 200;
-        display: flex; align-items: flex-end;
-      }
-      .health-modal {
-        width: 100%;
-        background: #e0e5ec;
-        border-radius: 24px 24px 0 0;
-        padding: 24px 20px 48px;
-        box-sizing: border-box;
-        animation: slideUp 0.35s ease;
-      }
-      @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to   { transform: translateY(0); }
-      }
-      .modal-title {
-        font-size: 18px; font-weight: 700; color: #3d3d3d;
-        margin-bottom: 6px;
-      }
-      .modal-subtitle {
-        font-size: 13px; color: #aaa; margin-bottom: 20px;
-      }
-      .modal-options {
-        display: flex; flex-direction: column; gap: 8px;
-        margin-bottom: 20px;
-      }
-      .modal-option {
-        padding: 13px 16px;
-        border-radius: 14px;
-        background: #e0e5ec;
-        box-shadow: 4px 4px 9px #b8bec7, -4px -4px 9px #ffffff;
-        font-size: 15px; color: #555;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: box-shadow 0.15s, color 0.15s;
-      }
-      .modal-option.selected {
-        box-shadow: inset 3px 3px 7px #b8bec7, inset -3px -3px 7px #ffffff;
-        color: #7eb8d4; font-weight: 600;
-      }
-      .modal-save-btn {
-        width: 100%;
-        padding: 15px;
-        border: none; border-radius: 16px;
-        background: #e0e5ec;
-        box-shadow: 6px 6px 14px #b8bec7, -6px -6px 14px #ffffff;
-        font-size: 16px; font-weight: 700; color: #7eb8d4;
-        cursor: pointer;
-      }
-      .modal-cancel {
-        width: 100%;
-        padding: 12px;
-        text-align: center;
-        font-size: 14px; color: #bbb;
-        cursor: pointer;
-        margin-top: 8px;
-      }
+      .settings-wrap { padding: 20px 16px 100px; font-family: -apple-system, 'SF Pro Display', sans-serif; }
+      .settings-title { font-size: 22px; font-weight: 700; color: #3d3d3d; margin-bottom: 24px; }
+      .settings-section { margin-bottom: 28px; }
+      .settings-section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #b0b8c4; margin-bottom: 10px; padding-left: 4px; }
+      .neo-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(232,237,230,0.9); border-radius: 18px; box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff; margin-bottom: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .neo-row:active { box-shadow: inset 4px 4px 8px #b8c4b4, inset -4px -4px 8px #ffffff; }
+      .neo-row-label { font-size: 15px; color: #555; font-weight: 500; }
+      .neo-row-value { font-size: 13px; color: #aaa; }
+      .neo-row-icon { font-size: 18px; margin-right: 12px; }
+      .neo-row-left { display: flex; align-items: center; }
+      .health-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: flex; align-items: flex-end; }
+      .health-modal { width: 100%; background: linear-gradient(160deg,#d4ede8,#e8e0d5); border-radius: 24px 24px 0 0; padding: 24px 20px 48px; box-sizing: border-box; animation: slideUp 0.35s ease; }
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-title { font-size: 18px; font-weight: 700; color: #3d3d3d; margin-bottom: 6px; }
+      .modal-subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
+      .modal-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+      .modal-option { padding: 13px 16px; border-radius: 14px; background: rgba(232,237,230,0.9); box-shadow: 4px 4px 9px #b8c4b4, -4px -4px 9px #ffffff; font-size: 15px; color: #555; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: box-shadow 0.15s, color 0.15s; }
+      .modal-option.selected { box-shadow: inset 3px 3px 7px #b8c4b4, inset -3px -3px 7px #ffffff; color: #7eb8d4; font-weight: 600; }
+      .modal-save-btn { width: 100%; padding: 15px; border: none; border-radius: 16px; background: rgba(232,237,230,0.9); box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff; font-size: 16px; font-weight: 700; color: #7eb8d4; cursor: pointer; }
+      .modal-cancel { width: 100%; padding: 12px; text-align: center; font-size: 14px; color: #bbb; cursor: pointer; margin-top: 8px; }
     </style>
 
     <div class="settings-wrap">
@@ -168,9 +82,7 @@ function renderSettings() {
             <span class="neo-row-icon">💊</span>
             <span class="neo-row-label">Приём лекарств</span>
           </div>
-          <span class="neo-row-value">
-            ${profile ? (medLabels[profile.takesMeds] || "Не указано") : "Не указано"} ›
-          </span>
+          <span class="neo-row-value">${profile ? (medLabels[profile.takesMeds] || "Не указано") : "Не указано"} ›</span>
         </div>
 
         ${takesMeds ? `
@@ -179,9 +91,7 @@ function renderSettings() {
             <span class="neo-row-icon">🔍</span>
             <span class="neo-row-label">Как влияет</span>
           </div>
-          <span class="neo-row-value">
-            ${profile ? (effectLabels[profile.medEffect] || "Не указано") : "Не указано"} ›
-          </span>
+          <span class="neo-row-value">${profile ? (effectLabels[profile.medEffect] || "Не указано") : "Не указано"} ›</span>
         </div>
 
         <div class="neo-row" id="settingReminder">
@@ -189,9 +99,7 @@ function renderSettings() {
             <span class="neo-row-icon">⏰</span>
             <span class="neo-row-label">Напоминание о приёме</span>
           </div>
-          <span class="neo-row-value">
-            ${reminder?.active ? (reminderLabels[profile?.medReminder] || "Включено") : "Выключено"} ›
-          </span>
+          <span class="neo-row-value">${reminder?.active ? (reminderLabels[profile?.medReminder] || "Включено") : "Выключено"} ›</span>
         </div>
         ` : ""}
       </div>
@@ -205,11 +113,21 @@ function renderSettings() {
             <span class="neo-row-icon">🎯</span>
             <span class="neo-row-label">Базовое состояние</span>
           </div>
-          <span class="neo-row-value">
-            ${profile?.moodBaseline ?? 50}% ›
-          </span>
+          <span class="neo-row-value">${profile?.moodBaseline ?? 50}% ›</span>
         </div>
+      </div>
 
+      <!-- ОТЧЁТЫ -->
+      <div class="settings-section">
+        <div class="settings-section-label">Данные</div>
+
+        <div class="neo-row" id="settingPdfReport">
+          <div class="neo-row-left">
+            <span class="neo-row-icon">📄</span>
+            <span class="neo-row-label">Отчёт для врача</span>
+          </div>
+          <span class="neo-row-value">PDF ›</span>
+        </div>
       </div>
 
     </div>
@@ -217,12 +135,11 @@ function renderSettings() {
 }
 
 function bindEvents(el) {
-  // Лекарства
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({
-      title:    "Приём лекарств",
+      title: "Приём лекарств",
       subtitle: "Это помогает мне правильно читать твои данные",
-      field:    "takesMeds",
+      field: "takesMeds",
       options: [
         { value: "нет",             label: "🙅 Не принимаю" },
         { value: "антидепрессанты", label: "💙 Антидепрессанты" },
@@ -233,12 +150,11 @@ function bindEvents(el) {
     });
   });
 
-  // Эффект
   el.querySelector("#settingEffect")?.addEventListener("click", () => {
     showModal({
-      title:    "Как влияет препарат",
+      title: "Как влияет препарат",
       subtitle: "Помогает правильно интерпретировать твои оценки",
-      field:    "medEffect",
+      field: "medEffect",
       options: [
         { value: "лучше",           label: "✨ Стало лучше" },
         { value: "примерно_так_же", label: "➡️ Примерно так же" },
@@ -249,12 +165,11 @@ function bindEvents(el) {
     });
   });
 
-  // Напоминалка
   el.querySelector("#settingReminder")?.addEventListener("click", () => {
     showModal({
-      title:    "Напоминание о приёме",
+      title: "Напоминание о приёме",
       subtitle: "Мягкое напоминание раз в день",
-      field:    "medReminder",
+      field: "medReminder",
       options: [
         { value: "нет",   label: "🙅 Без напоминания" },
         { value: "утро",  label: "🌅 Утром (8:00)" },
@@ -269,16 +184,18 @@ function bindEvents(el) {
     });
   });
 
-  // Базовое состояние — слайдер
   el.querySelector("#settingBaseFeeling")?.addEventListener("click", () => {
     showBaselineModal();
   });
+
+  el.querySelector("#settingPdfReport")?.addEventListener("click", () => {
+    showPdfReportModal();
+  });
 }
 
-// ---- МОДАЛКА ВЫБОРА ----
 function showModal({ title, subtitle, field, options, onSave }) {
-  const profile  = getProfile() || {};
-  const current  = profile[field];
+  const profile = getProfile() || {};
+  const current = profile[field];
 
   const overlay = document.createElement("div");
   overlay.className = "health-modal-overlay";
@@ -288,20 +205,15 @@ function showModal({ title, subtitle, field, options, onSave }) {
       <div class="modal-subtitle">${subtitle}</div>
       <div class="modal-options">
         ${options.map(o => `
-          <div class="modal-option ${o.value === current ? 'selected' : ''}"
-               data-value="${o.value}">
-            ${o.label}
-          </div>
+          <div class="modal-option ${o.value === current ? 'selected' : ''}" data-value="${o.value}">${o.label}</div>
         `).join('')}
       </div>
       <button class="modal-save-btn" id="modalSave">Сохранить</button>
       <div class="modal-cancel" id="modalCancel">Отмена</div>
-    </div>
-  `;
+    </div>`;
 
   document.body.appendChild(overlay);
 
-  // Выбор
   let selected = current;
   overlay.querySelectorAll(".modal-option").forEach(opt => {
     opt.addEventListener("click", () => {
@@ -311,7 +223,6 @@ function showModal({ title, subtitle, field, options, onSave }) {
     });
   });
 
-  // Сохранить
   overlay.querySelector("#modalSave").addEventListener("click", () => {
     if (selected) {
       const updated = { ...profile, [field]: selected };
@@ -319,7 +230,6 @@ function showModal({ title, subtitle, field, options, onSave }) {
       if (onSave) onSave(selected);
     }
     overlay.remove();
-    // Перерисовываем настройки
     const el = document.querySelector('[data-screen="settings"]');
     if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
   });
@@ -328,7 +238,6 @@ function showModal({ title, subtitle, field, options, onSave }) {
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
 }
 
-// ---- МОДАЛКА СЛАЙДЕРА ----
 function showBaselineModal() {
   const profile = getProfile() || {};
   const current = profile.moodBaseline ?? 50;
@@ -338,26 +247,16 @@ function showBaselineModal() {
   overlay.innerHTML = `
     <div class="health-modal">
       <div class="modal-title">Базовое состояние</div>
-      <div class="modal-subtitle">
-        Это моя точка отсчёта — я считаю изменения относительно неё
-      </div>
-      <div style="
-        background:#e0e5ec;
-        border-radius:16px;
-        box-shadow:inset 3px 3px 7px #b8bec7,inset -3px -3px 7px #ffffff;
-        padding:20px;
-        margin-bottom:20px;
-      ">
-        <div style="text-align:center; font-size:28px; font-weight:800; color:#555; margin-bottom:12px;">
+      <div class="modal-subtitle">Это моя точка отсчёта — я считаю изменения относительно неё</div>
+      <div style="background:rgba(232,237,230,0.9);border-radius:16px;box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;padding:20px;margin-bottom:20px;">
+        <div style="text-align:center;font-size:28px;font-weight:800;color:#555;margin-bottom:12px;">
           <span id="baselineVal">${current}%</span>
         </div>
-        <input type="range" id="baselineSlider" min="0" max="100" value="${current}"
-          style="width:100%; accent-color:#7eb8d4;">
+        <input type="range" id="baselineSlider" min="0" max="100" value="${current}" style="width:100%;accent-color:#7eb8d4;">
       </div>
       <button class="modal-save-btn" id="modalSave">Сохранить</button>
       <div class="modal-cancel" id="modalCancel">Отмена</div>
-    </div>
-  `;
+    </div>`;
 
   document.body.appendChild(overlay);
 
