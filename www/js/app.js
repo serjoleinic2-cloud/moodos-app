@@ -144,6 +144,8 @@ function updateStabilityHistory() {
   const mood    = getMood();
   let history   = getMoodHistory();
   const now     = Date.now();
+  const last    = history[history.length - 1];
+  if (last && last.value === mood) return;
   if (now - lastHistorySaveTime < HISTORY_COOLDOWN) return;
 
   const state = detectMoodState(mood);

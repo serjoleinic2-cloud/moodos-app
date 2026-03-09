@@ -246,13 +246,6 @@ textarea {
 .hist-card-title { font-size: 12px; color: #999; margin-bottom: 2px; }
 .hist-card-sub { font-size: 15px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hist-card-time { font-size: 12px; color: #bbb; flex-shrink: 0; }
-.hist-del-btn {
-  flex-shrink: 0; margin-left: 8px;
-  font-size: 16px; cursor: pointer; opacity: 0.4;
-  padding: 4px; border-radius: 8px;
-  transition: opacity 0.15s;
-}
-.hist-del-btn:active { opacity: 1; }
 .hist-day-label { font-size: 13px; color: #888; font-weight: 600; margin: 16px 0 8px 4px; }
 .hist-date-input {
   flex: 1; padding: 12px 16px; border: none; border-radius: 16px;

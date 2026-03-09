@@ -142,7 +142,7 @@ export function onEnter() {
               <div class="flip-sub">${sText(stability)}</div>
               <div class="flip-hint">Нажми для графика ↩</div>
             </div>
-            <div class="flip-back" style="padding:12px;"><canvas id="chartStability" style="width:100%;display:block;"></canvas></div>
+            <div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>
           </div>
         </div>
 
@@ -154,7 +154,7 @@ export function onEnter() {
               <div class="flip-sub">${mText(avgMood)}</div>
               <div class="flip-hint">Нажми для графика ↩</div>
             </div>
-            <div class="flip-back" style="padding:12px;"><canvas id="chartMood" style="width:100%;display:block;"></canvas></div>
+            <div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>
           </div>
         </div>
 
@@ -180,7 +180,7 @@ export function onEnter() {
               <div class="flip-sub">Твой пик активности</div>
               <div class="flip-hint">Нажми для графика ↩</div>
             </div>
-            <div class="flip-back" style="padding:12px;"><canvas id="chartHours" style="width:100%;display:block;"></canvas></div>
+            <div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>
           </div>
         </div>
       </div>
@@ -227,34 +227,13 @@ export function onEnter() {
   document.querySelectorAll(".flip-wrap").forEach(wrap => {
     wrap.addEventListener("click", () => {
       const wasFlipped = wrap.classList.contains("flipped");
-
-      // Сбрасываем ВСЕ — включая minHeight
-      document.querySelectorAll(".flip-wrap").forEach(w => {
-        w.classList.remove("flipped");
-        const inner = w.querySelector(".flip-inner");
-        if (inner) inner.style.minHeight = "";
-      });
-
+      document.querySelectorAll(".flip-wrap").forEach(w => w.classList.remove("flipped"));
       if (!wasFlipped) {
         wrap.classList.add("flipped");
-        // Ставим минимальную высоту = высоте front до анимации
         const front = wrap.querySelector(".flip-front");
         const inner = wrap.querySelector(".flip-inner");
         if (front && inner) inner.style.minHeight = front.offsetHeight + "px";
-
-        setTimeout(() => {
-          initChartFor(wrap.id, history, stats, breathingByState, meditationByState);
-          // После отрисовки — растягиваем под график
-          requestAnimationFrame(() => {
-            const canvas = wrap.querySelector("canvas");
-            if (canvas && inner) {
-              // Высота = высота canvas + padding (24px)
-              const newH = canvas.height + 24;
-              const frontH = front ? front.offsetHeight : 0;
-              inner.style.minHeight = Math.max(newH, frontH) + "px";
-            }
-          });
-        }, 320);
+        setTimeout(() => initChartFor(wrap.id, history, stats, breathingByState, meditationByState), 320);
       }
     });
   });
@@ -276,10 +255,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
   if (id === "flip-stability") {
     destroyChart("chartStability");
     const c = document.getElementById("chartStability"); if (!c) return;
-    const wrap = document.getElementById("flip-stability");
-    const maxH = 140;
-    c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
-    c.height = maxH;
+    c.width = c.parentElement.offsetWidth - 32;
     const pts = [];
     for (let i=4; i<history.length; i++) {
       const sl=history.slice(i-4,i+1), avg=sl.reduce((s,h)=>s+h.value,0)/sl.length;
@@ -294,10 +270,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
   if (id === "flip-mood") {
     destroyChart("chartMood");
     const c = document.getElementById("chartMood"); if (!c) return;
-    const wrap = document.getElementById("flip-mood");
-    const maxH = 140;
-    c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
-    c.height = maxH;
+    c.width = c.parentElement.offsetWidth - 32;
     const daily = buildDailyMood(history);
     new Chart(c,{type:"line",data:{labels:daily.map(d=>d.date.slice(5)),datasets:[{data:daily.map(d=>d.avg),borderColor:"#4db8ff",backgroundColor:"rgba(77,184,255,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
   }
@@ -305,10 +278,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
   if (id === "flip-golden") {
     destroyChart("chartHours");
     const c = document.getElementById("chartHours"); if (!c) return;
-    const wrap = document.getElementById("flip-golden");
-    const maxH = 140;
-    c.width  = (wrap ? wrap.offsetWidth : 300) - 24;
-    c.height = maxH;
+    c.width = c.parentElement.offsetWidth - 32;
     const hours={};
     history.forEach(e=>{const h=new Date(e.time).getHours();if(!hours[h])hours[h]={total:0,count:0};hours[h].total+=e.value;hours[h].count++;});
     const labels=Object.keys(hours).sort((a,b)=>a-b);

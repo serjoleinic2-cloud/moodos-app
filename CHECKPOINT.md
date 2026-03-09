@@ -1,198 +1,216 @@
-# MoodOS — Чекпоинт для нового чата
-
-## Контекст проекта
-- **Сергей**, не программист. Workflow: GitHub web/Desktop → Android Studio → тест на Android
-- Репо: `https://github.com/serjoleinic2-cloud/moodos-app`
-- Стек: Capacitor/Ionic, все файлы в `www/`
-- Стиль: неоморфизм, градиент фона: `linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%)`
-- Цвет карточек: `rgba(232, 237, 230, 0.9)`, тени `#b8c4b4 / #ffffff`
-- Язык общения и UI: **русский**
+# 🔖 CHECKPOINT — MoodOS App
+*Вставь это в начало нового диалога*
 
 ---
 
-## Архитектура файлов
+## 👤 Как работает пользователь
+
+- Зовут Сергей, **не программист** — объяснять код не нужно, только говорить ЧТО делать и КУДА класть файл
+- Workflow: редактирует файлы на **GitHub** (через веб или Desktop) → **Android Studio** → **тест на телефоне** (Android)
+- Когда что-то ломается — Сергей присылает лог ошибки или ссылку на файл с GitHub
+- Общение на **русском языке** — всегда
+- Claude создаёт готовые файлы, Сергей их скачивает и заливает на GitHub по указанному пути
+
+---
+
+## 📱 Проект
+
+**MoodOS** — мобильное приложение эмоциональной регуляции на **Capacitor/Ionic**
+- Репозиторий: `https://github.com/serjoleinic2-cloud/moodos-app`
+- Файлы приложения лежат в папке `www/`
+- Точка входа: `www/index.html` + `www/js/app.js`
+- Стили: `www/css/style.css`
+
+---
+
+## 🎨 Философия и дизайн
+
+**Стиль: неоморфизм** — светлый фон `#e0e5ec`, тени `#b8bec7` / `#ffffff`
+```css
+/* Выпуклый элемент */
+box-shadow: 6px 6px 14px #b8bec7, -6px -6px 14px #ffffff;
+/* Вдавленный (активный) */
+box-shadow: inset 4px 4px 8px #b8bec7, inset -4px -4px 8px #ffffff;
+```
+
+**Кнопки** — тёплый пастельный градиент:
+```css
+background: linear-gradient(160deg, #f5ede0, #ddd5cb);
+```
+
+**Философия приложения:**
+- MoodOS — **попутчик**, не советчик
+- Объясняет состояние (причины), а не оценивает
+- Дружеский тон, не клинический
+- Всё на **русском языке** (UI полностью русифицирован)
+- Поддержка 4 языков: RU, EN, ES, UK (через offline-ai.js и планируемый i18n.js)
+
+---
+
+## 🗂 Структура файлов
+
 ```
 www/
-├── index.html
-├── css/style.css
+├── index.html                          ← главный HTML, все экраны здесь
+├── css/
+│   └── style.css                       ← неоморфизм стили
 └── js/
-    ├── app.js
-    ├── state.js
-    ├── navigation.js
-    ├── ui-controller.js
-    ├── onboarding.js
-    ├── monthly-check.js
-    ├── breathing.js              ← корень js/ (НЕ в screens/)
-    ├── mind-dump.js              ← корень js/
-    ├── tap-calm.js               ← корень js/
-    ├── visual-focus.js           ← корень js/
+    ├── app.js                          ← точка входа, boot логика
+    ├── state.js                        ← глобальный стейт (mood, startDate)
+    ├── navigation.js                   ← переключение экранов, меню
+    ├── ui-controller.js                ← инициализация UI
+    ├── onboarding.js                   ← онбординг (6 шагов, первый запуск)
+    ├── monthly-check.js                ← ежемесячный чек о лекарствах
+    ├── breathing.js                    ← практика дыхания
+    ├── visual-focus.js                 ← практика зрительный якорь
+    ├── mind-dump.js                    ← практика выгрузка мыслей
+    ├── tap-calm.js                     ← практика тактильная разрядка
     ├── screens/
-    │   ├── home.js
-    │   ├── insight.js
-    │   ├── report.js
-    │   ├── stability.js
-    │   ├── history.js
-    │   ├── settings.js
-    │   ├── tools.js
-    │   └── meditation.js         ← screens/ (НЕ в tools/)
+    │   ├── home.js                     ← главный экран (слайдер настроения)
+    │   ├── insight.js                  ← инсайты, flip-карточки метрик
+    │   ├── report.js                   ← отчёт с графиком
+    │   ├── stability.js                ← экран устойчивости
+    │   ├── history.js                  ← история записей + фото + голос
+    │   ├── meditation.js               ← практика медитация
+    │   └── settings.js                 ← настройки + здоровье
     ├── services/
-    │   ├── memory.js
-    │   ├── analytics.js
-    │   ├── state-engine.js       ← getStateLabel возвращает EN: "Very good","Good","Neutral","Stressed","Low mood"
-    │   ├── user-profile.js
-    │   ├── pattern-engine.js
-    │   ├── resilience-engine.js
-    │   ├── session-analytics.js
-    │   └── insight-engine.js
+    │   ├── memory.js                   ← localStorage: вся история
+    │   ├── analytics.js                ← calculateStabilityScore, calculateTrend, calculateGoldenHour
+    │   ├── state-engine.js             ← detectMoodState
+    │   ├── user-profile.js             ← профиль юзера, медикаменты, baseline
+    │   ├── pattern-engine.js           ← триггеры, лучшее время, паттерны
+    │   ├── resilience-engine.js        ← индекс устойчивости 0-100
+    │   ├── insight-engine.js           ← объяснения состояния, прогнозы
+    │   └── session-analytics.js        ← эффективность практик
     └── ai/
-        ├── offline-ai.js
-        ├── voice.js              ← сохраняет поле как "audio" (не "audioUrl"!)
-        └── voice-analysis.js
+        ├── offline-ai.js              ← офлайн ответы (4 языка, 3x база)
+        ├── voice.js                   ← запись голоса → base64 audio/webm
+        └── voice-analysis.js          ← анализ голоса
 ```
 
 ---
 
-## localStorage ключи
-`mood`, `startDate`, `mood_history`, `notes_history`, `voice_history`, `session_history`, `photo_history`, `user_profile`, `onboarding_done`, `med_reminder`, `med_monthly_check`, `app_language`
+## ✅ Что сделано и работает
+
+### Навигация (navigation.js)
+- 5 кнопок нижнего меню + hamburger
+- **Кнопка Tools (5)** — подсвечивается сразу при открытии панели практик
+- **Hamburger** — подсвечивается при открытии, восстанавливается при закрытии без выбора
+- Функция `openTool(importFn, initKey)` — единый способ запуска любой практики
+- Пути практик: `./breathing.js`, `./screens/meditation.js`, `./visual-focus.js`, `./mind-dump.js`, `./tap-calm.js`
+
+### Онбординг (onboarding.js)
+- 6 шагов: приветствие → состояние → лекарства → эффект → напоминалка → калибровка
+- Шаги 4-5 пропускаются если не принимает лекарства
+- Показывается ТОЛЬКО при первом запуске — флаг `onboarding_done`
+- **НЕ показывается повторно** — критично
+
+### Экран Stability (screens/stability.js)
+- 4 карточки в сетке 2×2: Устойчивость / Волатильность / Среднее 14 дней / Тренд
+- Голубой значок **ⓘ** на каждой карточке → всплывашка с расшифровкой
+- Последние 10 записей — аккордеон-жалюзи (раскрываются по тапу)
+- Цветная интерпретация уровня
+
+### Экран Insight (screens/insight.js)
+- Секция «Твоя статистика»: 4 flip-карточки (Стабильность / Среднее настроение / Тренд / Золотые часы)
+- Тап → карточка переворачивается, показывает Chart.js график
+- Карточки НЕ наслаиваются: высота 110px обычная / 180px перевёрнутая
+- Секция эффективности практик + таблица по состояниям
+- Все мелкие подписи тёмные (#555–#666)
+
+### История (screens/history.js)
+- Таймлайн: настроение + заметки + голос + сессии (5 типов) + фото
+- **Голосовые карточки**: плеер ▶/⏸ + ползунок + таймер прямо в карточке
+- Голос хранится как base64 `audio/webm` в поле `entry.audio`
+- Правильные иконки/цвета для всех 5 типов сессий
+- Фильтр по дате, 📷 добавить фото, 🗑 удалить запись
+- Детальный просмотр по тапу (с плеером для голоса)
+
+### Стили (style.css)
+- Фон `#e0e5ec` — body, .screen, .card
+- Кнопки: `linear-gradient(160deg, #f5ede0, #ddd5cb)` — тёплый пастельный
+- Нет дублирующихся правил
+- textarea без рамки, вдавленные тени
+
+### Memory (services/memory.js)
+- Чистый файл без мусора
+- Экспорты: get/save/add для mood, notes, voice, session, activity, photo
 
 ---
 
-## Важные детали реализации
+## 📋 Бэклог
 
-### state-engine.js
-- `getStateLabel()` возвращает EN строки → перевод через `STATE_RU` map в insight.js и history.js
-- `detectMoodState(value)` возвращает код: `"LOW"/"STRESSED"/"NEUTRAL"/"GOOD"/"HIGH"`
-- Перевод кодов: `{LOW:"Сниженное", STRESSED:"Напряжение", NEUTRAL:"Нейтральное", GOOD:"Хорошее", HIGH:"Отличное"}`
+### 🟠 Важно
+- [ ] **i18n.js** — переключение языков в настройках
+- [ ] **Premium gate** — 7 дней бесплатно, потом блокировка Insight/Report/История>7 дней
+- [ ] **Лимит AI запросов** — 5 онлайн запросов в день для бесплатных
 
-### Запись настроения (app.js)
-- Запись в `mood_history` происходит **только** через `updateStabilityHistory()` в `app.js`
-- Структура entry: `{ value: number, state: string (код), time: number (timestamp) }`
-- `home.js.onEnter()` **не сохраняет** — только обновляет UI слайдера (после фикса двойного listener)
-- Защита от дублей: `if (last && last.value === mood) return` + cooldown 5 сек
+### 🟡 Средний приоритет
+- [ ] **Google Drive backup** — `MoodOS/profile.json` + `MoodOS/data/YYYY-WXX.json` + `MoodOS/photos/`
+- [ ] **PDF отчёт для врача** — генерация, 2 email поля, выбор периода
 
-### voice.js
-- Сохраняет `{ audio: base64, time }` — поле называется `audio`, НЕ `audioUrl`
-- В `history.js`: маппинг `audioUrl: e.audioUrl || e.audio || null`
-
-### Chart.js
-- Подключён глобально через CDN как `window.Chart`
-- Canvas нужно уничтожать перед пересозданием: `window.Chart.getChart(canvas)?.destroy()`
-- Ширину брать от внешнего `flip-wrap` по id (не от `parentElement` — он `position:absolute`)
-
-### navigation.js — пути импортов практик
-```
-breathing.js     → import("./breathing.js")
-meditation.js    → import("./screens/meditation.js")
-visual-focus.js  → import("./visual-focus.js")
-mind-dump.js     → import("./mind-dump.js")
-tap-calm.js      → import("./tap-calm.js")
-```
-
-### SESSION_META (history.js)
-```js
-const SESSION_META = {
-  "breathing":    { icon:"🫁", label:"Дыхание" },
-  "meditation":   { icon:"🧘", label:"Медитация" },
-  "visual-focus": { icon:"👁",  label:"Зрительный якорь" },
-  "mind-dump":    { icon:"🧠", label:"Выгрузка мыслей" },
-  "tap-calm":     { icon:"✋", label:"Тактильная разрядка" }
-};
-```
-
-### Единый стандарт карточки (.mo-metric, .card)
-- bg: `rgba(232, 237, 230, 0.9)`
-- shadow: `4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff`
-- border-radius: `18px`
+### 🟢 Запланировано
+- [ ] **Privacy Policy + Terms of Use** — экран ДО онбординга, защита США/GDPR
+- [ ] **Когнитивные искажения** — AI анализирует текст заметки офлайн
+- [ ] **Интеграция с носимыми** — далёкое будущее
 
 ---
 
-## Пути файлов для заливки в репо
+## 🏗 Архитектура данных Google Drive (запланировано)
+
+```
+MoodOS/
+├── profile.json
+├── data/
+│   └── YYYY-WXX.json     ← по неделям
+└── photos/
+    └── YYYY-WXX/
+```
+
+---
+
+## 🚫 Что нельзя ломать
+
+1. **state.js** — не трогать без крайней необходимости
+2. **memory.js** — хранит всю историю юзера, ломать = потеря данных
+3. **navigation.js** — переключение экранов и меню
+4. **Флаг onboarding_done** — онбординг ТОЛЬКО один раз
+5. **Стиль** — фон `#e0e5ec`, тени `#b8bec7/#ffffff`, кнопки `#f5ede0→#ddd5cb`
+
+---
+
+## 🔑 Пути для заливки файлов
+
 | Файл | Путь в репо |
 |---|---|
-| `index.html` | `www/index.html` |
-| `style.css` | `www/css/style.css` |
-| `navigation.js` | `www/js/navigation.js` |
-| `app.js` | `www/js/app.js` |
-| `home.js` | `www/js/screens/home.js` |
-| `insight.js` | `www/js/screens/insight.js` |
-| `report.js` | `www/js/screens/report.js` |
-| `stability.js` | `www/js/screens/stability.js` |
-| `history.js` | `www/js/screens/history.js` |
-| `analytics.js` | `www/js/services/analytics.js` |
-| `mind-dump.js` | `www/js/mind-dump.js` |
+| navigation.js | `www/js/navigation.js` |
+| onboarding.js | `www/js/onboarding.js` |
+| monthly-check.js | `www/js/monthly-check.js` |
+| memory.js | `www/js/services/memory.js` |
+| user-profile.js | `www/js/services/user-profile.js` |
+| home.js | `www/js/screens/home.js` |
+| insight.js | `www/js/screens/insight.js` |
+| stability.js | `www/js/screens/stability.js` |
+| history.js | `www/js/screens/history.js` |
+| report.js | `www/js/screens/report.js` |
+| settings.js | `www/js/screens/settings.js` |
+| offline-ai.js | `www/js/ai/offline-ai.js` |
+| style.css | `www/css/style.css` |
 
 ---
 
-## ✅ ВСЁ ЧТО СДЕЛАНО (все сессии)
+## 💡 Подсказки для нового Claude
 
-### Раунд 1
-- Русификация всего UI
-- Градиентный фон
-- hamburgerBtn не горит синим при активной странице
-- Insight: переводы STATE_RU, зелёная подсказка
-- Report: редизайн карточки, сетка 2×2, график
-- Stability: последние 10 записей раскрываются по тапу
-- History: голосовые записи с аудиоплеером
+- **Всегда читай файл с GitHub перед правкой** — `web_fetch` на raw ссылку
+- Не используй `?.property =` для присваивания — синтаксическая ошибка JS
+- Синтаксис проверяй: `node --check file.js`
+- Все экраны рендерят HTML в `data-screen="name"` через `innerHTML`
+- Chart.js глобально через CDN → `window.Chart`
+- Canvas: `window.Chart.getChart(canvas)?.destroy()` перед пересозданием
+- Практики в `www/js/` (НЕ в screens): `breathing.js`, `visual-focus.js`, `tap-calm.js`, `mind-dump.js`
+- Медитация исключение: `www/js/screens/meditation.js`
+- Голос: `entry.audio` = base64 `audio/webm`, хранится в `voice_history`
+- Для сложных замен строк в JS — используй `python3` скрипт, надёжнее чем str_replace
 
-### Раунд 2
-- История — белая страница → полностью переписан рендер
-- Кнопки чёрные → `.card button` теперь бежевый
-- Практики не открывались → исправлены пути в navigation.js
-- Наслоение карточек Insight → `flip-front` задаёт высоту
-- Дубли в Stability → дедупликация по секунде
-- ℹ️ подсказки в Report и Stability
-- Счётчик дней «Я с тобой уже N дней» на главной
-
-### Раунд 3
-- Insight пустой → ReferenceError: переменные использовались до объявления. Исправлен порядок
-- Золотые часы на английском → analytics.js переведён на русский
-- Голос "Нет транскрипции / аудио не сохранено" → history.js читает `e.audioUrl || e.audio`
-- visual-focus/tap-calm/mind-dump показывались как "Медитация" → SESSION_META со всеми 5 типами
-- Mind-dump двойная карточка → убрана запись в notes_history
-- Камера → кнопка 📷 рядом с фильтром дат, меню «Сделать фото / Галерея / Отмена»
-
-### Раунд 4 (текущая сессия)
-- **Инсайт — диаграммы увеличены**: высота `min(55vh, 320px)`, ширина от `flip-wrap` (не от `parentElement`)
-- **Инсайт — разрыв между карточками**: при закрытии карточки сбрасывается `minHeight` у всех
-- **Баланс — дубляж записей**: убран двойной listener. `home.js` больше не вызывает `addMoodEntry` — только app.js
-- **Баланс — последние 10 записей**: явная сортировка по времени перед `slice(-10)`; раскрытый блок показывает Настроение / Состояние / Время / Заметка
-- **История — ведро 🗑**: кнопка удаления в каждой карточке (mood/note/voice/photo/session) с подтверждением
-- **История — поле state**: карточка настроения теперь показывает эмоциональное состояние под значением; `buildTimeline` передаёт `state: e.state || "—"`
-- **Баланс — state уже работал**: `stateLabel` в раскрытом блоке был реализован ранее, проверено
-
----
-
-## 🔴 ОТКРЫТЫЕ ЗАДАЧИ (не сделано)
-
-### Баги / улучшения UI
-1. **Надписи в Инсайте** — (Стабильность, Среднее настроение, Тренд, Золотые часы, Дыхание, Медитация) сделать крупнее и темнее
-2. **Надписи в Отчёте** — (Среднее настроение, Стабильность, Записей, Активных дней, Лучший момент, Сложный момент) крупнее и темнее
-3. **Счётчик дней на главной** — «Я с тобой уже X дней» отображается, но нужно проверить привязку к карточке Home
-4. **Баланс — последние 10 записей** — отложено, «там бардак» по словам Сергея, требует отдельного разбора
-
-### Бэклог (не начинали)
-- [ ] i18n.js — переключение языков EN/RU
-- [ ] Premium gate — 7 дней бесплатно, затем пейвол
-- [ ] Лимит AI запросов — 5 в день бесплатно
-- [ ] Google Drive backup
-- [ ] PDF отчёт для врача
-- [ ] Privacy Policy + Terms of Use
-
----
-
-## Важные паттерны кода
-
-### Как читать файлы из репо (Claude не может напрямую)
-Сергей даёт прямые ссылки вида:
-`https://raw.githubusercontent.com/serjoleinic2-cloud/moodos-app/refs/heads/main/www/js/screens/history.js`
-
-### Главный принцип работы
-**Не менять структуру дизайна, расположение карточек, графических элементов** — если Сергей явно не описал что именно менять. Только точечные правки.
-
-### Flip-карточки в Инсайте
-- `.flip-wrap` — внешний контейнер (в потоке, имеет реальную ширину)
-- `.flip-inner` — `position:relative`, `minHeight` управляется JS
-- `.flip-front` — `position:relative` (задаёт высоту)
-- `.flip-back` — `position:absolute, top:0, left:0, width:100%`
-- При открытии: `inner.style.minHeight = front.offsetHeight + "px"` → после графика: `inner.style.minHeight = (canvas.height + 24) + "px"`
-- При закрытии ЛЮБОЙ карточки: сбрасывать `minHeight = ""` у ВСЕХ `.flip-wrap`
+### localStorage ключи
+`mood`, `startDate`, `mood_history`, `notes_history`, `voice_history`, `session_history`, `activity_history`, `photo_history`, `user_profile`, `onboarding_done`, `med_reminder`, `med_monthly_check`, `app_language`
