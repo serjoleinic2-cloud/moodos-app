@@ -9,7 +9,7 @@ import {
   getMedReminder,
   markOnboardingDone
 } from "../services/user-profile.js";
-import { showPdfReportModal } from "../pdf-report.js";
+import { showPdfReportModal } from "./pdf-report.js";
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
