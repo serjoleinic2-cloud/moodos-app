@@ -286,7 +286,8 @@ function showLanguageModal(el) {
   overlay.querySelector("#modalSave").addEventListener("click", () => {
     setLang(selected);
     overlay.remove();
-    if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
+    // Перезагружаем приложение чтобы применить язык везде
+    window.location.reload();
   });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
