@@ -287,7 +287,14 @@ function showLanguageModal(el) {
     setLang(selected);
     overlay.remove();
     // Перезагружаем приложение чтобы применить язык везде
-    window.location.reload();
+    // Capacitor-совместимая перезагрузка
+    setTimeout(() => {
+      try {
+        window.location.href = window.location.href;
+      } catch(e) {
+        window.location.reload(true);
+      }
+    }, 100);
   });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
