@@ -94,7 +94,7 @@ export function showPdfReportModal() {
   const screen = document.createElement("div");
   screen.id = "pdfReportScreen";
   screen.style.cssText = `
-    position:fixed;inset:0;z-index:400;
+    position:fixed;top:0;left:0;right:0;bottom:65px;z-index:50;
     background:linear-gradient(160deg,#d4ede8 0%,#e8e0d5 100%);
     overflow-y:auto;-webkit-overflow-scrolling:touch;`;
 
@@ -199,9 +199,9 @@ export function showPdfReportModal() {
   document.body.appendChild(screen);
 
   // ---- Назад — удаляем экран полностью ----
-  screen.querySelector("#prBack").addEventListener("click", () => {
-    screen.remove();
-  });
+  screen.querySelector("#prBack").addEventListener("click", () => screen.remove());
+  // Закрываем при нажатии любой кнопки нижней навигации
+  document.querySelector(".bottom-nav").addEventListener("click", () => screen.remove());
 
   // ---- Дни недели ----
   let selectedDays = [...autoDays];
