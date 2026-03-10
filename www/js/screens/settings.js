@@ -25,26 +25,26 @@ function renderSettings() {
   const takesMeds  = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
 
   const medLabels = {
-    "нет":             "Не принимаю",
-    "антидепрессанты": "Антидепрессанты",
-    "седативные":      "Седативные / успокоительные",
-    "другое":          "Другое",
-    "не_скажу":        "Не указано",
+    "нет":             t("med_no"),
+    "антидепрессанты": t("med_anti"),
+    "седативные":      t("med_sed"),
+    "другое":          t("med_other"),
+    "не_скажу":        t("med_not_said"),
   };
 
   const effectLabels = {
-    "лучше":           "Стало лучше",
-    "примерно_так_же": "Примерно так же",
-    "приглушённость":  "Чувствую приглушённость",
-    "побочки":         "Есть побочки",
-    "адаптация":       "Ещё подбираем дозировку",
+    "лучше":           t("effect_better"),
+    "примерно_так_же": t("effect_same"),
+    "приглушённость":  t("effect_numb"),
+    "побочки":         t("effect_side"),
+    "адаптация":       t("effect_adapt"),
   };
 
   const reminderLabels = {
-    "нет":   "Без напоминания",
-    "утро":  "Утром (8:00)",
-    "день":  "Днём (13:00)",
-    "вечер": "Вечером (20:00)",
+    "нет":   t("reminder_no"),
+    "утро":  t("reminder_morning"),
+    "день":  t("reminder_day"),
+    "вечер": t("reminder_evening"),
   };
 
   return `
@@ -83,7 +83,7 @@ function renderSettings() {
             <span class="neo-row-icon">💊</span>
             <span class="neo-row-label">Приём лекарств</span>
           </div>
-          <span class="neo-row-value">${profile ? (medLabels[profile.takesMeds] || "Не указано") : "Не указано"} ›</span>
+          <span class="neo-row-value">${profile ? (medLabels[profile.takesMeds] || t("med_not_said")) : t("med_not_said")} ›</span>
         </div>
 
         ${takesMeds ? `
@@ -92,7 +92,7 @@ function renderSettings() {
             <span class="neo-row-icon">🔍</span>
             <span class="neo-row-label">Как влияет</span>
           </div>
-          <span class="neo-row-value">${profile ? (effectLabels[profile.medEffect] || "Не указано") : "Не указано"} ›</span>
+          <span class="neo-row-value">${profile ? (effectLabels[profile.medEffect] || t("med_not_said")) : t("med_not_said")} ›</span>
         </div>
 
         <div class="neo-row" id="settingReminder">
@@ -149,7 +149,7 @@ function renderSettings() {
 function bindEvents(el) {
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({
-      title: "Приём лекарств",
+      title: t("meds_intake"),
       subtitle: "Это помогает мне правильно читать твои данные",
       field: "takesMeds",
       options: [
@@ -179,7 +179,7 @@ function bindEvents(el) {
 
   el.querySelector("#settingReminder")?.addEventListener("click", () => {
     showModal({
-      title: "Напоминание о приёме",
+      title: t("med_reminder"),
       subtitle: "Мягкое напоминание раз в день",
       field: "medReminder",
       options: [
