@@ -149,6 +149,9 @@ const TRANSLATIONS = {
     rec_breathing: "Дыхание помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
     rec_meditation: "Медитация помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
     rec_keep_going: "Продолжай практики — скоро увидишь персональную статистику.",
+	breath_ready: "Готово", breath_selected: "Выбран", breath_cycles: "Циклов",
+    breath_how_feel: "Как ты себя чувствуешь?",
+    breath_inhale: "Вдох", breath_hold: "Задержка", breath_exhale: "Выдох",
 	
 	tap_for_chart: "Нажми для графика ↩",
     tap_for_details: "Нажми для деталей ↩",
@@ -386,6 +389,9 @@ const TRANSLATIONS = {
     rec_breathing: "Breathing helps you in {rate}% of cases — it's your best tool right now.",
     rec_meditation: "Meditation helps you in {rate}% of cases — it's your best tool right now.",
     rec_keep_going: "Keep practicing — your personal stats will appear soon.",
+	breath_ready: "Ready", breath_selected: "Selected", breath_cycles: "Cycles",
+    breath_how_feel: "How do you feel?",
+    breath_inhale: "Inhale", breath_hold: "Hold", breath_exhale: "Exhale",
 	
 	tap_for_chart: "Tap for chart ↩",
     tap_for_details: "Tap for details ↩",
@@ -613,6 +619,9 @@ const TRANSLATIONS = {
     rec_breathing: "La respiración te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
     rec_meditation: "La meditación te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
     rec_keep_going: "Sigue practicando — pronto verás tu estadística personal.",
+	breath_ready: "Listo", breath_selected: "Seleccionado", breath_cycles: "Ciclos",
+    breath_how_feel: "¿Cómo te sientes?",
+	breath_inhale: "Inhala", breath_hold: "Mantén", breath_exhale: "Exhala",
 	
 	tap_for_chart: "Toca para gráfico ↩",
     tap_for_details: "Toca para detalles ↩",
@@ -840,6 +849,9 @@ const TRANSLATIONS = {
     rec_breathing: "Дихання допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
     rec_meditation: "Медитація допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
     rec_keep_going: "Продовжуй практики — незабаром побачиш персональну статистику.",
+	breath_ready: "Готово", breath_selected: "Обрано", breath_cycles: "Циклів",
+	breath_how_feel: "Як ти себе почуваєш?",
+	breath_inhale: "Вдих", breath_hold: "Затримка", breath_exhale: "Видих",
 	
 	tap_for_chart: "Натисни для графіка ↩",
     tap_for_details: "Натисни для деталей ↩",

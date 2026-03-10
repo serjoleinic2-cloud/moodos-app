@@ -4,6 +4,7 @@
 import { getMood } from "./state.js";
 import { addSessionEntry } from "./services/memory.js";
 import { detectMoodState } from "./services/state-engine.js";
+import { t } from "./i18n.js";
 
 let animationId;
 let phaseIndex = 0;
@@ -49,15 +50,15 @@ export function initBreathing(container) {
       </div>
 
       <div id="selectedMode" style="margin-bottom:10px;font-size:14px;color:#666;">
-        Выбран: 4-4-6
+        ${t("breath_selected")}: 4-4-6
       </div>
 
       <!-- АНИМАЦИЯ -->
       <div id="breathingCanvasWrap">
         <canvas id="breathingCanvas" width="320" height="320"></canvas>
-        <div id="breathingText" style="margin:10px 0; font-size:22px; font-weight:600;">Готово</div>
+        <div id="breathingText" style="margin:10px 0; font-size:22px; font-weight:600;">${t("breath_ready")}</div>
         <div id="breathingTimer" style="font-size:36px; font-weight:bold; margin-bottom:4px;">0</div>
-        <div id="cycleCounter" style="font-size:14px; color:#888; margin-bottom:10px;">Циклов: 0</div>
+        <div id="cycleCounter" style="font-size:14px; color:#888; margin-bottom:10px;">`${t("breath_cycles")}: 0`</div>
       </div>
 
       <!-- КНОПКА СТАРТ/СТОП -->
@@ -68,14 +69,14 @@ export function initBreathing(container) {
       <!-- ФИДБЕК — скрыт по умолчанию -->
       <div id="breathingFeedback" style="display:none; margin-top:30px; flex-direction:column; gap:14px; align-items:center;">
 
-        <div style="font-size:16px; color:#666; margin-bottom:6px;">Как ты себя чувствуешь?</div>
+        <div style="font-size:16px; color:#666; margin-bottom:6px;">${t("breath_how_feel")}</div>
 
         <div id="breathingHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec;
           box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
           color:#4a7c59; font-size:18px; text-align:center;">
-          👍 Помогло
+          👍 ${t("hist_helped")}
         </div>
 
         <div id="breathingNotHelped" style="
@@ -83,7 +84,7 @@ export function initBreathing(container) {
           background:#e0e5ec;
           box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
           color:#888; font-size:18px; text-align:center;">
-          👎 Не помогло
+          👎 ${t("hist_not_helped")}
         </div>
 
       </div>
@@ -161,7 +162,7 @@ addSessionEntry({
     sessionStartTime = null;
     moodBeforeSession = null;
     showPlayer();
-    document.getElementById("breathingText").innerText = "Готово";
+    document.getElementById("breathingText").innerText = `t("breath_ready")`;
     mainBtn.innerText = "▶";
   };
 
@@ -179,7 +180,7 @@ addSessionEntry({
     sessionStartTime = null;
     moodBeforeSession = null;
     showPlayer();
-    document.getElementById("breathingText").innerText = "Готово";
+    document.getElementById("breathingText").innerText = `t("breath_ready")`;
     mainBtn.innerText = "▶";
   };
 }
@@ -204,7 +205,7 @@ function startBreathing() {
   cycleCount        = 0;
   currentRadius     = 80;
   const el = document.getElementById("cycleCounter");
-  if (el) el.innerText = "Циклов: 0";
+  if (el) el.innerText = `${t("breath_cycles")}: 0`;
   animate();
 }
 
@@ -236,7 +237,7 @@ function animate() {
   updateTimer(progress, phase);
   drawWave(progress, phase.name);
 
-  const names = { "Inhale": "Вдох", "Hold": "Задержка", "Exhale": "Выдох" };
+  const names = { "Inhale": t("breath_inhale"), "Hold": t("breath_hold"), "Exhale": t("breath_exhale") };
   const el = document.getElementById("breathingText");
   if (el) el.innerText = names[phase.name] || phase.name;
 
