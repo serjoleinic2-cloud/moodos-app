@@ -18,7 +18,7 @@ import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel } from "./i18n.js";
 
-/* ---------- RENDER ---------- */
+/* ---------- RENDER ----------- */
 function render() {
   const mood = getMood();
 
