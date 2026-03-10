@@ -23,16 +23,19 @@ import {
   subscribe
 } from "./state.js";
 import { checkAutoReminder } from "./screens/pdf-report.js";
+import { isOnboardingDone } from "./services/user-profile.js";
+import { initOnboarding } from "./onboarding.js";
+import { t, getDaysLabel, getLang } from "./i18n.js";
 
 /* ---------- RENDER ---------- */
 function render() {
   const mood = getMood();
+  const lang = getLang();
 
   const daysEl = document.getElementById("daysTogether");
   if (daysEl) {
     const days = getUsageDays ? getUsageDays() : getDaysFromStorage();
-    const label = days === 1 ? "день" : days >= 2 && days <= 4 ? "дня" : "дней";
-    daysEl.textContent = `Я с тобой уже ${days} ${label}`;
+    daysEl.textContent = `${t("days_with_you")} ${days} ${getDaysLabel(days)}`;
   }
 
   const moodValue = document.getElementById("moodValue");
@@ -43,13 +46,21 @@ function render() {
 
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
-    if (mood >= 70)      insightEl.textContent = "Твоё эмоциональное состояние сегодня сильное.";
-    else if (mood >= 45) insightEl.textContent = "Ты относительно стабилен сегодня.";
-    else                 insightEl.textContent = "Сегодня может потребоваться дополнительный отдых.";
+    if (mood >= 70)      insightEl.textContent = lang === "en" ? "Your emotional state is strong today." : lang === "es" ? "Tu estado emocional es fuerte hoy." : lang === "uk" ? "Твій емоційний стан сьогодні сильний." : "Твоё эмоциональное состояние сегодня сильное.";
+    else if (mood >= 45) insightEl.textContent = lang === "en" ? "You're relatively stable today." : lang === "es" ? "Estás relativamente estable hoy." : lang === "uk" ? "Ти відносно стабільний сьогодні." : "Ты относительно стабилен сегодня.";
+    else                 insightEl.textContent = lang === "en" ? "You may need extra rest today." : lang === "es" ? "Puede que necesites descanso extra hoy." : lang === "uk" ? "Сьогодні може знадобитися додатковий відпочинок." : "Сегодня может потребоваться дополнительный отдых.";
   }
 
   const goldenEl = document.getElementById("goldenHours");
   if (goldenEl) goldenEl.textContent = calculateGoldenHour(getMoodHistory());
+
+  // Переводим статичные тексты главного экрана
+  const el = (id) => document.getElementById(id);
+  const qi = (sel) => document.querySelector(sel);
+
+  if (qi('[data-screen="home"] .card:nth-child(2) div[style*="Дневная"], [data-i18n="daily_reflection"]')) {
+    // используем data-атрибуты если есть
+  }
 }
 
 function getDaysFromStorage() {
@@ -65,11 +76,21 @@ function getDaysFromStorage() {
 document.addEventListener("DOMContentLoaded", () => {
   initState();
   initUI();
-  initNavigation();
 
-  // Проверяем напоминание об отправке отчёта
+  // Онбординг — показываем если не пройден
+  if (!isOnboardingDone()) {
+    initOnboarding(() => {
+      // После онбординга запускаем приложение
+      startApp();
+    });
+  } else {
+    startApp();
+  }
+});
+
+function startApp() {
+  initNavigation();
   checkAutoReminder();
-  // Повторяем проверку каждые 5 минут (на случай если приложение открыто долго)
   setInterval(checkAutoReminder, 5 * 60 * 1000);
 
   const slider = document.getElementById("moodSlider");
@@ -90,15 +111,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const btn    = document.getElementById("analyzeNoteBtn");
-  const note   = document.getElementById("dailyNote");
-  const output = document.getElementById("aiResponse");
+  const btn         = document.getElementById("analyzeNoteBtn");
+  const note        = document.getElementById("dailyNote");
+  const output      = document.getElementById("aiResponse");
   const voiceOutput = document.getElementById("voiceAIResponse");
 
   if (btn) {
     btn.addEventListener("click", () => {
-      const text = note.value;
-      const mood = getMood();
+      const text   = note.value;
+      const mood   = getMood();
       const result = analyzeText(text, mood);
       if (output) {
         output.textContent = result.insight;
@@ -122,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recordBtn.addEventListener("click", async () => {
       if (output) output.classList.remove("ai-message");
       try {
-        voiceStatus.textContent = "Запрашиваю микрофон...";
+        voiceStatus.textContent = t("waiting") + "...";
         recordBtn.disabled = true;
         await startVoiceRecording(voiceStatus, () => {
           const result = analyzeLatestVoice();
@@ -130,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
             voiceOutput.textContent = result.insight;
             voiceOutput.classList.add("ai-message");
           }
-          voiceStatus.textContent = "Рефлексия сохранена";
+          voiceStatus.textContent = t("waiting");
           recordBtn.disabled = false;
         });
       } catch(e) {
@@ -139,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-});
+}
 
 let lastHistorySaveTime = 0;
 const HISTORY_COOLDOWN = 5000;
@@ -167,7 +188,7 @@ function updateStabilityHistory() {
 function showSavedTime() {
   const label = document.getElementById("moodSavedLabel");
   if (!label) return;
-  const now = new Date();
+  const now  = new Date();
   const time = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  label.textContent = `Сохранено в ${time}`;
+  label.textContent = `${t("saved_at")} ${time}`;
 }

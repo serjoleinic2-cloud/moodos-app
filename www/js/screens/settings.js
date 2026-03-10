@@ -10,6 +10,7 @@ import {
   markOnboardingDone
 } from "../services/user-profile.js";
 import { showPdfReportModal } from "./pdf-report.js";
+import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
@@ -115,6 +116,17 @@ function renderSettings() {
           </div>
           <span class="neo-row-value">${profile?.moodBaseline ?? 50}% ›</span>
         </div>
+
+        <div class="neo-row" id="settingLanguage">
+          <div class="neo-row-left">
+            <span class="neo-row-icon">🌍</span>
+            <span class="neo-row-label">Язык</span>
+          </div>
+          <span class="neo-row-value">
+            ${LANG_OPTIONS.find(l=>l.code===getLang())?.flag || '🌍'}
+            ${LANG_OPTIONS.find(l=>l.code===getLang())?.label || 'Русский'} ›
+          </span>
+        </div>
       </div>
 
       <!-- ОТЧЁТЫ -->
@@ -191,6 +203,10 @@ function bindEvents(el) {
   el.querySelector("#settingPdfReport")?.addEventListener("click", () => {
     showPdfReportModal();
   });
+
+  el.querySelector("#settingLanguage")?.addEventListener("click", () => {
+    showLanguageModal(el);
+  });
 }
 
 function showModal({ title, subtitle, field, options, onSave }) {
@@ -234,6 +250,44 @@ function showModal({ title, subtitle, field, options, onSave }) {
     if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
   });
 
+  overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function showLanguageModal(el) {
+  const current = getLang();
+  const overlay = document.createElement("div");
+  overlay.className = "health-modal-overlay";
+  overlay.innerHTML = `
+    <div class="health-modal">
+      <div class="modal-title">🌍 Язык / Language</div>
+      <div class="modal-subtitle">Выбери язык интерфейса</div>
+      <div class="modal-options">
+        ${LANG_OPTIONS.map(l => `
+          <div class="modal-option ${l.code===current?'selected':''}" data-value="${l.code}">
+            <span style="font-size:20px;margin-right:10px;">${l.flag}</span>${l.label}
+          </div>
+        `).join('')}
+      </div>
+      <button class="modal-save-btn" id="modalSave">Сохранить / Save</button>
+      <div class="modal-cancel" id="modalCancel">Отмена / Cancel</div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  let selected = current;
+  overlay.querySelectorAll(".modal-option").forEach(opt => {
+    opt.addEventListener("click", () => {
+      overlay.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      selected = opt.dataset.value;
+    });
+  });
+
+  overlay.querySelector("#modalSave").addEventListener("click", () => {
+    setLang(selected);
+    overlay.remove();
+    if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
+  });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
 }
