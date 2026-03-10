@@ -135,13 +135,6 @@ function renderSettings() {
 }
 
 function bindEvents(el) {
-  // Закрываем любую открытую модалку при нажатии на нижнюю навигацию
-  const closeAnyModal = () => {
-    document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
-    document.getElementById("pdfReportScreen")?.remove();
-  };
-  document.querySelector(".bottom-nav").addEventListener("click", closeAnyModal);
-
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({
       title: "Приём лекарств",

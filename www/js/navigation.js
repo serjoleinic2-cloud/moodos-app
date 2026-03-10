@@ -1,3 +1,5 @@
+import { closeAllOverlays } from "./screens/pdf-report.js";
+
 export function initNavigation() {
 
   const buttons        = document.querySelectorAll("[data-nav]");
@@ -64,6 +66,7 @@ export function initNavigation() {
   function openScreen(name) {
     closeMenu();
     closeToolsMenu();
+    closeAllOverlays(); // закрываем модалки и экран отчёта
     if (currentScreen === name) return;
     screenElements.forEach(s => s.classList.remove("active"));
     buttons.forEach(b => { if (b.id !== "hamburgerBtn") b.classList.remove("active"); });
@@ -76,7 +79,10 @@ export function initNavigation() {
     loadScreen(name);
   }
 
-  hamburgerBtn.addEventListener("click", () => openMenu());
+  hamburgerBtn.addEventListener("click", () => {
+    closeAllOverlays();
+    openMenu();
+  });
   menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); });
   menuPanel.addEventListener("click", (e) => e.stopPropagation());
 
@@ -88,7 +94,6 @@ export function initNavigation() {
   toolsOverlay.addEventListener("click", () => closeToolsMenu());
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
-  // Дыхание → www/js/breathing.js
   document.getElementById("toolsBreathing").onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
@@ -97,7 +102,6 @@ export function initNavigation() {
     if (c) { c.innerHTML = ""; initBreathing(c); }
   };
 
-  // Медитация → www/js/screens/meditation.js
   document.getElementById("toolsMeditation").onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
@@ -106,7 +110,6 @@ export function initNavigation() {
     if (c) { c.innerHTML = ""; initMeditation(c); }
   };
 
-  // Зрительный якорь → www/js/visual-focus.js
   const vfBtn = document.getElementById("toolsVisualFocus");
   if (vfBtn) vfBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");
@@ -116,7 +119,6 @@ export function initNavigation() {
     if (c) { c.innerHTML = ""; initVisualFocus(c); }
   };
 
-  // Выгрузка мыслей → www/js/mind-dump.js
   const mdBtn = document.getElementById("toolsMindDump");
   if (mdBtn) mdBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");
@@ -126,7 +128,6 @@ export function initNavigation() {
     if (c) { c.innerHTML = ""; initMindDump(c); }
   };
 
-  // Тактильная разрядка → www/js/tap-calm.js
   const tcBtn = document.getElementById("toolsTapCalm");
   if (tcBtn) tcBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");

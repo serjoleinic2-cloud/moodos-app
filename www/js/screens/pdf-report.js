@@ -29,6 +29,11 @@ function loadSettings() {
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
 // ---- Проверка напоминаний (вызывается при старте приложения) ----
+export function closeAllOverlays() {
+  document.getElementById("pdfReportScreen")?.remove();
+  document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
+}
+
 export function checkAutoReminder() {
   const s = loadSettings();
   if (!s.autoDays?.length || !s.autoTime) return;
@@ -200,9 +205,7 @@ export function showPdfReportModal() {
 
   // ---- Назад — удаляем экран полностью ----
   screen.querySelector("#prBack").addEventListener("click", () => screen.remove());
-  // Закрываем при нажатии любой кнопки нижней навигации
-  const navCloseHandler = () => screen.remove();
-  document.querySelector(".bottom-nav").addEventListener("click", navCloseHandler);
+
 
   // ---- Дни недели ----
   let selectedDays = [...autoDays];
