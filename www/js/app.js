@@ -22,15 +22,15 @@ import {
   setMood,
   subscribe
 } from "./state.js";
+import { checkAutoReminder } from "./screens/pdf-report.js";
 
 /* ---------- RENDER ---------- */
 function render() {
   const mood = getMood();
 
-  // Счётчик дней
   const daysEl = document.getElementById("daysTogether");
   if (daysEl) {
-    const days = getUsageDays();
+    const days = getUsageDays ? getUsageDays() : getDaysFromStorage();
     const label = days === 1 ? "день" : days >= 2 && days <= 4 ? "дня" : "дней";
     daysEl.textContent = `Я с тобой уже ${days} ${label}`;
   }
@@ -52,11 +52,25 @@ function render() {
   if (goldenEl) goldenEl.textContent = calculateGoldenHour(getMoodHistory());
 }
 
+function getDaysFromStorage() {
+  try {
+    const start = localStorage.getItem("startDate");
+    if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
+    const diff = Date.now() - parseInt(start);
+    return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  } catch(e) { return 1; }
+}
+
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   initState();
   initUI();
   initNavigation();
+
+  // Проверяем напоминание об отправке отчёта
+  checkAutoReminder();
+  // Повторяем проверку каждые 5 минут (на случай если приложение открыто долго)
+  setInterval(checkAutoReminder, 5 * 60 * 1000);
 
   const slider = document.getElementById("moodSlider");
   if (slider) {
@@ -101,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   render();
   subscribe(render);
 
-  const recordBtn  = document.getElementById("recordVoiceBtn");
+  const recordBtn   = document.getElementById("recordVoiceBtn");
   const voiceStatus = document.getElementById("voiceStatus");
 
   if (recordBtn) {
@@ -131,11 +145,9 @@ let lastHistorySaveTime = 0;
 const HISTORY_COOLDOWN = 5000;
 
 function updateStabilityHistory() {
-  const mood    = getMood();
-  let history   = getMoodHistory();
-  const now     = Date.now();
-  const last    = history[history.length - 1];
-  if (last && last.value === mood) return;
+  const mood  = getMood();
+  let history = getMoodHistory();
+  const now   = Date.now();
   if (now - lastHistorySaveTime < HISTORY_COOLDOWN) return;
 
   const state = detectMoodState(mood);

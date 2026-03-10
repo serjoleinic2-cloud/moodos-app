@@ -1,125 +1,305 @@
 // =====================================
-// MoodOS PDF Report Generator
-// Генерация отчёта для врача
+// MoodOS PDF Report — Share API
 // =====================================
 import { getMoodHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
 
 const MED_LABELS = {
-  "нет":             "Не принимает",
-  "антидепрессанты": "Антидепрессанты",
-  "седативные":      "Седативные / успокоительные",
-  "другое":          "Другое",
-  "не_скажу":        "Не указано",
+  "нет":"Не принимает","антидепрессанты":"Антидепрессанты",
+  "седативные":"Седативные / успокоительные","другое":"Другое","не_скажу":"Не указано"
 };
-
 const EFFECT_LABELS = {
-  "лучше":           "Стало лучше",
-  "примерно_так_же": "Примерно так же",
-  "приглушённость":  "Чувствует приглушённость",
-  "побочки":         "Есть побочные эффекты",
-  "адаптация":       "Подбор дозировки",
+  "лучше":"Стало лучше","примерно_так_же":"Примерно так же",
+  "приглушённость":"Чувствует приглушённость","побочки":"Есть побочные эффекты","адаптация":"Подбор дозировки"
 };
-
 const STATE_LABELS = {
-  "HIGH":     "Отличное",
-  "GOOD":     "Хорошее",
-  "NEUTRAL":  "Нейтральное",
-  "STRESSED": "Напряжение",
-  "LOW":      "Сниженное",
+  "HIGH":"Отличное","GOOD":"Хорошее","NEUTRAL":"Нейтральное","STRESSED":"Напряжение","LOW":"Сниженное"
 };
-
 const SESSION_LABELS = {
-  "breathing":    "Дыхание",
-  "meditation":   "Медитация",
-  "visual-focus": "Зрительный якорь",
-  "mind-dump":    "Выгрузка мыслей",
-  "tap-calm":     "Тактильная разрядка",
+  "breathing":"Дыхание","meditation":"Медитация",
+  "visual-focus":"Зрительный якорь","mind-dump":"Выгрузка мыслей","tap-calm":"Тактильная разрядка"
 };
+const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const STORE_KEY = "pdf_report_settings";
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+// ---- Проверка напоминаний (вызывается при старте приложения) ----
+export function checkAutoReminder() {
+  const s = loadSettings();
+  if (!s.autoDays?.length || !s.autoTime) return;
+
+  const now     = new Date();
+  const todayDow = now.getDay() === 0 ? 7 : now.getDay(); // 1=Пн 7=Вс
+  const [hh, mm] = s.autoTime.split(":").map(Number);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const targetMin  = hh * 60 + mm;
+
+  if (!s.autoDays.includes(todayDow)) return;
+
+  // Показываем напоминание если сейчас ±5 минут от нужного времени
+  // и ещё не показывали сегодня
+  const todayKey = now.toISOString().slice(0, 10);
+  if (s.lastReminderDate === todayKey) return;
+  if (Math.abs(nowMinutes - targetMin) > 5) return;
+
+  s.lastReminderDate = todayKey;
+  saveSettings(s);
+
+  // Показываем баннер
+  showReminderBanner();
+}
+
+function showReminderBanner() {
+  const banner = document.createElement("div");
+  banner.style.cssText = `
+    position:fixed;top:16px;left:16px;right:16px;z-index:500;
+    background:#6667AB;border-radius:16px;
+    box-shadow:4px 4px 12px rgba(102,103,171,0.5);
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+    animation:slideDown 0.3s ease;`;
+  banner.innerHTML = `
+    <style>@keyframes slideDown{from{transform:translateY(-80px);opacity:0}to{transform:translateY(0);opacity:1}}</style>
+    <span style="font-size:24px;">📄</span>
+    <div style="flex:1;">
+      <div style="font-size:14px;font-weight:700;color:#fff;">Время отправить отчёт врачу</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.7);">Нажми чтобы сформировать PDF</div>
+    </div>
+    <div id="bannerOpen" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Открыть</div>
+    <div id="bannerClose" style="font-size:20px;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;">✕</div>`;
+  document.body.appendChild(banner);
+  banner.querySelector("#bannerOpen").addEventListener("click",  () => { banner.remove(); showPdfReportModal(); });
+  banner.querySelector("#bannerClose").addEventListener("click", () => banner.remove());
+  setTimeout(() => banner.remove(), 15000);
+}
 
 export function showPdfReportModal() {
-  const existing = document.getElementById("pdfReportOverlay");
+  const existing = document.getElementById("pdfReportScreen");
   if (existing) existing.remove();
 
-  // Определяем диапазон по умолчанию — последние 30 дней
-  const now   = new Date();
-  const from  = new Date(now); from.setDate(from.getDate() - 30);
+  const s = loadSettings();
+  const now  = new Date();
+  const from = new Date(now); from.setDate(from.getDate() - 30);
   const toStr   = now.toISOString().slice(0,10);
   const fromStr = from.toISOString().slice(0,10);
 
-  const overlay = document.createElement("div");
-  overlay.id = "pdfReportOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;";
+  const autoDays   = s.autoDays   || [];
+  const autoPeriod = s.autoPeriod || "30";
+  const autoTime   = s.autoTime   || "09:00";
 
-  overlay.innerHTML = `
-    <div style="
-      width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);
-      border-radius:24px 24px 0 0;padding:24px 20px 48px;
-      box-sizing:border-box;animation:slideUp 0.35s ease;
-    ">
-      <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
-      <div style="font-size:19px;font-weight:700;color:#3a3530;margin-bottom:6px;">📄 Отчёт для врача</div>
-      <div style="font-size:13px;color:#aaa;margin-bottom:22px;">PDF с данными за выбранный период</div>
+  const screen = document.createElement("div");
+  screen.id = "pdfReportScreen";
+  screen.style.cssText = `
+    position:fixed;inset:0;z-index:400;
+    background:linear-gradient(160deg,#d4ede8 0%,#e8e0d5 100%);
+    overflow-y:auto;-webkit-overflow-scrolling:touch;`;
 
-      <div style="display:flex;gap:12px;margin-bottom:16px;">
-        <div style="flex:1;">
-          <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">С</div>
-          <input type="date" id="pdfFrom" value="${fromStr}" style="
-            width:100%;padding:12px 14px;border:none;border-radius:14px;
-            background:#e8ede8;box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;
-            font-size:15px;color:#555;outline:none;box-sizing:border-box;">
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">По</div>
-          <input type="date" id="pdfTo" value="${toStr}" style="
-            width:100%;padding:12px 14px;border:none;border-radius:14px;
-            background:#e8ede8;box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;
-            font-size:15px;color:#555;outline:none;box-sizing:border-box;">
-        </div>
+  screen.innerHTML = `
+    <style>
+      .pr-wrap{padding:20px 16px 120px;}
+      .pr-back{display:flex;align-items:center;gap:8px;margin-bottom:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+      .pr-back-icon{font-size:22px;color:#888;}
+      .pr-back-label{font-size:16px;color:#888;}
+      .pr-title{font-size:22px;font-weight:700;color:#3a3530;margin-bottom:6px;}
+      .pr-subtitle{font-size:13px;color:#aaa;margin-bottom:24px;}
+      .pr-card{background:rgba(232,237,230,0.9);border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;padding:18px;margin-bottom:16px;}
+      .pr-card-title{font-size:13px;font-weight:700;color:#888;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:14px;}
+      .pr-date-row{display:flex;gap:12px;}
+      .pr-date-col{flex:1;}
+      .pr-date-label{font-size:11px;color:#aaa;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+      .pr-input{width:100%;padding:12px 14px;border:none;border-radius:14px;background:rgba(220,228,218,0.8);box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;font-size:15px;color:#555;outline:none;box-sizing:border-box;}
+      .pr-status{font-size:13px;color:#888;margin:10px 0 0;min-height:18px;text-align:center;}
+      .pr-btn{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#4caf87;cursor:pointer;margin-top:16px;-webkit-tap-highlight-color:transparent;}
+      .pr-btn:active{box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff;}
+      .pr-btn:disabled{opacity:0.5;}
+      .pr-hint{font-size:12px;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;}
+
+      /* Автоотправление */
+      .pr-auto-card{background:#6667AB;border-radius:18px;box-shadow:4px 4px 12px rgba(102,103,171,0.4),-4px -4px 12px rgba(255,255,255,0.15);padding:18px;margin-bottom:16px;}
+      .pr-auto-title{font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:14px;}
+      .pr-auto-label{font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;}
+      .pr-days-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+      .pr-day{padding:7px 11px;border-radius:10px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;}
+      .pr-day.active{background:rgba(255,255,255,0.9);color:#6667AB;}
+      .pr-period-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+      .pr-period{padding:8px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+      .pr-period.active{background:rgba(255,255,255,0.9);color:#6667AB;}
+      .pr-auto-input{width:100%;padding:11px 14px;border:none;border-radius:14px;background:rgba(255,255,255,0.15);color:#fff;font-size:15px;outline:none;box-sizing:border-box;}
+      .pr-auto-input::placeholder{color:rgba(255,255,255,0.4);}
+      .pr-time-input{width:100%;padding:11px 14px;border:none;border-radius:14px;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;font-weight:600;outline:none;box-sizing:border-box;}
+      .pr-auto-save{width:100%;padding:13px;border:none;border-radius:14px;background:rgba(255,255,255,0.2);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;-webkit-tap-highlight-color:transparent;}
+      .pr-auto-save:active{background:rgba(255,255,255,0.3);}
+      .pr-auto-status{font-size:12px;color:rgba(255,255,255,0.6);text-align:center;margin-top:8px;min-height:16px;line-height:1.5;}
+    </style>
+
+    <div class="pr-wrap">
+      <div class="pr-back" id="prBack">
+        <span class="pr-back-icon">‹</span>
+        <span class="pr-back-label">Настройки</span>
       </div>
 
-      <div id="pdfStatus" style="font-size:13px;color:#888;margin-bottom:16px;min-height:18px;"></div>
+      <div class="pr-title">📄 Отчёт для врача</div>
+      <div class="pr-subtitle">PDF с данными об эмоциональном состоянии</div>
 
-      <button id="pdfGenBtn" style="
-        width:100%;padding:15px;border:none;border-radius:16px;
-        background:rgba(232,237,230,0.9);
-        box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;
-        font-size:16px;font-weight:700;color:#4caf87;cursor:pointer;margin-bottom:10px;">
-        Сформировать PDF
-      </button>
-      <div id="pdfCancelBtn" style="
-        width:100%;padding:12px;text-align:center;
-        font-size:14px;color:#bbb;cursor:pointer;">Отмена</div>
+      <!-- КАРТОЧКА 1: ПЕРИОД + КНОПКА -->
+      <div class="pr-card">
+        <div class="pr-card-title">Период отчёта</div>
+        <div class="pr-date-row">
+          <div class="pr-date-col">
+            <div class="pr-date-label">С</div>
+            <input type="date" id="prFrom" class="pr-input" value="${s.lastFrom||fromStr}">
+          </div>
+          <div class="pr-date-col">
+            <div class="pr-date-label">По</div>
+            <input type="date" id="prTo" class="pr-input" value="${s.lastTo||toStr}">
+          </div>
+        </div>
+        <div class="pr-status" id="prStatus"></div>
+        <button class="pr-btn" id="prGenBtn">📤 Сформировать и поделиться</button>
+        <div class="pr-hint">Откроется стандартное меню Android — выбери почту, мессенджер или сохрани файл</div>
+      </div>
+
+      <!-- КАРТОЧКА 3: АВТООТПРАВЛЕНИЕ -->
+      <div class="pr-auto-card">
+        <div class="pr-auto-title">⚡ Напоминание об отправке</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px;">
+          В выбранные дни в указанное время приложение напомнит сформировать отчёт
+        </div>
+
+        <div class="pr-auto-label">Дни напоминания</div>
+        <div class="pr-days-row" id="prDaysRow">
+          ${DAYS.map((d,i) => `
+            <div class="pr-day ${autoDays.includes(i+1)?'active':''}" data-day="${i+1}">${d}</div>
+          `).join('')}
+        </div>
+
+        <div class="pr-auto-label">Время напоминания</div>
+        <input type="time" id="prAutoTime" class="pr-time-input" value="${autoTime}" style="margin-bottom:16px;">
+
+        <div class="pr-auto-label">Период в отчёте</div>
+        <div class="pr-period-row" id="prPeriodRow">
+          ${[["7","7 дней"],["14","14 дней"],["30","30 дней"],["90","3 месяца"]].map(([v,l]) =>
+            `<div class="pr-period ${autoPeriod===v?'active':''}" data-period="${v}">${l}</div>`
+          ).join('')}
+        </div>
+
+        <button class="pr-auto-save" id="prAutoSave">Сохранить расписание</button>
+        <div class="pr-auto-status" id="prAutoStatus">
+          ${autoDays.length
+            ? `🔔 ${autoDays.map(d=>DAYS[d-1]).join(', ')} в ${autoTime} · за ${autoPeriod} дней`
+            : 'Напоминания не настроены'}
+        </div>
+      </div>
     </div>`;
 
-  document.body.appendChild(overlay);
+  document.body.appendChild(screen);
 
-  overlay.querySelector("#pdfGenBtn").addEventListener("click", async () => {
-    const fromVal = overlay.querySelector("#pdfFrom").value;
-    const toVal   = overlay.querySelector("#pdfTo").value;
-    if (!fromVal || !toVal) {
-      overlay.querySelector("#pdfStatus").textContent = "Выберите период";
-      return;
-    }
-    overlay.querySelector("#pdfStatus").textContent = "Формирую PDF...";
-    overlay.querySelector("#pdfGenBtn").disabled = true;
-    try {
-      await generatePdf(fromVal, toVal);
-      overlay.querySelector("#pdfStatus").textContent = "✅ PDF сохранён";
-      setTimeout(() => overlay.remove(), 1500);
-    } catch(e) {
-      overlay.querySelector("#pdfStatus").textContent = "Ошибка: " + e.message;
-      overlay.querySelector("#pdfGenBtn").disabled = false;
-    }
+  // ---- Назад — удаляем экран полностью ----
+  screen.querySelector("#prBack").addEventListener("click", () => {
+    screen.remove();
   });
 
-  overlay.querySelector("#pdfCancelBtn").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  // ---- Дни недели ----
+  let selectedDays = [...autoDays];
+  screen.querySelectorAll(".pr-day").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const d = parseInt(btn.dataset.day);
+      if (selectedDays.includes(d)) {
+        selectedDays = selectedDays.filter(x => x !== d);
+        btn.classList.remove("active");
+      } else {
+        selectedDays.push(d);
+        btn.classList.add("active");
+      }
+    });
+  });
+
+  // ---- Период ----
+  let selectedPeriod = autoPeriod;
+  screen.querySelectorAll(".pr-period").forEach(btn => {
+    btn.addEventListener("click", () => {
+      screen.querySelectorAll(".pr-period").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedPeriod = btn.dataset.period;
+    });
+  });
+
+  // ---- Сохранить расписание ----
+  screen.querySelector("#prAutoSave").addEventListener("click", () => {
+    const autoTime = screen.querySelector("#prAutoTime").value || "09:00";
+    const st = loadSettings();
+    st.autoDays   = selectedDays;
+    st.autoPeriod = selectedPeriod;
+    st.autoTime   = autoTime;
+    saveSettings(st);
+    const statusEl = screen.querySelector("#prAutoStatus");
+    statusEl.textContent = selectedDays.length
+      ? `✅ ${selectedDays.map(d=>DAYS[d-1]).join(', ')} в ${autoTime} · за ${selectedPeriod} дней`
+      : "Напоминания отключены";
+  });
+
+  // ---- Генерация + Share ----
+  screen.querySelector("#prGenBtn").addEventListener("click", async () => {
+    const fromVal  = screen.querySelector("#prFrom").value;
+    const toVal    = screen.querySelector("#prTo").value;
+    const statusEl = screen.querySelector("#prStatus");
+
+    if (!fromVal || !toVal) { statusEl.textContent = "Выберите период"; return; }
+    if (new Date(fromVal) > new Date(toVal)) { statusEl.textContent = "Дата «С» должна быть раньше «По»"; return; }
+
+    const st = loadSettings();
+    st.lastFrom = fromVal; st.lastTo = toVal;
+    saveSettings(st);
+
+    statusEl.textContent = "⏳ Формирую PDF...";
+    screen.querySelector("#prGenBtn").disabled = true;
+
+    try {
+      const pdfBlob = await generatePdf(fromVal, toVal);
+      const fileName = `MoodOS_${fromVal}_${toVal}.pdf`;
+
+      // Пробуем Web Share API (работает в Capacitor)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+        if (navigator.canShare({ files: [file] })) {
+          statusEl.textContent = "✅ Открываю меню...";
+          await navigator.share({
+            title: `MoodOS Отчёт ${fromVal} — ${toVal}`,
+            text: "Отчёт об эмоциональном состоянии",
+            files: [file]
+          });
+          statusEl.textContent = "✅ Готово";
+          screen.querySelector("#prGenBtn").disabled = false;
+          return;
+        }
+      }
+
+      // Fallback — скачиваем через ссылку
+      const url = URL.createObjectURL(pdfBlob);
+      const a   = document.createElement("a");
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      statusEl.textContent = "✅ PDF сохранён";
+
+    } catch(e) {
+      if (e.name !== "AbortError") {
+        statusEl.textContent = "Ошибка: " + e.message;
+      } else {
+        statusEl.textContent = "";
+      }
+    }
+
+    screen.querySelector("#prGenBtn").disabled = false;
+  });
 }
 
 async function generatePdf(fromStr, toStr) {
-  // Загружаем jsPDF динамически
   if (!window.jspdf) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
   }
@@ -129,294 +309,177 @@ async function generatePdf(fromStr, toStr) {
   const fromDate = new Date(fromStr + "T00:00:00");
   const toDate   = new Date(toStr   + "T23:59:59");
 
-  // Фильтруем данные по периоду
   const moodHistory = getMoodHistory().filter(e => {
-    const t = new Date(e.time);
-    return t >= fromDate && t <= toDate;
+    const t = new Date(e.time); return t >= fromDate && t <= toDate;
   });
   const sessions = getSessionHistory().filter(e => {
-    const t = new Date(e.timestamp);
-    return t >= fromDate && t <= toDate;
+    const t = new Date(e.timestamp||0); return t >= fromDate && t <= toDate;
   });
   const profile = getProfile();
 
-  const PAGE_W = 210;
-  const MARGIN = 18;
-  const CONTENT_W = PAGE_W - MARGIN * 2;
+  const PAGE_W=210, MARGIN=18, CONTENT_W=PAGE_W-MARGIN*2;
   let y = MARGIN;
 
-  // ---- Цвета ----
-  const C_DARK   = [45, 45, 45];
-  const C_GRAY   = [120, 120, 120];
-  const C_LIGHT  = [180, 180, 180];
-  const C_GREEN  = [76, 175, 135];
-  const C_ORANGE = [240, 165, 0];
-  const C_RED    = [224, 85, 85];
-  const C_LINE   = [210, 215, 208];
+  const C_DARK=[45,45,45],C_GRAY=[120,120,120],C_LIGHT=[180,180,180];
+  const C_GREEN=[76,175,135],C_ORANGE=[240,165,0],C_RED=[224,85,85];
+  const C_LINE=[210,215,208];
 
-  function setFont(size, style="normal", color=C_DARK) {
-    doc.setFontSize(size);
-    doc.setFont("helvetica", style);
-    doc.setTextColor(...color);
+  function sf(size,style="normal",color=C_DARK){
+    doc.setFontSize(size);doc.setFont("helvetica",style);doc.setTextColor(...color);
   }
-
-  function line(yPos) {
-    doc.setDrawColor(...C_LINE);
-    doc.setLineWidth(0.3);
-    doc.line(MARGIN, yPos, PAGE_W - MARGIN, yPos);
-  }
-
-  function checkPage(needed=10) {
-    if (y + needed > 280) {
-      doc.addPage();
-      y = MARGIN;
-    }
-  }
-
-  function moodColor(v) {
-    if (v >= 70) return C_GREEN;
-    if (v >= 40) return C_ORANGE;
-    return C_RED;
-  }
-
-  function formatDate(d) {
-    return new Date(d).toLocaleDateString("ru-RU", {day:"2-digit",month:"long",year:"numeric"});
-  }
-  function formatDateShort(d) {
-    return new Date(d).toLocaleDateString("ru-RU", {day:"2-digit",month:"2-digit"});
-  }
-  function formatDateTime(d) {
-    const dt = new Date(d);
-    return dt.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}) + " " +
+  function ln(yp){doc.setDrawColor(...C_LINE);doc.setLineWidth(0.3);doc.line(MARGIN,yp,PAGE_W-MARGIN,yp);}
+  function chk(n=10){if(y+n>280){doc.addPage();y=MARGIN;}}
+  function mc(v){return v>=70?C_GREEN:v>=40?C_ORANGE:C_RED;}
+  function fmtDate(d){return new Date(d).toLocaleDateString("ru-RU",{day:"2-digit",month:"long",year:"numeric"});}
+  function fmtDT(d){
+    const dt=new Date(d);
+    return dt.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"})+" "+
            dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
   }
 
-  // ===== ШАПКА =====
-  doc.setFillColor(232, 237, 230);
-  doc.roundedRect(MARGIN - 4, y - 4, CONTENT_W + 8, 28, 4, 4, "F");
-  setFont(18, "bold", C_GREEN);
-  doc.text("MoodOS", MARGIN, y + 8);
-  setFont(10, "normal", C_GRAY);
-  doc.text("Отчёт об эмоциональном состоянии", MARGIN, y + 15);
-  setFont(9, "normal", C_LIGHT);
-  doc.text(`Период: ${formatDate(fromDate)} — ${formatDate(toDate)}`, MARGIN, y + 21);
-  doc.text(`Сформирован: ${new Date().toLocaleDateString("ru-RU")}`, PAGE_W - MARGIN, y + 21, {align:"right"});
-  y += 34;
+  // Шапка
+  doc.setFillColor(232,237,230);
+  doc.roundedRect(MARGIN-4,y-4,CONTENT_W+8,28,4,4,"F");
+  sf(18,"bold",C_GREEN); doc.text("MoodOS",MARGIN,y+8);
+  sf(10,"normal",C_GRAY); doc.text("Отчёт об эмоциональном состоянии",MARGIN,y+15);
+  sf(9,"normal",C_LIGHT);
+  doc.text(`Период: ${fmtDate(fromDate)} — ${fmtDate(toDate)}`,MARGIN,y+21);
+  doc.text(`Сформирован: ${new Date().toLocaleDateString("ru-RU")}`,PAGE_W-MARGIN,y+21,{align:"right"});
+  y+=34;
 
-  // ===== ДАННЫЕ ОБ АППАРАТЕ =====
-  if (profile) {
-    checkPage(30);
-    setFont(11, "bold", C_DARK);
-    doc.text("Информация о пациенте", MARGIN, y); y += 7;
-    line(y); y += 5;
-
-    const medLabel    = MED_LABELS[profile.takesMeds] || "Не указано";
-    const effectLabel = EFFECT_LABELS[profile.medEffect] || "—";
-
-    setFont(9, "normal", C_GRAY);
-    doc.text("Приём препаратов:", MARGIN, y);
-    setFont(9, "bold", C_DARK);
-    doc.text(medLabel, MARGIN + 42, y); y += 6;
-
-    if (profile.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу") {
-      setFont(9, "normal", C_GRAY);
-      doc.text("Эффект от препарата:", MARGIN, y);
-      setFont(9, "bold", C_DARK);
-      doc.text(effectLabel, MARGIN + 42, y); y += 6;
+  // Профиль
+  if(profile){
+    chk(30);
+    sf(11,"bold",C_DARK); doc.text("Информация о пациенте",MARGIN,y); y+=7;
+    ln(y); y+=5;
+    sf(9,"normal",C_GRAY); doc.text("Приём препаратов:",MARGIN,y);
+    sf(9,"bold",C_DARK);   doc.text(MED_LABELS[profile.takesMeds]||"Не указано",MARGIN+42,y); y+=6;
+    if(profile.takesMeds&&profile.takesMeds!=="нет"&&profile.takesMeds!=="не_скажу"){
+      sf(9,"normal",C_GRAY); doc.text("Эффект от препарата:",MARGIN,y);
+      sf(9,"bold",C_DARK);   doc.text(EFFECT_LABELS[profile.medEffect]||"—",MARGIN+42,y); y+=6;
     }
-
-    setFont(9, "normal", C_GRAY);
-    doc.text("Базовое состояние:", MARGIN, y);
-    setFont(9, "bold", C_DARK);
-    doc.text((profile.moodBaseline ?? 50) + "%", MARGIN + 42, y); y += 10;
+    sf(9,"normal",C_GRAY); doc.text("Базовое состояние:",MARGIN,y);
+    sf(9,"bold",C_DARK);   doc.text((profile.moodBaseline??50)+"%",MARGIN+42,y); y+=10;
   }
 
-  // ===== СТАТИСТИКА ЗА ПЕРИОД =====
-  checkPage(40);
-  setFont(11, "bold", C_DARK);
-  doc.text("Статистика за период", MARGIN, y); y += 7;
-  line(y); y += 6;
+  // Статистика
+  chk(40);
+  sf(11,"bold",C_DARK); doc.text("Статистика за период",MARGIN,y); y+=7;
+  ln(y); y+=6;
 
-  if (moodHistory.length === 0) {
-    setFont(9, "normal", C_GRAY);
-    doc.text("Нет данных за выбранный период.", MARGIN, y); y += 10;
+  if(moodHistory.length===0){
+    sf(9,"normal",C_GRAY); doc.text("Нет данных за выбранный период.",MARGIN,y); y+=10;
   } else {
-    const values   = moodHistory.map(e => e.value);
-    const avg      = Math.round(values.reduce((a,b)=>a+b,0) / values.length);
-    const minVal   = Math.min(...values);
-    const maxVal   = Math.max(...values);
-
-    // Устойчивость
-    let stability = 100;
-    if (values.length > 1) {
-      const diffs = values.slice(1).map((v,i) => Math.abs(v - values[i]));
-      const avgDiff = diffs.reduce((a,b)=>a+b,0) / diffs.length;
-      stability = Math.max(0, Math.round(100 - avgDiff * 2));
+    const vals=moodHistory.map(e=>e.value);
+    const avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+    const minV=Math.min(...vals),maxV=Math.max(...vals);
+    let stab=100;
+    if(vals.length>1){
+      const diffs=vals.slice(1).map((v,i)=>Math.abs(v-vals[i]));
+      stab=Math.max(0,Math.round(100-diffs.reduce((a,b)=>a+b,0)/diffs.length*2));
     }
-
-    // Сетка 2×2
-    const BOX_W = (CONTENT_W - 6) / 2;
-    const BOX_H = 18;
-    const boxes = [
-      { label: "Среднее настроение", value: avg + "%",       color: moodColor(avg) },
-      { label: "Устойчивость",       value: stability + "%", color: moodColor(stability) },
-      { label: "Минимум",            value: minVal + "%",    color: moodColor(minVal) },
-      { label: "Максимум",           value: maxVal + "%",    color: moodColor(maxVal) },
-    ];
-
-    boxes.forEach((box, i) => {
-      const bx = MARGIN + (i % 2) * (BOX_W + 6);
-      const by = y + Math.floor(i / 2) * (BOX_H + 4);
-      doc.setFillColor(240, 244, 238);
-      doc.roundedRect(bx, by, BOX_W, BOX_H, 3, 3, "F");
-      setFont(8, "normal", C_GRAY);
-      doc.text(box.label, bx + 4, by + 6);
-      setFont(13, "bold", box.color);
-      doc.text(box.value, bx + 4, by + 14);
+    const BW=(CONTENT_W-6)/2,BH=18;
+    [{label:"Среднее настроение",value:avg+"%",color:mc(avg)},
+     {label:"Устойчивость",value:stab+"%",color:mc(stab)},
+     {label:"Минимум",value:minV+"%",color:mc(minV)},
+     {label:"Максимум",value:maxV+"%",color:mc(maxV)}
+    ].forEach((box,i)=>{
+      const bx=MARGIN+(i%2)*(BW+6),by=y+Math.floor(i/2)*(BH+4);
+      doc.setFillColor(240,244,238);doc.roundedRect(bx,by,BW,BH,3,3,"F");
+      sf(8,"normal",C_GRAY);doc.text(box.label,bx+4,by+6);
+      sf(13,"bold",box.color);doc.text(box.value,bx+4,by+14);
     });
-    y += BOX_H * 2 + 12;
+    y+=BH*2+12;
+    sf(9,"normal",C_GRAY);doc.text(`Всего записей: ${moodHistory.length}`,MARGIN,y);y+=10;
 
-    setFont(9, "normal", C_GRAY);
-    doc.text(`Всего записей: ${moodHistory.length}`, MARGIN, y); y += 10;
-
-    // ===== МИНИ-ГРАФИК =====
-    checkPage(50);
-    setFont(11, "bold", C_DARK);
-    doc.text("График настроения", MARGIN, y); y += 7;
-    line(y); y += 4;
-
-    const CHART_H = 35;
-    const CHART_W = CONTENT_W;
-    const cx = MARGIN, cy = y;
-
-    // Фон графика
-    doc.setFillColor(240, 244, 238);
-    doc.roundedRect(cx, cy, CHART_W, CHART_H, 3, 3, "F");
-
-    // Сетка Y
-    doc.setDrawColor(...C_LINE);
-    doc.setLineWidth(0.2);
-    [0, 25, 50, 75, 100].forEach(pct => {
-      const gy = cy + CHART_H - (pct / 100 * CHART_H);
-      doc.line(cx, gy, cx + CHART_W, gy);
-      setFont(6, "normal", C_LIGHT);
-      doc.text(pct + "%", cx - 1, gy + 1, {align:"right"});
+    // График
+    chk(50);
+    sf(11,"bold",C_DARK);doc.text("График настроения",MARGIN,y);y+=7;
+    ln(y);y+=4;
+    const CH=35,cx=MARGIN,cy=y;
+    doc.setFillColor(240,244,238);doc.roundedRect(cx,cy,CONTENT_W,CH,3,3,"F");
+    doc.setDrawColor(...C_LINE);doc.setLineWidth(0.2);
+    [0,25,50,75,100].forEach(pct=>{
+      const gy=cy+CH-(pct/100*CH);
+      doc.line(cx,gy,cx+CONTENT_W,gy);
+      sf(6,"normal",C_LIGHT);doc.text(pct+"%",cx-1,gy+1,{align:"right"});
     });
-
-    // Линия настроения
-    const sorted = moodHistory.slice().sort((a,b) => new Date(a.time) - new Date(b.time));
-    if (sorted.length > 1) {
-      const pts = sorted.map((e, i) => ({
-        x: cx + (i / (sorted.length - 1)) * CHART_W,
-        y: cy + CHART_H - (e.value / 100 * CHART_H)
+    const sorted=moodHistory.slice().sort((a,b)=>new Date(a.time)-new Date(b.time));
+    if(sorted.length>1){
+      const pts=sorted.map((e,i)=>({
+        x:cx+(i/(sorted.length-1))*CONTENT_W,
+        y:cy+CH-(e.value/100*CH)
       }));
-
-      doc.setDrawColor(...C_GREEN);
-      doc.setLineWidth(0.8);
-      for (let i = 1; i < pts.length; i++) {
-        doc.line(pts[i-1].x, pts[i-1].y, pts[i].x, pts[i].y);
-      }
-
-      // Точки
+      doc.setDrawColor(...C_GREEN);doc.setLineWidth(0.8);
+      for(let i=1;i<pts.length;i++) doc.line(pts[i-1].x,pts[i-1].y,pts[i].x,pts[i].y);
       doc.setFillColor(...C_GREEN);
-      pts.forEach(p => {
-        doc.circle(p.x, p.y, 0.8, "F");
-      });
+      pts.forEach(p=>doc.circle(p.x,p.y,0.8,"F"));
     }
-
-    y += CHART_H + 10;
+    y+=CH+10;
   }
 
-  // ===== ПРАКТИКИ =====
-  if (sessions.length > 0) {
-    checkPage(20);
-    setFont(11, "bold", C_DARK);
-    doc.text("Использованные практики", MARGIN, y); y += 7;
-    line(y); y += 5;
-
-    // Группируем по типу
-    const byType = {};
-    sessions.forEach(s => {
-      const t = s.type || "other";
-      if (!byType[t]) byType[t] = { count:0, positive:0, totalLift:0 };
-      byType[t].count++;
-      if (s.result === "positive") byType[t].positive++;
-      if (s.moodBefore != null && s.moodAfter != null) {
-        byType[t].totalLift += (s.moodAfter - s.moodBefore);
-      }
+  // Практики
+  if(sessions.length>0){
+    chk(20);
+    sf(11,"bold",C_DARK);doc.text("Использованные практики",MARGIN,y);y+=7;
+    ln(y);y+=5;
+    const bt={};
+    sessions.forEach(s=>{
+      const t=s.type||"other";
+      if(!bt[t]) bt[t]={count:0,positive:0,lift:0};
+      bt[t].count++;
+      if(s.result==="positive") bt[t].positive++;
+      if(s.moodBefore!=null&&s.moodAfter!=null) bt[t].lift+=(s.moodAfter-s.moodBefore);
     });
-
-    Object.entries(byType).forEach(([type, data]) => {
-      checkPage(10);
-      const label = SESSION_LABELS[type] || type;
-      const pct   = Math.round(data.positive / data.count * 100);
-      const lift  = data.count > 0 ? Math.round(data.totalLift / data.count) : 0;
-
-      setFont(9, "bold", C_DARK);
-      doc.text(label, MARGIN, y);
-      setFont(9, "normal", C_GRAY);
-      doc.text(`${data.count} сессий · Эффективность: ${pct}% · Ср. прирост: ${lift > 0 ? "+" : ""}${lift}%`,
-        MARGIN + 38, y);
-      y += 7;
+    Object.entries(bt).forEach(([type,data])=>{
+      chk(10);
+      const pct=Math.round(data.positive/data.count*100);
+      const lift=Math.round(data.lift/data.count);
+      sf(9,"bold",C_DARK);doc.text(SESSION_LABELS[type]||type,MARGIN,y);
+      sf(9,"normal",C_GRAY);
+      doc.text(`${data.count} сессий · ${pct}% эффективность · прирост: ${lift>0?"+":""}${lift}%`,MARGIN+38,y);
+      y+=7;
     });
-    y += 4;
+    y+=4;
   }
 
-  // ===== ТАБЛИЦА ЗАПИСЕЙ =====
-  checkPage(20);
-  setFont(11, "bold", C_DARK);
-  doc.text("Журнал настроения", MARGIN, y); y += 7;
-  line(y); y += 5;
-
-  if (moodHistory.length === 0) {
-    setFont(9, "normal", C_GRAY);
-    doc.text("Нет данных за выбранный период.", MARGIN, y); y += 10;
+  // Журнал
+  chk(20);
+  sf(11,"bold",C_DARK);doc.text("Журнал настроения",MARGIN,y);y+=7;
+  ln(y);y+=5;
+  if(moodHistory.length===0){
+    sf(9,"normal",C_GRAY);doc.text("Нет данных.",MARGIN,y);y+=10;
   } else {
-    // Заголовок таблицы
-    doc.setFillColor(225, 232, 222);
-    doc.rect(MARGIN, y - 3, CONTENT_W, 8, "F");
-    setFont(8, "bold", C_GRAY);
-    doc.text("Дата и время",    MARGIN + 2,  y + 3);
-    doc.text("Настроение",      MARGIN + 42, y + 3);
-    doc.text("Состояние",       MARGIN + 70, y + 3);
-    y += 9;
-
-    const sorted = moodHistory.slice().sort((a,b) => new Date(b.time) - new Date(a.time));
-    sorted.forEach((e, i) => {
-      checkPage(8);
-      if (i % 2 === 0) {
-        doc.setFillColor(246, 249, 244);
-        doc.rect(MARGIN, y - 3, CONTENT_W, 7, "F");
-      }
-      setFont(8, "normal", C_DARK);
-      doc.text(formatDateTime(e.time), MARGIN + 2, y + 2);
-      setFont(8, "bold", moodColor(e.value));
-      doc.text(e.value + "%", MARGIN + 42, y + 2);
-      setFont(8, "normal", C_GRAY);
-      doc.text(STATE_LABELS[e.state] || "—", MARGIN + 70, y + 2);
-      y += 7;
+    doc.setFillColor(225,232,222);doc.rect(MARGIN,y-3,CONTENT_W,8,"F");
+    sf(8,"bold",C_GRAY);
+    doc.text("Дата и время",MARGIN+2,y+3);
+    doc.text("Настроение",MARGIN+52,y+3);
+    doc.text("Состояние",MARGIN+78,y+3);
+    y+=9;
+    moodHistory.slice().sort((a,b)=>new Date(b.time)-new Date(a.time)).forEach((e,i)=>{
+      chk(8);
+      if(i%2===0){doc.setFillColor(246,249,244);doc.rect(MARGIN,y-3,CONTENT_W,7,"F");}
+      sf(8,"normal",C_DARK);doc.text(fmtDT(e.time),MARGIN+2,y+2);
+      sf(8,"bold",mc(e.value));doc.text(e.value+"%",MARGIN+52,y+2);
+      sf(8,"normal",C_GRAY);doc.text(STATE_LABELS[e.state]||"—",MARGIN+78,y+2);
+      y+=7;
     });
-    y += 6;
+    y+=6;
   }
 
-  // ===== ПОДВАЛ =====
-  checkPage(20);
-  line(y); y += 5;
-  setFont(8, "normal", C_LIGHT);
-  doc.text("Отчёт сформирован приложением MoodOS. Данные предназначены для обсуждения с врачом.", MARGIN, y, {maxWidth: CONTENT_W});
-  y += 5;
-  doc.text("Не является медицинским заключением.", MARGIN, y);
+  // Подвал
+  chk(16);ln(y);y+=5;
+  sf(8,"normal",C_LIGHT);
+  doc.text("Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.",MARGIN,y,{maxWidth:CONTENT_W});
 
-  // Сохраняем
-  const fileName = `MoodOS_${fromStr}_${toStr}.pdf`;
-  doc.save(fileName);
+  return doc.output("blob");
 }
 
 function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-    const s = document.createElement("script");
-    s.src = src; s.onload = resolve; s.onerror = reject;
+  return new Promise((resolve,reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
+    const s=document.createElement("script");
+    s.src=src;s.onload=resolve;s.onerror=reject;
     document.head.appendChild(s);
   });
 }
