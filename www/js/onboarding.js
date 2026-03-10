@@ -1,10 +1,15 @@
 // =====================================
-// MoodOS Onboarding v4 — с i18n + Terms
+// MoodOS Onboarding v5 — i18n + Terms + default EN
 // =====================================
 import { saveProfile, markOnboardingDone, saveMedReminder } from "./services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "./i18n.js";
 
 export function initOnboarding(onComplete) {
+
+  // По умолчанию — английский
+  if (!localStorage.getItem("app_language")) {
+    setLang("en");
+  }
 
   const overlay = document.createElement("div");
   overlay.id = "onboardingOverlay";
@@ -29,6 +34,7 @@ export function initOnboarding(onComplete) {
   };
 
   const allSteps = [
+
     // ШАГ 0: ВЫБОР ЯЗЫКА
     {
       id: "language",
@@ -38,7 +44,7 @@ export function initOnboarding(onComplete) {
         <div style="font-size:14px;color:#aaa;margin-bottom:24px;">${t("choose_language_sub")}</div>
         <div id="opts" style="width:100%;display:flex;flex-direction:column;gap:9px;">
           ${LANG_OPTIONS.map(l => `
-            <div class="ob-opt ${getLang()===l.code?'sel':''}" data-v="${l.code}">
+            <div class="ob-opt ${getLang()===l.code?'sel':''}" data-v="${l.code}" style="display:flex;align-items:center;">
               <span style="font-size:20px;margin-right:10px;">${l.flag}</span>${l.label}
             </div>
           `).join('')}
@@ -60,44 +66,17 @@ export function initOnboarding(onComplete) {
         <div style="font-size:52px;margin-bottom:20px;">📋</div>
         <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:10px;line-height:1.3;">${t("terms_title")}</div>
         <div style="font-size:14px;color:#aaa;margin-bottom:20px;">${t("terms_sub")}</div>
-
         <div style="display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:20px;">
-          <div id="readTermsBtn" style="
-            padding:13px 16px;border-radius:14px;
-            background:rgba(232,237,230,0.9);
-            box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;
-            font-size:14px;color:#7eb8d4;font-weight:600;cursor:pointer;
-            display:flex;align-items:center;justify-content:space-between;">
-            <span>📄 ${t("terms_read_terms")}</span>
-            <span style="color:#aaa;">›</span>
+          <div id="readTermsBtn" style="padding:13px 16px;border-radius:14px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;font-size:14px;color:#7eb8d4;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+            <span>📄 ${t("terms_read_terms")}</span><span style="color:#aaa;">›</span>
           </div>
-          <div id="readPrivacyBtn" style="
-            padding:13px 16px;border-radius:14px;
-            background:rgba(232,237,230,0.9);
-            box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;
-            font-size:14px;color:#7eb8d4;font-weight:600;cursor:pointer;
-            display:flex;align-items:center;justify-content:space-between;">
-            <span>🔒 ${t("terms_read_privacy")}</span>
-            <span style="color:#aaa;">›</span>
+          <div id="readPrivacyBtn" style="padding:13px 16px;border-radius:14px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;font-size:14px;color:#7eb8d4;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+            <span>🔒 ${t("terms_read_privacy")}</span><span style="color:#aaa;">›</span>
           </div>
         </div>
-
-        <div id="termsCheckRow" style="
-          display:flex;align-items:flex-start;gap:12px;
-          padding:14px 16px;border-radius:14px;
-          background:rgba(232,237,230,0.9);
-          box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;
-          cursor:pointer;text-align:left;width:100%;box-sizing:border-box;">
-          <div id="termsCheckbox" style="
-            width:22px;height:22px;min-width:22px;border-radius:7px;
-            background:#e0e8de;
-            box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #ffffff;
-            display:flex;align-items:center;justify-content:center;
-            font-size:14px;margin-top:1px;transition:all 0.15s;"></div>
-          <div style="font-size:14px;color:#555;line-height:1.5;">
-            ${t("terms_agree")}<br>
-            <span style="color:#aaa;">${t("terms_privacy")}</span>
-          </div>
+        <div id="termsCheckRow" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:14px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;cursor:pointer;text-align:left;width:100%;box-sizing:border-box;">
+          <div id="termsCheckbox" style="width:22px;height:22px;min-width:22px;border-radius:7px;background:#e0e8de;box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #ffffff;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:1px;transition:all 0.15s;"></div>
+          <div style="font-size:14px;color:#555;line-height:1.5;">${t("terms_agree")}<br><span style="color:#aaa;">${t("terms_privacy")}</span></div>
         </div>
       `,
       needsChoice: false,
@@ -105,25 +84,16 @@ export function initOnboarding(onComplete) {
         let checked = false;
         const checkbox = overlay.querySelector("#termsCheckbox");
         const row      = overlay.querySelector("#termsCheckRow");
-
         row.addEventListener("click", () => {
           checked = !checked;
-          checkbox.textContent   = checked ? "✓" : "";
-          checkbox.style.color   = "#4caf87";
+          checkbox.textContent  = checked ? "✓" : "";
+          checkbox.style.color  = "#4caf87";
           checkbox.style.fontWeight = "700";
-          checkbox.style.boxShadow = checked
-            ? "inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #ffffff"
-            : "inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #ffffff";
           checkbox.style.background = checked ? "#d4ede8" : "#e0e8de";
           row._checked = checked;
         });
-
-        overlay.querySelector("#readTermsBtn").addEventListener("click", () => {
-          showTextModal(t("terms_read_terms"), t("terms_text"));
-        });
-        overlay.querySelector("#readPrivacyBtn").addEventListener("click", () => {
-          showTextModal(t("terms_read_privacy"), t("privacy_text"));
-        });
+        overlay.querySelector("#readTermsBtn").addEventListener("click", () => showTextModal(t("terms_read_terms"), t("terms_text")));
+        overlay.querySelector("#readPrivacyBtn").addEventListener("click", () => showTextModal(t("terms_read_privacy"), t("privacy_text")));
       },
       onNext: () => {
         const row = overlay.querySelector("#termsCheckRow");
@@ -142,9 +112,7 @@ export function initOnboarding(onComplete) {
       render: () => `
         <div style="font-size:52px;margin-bottom:20px;">🌿</div>
         <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:16px;line-height:1.3;">${t("ob_welcome_title")}</div>
-        <div style="font-size:15px;color:#777;line-height:1.65;">
-          ${t("ob_welcome_text").replace(/\n/g,"<br>")}
-        </div>
+        <div style="font-size:15px;color:#777;line-height:1.65;">${t("ob_welcome_text").replace(/\n/g,"<br>")}</div>
       `,
       needsChoice: false,
       onNext: () => true
@@ -248,23 +216,20 @@ export function initOnboarding(onComplete) {
       }
     },
 
-    // ШАГ 7: БАЗОВЫЙ ПОЛЗУНОК
+    // ШАГ 7: ПОЛЗУНОК
     {
       id: "baseline",
       render: () => `
         <div style="font-size:52px;margin-bottom:20px;">🎯</div>
         <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:10px;line-height:1.3;">${t("ob_baseline_title")}</div>
         <div style="font-size:14px;color:#aaa;margin-bottom:24px;line-height:1.55;">${t("ob_baseline_sub").replace(/\n/g,"<br>")}</div>
-        <div style="background:rgba(232,237,230,0.9);border-radius:20px;
-          box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;
-          padding:20px 24px;width:100%;box-sizing:border-box;">
+        <div style="background:rgba(232,237,230,0.9);border-radius:20px;box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;padding:20px 24px;width:100%;box-sizing:border-box;">
           <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
             <span style="font-size:13px;color:#aaa;">${t("ob_baseline_bad")}</span>
             <span id="sliderVal" style="font-size:22px;font-weight:800;color:#555;">50%</span>
             <span style="font-size:13px;color:#aaa;">${t("ob_baseline_good")}</span>
           </div>
-          <input type="range" id="baseSlider" min="0" max="100" value="50"
-            style="width:100%;accent-color:#7eb8d4;">
+          <input type="range" id="baseSlider" min="0" max="100" value="50" style="width:100%;accent-color:#7eb8d4;">
         </div>
         <div style="font-size:13px;color:#bbb;margin-top:14px;">${t("ob_baseline_hint")}</div>
       `,
@@ -315,36 +280,21 @@ export function initOnboarding(onComplete) {
           font-size:15px; color:#555; cursor:pointer;
           transition:box-shadow 0.15s,color 0.15s;
           -webkit-tap-highlight-color:transparent;
-          display:flex; align-items:center;
         }
         .ob-opt.sel {
           box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff;
           color:#7eb8d4; font-weight:600;
         }
         .ob-nav { display:flex; gap:12px; margin-top:24px; width:100%; }
-        .ob-back {
-          flex:1; padding:14px; border:none; border-radius:15px;
-          background:rgba(232,237,230,0.9);
-          box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;
-          font-size:15px; color:#aaa; cursor:pointer;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .ob-next {
-          flex:2; padding:14px; border:none; border-radius:15px;
-          background:rgba(232,237,230,0.9);
-          box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;
-          font-size:15px; font-weight:700; color:#7eb8d4; cursor:pointer;
-          -webkit-tap-highlight-color:transparent;
-        }
+        .ob-back { flex:1; padding:14px; border:none; border-radius:15px; background:rgba(232,237,230,0.9); box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff; font-size:15px; color:#aaa; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+        .ob-next { flex:2; padding:14px; border:none; border-radius:15px; background:rgba(232,237,230,0.9); box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff; font-size:15px; font-weight:700; color:#7eb8d4; cursor:pointer; -webkit-tap-highlight-color:transparent; }
         .ob-next:active { box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff; }
         .ob-next.shake  { animation:obShake 0.35s ease; }
         @keyframes obShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
       </style>
 
       <div class="ob-progress">
-        ${Array.from({length:total},(_,i) =>
-          `<div class="ob-dot ${i<pos?'done':i===pos?'active':''}"></div>`
-        ).join('')}
+        ${Array.from({length:total},(_,i)=>`<div class="ob-dot ${i<pos?'done':i===pos?'active':''}"></div>`).join('')}
       </div>
 
       <div class="ob-step-lbl">${t("ob_step")} ${pos+1} ${t("ob_of")} ${total}</div>
@@ -352,18 +302,17 @@ export function initOnboarding(onComplete) {
       <div class="ob-content">${step.render()}</div>
 
       <div class="ob-nav">
-        ${!isFirst
-          ? `<button class="ob-back" id="obBack">${t("ob_back")}</button>`
-          : `<div style="flex:1"></div>`}
+        ${!isFirst ? `<button class="ob-back" id="obBack">${t("ob_back")}</button>` : `<div style="flex:1"></div>`}
         <button class="ob-next" id="obNext">${isLast ? t("ob_done") : t("ob_next")}</button>
       </div>
     `;
 
+    // Опции
     overlay.querySelectorAll(".ob-opt").forEach(o => {
       o.onclick = () => {
         overlay.querySelectorAll(".ob-opt").forEach(x => x.classList.remove("sel"));
         o.classList.add("sel");
-        // При выборе языка — перерендериваем сразу
+        // При выборе языка — сразу перерендерить на новом языке
         if (step.id === "language") {
           setLang(o.dataset.v);
           render();
@@ -398,7 +347,11 @@ export function initOnboarding(onComplete) {
     markOnboardingDone();
     overlay.style.transition = "opacity 0.35s ease";
     overlay.style.opacity = "0";
-    setTimeout(() => { overlay.remove(); if (onComplete) onComplete(); }, 350);
+    // НЕТ перезагрузки — язык уже в localStorage, onComplete() запустит приложение
+    setTimeout(() => {
+      overlay.remove();
+      if (onComplete) onComplete();
+    }, 350);
   }
 
   render();
@@ -407,24 +360,14 @@ export function initOnboarding(onComplete) {
 // Модалка с текстом Terms/Privacy
 function showTextModal(title, text) {
   const m = document.createElement("div");
-  m.style.cssText = `
-    position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);
-    display:flex;align-items:flex-end;`;
+  m.style.cssText = "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;";
   m.innerHTML = `
-    <div style="
-      width:100%;max-height:80vh;overflow-y:auto;
-      background:linear-gradient(160deg,#d4ede8,#e8e0d5);
-      border-radius:24px 24px 0 0;padding:24px 20px 48px;
-      box-sizing:border-box;animation:slideUp 0.3s ease;">
+    <div style="width:100%;max-height:80vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 48px;box-sizing:border-box;animation:slideUp 0.3s ease;">
       <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
       <div style="font-size:18px;font-weight:700;color:#3a3530;margin-bottom:16px;">${title}</div>
       <div style="font-size:14px;color:#666;line-height:1.7;white-space:pre-line;">${text}</div>
-      <button onclick="this.closest('div[style*=fixed]').remove()" style="
-        width:100%;padding:14px;border:none;border-radius:14px;margin-top:24px;
-        background:rgba(232,237,230,0.9);
-        box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;
-        font-size:15px;font-weight:700;color:#7eb8d4;cursor:pointer;">
-        Закрыть
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:14px;border:none;border-radius:14px;margin-top:24px;background:rgba(232,237,230,0.9);box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;font-size:15px;font-weight:700;color:#7eb8d4;cursor:pointer;">
+        ✕
       </button>
     </div>`;
   document.body.appendChild(m);

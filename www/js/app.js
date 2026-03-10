@@ -80,13 +80,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Онбординг — показываем если не пройден
   if (!isOnboardingDone()) {
     initOnboarding(() => {
-      // После онбординга запускаем приложение
+      // Применяем переводы к DOM (data-i18n атрибуты в index.html)
+      applyDomTranslations();
       startApp();
     });
   } else {
     startApp();
   }
 });
+
+function applyDomTranslations() {
+  if (window._t) {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const val = window._t(el.getAttribute('data-i18n'));
+      if (val) el.textContent = val;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const val = window._t(el.getAttribute('data-i18n-placeholder'));
+      if (val) el.placeholder = val;
+    });
+  }
+}
 
 function startApp() {
   initNavigation();
