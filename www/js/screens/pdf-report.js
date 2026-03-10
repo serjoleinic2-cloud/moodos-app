@@ -1,9 +1,69 @@
 // =====================================
-// MoodOS PDF Report — Share API
+// MoodOS PDF Report — Share API + Push
 // =====================================
 import { getMoodHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
+
+const { LocalNotifications } = Capacitor.Plugins;
+
+async function requestNotificationPermission() {
+  try {
+    const { display } = await LocalNotifications.checkPermissions();
+    if (display !== "granted") {
+      await LocalNotifications.requestPermissions();
+    }
+  } catch(e) { console.warn("Notifications not available", e); }
+}
+
+async function scheduleNotifications(days, time, period) {
+  try {
+    // Отменяем старые уведомления MoodOS
+    const pending = await LocalNotifications.getPending();
+    const moodosIds = pending.notifications
+      .filter(n => n.id >= 9000 && n.id <= 9007)
+      .map(n => ({ id: n.id }));
+    if (moodosIds.length) await LocalNotifications.cancel({ notifications: moodosIds });
+
+    if (!days.length || !time) return;
+
+    const [hh, mm] = time.split(":").map(Number);
+    const notifications = [];
+
+    // Для каждого дня недели создаём повторяющееся уведомление
+    days.forEach(dow => {
+      // dow: 1=Пн ... 7=Вс, JS: 0=Вс 1=Пн ... 6=Сб
+      const jsDow = dow === 7 ? 0 : dow;
+      const now = new Date();
+      // Находим ближайшую дату с нужным днём недели
+      const target = new Date();
+      target.setHours(hh, mm, 0, 0);
+      const currentDow = now.getDay();
+      let daysUntil = (jsDow - currentDow + 7) % 7;
+      if (daysUntil === 0 && target <= now) daysUntil = 7;
+      target.setDate(target.getDate() + daysUntil);
+
+      notifications.push({
+        id: 9000 + dow,
+        title: "MoodOS 📄",
+        body: `Время отправить отчёт врачу (за ${period} дней)`,
+        schedule: {
+          at: target,
+          repeats: true,
+          every: "week"
+        },
+        actionTypeId: "OPEN_REPORT",
+        extra: { action: "openReport" }
+      });
+    });
+
+    await LocalNotifications.schedule({ notifications });
+    return true;
+  } catch(e) {
+    console.warn("Schedule error", e);
+    return false;
+  }
+}
 
 const MED_LABELS = {
   "нет":"Не принимает","антидепрессанты":"Антидепрессанты",
@@ -34,52 +94,15 @@ export function closeAllOverlays() {
   document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
 }
 
-export function checkAutoReminder() {
-  const s = loadSettings();
-  if (!s.autoDays?.length || !s.autoTime) return;
-
-  const now     = new Date();
-  const todayDow = now.getDay() === 0 ? 7 : now.getDay(); // 1=Пн 7=Вс
-  const [hh, mm] = s.autoTime.split(":").map(Number);
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const targetMin  = hh * 60 + mm;
-
-  if (!s.autoDays.includes(todayDow)) return;
-
-  // Показываем напоминание если сейчас ±5 минут от нужного времени
-  // и ещё не показывали сегодня
-  const todayKey = now.toISOString().slice(0, 10);
-  if (s.lastReminderDate === todayKey) return;
-  if (Math.abs(nowMinutes - targetMin) > 5) return;
-
-  s.lastReminderDate = todayKey;
-  saveSettings(s);
-
-  // Показываем баннер
-  showReminderBanner();
-}
-
-function showReminderBanner() {
-  const banner = document.createElement("div");
-  banner.style.cssText = `
-    position:fixed;top:16px;left:16px;right:16px;z-index:500;
-    background:#6667AB;border-radius:16px;
-    box-shadow:4px 4px 12px rgba(102,103,171,0.5);
-    padding:14px 16px;display:flex;align-items:center;gap:12px;
-    animation:slideDown 0.3s ease;`;
-  banner.innerHTML = `
-    <style>@keyframes slideDown{from{transform:translateY(-80px);opacity:0}to{transform:translateY(0);opacity:1}}</style>
-    <span style="font-size:24px;">📄</span>
-    <div style="flex:1;">
-      <div style="font-size:14px;font-weight:700;color:#fff;">Время отправить отчёт врачу</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.7);">Нажми чтобы сформировать PDF</div>
-    </div>
-    <div id="bannerOpen" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.2);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Открыть</div>
-    <div id="bannerClose" style="font-size:20px;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;">✕</div>`;
-  document.body.appendChild(banner);
-  banner.querySelector("#bannerOpen").addEventListener("click",  () => { banner.remove(); showPdfReportModal(); });
-  banner.querySelector("#bannerClose").addEventListener("click", () => banner.remove());
-  setTimeout(() => banner.remove(), 15000);
+export async function checkAutoReminder() {
+  try {
+    // Запрашиваем разрешение на уведомления
+    await requestNotificationPermission();
+    // Обработчик тапа по уведомлению — открываем экран отчёта
+    LocalNotifications.addListener("localNotificationActionPerformed", () => {
+      showPdfReportModal();
+    });
+  } catch(e) { console.warn("Push init error", e); }
 }
 
 export function showPdfReportModal() {
@@ -232,17 +255,24 @@ export function showPdfReportModal() {
     });
   });
 
-  // ---- Сохранить расписание ----
-  screen.querySelector("#prAutoSave").addEventListener("click", () => {
+  // ---- Сохранить расписание + запланировать пуш ----
+  screen.querySelector("#prAutoSave").addEventListener("click", async () => {
     const autoTime = screen.querySelector("#prAutoTime").value || "09:00";
     const st = loadSettings();
     st.autoDays   = selectedDays;
     st.autoPeriod = selectedPeriod;
     st.autoTime   = autoTime;
     saveSettings(st);
+
     const statusEl = screen.querySelector("#prAutoStatus");
+    statusEl.textContent = "⏳ Планирую уведомления...";
+
+    const ok = await scheduleNotifications(selectedDays, autoTime, selectedPeriod);
+
     statusEl.textContent = selectedDays.length
-      ? `✅ ${selectedDays.map(d=>DAYS[d-1]).join(', ')} в ${autoTime} · за ${selectedPeriod} дней`
+      ? (ok
+          ? `✅ ${selectedDays.map(d=>DAYS[d-1]).join(', ')} в ${autoTime} · за ${selectedPeriod} дней`
+          : `🔔 ${selectedDays.map(d=>DAYS[d-1]).join(', ')} в ${autoTime} (проверь разрешения)`)
       : "Напоминания отключены";
   });
 
