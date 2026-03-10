@@ -143,7 +143,14 @@ const TRANSLATIONS = {
     state_helps: "🧠 При каком состоянии что помогает",
     no_data_insight: "Начни отслеживать настроение — здесь появится твоя аналитика.",
     no_sessions: "Пройди несколько сессий дыхания или медитации — здесь появится аналитика эффективности.",
-    tap_for_chart: "Нажми для графика ↩",
+    
+	rec_no_data: "Попробуй дыхание или медитацию — приложение научится рекомендовать лучшее для тебя.",
+    rec_best_tool: "При состоянии \"{state}\" {tool} помогало тебе в {rate}% случаев. Попробуй сейчас.",
+    rec_breathing: "Дыхание помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
+    rec_meditation: "Медитация помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
+    rec_keep_going: "Продолжай практики — скоро увидишь персональную статистику.",
+	
+	tap_for_chart: "Нажми для графика ↩",
     tap_for_details: "Нажми для деталей ↩",
     stability_lbl: "Стабильность", avg_mood_lbl: "Среднее настроение",
     trend_lbl: "Тренд", trend_sub: "Последние записи vs предыдущие",
@@ -373,7 +380,14 @@ const TRANSLATIONS = {
     state_helps: "🧠 What helps in each state",
     no_data_insight: "Start tracking your mood — your analytics will appear here.",
     no_sessions: "Complete a few breathing or meditation sessions — effectiveness analytics will appear here.",
-    tap_for_chart: "Tap for chart ↩",
+    
+	rec_no_data: "Try breathing or meditation — the app will learn to recommend what's best for you.",
+    rec_best_tool: "When feeling \"{state}\", {tool} helped you in {rate}% of cases. Try it now.",
+    rec_breathing: "Breathing helps you in {rate}% of cases — it's your best tool right now.",
+    rec_meditation: "Meditation helps you in {rate}% of cases — it's your best tool right now.",
+    rec_keep_going: "Keep practicing — your personal stats will appear soon.",
+	
+	tap_for_chart: "Tap for chart ↩",
     tap_for_details: "Tap for details ↩",
     stability_lbl: "Stability", avg_mood_lbl: "Average mood",
     trend_lbl: "Trend", trend_sub: "Recent entries vs previous",
@@ -593,7 +607,14 @@ const TRANSLATIONS = {
     state_helps: "🧠 Qué ayuda en cada estado",
     no_data_insight: "Empieza a rastrear tu estado de ánimo — aquí aparecerá tu analítica.",
     no_sessions: "Completa algunas sesiones de respiración o meditación — aquí aparecerá la analítica.",
-    tap_for_chart: "Toca para gráfico ↩",
+    
+	rec_no_data: "Prueba respiración o meditación — la app aprenderá a recomendarte lo mejor.",
+    rec_best_tool: "Con estado \"{state}\", {tool} te ayudó en el {rate}% de los casos. Pruébalo ahora.",
+    rec_breathing: "La respiración te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
+    rec_meditation: "La meditación te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
+    rec_keep_going: "Sigue practicando — pronto verás tu estadística personal.",
+	
+	tap_for_chart: "Toca para gráfico ↩",
     tap_for_details: "Toca para detalles ↩",
     stability_lbl: "Estabilidad", avg_mood_lbl: "Estado medio",
     trend_lbl: "Tendencia", trend_sub: "Entradas recientes vs anteriores",
@@ -813,7 +834,14 @@ const TRANSLATIONS = {
     state_helps: "🧠 При якому стані що допомагає",
     no_data_insight: "Почни відстежувати настрій — тут з'явиться твоя аналітика.",
     no_sessions: "Пройди кілька сесій дихання або медитації — тут з'явиться аналітика ефективності.",
-    tap_for_chart: "Натисни для графіка ↩",
+    
+	rec_no_data: "Спробуй дихання або медитацію — застосунок навчиться рекомендувати найкраще для тебе.",
+    rec_best_tool: "При стані \"{state}\" {tool} допомагало тобі в {rate}% випадків. Спробуй зараз.",
+    rec_breathing: "Дихання допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
+    rec_meditation: "Медитація допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
+    rec_keep_going: "Продовжуй практики — незабаром побачиш персональну статистику.",
+	
+	tap_for_chart: "Натисни для графіка ↩",
     tap_for_details: "Натисни для деталей ↩",
     stability_lbl: "Стабільність", avg_mood_lbl: "Середній настрій",
     trend_lbl: "Тренд", trend_sub: "Останні записи vs попередні",

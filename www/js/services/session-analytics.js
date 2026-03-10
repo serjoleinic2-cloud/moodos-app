@@ -1,13 +1,12 @@
-
 // =====================================
 // MoodOS Session Analytics
 // Анализ эффективности практик
 // =====================================
 
 import { getSessionHistory } from "./memory.js";
+import { t } from "../i18n.js";
 
 // ---- ОБЩАЯ ЭФФЕКТИВНОСТЬ ТИПА ----
-// Возвращает % сессий где result === "positive"
 export function getEffectivenessRate(type) {
   const history = getSessionHistory().filter(s => s.type === type);
   if (!history.length) return null;
@@ -16,7 +15,6 @@ export function getEffectivenessRate(type) {
 }
 
 // ---- СРЕДНИЙ ПРИРОСТ НАСТРОЕНИЯ ----
-// Среднее (moodAfter - moodBefore) по всем сессиям типа
 export function getAverageMoodLift(type) {
   const history = getSessionHistory().filter(s => s.type === type);
   if (!history.length) return null;
@@ -26,7 +24,6 @@ export function getAverageMoodLift(type) {
 }
 
 // ---- КАКИЕ СОСТОЯНИЯ ЛУЧШЕ ВСЕГО УЛУЧШАЮТСЯ ----
-// Возвращает объект { STATE: { total, positive, rate } }
 export function getEffectivenessByState(type) {
   const history = getSessionHistory().filter(s => s.type === type);
   if (!history.length) return {};
@@ -49,8 +46,6 @@ export function getEffectivenessByState(type) {
 }
 
 // ---- ЛУЧШИЙ ИНСТРУМЕНТ для текущего состояния ----
-// Принимает текущее состояние ("STRESSED", "LOW" и т.д.)
-// Возвращает название лучшего инструмента или null
 export function getBestToolForState(currentState) {
   const types = ["breathing", "meditation", "visual-focus", "mind-dump", "tap-calm"];
 
@@ -70,48 +65,46 @@ export function getBestToolForState(currentState) {
 }
 
 // ---- РЕКОМЕНДАЦИЯ для юзера ----
-// Возвращает строку с советом на основе данных
 export function getPersonalRecommendation(currentState) {
   const bestTool = getBestToolForState(currentState);
   const breathingRate   = getEffectivenessRate("breathing");
   const meditationRate  = getEffectivenessRate("meditation");
 
   const toolNames = {
-    "breathing":     "Дыхание",
-    "meditation":    "Медитация",
-    "visual-focus":  "Зрительный якорь",
-    "mind-dump":     "Выгрузка мыслей",
-    "tap-calm":      "Тактильная разрядка"
+    "breathing":     t("tools_breathing").replace(/^[^\s]+\s/, ""),
+    "meditation":    t("tools_meditation").replace(/^[^\s]+\s/, ""),
+    "visual-focus":  t("tools_visual").replace(/^[^\s]+\s/, ""),
+    "mind-dump":     t("tools_mind").replace(/^[^\s]+\s/, ""),
+    "tap-calm":      t("tools_tap").replace(/^[^\s]+\s/, ""),
   };
 
-  // Нет данных вообще
   if (breathingRate === null && meditationRate === null) {
-    return "Попробуй дыхание или медитацию — приложение научится рекомендовать лучшее для тебя.";
+    return t("rec_no_data");
   }
 
-  // Есть данные — даём рекомендацию по лучшему инструменту
   if (bestTool) {
-    const label     = stateLabel(currentState);
-    const toolName  = toolNames[bestTool] || bestTool;
-    const byState   = getEffectivenessByState(bestTool);
-    const rate      = byState[currentState]?.rate ?? "?";
-    return `При состоянии "${label}" ${toolName} помогало тебе в ${rate}% случаев. Попробуй сейчас.`;
+    const label    = stateLabel(currentState);
+    const toolName = toolNames[bestTool] || bestTool;
+    const byState  = getEffectivenessByState(bestTool);
+    const rate     = byState[currentState]?.rate ?? "?";
+    return t("rec_best_tool")
+      .replace("{state}", label)
+      .replace("{tool}", toolName)
+      .replace("{rate}", rate);
   }
 
-  // Общая рекомендация без привязки к состоянию
   if (breathingRate !== null && meditationRate !== null) {
     if (breathingRate >= meditationRate) {
-      return `Дыхание помогает тебе в ${breathingRate}% случаев — это твой лучший инструмент сейчас.`;
+      return t("rec_breathing").replace("{rate}", breathingRate);
     } else {
-      return `Медитация помогает тебе в ${meditationRate}% случаев — это твой лучший инструмент сейчас.`;
+      return t("rec_meditation").replace("{rate}", meditationRate);
     }
   }
 
-  return "Продолжай практики — скоро увидишь персональную статистику.";
+  return t("rec_keep_going");
 }
 
 // ---- СВОДНАЯ СТАТИСТИКА ----
-// Возвращает объект со всей аналитикой для отчёта
 export function getFullSessionStats() {
   const sessions = getSessionHistory();
   if (!sessions.length) return null;
@@ -148,8 +141,7 @@ export function getFullSessionStats() {
   };
 }
 
-// ---- АГРЕГАЦИЯ ПО ДНЯМ (для графика в отчёте) ----
-// Возвращает массив { date, avgMoodBefore, avgMoodAfter, count }
+// ---- АГРЕГАЦИЯ ПО ДНЯМ ----
 export function getSessionsByDay(type = null) {
   let sessions = getSessionHistory();
   if (type) sessions = sessions.filter(s => s.type === type);
@@ -177,12 +169,50 @@ export function getSessionsByDay(type = null) {
 
 // ---- ВСПОМОГАТЕЛЬНАЯ ----
 function stateLabel(state) {
-  const labels = {
-    LOW:     "Низкое настроение",
-    STRESSED:"Стресс",
-    NEUTRAL: "Нейтральное",
-    GOOD:    "Хорошее",
-    HIGH:    "Отличное"
+  const map = {
+    LOW:      t("state_low"),
+    STRESSED: t("state_stressed"),
+    NEUTRAL:  t("state_neutral"),
+    GOOD:     t("state_good"),
+    HIGH:     t("state_high"),
   };
-  return labels[state] || state;
+  return map[state] || state;
 }
+```
+
+И нужно добавить 4 новых ключа в `i18n.js` — во все 4 языка. Вот что добавить после `no_sessions` в каждом языке:
+
+**ru:**
+```
+rec_no_data: "Попробуй дыхание или медитацию — приложение научится рекомендовать лучшее для тебя.",
+rec_best_tool: 'При состоянии "{state}" {tool} помогало тебе в {rate}% случаев. Попробуй сейчас.',
+rec_breathing: "Дыхание помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
+rec_meditation: "Медитация помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
+rec_keep_going: "Продолжай практики — скоро увидишь персональную статистику.",
+```
+
+**en:**
+```
+rec_no_data: "Try breathing or meditation — the app will learn to recommend what's best for you.",
+rec_best_tool: 'When feeling "{state}", {tool} helped you in {rate}% of cases. Try it now.',
+rec_breathing: "Breathing helps you in {rate}% of cases — it's your best tool right now.",
+rec_meditation: "Meditation helps you in {rate}% of cases — it's your best tool right now.",
+rec_keep_going: "Keep practicing — your personal stats will appear soon.",
+```
+
+**es:**
+```
+rec_no_data: "Prueba respiración o meditación — la app aprenderá a recomendarte lo mejor.",
+rec_best_tool: 'Con estado "{state}", {tool} te ayudó en el {rate}% de los casos. Pruébalo ahora.',
+rec_breathing: "La respiración te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
+rec_meditation: "La meditación te ayuda en el {rate}% de los casos — es tu mejor herramienta ahora.",
+rec_keep_going: "Sigue practicando — pronto verás tu estadística personal.",
+```
+
+**uk:**
+```
+rec_no_data: "Спробуй дихання або медитацію — застосунок навчиться рекомендувати найкраще для тебе.",
+rec_best_tool: 'При стані "{state}" {tool} допомагало тобі в {rate}% випадків. Спробуй зараз.',
+rec_breathing: "Дихання допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
+rec_meditation: "Медитація допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
+rec_keep_going: "Продовжуй практики — незабаром побачиш персональну статистику.",
