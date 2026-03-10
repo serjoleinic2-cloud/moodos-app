@@ -5,10 +5,11 @@ import { getMoodHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
 
-const { LocalNotifications } = Capacitor.Plugins;
+// ⚠️ Capacitor.Plugins НЕ на верхнем уровне — берём внутри функций
 
 async function requestNotificationPermission() {
   try {
+    const { LocalNotifications } = Capacitor.Plugins;
     const { display } = await LocalNotifications.checkPermissions();
     if (display !== "granted") {
       await LocalNotifications.requestPermissions();
@@ -18,6 +19,7 @@ async function requestNotificationPermission() {
 
 async function scheduleNotifications(days, time, period) {
   try {
+    const { LocalNotifications } = Capacitor.Plugins;
     // Отменяем старые уведомления MoodOS
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
@@ -30,12 +32,9 @@ async function scheduleNotifications(days, time, period) {
     const [hh, mm] = time.split(":").map(Number);
     const notifications = [];
 
-    // Для каждого дня недели создаём повторяющееся уведомление
     days.forEach(dow => {
-      // dow: 1=Пн ... 7=Вс, JS: 0=Вс 1=Пн ... 6=Сб
       const jsDow = dow === 7 ? 0 : dow;
       const now = new Date();
-      // Находим ближайшую дату с нужным днём недели
       const target = new Date();
       target.setHours(hh, mm, 0, 0);
       const currentDow = now.getDay();
@@ -88,7 +87,6 @@ function loadSettings() {
 }
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
-// ---- Проверка напоминаний (вызывается при старте приложения) ----
 export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
   document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
@@ -96,9 +94,8 @@ export function closeAllOverlays() {
 
 export async function checkAutoReminder() {
   try {
-    // Запрашиваем разрешение на уведомления
+    const { LocalNotifications } = Capacitor.Plugins;
     await requestNotificationPermission();
-    // Обработчик тапа по уведомлению — открываем экран отчёта
     LocalNotifications.addListener("localNotificationActionPerformed", () => {
       showPdfReportModal();
     });
@@ -145,8 +142,6 @@ export function showPdfReportModal() {
       .pr-btn:active{box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff;}
       .pr-btn:disabled{opacity:0.5;}
       .pr-hint{font-size:12px;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;}
-
-      /* Автоотправление */
       .pr-auto-card{background:#6667AB;border-radius:18px;box-shadow:4px 4px 12px rgba(102,103,171,0.4),-4px -4px 12px rgba(255,255,255,0.15);padding:18px;margin-bottom:16px;}
       .pr-auto-title{font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:14px;}
       .pr-auto-label{font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;}
@@ -173,7 +168,6 @@ export function showPdfReportModal() {
       <div class="pr-title">📄 Отчёт для врача</div>
       <div class="pr-subtitle">PDF с данными об эмоциональном состоянии</div>
 
-      <!-- КАРТОЧКА 1: ПЕРИОД + КНОПКА -->
       <div class="pr-card">
         <div class="pr-card-title">Период отчёта</div>
         <div class="pr-date-row">
@@ -191,7 +185,6 @@ export function showPdfReportModal() {
         <div class="pr-hint">Откроется стандартное меню Android — выбери почту, мессенджер или сохрани файл</div>
       </div>
 
-      <!-- КАРТОЧКА 3: АВТООТПРАВЛЕНИЕ -->
       <div class="pr-auto-card">
         <div class="pr-auto-title">⚡ Напоминание об отправке</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px;">
@@ -226,11 +219,8 @@ export function showPdfReportModal() {
 
   document.body.appendChild(screen);
 
-  // ---- Назад — удаляем экран полностью ----
   screen.querySelector("#prBack").addEventListener("click", () => screen.remove());
 
-
-  // ---- Дни недели ----
   let selectedDays = [...autoDays];
   screen.querySelectorAll(".pr-day").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -245,7 +235,6 @@ export function showPdfReportModal() {
     });
   });
 
-  // ---- Период ----
   let selectedPeriod = autoPeriod;
   screen.querySelectorAll(".pr-period").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -255,7 +244,6 @@ export function showPdfReportModal() {
     });
   });
 
-  // ---- Сохранить расписание + запланировать пуш ----
   screen.querySelector("#prAutoSave").addEventListener("click", async () => {
     const autoTime = screen.querySelector("#prAutoTime").value || "09:00";
     const st = loadSettings();
@@ -276,7 +264,6 @@ export function showPdfReportModal() {
       : "Напоминания отключены";
   });
 
-  // ---- Генерация + Share ----
   screen.querySelector("#prGenBtn").addEventListener("click", async () => {
     const fromVal  = screen.querySelector("#prFrom").value;
     const toVal    = screen.querySelector("#prTo").value;
@@ -296,7 +283,6 @@ export function showPdfReportModal() {
       const pdfBlob = await generatePdf(fromVal, toVal);
       const fileName = `MoodOS_${fromVal}_${toVal}.pdf`;
 
-      // Пробуем Web Share API (работает в Capacitor)
       if (navigator.share && navigator.canShare) {
         const file = new File([pdfBlob], fileName, { type: "application/pdf" });
         if (navigator.canShare({ files: [file] })) {
@@ -312,7 +298,6 @@ export function showPdfReportModal() {
         }
       }
 
-      // Fallback — скачиваем через ссылку
       const url = URL.createObjectURL(pdfBlob);
       const a   = document.createElement("a");
       a.href = url; a.download = fileName;
@@ -371,7 +356,6 @@ async function generatePdf(fromStr, toStr) {
            dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
   }
 
-  // Шапка
   doc.setFillColor(232,237,230);
   doc.roundedRect(MARGIN-4,y-4,CONTENT_W+8,28,4,4,"F");
   sf(18,"bold",C_GREEN); doc.text("MoodOS",MARGIN,y+8);
@@ -381,7 +365,6 @@ async function generatePdf(fromStr, toStr) {
   doc.text(`Сформирован: ${new Date().toLocaleDateString("ru-RU")}`,PAGE_W-MARGIN,y+21,{align:"right"});
   y+=34;
 
-  // Профиль
   if(profile){
     chk(30);
     sf(11,"bold",C_DARK); doc.text("Информация о пациенте",MARGIN,y); y+=7;
@@ -396,7 +379,6 @@ async function generatePdf(fromStr, toStr) {
     sf(9,"bold",C_DARK);   doc.text((profile.moodBaseline??50)+"%",MARGIN+42,y); y+=10;
   }
 
-  // Статистика
   chk(40);
   sf(11,"bold",C_DARK); doc.text("Статистика за период",MARGIN,y); y+=7;
   ln(y); y+=6;
@@ -426,7 +408,6 @@ async function generatePdf(fromStr, toStr) {
     y+=BH*2+12;
     sf(9,"normal",C_GRAY);doc.text(`Всего записей: ${moodHistory.length}`,MARGIN,y);y+=10;
 
-    // График
     chk(50);
     sf(11,"bold",C_DARK);doc.text("График настроения",MARGIN,y);y+=7;
     ln(y);y+=4;
@@ -452,7 +433,6 @@ async function generatePdf(fromStr, toStr) {
     y+=CH+10;
   }
 
-  // Практики
   if(sessions.length>0){
     chk(20);
     sf(11,"bold",C_DARK);doc.text("Использованные практики",MARGIN,y);y+=7;
@@ -477,7 +457,6 @@ async function generatePdf(fromStr, toStr) {
     y+=4;
   }
 
-  // Журнал
   chk(20);
   sf(11,"bold",C_DARK);doc.text("Журнал настроения",MARGIN,y);y+=7;
   ln(y);y+=5;
@@ -501,7 +480,6 @@ async function generatePdf(fromStr, toStr) {
     y+=6;
   }
 
-  // Подвал
   chk(16);ln(y);y+=5;
   sf(8,"normal",C_LIGHT);
   doc.text("Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.",MARGIN,y,{maxWidth:CONTENT_W});
