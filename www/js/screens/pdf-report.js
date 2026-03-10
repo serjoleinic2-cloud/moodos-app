@@ -201,7 +201,8 @@ export function showPdfReportModal() {
   // ---- Назад — удаляем экран полностью ----
   screen.querySelector("#prBack").addEventListener("click", () => screen.remove());
   // Закрываем при нажатии любой кнопки нижней навигации
-  document.querySelector(".bottom-nav").addEventListener("click", () => screen.remove());
+  const navCloseHandler = () => screen.remove();
+  document.querySelector(".bottom-nav").addEventListener("click", navCloseHandler);
 
   // ---- Дни недели ----
   let selectedDays = [...autoDays];
