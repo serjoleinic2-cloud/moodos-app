@@ -55,7 +55,7 @@ function buildDailyMood(history) {
 export function onEnter() {
   const container = document.getElementById("insight-content");
   if (!container) return;
-
+container.innerHTML = "<div>TEST</div>";
   const history = getMoodHistory();
   const mood    = getMood();
   const state   = detectMoodState(mood);
