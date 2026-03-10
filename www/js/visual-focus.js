@@ -5,6 +5,7 @@
 import { getMood } from "./state.js";
 import { addSessionEntry } from "./services/memory.js";
 import { detectMoodState } from "./services/state-engine.js";
+import { t } from "./i18n.js";
 
 let animationId = null;
 let running = false;
@@ -13,16 +14,16 @@ let moodBeforeSession = null;
 let stateBeforeSession = null;
 let countdownInterval = null;
 
-const DURATION = 120; // секунд
+const DURATION = 120;
 
 export function initVisualFocus(container) {
 
   container.innerHTML = `
     <div style="text-align:center; margin-top:20px;">
 
-      <h2 style="margin-bottom:6px;">Зрительный якорь</h2>
+      <h2 style="margin-bottom:6px;">${t("vf_title")}</h2>
       <div style="font-size:14px; color:#888; margin-bottom:20px;">
-        Следи глазами за шариком · 2 минуты
+        ${t("vf_subtitle")}
       </div>
 
       <!-- СКОРОСТЬ -->
@@ -30,15 +31,15 @@ export function initVisualFocus(container) {
         <button class="vfSpeed" data-speed="slow" style="
           padding:8px 18px; border:none; border-radius:12px; cursor:pointer;
           background:#e0e5ec; box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px;">Медленно</button>
+          color:#555; font-size:14px;">${t("vf_slow")}</button>
         <button class="vfSpeed" data-speed="normal" style="
           padding:8px 18px; border:none; border-radius:12px; cursor:pointer;
           background:#e0e5ec; box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px; font-weight:600;">Нормально</button>
+          color:#555; font-size:14px; font-weight:600;">${t("vf_normal")}</button>
         <button class="vfSpeed" data-speed="fast" style="
           padding:8px 18px; border:none; border-radius:12px; cursor:pointer;
           background:#e0e5ec; box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px;">Быстро</button>
+          color:#555; font-size:14px;">${t("vf_fast")}</button>
       </div>
 
       <!-- ПОЛЕ -->
@@ -59,7 +60,7 @@ export function initVisualFocus(container) {
       <!-- ТАЙМЕР -->
       <div id="vfTimerWrap" style="margin-bottom:16px;">
         <div id="vfTimer" style="font-size:42px; font-weight:bold; color:#6d28d9;">2:00</div>
-        <div id="vfStatus" style="font-size:14px; color:#888; margin-top:4px;">Готово к старту</div>
+        <div id="vfStatus" style="font-size:14px; color:#888; margin-top:4px;">${t("vf_ready")}</div>
       </div>
 
       <!-- КНОПКА -->
@@ -69,21 +70,21 @@ export function initVisualFocus(container) {
 
       <!-- ФИДБЕК -->
       <div id="vfFeedback" style="display:none; flex-direction:column; gap:14px; align-items:center; margin-top:10px;">
-        <div style="font-size:16px; color:#666; margin-bottom:6px;">Как ты себя чувствуешь?</div>
+        <div style="font-size:16px; color:#666; margin-bottom:6px;">${t("vf_how_feel")}</div>
         <div id="vfHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec; box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#4a7c59; font-size:18px; text-align:center;">👍 Помогло</div>
+          color:#4a7c59; font-size:18px; text-align:center;">👍 ${t("hist_helped")}</div>
         <div id="vfNotHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec; box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#888; font-size:18px; text-align:center;">👎 Не помогло</div>
+          color:#888; font-size:18px; text-align:center;">👎 ${t("hist_not_helped")}</div>
       </div>
 
     </div>
   `;
 
-  let speedMs = 2200; // нормально = 2.2 сек туда-обратно
+  let speedMs = 2200;
 
   document.querySelectorAll(".vfSpeed").forEach(btn => {
     btn.onclick = () => {
@@ -103,16 +104,16 @@ export function initVisualFocus(container) {
   const status   = document.getElementById("vfStatus");
 
   function showPlayer() {
-    document.getElementById("vfSpeedRow").style.display = "flex";
+    document.getElementById("vfSpeedRow").style.display  = "flex";
     document.getElementById("vfTimerWrap").style.display = "block";
-    mainBtn.style.display = "flex";
+    mainBtn.style.display  = "flex";
     feedback.style.display = "none";
   }
 
   function showFeedback() {
-    document.getElementById("vfSpeedRow").style.display = "none";
+    document.getElementById("vfSpeedRow").style.display  = "none";
     document.getElementById("vfTimerWrap").style.display = "none";
-    mainBtn.style.display = "none";
+    mainBtn.style.display  = "none";
     feedback.style.display = "flex";
   }
 
@@ -129,7 +130,7 @@ export function initVisualFocus(container) {
     moodBeforeSession  = getMood();
     stateBeforeSession = detectMoodState(moodBeforeSession);
     mainBtn.innerText  = "⏸";
-    status.textContent = "Следи за шариком...";
+    status.textContent = t("vf_watching");
 
     let remaining = DURATION;
     updateTimerDisplay(remaining);
@@ -150,17 +151,17 @@ export function initVisualFocus(container) {
     running = false;
     cancelAnimationFrame(animationId);
     clearInterval(countdownInterval);
-    status.textContent = "Остановлено";
+    status.textContent = t("vf_stopped");
   }
 
   function animateDot() {
     if (!running) return;
-    const fieldW   = field.offsetWidth;
-    const dotW     = 36;
-    const maxLeft  = fieldW - dotW - 10;
-    let   goRight  = true;
-    let   startX   = 10;
-    let   startTime = null;
+    const fieldW  = field.offsetWidth;
+    const dotW    = 36;
+    const maxLeft = fieldW - dotW - 10;
+    let goRight   = true;
+    let startX    = 10;
+    let startTime = null;
 
     function step(ts) {
       if (!running) return;
@@ -168,7 +169,6 @@ export function initVisualFocus(container) {
       const elapsed  = ts - startTime;
       const progress = Math.min(elapsed / speedMs, 1);
       const eased    = 0.5 - Math.cos(progress * Math.PI) / 2;
-      const targetX  = goRight ? maxLeft : 10;
       const fromX    = goRight ? startX : maxLeft;
       const toX      = goRight ? maxLeft : 10;
       const x        = fromX + (toX - fromX) * eased;
@@ -212,8 +212,8 @@ export function initVisualFocus(container) {
     sessionStartTime  = null;
     moodBeforeSession = null;
     updateTimerDisplay(DURATION);
-    mainBtn.innerText = "▶";
-    status.textContent = "Готово к старту";
+    mainBtn.innerText  = "▶";
+    status.textContent = t("vf_ready");
     showPlayer();
   }
 

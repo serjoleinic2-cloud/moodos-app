@@ -4,6 +4,7 @@
 import { detectMoodState } from "../services/state-engine.js";
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
+import { t } from "../i18n.js";
 
 let canvas, ctx;
 let animationId;
@@ -25,7 +26,7 @@ export function initMeditation(container) {
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">
 
-      <h2 style="margin-bottom:12px;">Медитация</h2>
+      <h2 style="margin-bottom:12px;">${t("med_title")}</h2>
 
       <!-- ТРЕКИ -->
       <div id="trackList" style="margin-bottom:15px;">
@@ -42,26 +43,24 @@ export function initMeditation(container) {
       <div id="playerControls" style="
         display:flex; justify-content:center;
         align-items:center; gap:25px; margin-top:15px;">
-
         <div id="loopBtn" class="smallBtn">🔁</div>
         <div id="centerButton" class="mainBtn">▶</div>
         <div id="chainBtn" class="smallBtn">⏭</div>
-
       </div>
 
-      <!-- ФИДБЕК — скрыт по умолчанию -->
+      <!-- ФИДБЕК -->
       <div id="meditationFeedback" style="
         display:none; margin-top:30px;
         flex-direction:column; gap:14px; align-items:center;">
 
-        <div style="font-size:16px; color:#666; margin-bottom:6px;">Как ты себя чувствуешь?</div>
+        <div style="font-size:16px; color:#666; margin-bottom:6px;">${t("med_how_feel")}</div>
 
         <div id="medHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec;
           box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
           color:#4a7c59; font-size:18px; text-align:center;">
-          👍 Помогло
+          👍 ${t("hist_helped")}
         </div>
 
         <div id="medNotHelped" style="
@@ -69,7 +68,7 @@ export function initMeditation(container) {
           background:#e0e5ec;
           box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
           color:#888; font-size:18px; text-align:center;">
-          👎 Не помогло
+          👎 ${t("hist_not_helped")}
         </div>
 
       </div>
@@ -111,7 +110,6 @@ function initAudio() {
 }
 
 function attachEvents() {
-
   document.getElementById("centerButton").onclick = toggleMeditation;
 
   document.getElementById("loopBtn").onclick = () => {
@@ -136,40 +134,36 @@ function attachEvents() {
   });
 
   document.getElementById("medHelped").onclick = () => {
-    const moodAfter = getMood();
-    const duration  = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    const moodAfter  = getMood();
+    const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
     const stateAfter = detectMoodState(moodAfter);
-
-addSessionEntry({
-  type: "meditation",
-  moodBefore: moodBeforeSession,
-  stateBefore: stateBeforeSession,
-  moodAfter,
-  stateAfter,
-  result: "positive",
-  duration,
-  timestamp: Date.now()
-});
+    addSessionEntry({
+      type: "meditation",
+      moodBefore:  moodBeforeSession,
+      stateBefore: stateBeforeSession,
+      moodAfter, stateAfter,
+      result: "positive",
+      duration,
+      timestamp: Date.now()
+    });
     sessionStartTime  = null;
     moodBeforeSession = null;
     showPlayer();
   };
 
   document.getElementById("medNotHelped").onclick = () => {
-    const moodAfter = getMood();
-    const duration  = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    const moodAfter  = getMood();
+    const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
     const stateAfter = detectMoodState(moodAfter);
-
-addSessionEntry({
-  type: "meditation",
-  moodBefore: moodBeforeSession,
-  stateBefore: stateBeforeSession,
-  moodAfter,
-  stateAfter,
-  result: "negative",
-  duration,
-  timestamp: Date.now()
-});
+    addSessionEntry({
+      type: "meditation",
+      moodBefore:  moodBeforeSession,
+      stateBefore: stateBeforeSession,
+      moodAfter, stateAfter,
+      result: "negative",
+      duration,
+      timestamp: Date.now()
+    });
     sessionStartTime  = null;
     moodBeforeSession = null;
     showPlayer();
@@ -177,26 +171,26 @@ addSessionEntry({
 }
 
 function showPlayer() {
-  document.getElementById("playerControls").style.display = "flex";
-  document.getElementById("trackList").style.display      = "block";
-  document.getElementById("progressWrap").style.display   = "block";
+  document.getElementById("playerControls").style.display     = "flex";
+  document.getElementById("trackList").style.display          = "block";
+  document.getElementById("progressWrap").style.display       = "block";
   document.getElementById("meditationFeedback").style.display = "none";
   document.getElementById("centerButton").innerText = "▶";
 }
 
 function showFeedback() {
-  document.getElementById("playerControls").style.display = "none";
-  document.getElementById("trackList").style.display      = "none";
-  document.getElementById("progressWrap").style.display   = "none";
+  document.getElementById("playerControls").style.display     = "none";
+  document.getElementById("trackList").style.display          = "none";
+  document.getElementById("progressWrap").style.display       = "none";
   document.getElementById("meditationFeedback").style.display = "flex";
 }
 
 function toggleMeditation() {
   if (!running) {
     running = true;
-    sessionStartTime  = Date.now();
-    moodBeforeSession = getMood();
-	stateBeforeSession = detectMoodState(moodBeforeSession);
+    sessionStartTime   = Date.now();
+    moodBeforeSession  = getMood();
+    stateBeforeSession = detectMoodState(moodBeforeSession);
     audio.play();
     animate();
     document.getElementById("centerButton").innerText = "❚❚";
@@ -262,9 +256,9 @@ function animate() {
 function drawWave() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const centerX      = canvas.width / 2;
-  const centerY      = canvas.height / 2;
-  const time         = performance.now() * 0.001;
+  const centerX       = canvas.width / 2;
+  const centerY       = canvas.height / 2;
+  const time          = performance.now() * 0.001;
   const waveAmplitude = 12;
 
   ctx.beginPath();

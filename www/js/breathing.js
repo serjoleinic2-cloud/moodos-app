@@ -58,7 +58,7 @@ export function initBreathing(container) {
         <canvas id="breathingCanvas" width="320" height="320"></canvas>
         <div id="breathingText" style="margin:10px 0; font-size:22px; font-weight:600;">${t("breath_ready")}</div>
         <div id="breathingTimer" style="font-size:36px; font-weight:bold; margin-bottom:4px;">0</div>
-        <div id="cycleCounter" style="font-size:14px; color:#888; margin-bottom:10px;">`${t("breath_cycles")}: 0`</div>
+        <div id="cycleCounter" style="font-size:14px; color:#888; margin-bottom:10px;">${t("breath_cycles")}: 0</div>
       </div>
 
       <!-- КНОПКА СТАРТ/СТОП -->
@@ -101,7 +101,7 @@ export function initBreathing(container) {
       inhaleDuration = parseInt(set[0]) * 1000;
       holdDuration   = parseInt(set[1]) * 1000;
       exhaleDuration = parseInt(set[2]) * 1000;
-      document.getElementById("selectedMode").innerText = "Выбран: " + btn.dataset.set;
+      document.getElementById("selectedMode").innerText = t("breath_selected") + ": " + btn.dataset.set;
       updatePhases();
       if (!running) return;
       phaseIndex = 0;
@@ -162,7 +162,7 @@ addSessionEntry({
     sessionStartTime = null;
     moodBeforeSession = null;
     showPlayer();
-    document.getElementById("breathingText").innerText = `t("breath_ready")`;
+    document.getElementById("breathingText").innerText = t("breath_ready");
     mainBtn.innerText = "▶";
   };
 
@@ -180,7 +180,7 @@ addSessionEntry({
     sessionStartTime = null;
     moodBeforeSession = null;
     showPlayer();
-    document.getElementById("breathingText").innerText = `t("breath_ready")`;
+    document.getElementById("breathingText").innerText = t("breath_ready");
     mainBtn.innerText = "▶";
   };
 }
@@ -227,7 +227,7 @@ function animate() {
     if (phaseIndex === 0) {
       cycleCount++;
       const el = document.getElementById("cycleCounter");
-      if (el) el.innerText = "Циклов: " + cycleCount;
+      if (el) el.innerText = t("breath_cycles") + ": " + cycleCount;
     }
     phaseStartTime = now;
     animationId = requestAnimationFrame(animate);

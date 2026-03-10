@@ -5,6 +5,7 @@
 import { getMood } from "./state.js";
 import { addSessionEntry } from "./services/memory.js";
 import { detectMoodState } from "./services/state-engine.js";
+import { t } from "./i18n.js";
 
 let running = false;
 let sessionStartTime = null;
@@ -23,9 +24,9 @@ export function initTapCalm(container) {
   container.innerHTML = `
     <div style="text-align:center; margin-top:20px;">
 
-      <h2 style="margin-bottom:6px;">Тактильная разрядка</h2>
+      <h2 style="margin-bottom:6px;">${t("tc_title")}</h2>
       <div style="font-size:14px; color:#888; margin-bottom:16px;">
-        Нажимай на поле в своём ритме · 60 секунд
+        ${t("tc_subtitle")}
       </div>
 
       <!-- ПОЛЕ КАСАНИЯ -->
@@ -38,14 +39,13 @@ export function initTapCalm(container) {
           cursor:pointer; touch-action:none;
         "></canvas>
         <div id="tcHint" style="font-size:13px; color:#aaa; margin-top:8px;">
-          Нажми старт, затем касайся экрана
+          ${t("tc_hint")}
         </div>
       </div>
 
       <!-- СЧЁТЧИК НАЖАТИЙ -->
-      <div id="tcTapCount" style="
-        font-size:16px; color:#888; margin-bottom:12px;">
-        Нажатий: <span id="tcCount">0</span>
+      <div id="tcTapCount" style="font-size:16px; color:#888; margin-bottom:12px;">
+        ${t("tc_taps")}: <span id="tcCount">0</span>
       </div>
 
       <!-- ПРОГРЕСС-БАР -->
@@ -64,7 +64,7 @@ export function initTapCalm(container) {
       <!-- ТАЙМЕР -->
       <div style="margin-bottom:16px;">
         <div id="tcTimer" style="font-size:42px; font-weight:bold; color:#22c55e;">1:00</div>
-        <div id="tcStatus" style="font-size:14px; color:#888; margin-top:4px;">Готово к старту</div>
+        <div id="tcStatus" style="font-size:14px; color:#888; margin-top:4px;">${t("tc_ready")}</div>
       </div>
 
       <!-- КНОПКА -->
@@ -74,23 +74,22 @@ export function initTapCalm(container) {
 
       <!-- ФИДБЕК -->
       <div id="tcFeedback" style="display:none; flex-direction:column; gap:14px; align-items:center; margin-top:10px;">
-        <div style="font-size:16px; color:#666; margin-bottom:4px;">Как ты себя чувствуешь?</div>
+        <div style="font-size:16px; color:#666; margin-bottom:4px;">${t("tc_how_feel")}</div>
         <div id="tcTapResult" style="font-size:13px; color:#aaa; margin-bottom:8px;"></div>
         <div id="tcHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec; box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#4a7c59; font-size:18px; text-align:center;">👍 Помогло</div>
+          color:#4a7c59; font-size:18px; text-align:center;">👍 ${t("hist_helped")}</div>
         <div id="tcNotHelped" style="
           width:75%; padding:16px; border-radius:18px; cursor:pointer;
           background:#e0e5ec; box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#888; font-size:18px; text-align:center;">👎 Не помогло</div>
+          color:#888; font-size:18px; text-align:center;">👎 ${t("hist_not_helped")}</div>
       </div>
 
     </div>
   `;
 
   canvas = document.getElementById("tcCanvas");
-  // Устанавливаем реальный размер canvas
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     canvas.width  = rect.width  || 320;
@@ -121,7 +120,7 @@ export function initTapCalm(container) {
     document.getElementById("tcCount").textContent = "0";
     progress.style.width = "0%";
     updateTimerDisplay(DURATION);
-    status.textContent = "Готово к старту";
+    status.textContent = t("tc_ready");
     ripples = [];
   }
 
@@ -131,7 +130,7 @@ export function initTapCalm(container) {
     mainBtn.style.display  = "none";
     feedback.style.display = "flex";
     document.getElementById("tcTapResult").textContent =
-      `Ты сделал ${tapCount} нажатий`;
+      `${t("tc_result")} ${tapCount} ${t("tc_taps").toLowerCase()}`;
   }
 
   function startSession() {
@@ -140,7 +139,7 @@ export function initTapCalm(container) {
     moodBeforeSession  = getMood();
     stateBeforeSession = detectMoodState(moodBeforeSession);
     mainBtn.innerText  = "⏸";
-    status.textContent = "Нажимай в своём ритме...";
+    status.textContent = t("tc_tapping");
     tapCount = 0;
     document.getElementById("tcCount").textContent = "0";
     ripples = [];
@@ -164,11 +163,10 @@ export function initTapCalm(container) {
     running = false;
     cancelAnimationFrame(animationId);
     clearInterval(countdownInterval);
-    status.textContent = "Готово";
+    status.textContent = t("tc_done");
     mainBtn.innerText  = "▶";
   }
 
-  // Рисуем рябь
   function drawLoop() {
     if (!ctx) return;
     resizeCanvas();
@@ -190,7 +188,6 @@ export function initTapCalm(container) {
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Кольцо
       ctx.beginPath();
       ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(34, 197, 94, ${r.alpha * 0.5})`;
@@ -208,12 +205,9 @@ export function initTapCalm(container) {
     ripples.push({ x, y, radius: 8, alpha: 0.9 });
     tapCount++;
     document.getElementById("tcCount").textContent = tapCount;
-
-    // Вибрация на мобильном
     if (navigator.vibrate) navigator.vibrate(18);
   }
 
-  // Обработка касаний и кликов
   canvas.addEventListener("pointerdown", (e) => {
     if (!running) return;
     const rect = canvas.getBoundingClientRect();
