@@ -181,41 +181,45 @@ function startApp() {
   const voiceStatus = document.getElementById("voiceStatus");
 
   if (recordBtn && voiceStatus) {
-    recordBtn.addEventListener("click", async () => {
-      if (output) output.classList.remove("ai-message");
-      try {
-        recordBtn.disabled = true;
+    recordBtn.addEventListener("click", () => {
+  if (output) output.classList.remove("ai-message");
 
-        let countdown = 10;
-        const timerEl = document.getElementById("voiceTimer");
-voiceStatus.textContent = t("voice_recording");
-if (timerEl) timerEl.textContent = countdown;
-const countdownInterval = setInterval(() => {
-  countdown--;
-  if (countdown > 0) {
-    if (timerEl) timerEl.textContent = countdown;
-  } else {
+  const timerEl = document.getElementById("voiceTimer");
+  recordBtn.disabled = true;
+  voiceStatus.textContent = t("voice_recording");
+
+  let countdown = 10;
+  if (timerEl) timerEl.textContent = countdown;
+
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      if (timerEl) timerEl.textContent = countdown;
+    } else {
+      clearInterval(countdownInterval);
+      if (timerEl) timerEl.textContent = "";
+    }
+  }, 1000);
+
+  const cleanup = () => {
     clearInterval(countdownInterval);
     if (timerEl) timerEl.textContent = "";
-  }
-}, 1000);
+    voiceStatus.textContent = "";
+    recordBtn.disabled = false;
+  };
 
-        await startVoiceRecording(voiceStatus, () => {
-          clearInterval(countdownInterval);
-		  const result = analyzeLatestVoice();
-		  if (timerEl) timerEl.textContent = "";
-          if (result && voiceOutput) {
-            voiceOutput.textContent = result.insight;
-            voiceOutput.classList.add("ai-message");
-          }
-          voiceStatus.textContent = "";
-          recordBtn.disabled = false;
-        });
-      } catch(e) {
-        voiceStatus.textContent = "❌";
-        recordBtn.disabled = false;
-      }
-    });
+  startVoiceRecording(voiceStatus, () => {
+    cleanup();
+    const result = analyzeLatestVoice();
+    if (result && voiceOutput) {
+      voiceOutput.textContent = result.insight;
+      voiceOutput.classList.add("ai-message");
+    }
+  }).catch(() => {
+    cleanup();
+    voiceStatus.textContent = "❌";
+  });
+});
   }
 }
 

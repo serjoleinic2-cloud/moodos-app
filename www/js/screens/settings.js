@@ -72,16 +72,16 @@ function renderSettings() {
     </style>
 
     <div class="settings-wrap">
-      <div class="settings-title">Настройки</div>
+      <div class="settings-title">${t("settings_title")}</div>
 
       <!-- ЗДОРОВЬЕ -->
       <div class="settings-section">
-        <div class="settings-section-label">Здоровье и самочувствие</div>
+        <div class="settings-section-label">${t("settings_health")}</div>
 
         <div class="neo-row" id="settingMeds">
           <div class="neo-row-left">
             <span class="neo-row-icon">💊</span>
-            <span class="neo-row-label">Приём лекарств</span>
+            <span class="neo-row-label">${t("settings_meds_label")}</span>
           </div>
           <span class="neo-row-value">${profile ? (medLabels[profile.takesMeds] || t("med_not_said")) : t("med_not_said")} ›</span>
         </div>
@@ -90,7 +90,7 @@ function renderSettings() {
         <div class="neo-row" id="settingEffect">
           <div class="neo-row-left">
             <span class="neo-row-icon">🔍</span>
-            <span class="neo-row-label">Как влияет</span>
+            <span class="neo-row-label">${t("settings_effect_label")}</span>
           </div>
           <span class="neo-row-value">${profile ? (effectLabels[profile.medEffect] || t("med_not_said")) : t("med_not_said")} ›</span>
         </div>
@@ -98,21 +98,21 @@ function renderSettings() {
         <div class="neo-row" id="settingReminder">
           <div class="neo-row-left">
             <span class="neo-row-icon">⏰</span>
-            <span class="neo-row-label">Напоминание о приёме</span>
+            <span class="neo-row-label">${t("settings_reminder_label")}</span>
           </div>
-          <span class="neo-row-value">${reminder?.active ? (reminderLabels[profile?.medReminder] || "Включено") : "Выключено"} ›</span>
+          ${reminder?.active ? (reminderLabels[profile?.medReminder] || t("settings_reminder_on")) : t("settings_reminder_off")} ›
         </div>
         ` : ""}
       </div>
 
       <!-- ПРИЛОЖЕНИЕ -->
       <div class="settings-section">
-        <div class="settings-section-label">Приложение</div>
+        <div class="settings-section-label">${t("settings_app")}</div>
 
         <div class="neo-row" id="settingBaseFeeling">
           <div class="neo-row-left">
             <span class="neo-row-icon">🎯</span>
-            <span class="neo-row-label">Базовое состояние</span>
+            <span class="neo-row-label">${t("settings_baseline_label")}</span>
           </div>
           <span class="neo-row-value">${profile?.moodBaseline ?? 50}% ›</span>
         </div>
@@ -120,7 +120,7 @@ function renderSettings() {
         <div class="neo-row" id="settingLanguage">
           <div class="neo-row-left">
             <span class="neo-row-icon">🌍</span>
-            <span class="neo-row-label">Язык</span>
+            <span class="neo-row-label">${t("settings_language_label")}</span>
           </div>
           <span class="neo-row-value">
             ${LANG_OPTIONS.find(l=>l.code===getLang())?.flag || '🌍'}
@@ -131,12 +131,12 @@ function renderSettings() {
 
       <!-- ОТЧЁТЫ -->
       <div class="settings-section">
-        <div class="settings-section-label">Данные</div>
+        <div class="settings-section-label">${t("settings_data")}</div>
 
         <div class="neo-row" id="settingPdfReport">
           <div class="neo-row-left">
             <span class="neo-row-icon">📄</span>
-            <span class="neo-row-label">Отчёт для врача</span>
+            <span class="neo-row-label">${t("settings_pdf_label")}</span>
           </div>
           <span class="neo-row-value">PDF ›</span>
         </div>
@@ -150,7 +150,7 @@ function bindEvents(el) {
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({
       title: t("meds_intake"),
-      subtitle: "Это помогает мне правильно читать твои данные",
+      subtitle: t("settings_meds_subtitle"),
       field: "takesMeds",
       options: [
         { value: "нет",             label: "🙅 Не принимаю" },
@@ -164,8 +164,8 @@ function bindEvents(el) {
 
   el.querySelector("#settingEffect")?.addEventListener("click", () => {
     showModal({
-      title: "Как влияет препарат",
-      subtitle: "Помогает правильно интерпретировать твои оценки",
+      title: t("settings_effect_title"),
+subtitle: t("settings_effect_subtitle"),
       field: "medEffect",
       options: [
         { value: "лучше",           label: "✨ Стало лучше" },
@@ -180,7 +180,7 @@ function bindEvents(el) {
   el.querySelector("#settingReminder")?.addEventListener("click", () => {
     showModal({
       title: t("med_reminder"),
-      subtitle: "Мягкое напоминание раз в день",
+      subtitle: t("settings_reminder_subtitle"),
       field: "medReminder",
       options: [
         { value: "нет",   label: "🙅 Без напоминания" },
@@ -224,8 +224,8 @@ function showModal({ title, subtitle, field, options, onSave }) {
           <div class="modal-option ${o.value === current ? 'selected' : ''}" data-value="${o.value}">${o.label}</div>
         `).join('')}
       </div>
-      <button class="modal-save-btn" id="modalSave">Сохранить</button>
-      <div class="modal-cancel" id="modalCancel">Отмена</div>
+      <button class="modal-save-btn" id="modalSave">${t("save")}</button>
+<div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
 
   document.body.appendChild(overlay);
@@ -261,7 +261,7 @@ function showLanguageModal(el) {
   overlay.innerHTML = `
     <div class="health-modal">
       <div class="modal-title">🌍 Язык / Language</div>
-      <div class="modal-subtitle">Выбери язык интерфейса</div>
+      <div class="modal-subtitle">${t("settings_lang_subtitle")}</div>
       <div class="modal-options">
         ${LANG_OPTIONS.map(l => `
           <div class="modal-option ${l.code===current?'selected':''}" data-value="${l.code}">
@@ -308,16 +308,16 @@ function showBaselineModal() {
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">Базовое состояние</div>
-      <div class="modal-subtitle">Это моя точка отсчёта — я считаю изменения относительно неё</div>
+      <div class="modal-title">${t("settings_baseline_title")}</div>
+<div class="modal-subtitle">${t("settings_baseline_subtitle")}</div>
       <div style="background:rgba(232,237,230,0.9);border-radius:16px;box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;padding:20px;margin-bottom:20px;">
         <div style="text-align:center;font-size:28px;font-weight:800;color:#555;margin-bottom:12px;">
           <span id="baselineVal">${current}%</span>
         </div>
         <input type="range" id="baselineSlider" min="0" max="100" value="${current}" style="width:100%;accent-color:#7eb8d4;">
       </div>
-      <button class="modal-save-btn" id="modalSave">Сохранить</button>
-      <div class="modal-cancel" id="modalCancel">Отмена</div>
+      <button class="modal-save-btn" id="modalSave">${t("save")}</button>
+<div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
 
   document.body.appendChild(overlay);
