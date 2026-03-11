@@ -25,6 +25,6 @@ export function onEnter() {
     const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
     const date = now.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"numeric" });
     savedLabel.textContent = `${time} (${date})`;
-    setTimeout(() => { savedLabel.textContent = ""; }, 4000);
+    
   });
 }
