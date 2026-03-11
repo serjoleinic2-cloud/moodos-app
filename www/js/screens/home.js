@@ -33,7 +33,11 @@ newSlider.id = "moodSlider";
     const moodValue = Number(newSlider.value);
     const state     = detectMoodState(moodValue);
     addMoodEntry({ value: moodValue, state, time: Date.now() });
-    updateStabilityHistory();
+    // сначала обновляем state, потом updateStabilityHistory читает правильное значение
+    import("../state.js").then(({ setMood }) => {
+      setMood(moodValue);
+      updateStabilityHistory();
+    });
 
     const now  = new Date();
     const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
