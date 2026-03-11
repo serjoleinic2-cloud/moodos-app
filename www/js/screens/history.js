@@ -55,6 +55,42 @@ function groupByDay(items) {
   return g;
 }
 
+function deleteItem(item) {
+  try {
+    if (item.type==="mood") {
+      const arr = getMoodHistory().filter(e => new Date(e.time).getTime() !== item.ts);
+      localStorage.setItem("mood_history", JSON.stringify(arr));
+    } else if (item.type==="note") {
+      const arr = getNotesHistory().filter(e => (e.timestamp||new Date(e.time).getTime()) !== item.ts);
+      localStorage.setItem("notes_history", JSON.stringify(arr));
+    } else if (item.type==="voice") {
+      const arr = getVoiceHistory().filter(e => (e.timestamp||e.time) !== item.ts);
+      localStorage.setItem("voice_history", JSON.stringify(arr));
+    } else if (item.type==="photo") {
+      const arr = JSON.parse(localStorage.getItem("photo_history")||"[]").filter(e => (e.timestamp||e.time) !== item.ts);
+      localStorage.setItem("photo_history", JSON.stringify(arr));
+    } else if (item.type==="session") {
+      const arr = getSessionHistory().filter(e => (e.timestamp) !== item.ts);
+      localStorage.setItem("session_history", JSON.stringify(arr));
+    }
+  } catch(e) {}
+}
+
+function compressImage(dataUrl, maxWidth=800, quality=0.7) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, maxWidth / img.width);
+      canvas.width  = img.width  * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 function renderHistory(filterDate=null) {
   const container = document.getElementById("history-content");
   if (!container) return;
@@ -92,19 +128,34 @@ function renderHistory(filterDate=null) {
   const cameraBtn  = document.getElementById("histCameraBtn");
   const photoInput = document.getElementById("histPhotoInput");
   cameraBtn.addEventListener("click", () => showPhotoMenu(container, photoInput));
-  photoInput.addEventListener("change", (e) => {
+  photoInput.addEventListener("change", async (e) => {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => { savePhoto(ev.target.result); renderHistory(filterDate); };
-    reader.readAsDataURL(file); photoInput.value = "";
+    reader.onload = async (ev) => {
+      const compressed = await compressImage(ev.target.result);
+      savePhoto(compressed);
+      renderHistory(filterDate);
+    };
+    reader.readAsDataURL(file);
+    photoInput.value = "";
   });
 
   container.querySelectorAll(".hist-card[data-clickable='1']").forEach(card => {
-    card.onclick = () => {
+    card.onclick = (e) => {
+      if (e.target.closest(".hist-delete-btn")) return;
       const ts=parseInt(card.dataset.ts), type=card.dataset.type;
       const item=allItemsCache.find(i=>i.ts===ts&&i.type===type);
       if (item) renderDetail(item, filterDate);
     };
+  });
+
+  container.querySelectorAll(".hist-delete-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const ts=parseInt(btn.dataset.ts), type=btn.dataset.type;
+      const item=allItemsCache.find(i=>i.ts===ts&&i.type===type);
+      if (item) { deleteItem(item); renderHistory(filterDate); }
+    });
   });
 
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
@@ -168,20 +219,21 @@ function savePhoto(dataUrl) {
 function renderCard(item) {
   const time = formatTime(item.ts);
   const meta = SESSION_META();
+  const delBtn = (type) => `<div class="hist-delete-btn" data-ts="${item.ts}" data-type="${type}" style="padding:6px 10px;border-radius:10px;background:rgba(224,85,85,0.1);color:#e05555;font-size:16px;cursor:pointer;flex-shrink:0;">🗑</div>`;
 
   if (item.type==="mood") {
     const col=moodColor(item.value), emo=moodEmoji(item.value);
     return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1">
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_mood")}</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
-      <div class="hist-card-time">${time}</div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="note") {
     const prev=item.text.length>60?item.text.slice(0,60)+"...":item.text;
     return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1">
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev||"—"}</div></div>
-      <div class="hist-card-time">${time}</div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="photo") {
     return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1">
@@ -189,7 +241,7 @@ function renderCard(item) {
         ${item.dataUrl?`<img src="${item.dataUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
       </div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
-      <div class="hist-card-time">${time}</div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="voice") {
     const prev=item.text&&item.text.length>50?item.text.slice(0,50)+"...":item.text||"";
@@ -198,7 +250,7 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
         <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${prev||t("hist_voice_diary")}</div></div>
-        <div class="hist-card-time">${time}</div>
+        <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice")}<div class="hist-card-time">${time}</div></div>
       </div>
       ${hasAudio?`
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
@@ -229,7 +281,7 @@ function renderCard(item) {
         <div class="hist-card-title">${m.label}</div>
         <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>
       </div>
-      <div class="hist-card-time">${time}</div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   return "";
 }
@@ -284,7 +336,7 @@ function renderDetail(item, filterDate) {
       </div>
       ${body}
     </div>
-    <div style="position:fixed;bottom:calc(88px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;z-index:50;">
+    <div style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;z-index:50;">
       <div id="histBackBtn" style="padding:14px 48px;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#555;cursor:pointer;">${t("hist_back")}</div>
     </div>`;
 
