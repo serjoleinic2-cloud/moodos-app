@@ -12,13 +12,16 @@ export function onEnter() {
 
   valueLabel.textContent = slider.value + "%";
 
-  // Клонируем слайдер — убиваем старые слушатели
-  const newSlider = slider.cloneNode(true);
-  slider.parentNode.replaceChild(newSlider, slider);
+const newSlider = slider.cloneNode(true);
+slider.parentNode.replaceChild(newSlider, slider);
 
-  newSlider.addEventListener("input", () => {
-    valueLabel.textContent = newSlider.value + "%";
-  });
+newSlider.addEventListener("input", () => {
+  valueLabel.textContent = newSlider.value + "%";
+  // синхронизируем state чтобы app.js не читал старый элемент
+  newSlider.id = "moodSlider";
+});
+
+newSlider.id = "moodSlider";
 
   // Клонируем кнопку — убиваем старые слушатели
   const confirmBtn = document.getElementById("moodConfirmBtn");
