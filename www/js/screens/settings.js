@@ -60,7 +60,7 @@ function renderSettings() {
       .neo-row-icon { font-size: 18px; margin-right: 12px; }
       .neo-row-left { display: flex; align-items: center; }
       .health-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: flex; align-items: flex-end; }
-      .health-modal { width: 100%; background: linear-gradient(160deg,#d4ede8,#e8e0d5); border-radius: 24px 24px 0 0; padding: 24px 20px 48px; box-sizing: border-box; animation: slideUp 0.35s ease; }
+      .health-modal { width: 100%; background: linear-gradient(160deg,#d4ede8,#e8e0d5); border-radius: 24px 24px 0 0; padding: 24px 20px 32px; max-height: 80vh; overflow-y: auto; box-sizing: border-box; animation: slideUp 0.35s ease; }
       @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
       .modal-title { font-size: 18px; font-weight: 700; color: #3d3d3d; margin-bottom: 6px; }
       .modal-subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
@@ -153,11 +153,11 @@ function bindEvents(el) {
       subtitle: t("settings_meds_subtitle"),
       field: "takesMeds",
       options: [
-        { value: "нет",             label: "🙅 Не принимаю" },
-        { value: "антидепрессанты", label: "💙 Антидепрессанты" },
-        { value: "седативные",      label: "🌙 Седативные / успокоительные" },
-        { value: "другое",          label: "💊 Другое" },
-        { value: "не_скажу",        label: "🔒 Предпочитаю не говорить" },
+        { value: "нет",             label: t("ob_meds_no") },
+        { value: "антидепрессанты", label: t("ob_meds_anti") },
+        { value: "седативные",      label: t("ob_meds_sed") },
+        { value: "другое",          label: t("ob_meds_other") },
+        { value: "не_скажу",        label: t("ob_meds_skip") },
       ]
     });
   });
@@ -168,12 +168,12 @@ function bindEvents(el) {
 subtitle: t("settings_effect_subtitle"),
       field: "medEffect",
       options: [
-        { value: "лучше",           label: "✨ Стало лучше" },
-        { value: "примерно_так_же", label: "➡️ Примерно так же" },
-        { value: "приглушённость",  label: "🔇 Чувствую приглушённость" },
-        { value: "побочки",         label: "⚡ Есть побочки — терплю" },
-        { value: "адаптация",       label: "⏳ Ещё подбираем дозировку" },
-      ]
+  { value: "лучше",           label: t("ob_effect_better") },
+  { value: "примерно_так_же", label: t("ob_effect_same") },
+  { value: "приглушённость",  label: t("ob_effect_numb") },
+  { value: "побочки",         label: t("ob_effect_side") },
+  { value: "адаптация",       label: t("ob_effect_adapt") },
+]
     });
   });
 
@@ -183,11 +183,11 @@ subtitle: t("settings_effect_subtitle"),
       subtitle: t("settings_reminder_subtitle"),
       field: "medReminder",
       options: [
-        { value: "нет",   label: "🙅 Без напоминания" },
-        { value: "утро",  label: "🌅 Утром (8:00)" },
-        { value: "день",  label: "☀️ Днём (13:00)" },
-        { value: "вечер", label: "🌙 Вечером (20:00)" },
-      ],
+  { value: "нет",   label: t("ob_reminder_no") },
+  { value: "утро",  label: t("ob_reminder_morning") },
+  { value: "день",  label: t("ob_reminder_day") },
+  { value: "вечер", label: t("ob_reminder_evening") },
+],
       onSave: (value) => {
         const times = { утро: "08:00", день: "13:00", вечер: "20:00" };
         if (times[value]) saveMedReminder(times[value]);
