@@ -4,7 +4,7 @@
 import { getMoodHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
-import { t } from "../i18n.js";
+import { t, getLang } from "../i18n.js";
 
 async function requestNotificationPermission() {
   try {
@@ -99,8 +99,21 @@ export function showPdfReportModal() {
   const autoDays   = s.autoDays   || [];
   const autoPeriod = s.autoPeriod || "30";
   const autoTime   = s.autoTime   || "09:00";
-  const DAYS    = t("pdf_days");
-  const PERIODS = t("pdf_periods");
+  const lang = typeof getLang === "function" ? getLang() : "ru";
+const DAYS_MAP = {
+  ru: ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"],
+  en: ["Mo","Tu","We","Th","Fr","Sa","Su"],
+  es: ["Lu","Ma","Mi","Ju","Vi","Sa","Do"],
+  uk: ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"],
+};
+const PERIODS_MAP = {
+  ru: [["7","7 дней"],["14","14 дней"],["30","30 дней"],["90","3 месяца"]],
+  en: [["7","7 days"],["14","14 days"],["30","30 days"],["90","3 months"]],
+  es: [["7","7 días"],["14","14 días"],["30","30 días"],["90","3 meses"]],
+  uk: [["7","7 днів"],["14","14 днів"],["30","30 днів"],["90","3 місяці"]],
+};
+const DAYS    = DAYS_MAP[lang]    || DAYS_MAP.ru;
+const PERIODS = PERIODS_MAP[lang] || PERIODS_MAP.ru;
 
   const screen = document.createElement("div");
   screen.id = "pdfReportScreen";
