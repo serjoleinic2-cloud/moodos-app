@@ -16,7 +16,7 @@ import {
 } from "./state.js";
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
-import { t, getDaysLabel } from "./i18n.js";
+import { t, getDaysLabel, getLang } from "./i18n.js";
 
 /* ---------- RENDER ----------- */
 function render() {
@@ -34,17 +34,32 @@ function render() {
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
+  // Инсайт дня — показываем последний AI-ответ из истории заметок или дефолт по настроению
   const insightEl = document.getElementById("todayInsight");
   if (insightEl && insightEl.getAttribute("data-user-set") !== "true") {
-    if (mood >= 70)      insightEl.textContent = t("mood_strong");
-    else if (mood >= 45) insightEl.textContent = t("mood_stable");
-    else                 insightEl.textContent = t("mood_attention");
+    const notes = getNotesHistory();
+    const last = notes.length ? notes[notes.length - 1] : null;
+    if (last && last.result && last.result.insight) {
+      insightEl.textContent = last.result.insight;
+    } else if (mood >= 70) {
+      insightEl.textContent = t("mood_strong");
+    } else if (mood >= 45) {
+      insightEl.textContent = t("mood_stable");
+    } else {
+      insightEl.textContent = t("mood_attention");
+    }
   }
 
+  // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
   if (goldenEl) {
-    const g = calculateGoldenHour(getMoodHistory());
-    goldenEl.textContent = g || t("home_studying");
+    const history = getMoodHistory();
+    if (history.length < 3) {
+      goldenEl.textContent = t("home_studying");
+    } else {
+      const g = calculateGoldenHour(history);
+      goldenEl.textContent = g || t("home_studying");
+    }
   }
 }
 
@@ -59,6 +74,8 @@ function getDaysFromStorage() {
 /* ---------- DOM TRANSLATIONS ---------- */
 function applyDomTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
+    // Не перезаписываем элементы у которых уже есть пользовательский контент
+    if (el.getAttribute("data-user-set") === "true") return;
     const val = t(el.getAttribute('data-i18n'));
     if (val) el.textContent = val;
   });
@@ -72,8 +89,6 @@ function applyDomTranslations() {
 document.addEventListener("DOMContentLoaded", () => {
   initState();
   initUI();
-
-  // Применяем переводы к статичному HTML сразу
   applyDomTranslations();
 
   if (!isOnboardingDone()) {
@@ -89,8 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function startApp() {
   initNavigation();
 
-  // checkAutoReminder — запускаем с задержкой и в try/catch
-  // чтобы ошибки в уведомлениях не вешали приложение
   setTimeout(async () => {
     try {
       const { checkAutoReminder } = await import("./screens/pdf-report.js");
@@ -127,15 +140,26 @@ function startApp() {
       const text   = note.value;
       const mood   = getMood();
       const result = analyzeText(text, mood);
+
       if (output) {
         output.textContent = result.insight;
         output.setAttribute("data-user-set", "true");
+        output.removeAttribute("data-i18n");
         output.classList.add("ai-message");
         output.style.opacity = "0";
         requestAnimationFrame(() => { output.style.opacity = "1"; });
       }
+
+      // Обновляем Инсайт дня
+      const insightEl = document.getElementById("todayInsight");
+      if (insightEl) {
+        insightEl.textContent = result.insight;
+        insightEl.setAttribute("data-user-set", "true");
+        insightEl.removeAttribute("data-i18n");
+      }
+
       const history = getNotesHistory();
-      history.push({ text, mood, result, time: Date.now() });
+      history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
     });
   }
@@ -150,15 +174,28 @@ function startApp() {
     recordBtn.addEventListener("click", async () => {
       if (output) output.classList.remove("ai-message");
       try {
-        voiceStatus.textContent = "...";
         recordBtn.disabled = true;
+
+        // Запускаем обратный отсчёт 10 секунд
+        let countdown = 10;
+        voiceStatus.textContent = `⏱ ${countdown}`;
+        const countdownInterval = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            voiceStatus.textContent = `⏱ ${countdown}`;
+          } else {
+            clearInterval(countdownInterval);
+          }
+        }, 1000);
+
         await startVoiceRecording(voiceStatus, () => {
+          clearInterval(countdownInterval);
           const result = analyzeLatestVoice();
           if (result && voiceOutput) {
             voiceOutput.textContent = result.insight;
             voiceOutput.classList.add("ai-message");
           }
-          voiceStatus.textContent = t("home_waiting");
+          voiceStatus.textContent = "";
           recordBtn.disabled = false;
         });
       } catch(e) {
@@ -196,6 +233,8 @@ function updateStabilityHistory() {
 function showSavedTime() {
   const label = document.getElementById("moodSavedLabel");
   if (!label) return;
-  const time = new Date().toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
-  label.textContent = `${t("saved_at")} ${time}`;
+  const now  = new Date();
+  const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+  const date = now.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"numeric" });
+  label.textContent = `${time} (${date})`;
 }

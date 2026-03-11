@@ -20,7 +20,11 @@ export function onEnter() {
     const moodValue = Number(slider.value);
     const state     = detectMoodState(moodValue);
     addMoodEntry({ value: moodValue, state, time: Date.now() });
-    savedLabel.textContent = t("saved_check");
-    setTimeout(() => { savedLabel.textContent = ""; }, 2000);
+
+    const now  = new Date();
+    const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+    const date = now.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"numeric" });
+    savedLabel.textContent = `${time} (${date})`;
+    setTimeout(() => { savedLabel.textContent = ""; }, 4000);
   });
 }
