@@ -121,14 +121,7 @@ function startApp() {
     });
   }
 
-  const confirmBtn = document.getElementById("moodConfirmBtn");
-  if (confirmBtn && slider) {
-    confirmBtn.addEventListener("click", () => {
-      setMood(Number(slider.value));
-      updateStabilityHistory();
-      showSavedTime();
-    });
-  }
+
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");
@@ -230,11 +223,3 @@ function updateStabilityHistory() {
   if (trendEl) trendEl.textContent = trend;
 }
 
-function showSavedTime() {
-  const label = document.getElementById("moodSavedLabel");
-  if (!label) return;
-  const now  = new Date();
-  const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
-  const date = now.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"numeric" });
-  label.textContent = `${time} (${date})`;
-}
