@@ -22,43 +22,33 @@ import { t, getDaysLabel, getLang } from "./i18n.js";
 function buildDayInsight() {
   const today = new Date();
   const todayStr = today.toDateString();
-
   const moodHistory = getMoodHistory();
   const notesHistory = getNotesHistory();
-
-  // Записи настроения за сегодня
   const todayMoods = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
-  // Заметки за сегодня
   const todayNotes = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
 
-  if (todayMoods.length === 0 && todayNotes.length === 0) {
-    return "Сделай первую запись — и я начну отслеживать твой день 🌱";
-  }
+  if (todayMoods.length === 0 && todayNotes.length === 0) return t("insight_first");
 
   const parts = [];
-
-  // Сколько записей
   const total = todayMoods.length + todayNotes.length;
-  if (total === 1) parts.push("Первая запись за сегодня сделана.");
-  else parts.push(`Сегодня ты делал(а) записи ${total} раз.`);
+  if (total === 1) parts.push(t("insight_entries_1"));
+  else parts.push(t("insight_entries_many").replace("{n}", total));
 
-  // Динамика настроения
   if (todayMoods.length >= 2) {
     const first = todayMoods[0].value;
     const last  = todayMoods[todayMoods.length - 1].value;
     const diff  = last - first;
-    if (diff > 5)       parts.push(`Настроение выросло с ${first}% до ${last}% 📈`);
-    else if (diff < -5) parts.push(`Настроение снизилось с ${first}% до ${last}% 📉`);
-    else                parts.push(`Настроение стабильно: около ${last}% ➡️`);
+    if (diff > 5)       parts.push(t("insight_mood_up").replace("{a}", first).replace("{b}", last));
+    else if (diff < -5) parts.push(t("insight_mood_down").replace("{a}", first).replace("{b}", last));
+    else                parts.push(t("insight_mood_stable").replace("{v}", last));
   } else if (todayMoods.length === 1) {
-    parts.push(`Настроение сейчас: ${todayMoods[0].value}%`);
+    parts.push(t("insight_mood_now").replace("{v}", todayMoods[0].value));
   }
 
-  // Тема из заметок
   if (todayNotes.length > 0) {
     const lastNote = todayNotes[todayNotes.length - 1];
     if (lastNote.result && lastNote.result.state) {
-      parts.push(`Основная тема: ${lastNote.result.state}.`);
+      parts.push(t("insight_topic").replace("{s}", lastNote.result.state));
     }
   }
 
@@ -99,10 +89,11 @@ function render() {
 
   // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
-  if (goldenEl) {
-    const g = calculateGoldenHour(history);
-    goldenEl.textContent = g;
-  }
+if (goldenEl) {
+  const g = calculateGoldenHour(history);
+  if (g === null) goldenEl.textContent = t("golden_studying");
+  else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
+}
 }
 
 function getDaysFromStorage() {
@@ -197,7 +188,7 @@ function startApp() {
 
         let countdown = 10;
         const timerEl = document.getElementById("voiceTimer");
-voiceStatus.textContent = "● Идёт запись";
+voiceStatus.textContent = t("voice_recording");
 if (timerEl) timerEl.textContent = countdown;
 const countdownInterval = setInterval(() => {
   countdown--;

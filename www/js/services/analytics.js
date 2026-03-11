@@ -21,7 +21,7 @@ export function calculateTrend(history) {
 }
 
 export function calculateGoldenHour(history) {
-  if (!history || history.length < 8) return "Изучаю твой ритм...";
+  if (!history || history.length < 8) return null;
   const hours = {};
   history.forEach(entry => {
     const hour = new Date(entry.time).getHours();
@@ -34,8 +34,8 @@ export function calculateGoldenHour(history) {
     const avg = hours[h].total / hours[h].count;
     if (avg > bestScore) { bestScore = avg; bestHour = h; }
   });
-  if (bestHour === null) return "Собираю данные...";
+  if (bestHour === null) return null;
   const start = String(bestHour).padStart(2, "0");
   const end   = String((Number(bestHour) + 1) % 24).padStart(2, "0");
-  return `Пик активности: ${start}:00–${end}:00`;
+  return { start, end };
 }

@@ -263,6 +263,20 @@ med_title: "Медитация", med_how_feel: "Как ты себя чувст�
     ob_back: "← Назад",
     ob_next: "Далее →",
     ob_done: "✓ Готово",
+
+voice_recording: "● Идёт запись",
+insight_first: "Сделай первую запись — и я начну отслеживать твой день 🌱",
+insight_entries_1: "Первая запись за сегодня сделана.",
+insight_entries_many: "Сегодня ты делал(а) записи {n} раз.",
+insight_mood_up: "Настроение выросло с {a}% до {b}% 📈",
+insight_mood_down: "Настроение снизилось с {a}% до {b}% 📉",
+insight_mood_stable: "Настроение стабильно: около {v}% ➡️",
+insight_mood_now: "Настроение сейчас: {v}%",
+insight_topic: "Основная тема: {s}.",
+golden_studying: "Изучаю твой ритм...",
+golden_collecting: "Собираю данные...",
+golden_peak: "Пик активности: {start}:00–{end}:00",  
+  
   },
 
   en: {
@@ -495,6 +509,19 @@ med_title: "Meditation", med_how_feel: "How do you feel?",
     ob_back: "← Back",
     ob_next: "Next →",
     ob_done: "✓ Done",
+	
+voice_recording: "● Recording",
+insight_first: "Make your first entry — and I'll start tracking your day 🌱",
+insight_entries_1: "First entry today made.",
+insight_entries_many: "You made {n} entries today.",
+insight_mood_up: "Mood rose from {a}% to {b}% 📈",
+insight_mood_down: "Mood dropped from {a}% to {b}% 📉",
+insight_mood_stable: "Mood is stable: around {v}% ➡️",
+insight_mood_now: "Mood right now: {v}%",
+insight_topic: "Main topic: {s}.",
+golden_studying: "Learning your rhythm...",
+golden_collecting: "Collecting data...",
+golden_peak: "Peak activity: {start}:00–{end}:00",	
   },
 
   es: {
@@ -726,6 +753,19 @@ med_title: "Meditación", med_how_feel: "¿Cómo te sientes?",
     ob_back: "← Atrás",
     ob_next: "Siguiente →",
     ob_done: "✓ Listo",
+	
+voice_recording: "● Grabando",
+insight_first: "Haz tu primer registro — y empezaré a seguir tu día 🌱",
+insight_entries_1: "Primer registro de hoy hecho.",
+insight_entries_many: "Hiciste {n} registros hoy.",
+insight_mood_up: "El estado subió de {a}% a {b}% 📈",
+insight_mood_down: "El estado bajó de {a}% a {b}% 📉",
+insight_mood_stable: "Estado estable: alrededor de {v}% ➡️",
+insight_mood_now: "Estado ahora: {v}%",
+insight_topic: "Tema principal: {s}.",
+golden_studying: "Aprendiendo tu ritmo...",
+golden_collecting: "Recopilando datos...",
+golden_peak: "Pico de actividad: {start}:00–{end}:00",	
   },
 
   uk: {
@@ -958,6 +998,19 @@ med_title: "Медитація", med_how_feel: "Як ти себе почува�
     ob_back: "← Назад",
     ob_next: "Далі →",
     ob_done: "✓ Готово",
+
+voice_recording: "● Іде запис",
+insight_first: "Зроби перший запис — і я почну відстежувати твій день 🌱",
+insight_entries_1: "Перший запис за сьогодні зроблено.",
+insight_entries_many: "Сьогодні ти робив(ла) записи {n} разів.",
+insight_mood_up: "Настрій виріс з {a}% до {b}% 📈",
+insight_mood_down: "Настрій знизився з {a}% до {b}% 📉",
+insight_mood_stable: "Настрій стабільний: близько {v}% ➡️",
+insight_mood_now: "Настрій зараз: {v}%",
+insight_topic: "Основна тема: {s}.",
+golden_studying: "Вивчаю твій ритм...",
+golden_collecting: "Збираю дані...",
+golden_peak: "Пік активності: {start}:00–{end}:00",	
   }
 };
 
