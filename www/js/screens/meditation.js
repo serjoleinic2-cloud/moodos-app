@@ -78,7 +78,7 @@ export function initMeditation(container) {
     <!-- ПОЛЗУНОК -->
     <div id="progressWrap" style="
       position:fixed;
-      bottom:calc(88px + env(safe-area-inset-bottom));
+      bottom:calc(160px + env(safe-area-inset-bottom));
       left:0; width:100%; text-align:center;">
       <input type="range" id="medProgress" value="0" min="0" step="1" style="width:85%;">
       <div id="medTimer" style="font-size:13px;color:#888;margin-top:6px;">00:00 / 00:00</div>
