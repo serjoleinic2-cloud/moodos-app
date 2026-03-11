@@ -18,6 +18,53 @@ import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
 
+/* ---------- ИНСАЙТ ДНЯ ---------- */
+function buildDayInsight() {
+  const today = new Date();
+  const todayStr = today.toDateString();
+
+  const moodHistory = getMoodHistory();
+  const notesHistory = getNotesHistory();
+
+  // Записи настроения за сегодня
+  const todayMoods = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
+  // Заметки за сегодня
+  const todayNotes = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
+
+  if (todayMoods.length === 0 && todayNotes.length === 0) {
+    return "Сделай первую запись — и я начну отслеживать твой день 🌱";
+  }
+
+  const parts = [];
+
+  // Сколько записей
+  const total = todayMoods.length + todayNotes.length;
+  if (total === 1) parts.push("Первая запись за сегодня сделана.");
+  else parts.push(`Сегодня ты делал(а) записи ${total} раз.`);
+
+  // Динамика настроения
+  if (todayMoods.length >= 2) {
+    const first = todayMoods[0].value;
+    const last  = todayMoods[todayMoods.length - 1].value;
+    const diff  = last - first;
+    if (diff > 5)       parts.push(`Настроение выросло с ${first}% до ${last}% 📈`);
+    else if (diff < -5) parts.push(`Настроение снизилось с ${first}% до ${last}% 📉`);
+    else                parts.push(`Настроение стабильно: около ${last}% ➡️`);
+  } else if (todayMoods.length === 1) {
+    parts.push(`Настроение сейчас: ${todayMoods[0].value}%`);
+  }
+
+  // Тема из заметок
+  if (todayNotes.length > 0) {
+    const lastNote = todayNotes[todayNotes.length - 1];
+    if (lastNote.result && lastNote.result.state) {
+      parts.push(`Основная тема: ${lastNote.result.state}.`);
+    }
+  }
+
+  return parts.join(" ");
+}
+
 /* ---------- RENDER ----------- */
 function render() {
   const mood = getMood();
@@ -34,32 +81,27 @@ function render() {
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
-  // Инсайт дня — показываем последний AI-ответ из истории заметок или дефолт по настроению
+  // Инсайт дня — итог дня
   const insightEl = document.getElementById("todayInsight");
-  if (insightEl && insightEl.getAttribute("data-user-set") !== "true") {
-    const notes = getNotesHistory();
-    const last = notes.length ? notes[notes.length - 1] : null;
-    if (last && last.result && last.result.insight) {
-      insightEl.textContent = last.result.insight;
-    } else if (mood >= 70) {
-      insightEl.textContent = t("mood_strong");
-    } else if (mood >= 45) {
-      insightEl.textContent = t("mood_stable");
-    } else {
-      insightEl.textContent = t("mood_attention");
-    }
+  if (insightEl) {
+    insightEl.textContent = buildDayInsight();
+    insightEl.removeAttribute("data-user-set");
   }
+
+  // Индекс устойчивости
+  const history = getMoodHistory();
+  const stability = calculateStabilityScore(history);
+  const trend     = calculateTrend(history);
+  const valueEl   = document.getElementById("stabilityValue");
+  const trendEl   = document.getElementById("stabilityTrend");
+  if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
+  if (trendEl) trendEl.textContent = trend;
 
   // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
   if (goldenEl) {
-    const history = getMoodHistory();
-    if (history.length < 3) {
-      goldenEl.textContent = t("home_studying");
-    } else {
-      const g = calculateGoldenHour(history);
-      goldenEl.textContent = g || t("home_studying");
-    }
+    const g = calculateGoldenHour(history);
+    goldenEl.textContent = g;
   }
 }
 
@@ -74,7 +116,6 @@ function getDaysFromStorage() {
 /* ---------- DOM TRANSLATIONS ---------- */
 function applyDomTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    // Не перезаписываем элементы у которых уже есть пользовательский контент
     if (el.getAttribute("data-user-set") === "true") return;
     const val = t(el.getAttribute('data-i18n'));
     if (val) el.textContent = val;
@@ -113,16 +154,6 @@ function startApp() {
     }
   }, 3000);
 
-  const slider = document.getElementById("moodSlider");
-  if (slider) {
-    slider.addEventListener("input", () => {
-      const mv = document.getElementById("moodValue");
-      if (mv) mv.textContent = slider.value + "%";
-    });
-  }
-
-
-
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");
   const output      = document.getElementById("aiResponse");
@@ -143,17 +174,12 @@ function startApp() {
         requestAnimationFrame(() => { output.style.opacity = "1"; });
       }
 
-      // Обновляем Инсайт дня
-      const insightEl = document.getElementById("todayInsight");
-      if (insightEl) {
-        insightEl.textContent = result.insight;
-        insightEl.setAttribute("data-user-set", "true");
-        insightEl.removeAttribute("data-i18n");
-      }
-
       const history = getNotesHistory();
       history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
+
+      // Обновляем Инсайт дня после новой заметки
+      render();
     });
   }
 
@@ -169,7 +195,6 @@ function startApp() {
       try {
         recordBtn.disabled = true;
 
-        // Запускаем обратный отсчёт 10 секунд
         let countdown = 10;
         voiceStatus.textContent = `⏱ ${countdown}`;
         const countdownInterval = setInterval(() => {
@@ -200,26 +225,13 @@ function startApp() {
 }
 
 /* ---------- HELPERS ---------- */
-let lastHistorySaveTime = 0;
-const HISTORY_COOLDOWN  = 5000;
-
-function updateStabilityHistory() {
-  const mood  = getMood();
-  const now   = Date.now();
-  if (now - lastHistorySaveTime < HISTORY_COOLDOWN) return;
-
+export function updateStabilityHistory() {
+  const mood    = getMood();
+  const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
   history.push({ value: mood, state, time: now });
-  lastHistorySaveTime = now;
   if (history.length > 730) history.shift();
   saveMoodHistory(history);
-
-  const stability = calculateStabilityScore(history);
-  const trend     = calculateTrend(history);
-  const valueEl   = document.getElementById("stabilityValue");
-  const trendEl   = document.getElementById("stabilityTrend");
-  if (valueEl && stability !== null) valueEl.textContent = stability + "%";
-  if (trendEl) trendEl.textContent = trend;
+  render();
 }
-
