@@ -196,18 +196,22 @@ function startApp() {
         recordBtn.disabled = true;
 
         let countdown = 10;
-        voiceStatus.textContent = `⏱ ${countdown}`;
-        const countdownInterval = setInterval(() => {
-          countdown--;
-          if (countdown > 0) {
-            voiceStatus.textContent = `⏱ ${countdown}`;
-          } else {
-            clearInterval(countdownInterval);
-          }
-        }, 1000);
+        const timerEl = document.getElementById("voiceTimer");
+voiceStatus.textContent = "● Идёт запись";
+if (timerEl) timerEl.textContent = countdown;
+const countdownInterval = setInterval(() => {
+  countdown--;
+  if (countdown > 0) {
+    if (timerEl) timerEl.textContent = countdown;
+  } else {
+    clearInterval(countdownInterval);
+    if (timerEl) timerEl.textContent = "";
+  }
+}, 1000);
 
         await startVoiceRecording(voiceStatus, () => {
           clearInterval(countdownInterval);
+		  if (timerEl) timerEl.textContent = "";
           const result = analyzeLatestVoice();
           if (result && voiceOutput) {
             voiceOutput.textContent = result.insight;
