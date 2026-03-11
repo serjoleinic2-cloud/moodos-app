@@ -229,8 +229,9 @@ const countdownInterval = setInterval(() => {
 }
 
 /* ---------- HELPERS ---------- */
-export function updateStabilityHistory() {
-  const mood    = getMood();
+export function updateStabilityHistory(moodValue) {
+  const mood    = moodValue !== undefined ? moodValue : getMood();
+  setMood(mood);
   const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);

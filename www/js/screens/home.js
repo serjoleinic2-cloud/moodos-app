@@ -1,5 +1,4 @@
 import { detectMoodState } from "../services/state-engine.js";
-import { addMoodEntry } from "../services/memory.js";
 import { updateStabilityHistory } from "../app.js";
 import { t } from "../i18n.js";
 
@@ -31,13 +30,7 @@ newSlider.id = "moodSlider";
 
   newBtn.addEventListener("click", () => {
     const moodValue = Number(newSlider.value);
-    const state     = detectMoodState(moodValue);
-    addMoodEntry({ value: moodValue, state, time: Date.now() });
-    // сначала обновляем state, потом updateStabilityHistory читает правильное значение
-    import("../state.js").then(({ setMood }) => {
-      setMood(moodValue);
-      updateStabilityHistory();
-    });
+    updateStabilityHistory(moodValue);
 
     const now  = new Date();
     const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
