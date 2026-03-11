@@ -211,8 +211,8 @@ const countdownInterval = setInterval(() => {
 
         await startVoiceRecording(voiceStatus, () => {
           clearInterval(countdownInterval);
+		  const result = analyzeLatestVoice();
 		  if (timerEl) timerEl.textContent = "";
-          const result = analyzeLatestVoice();
           if (result && voiceOutput) {
             voiceOutput.textContent = result.insight;
             voiceOutput.classList.add("ai-message");
