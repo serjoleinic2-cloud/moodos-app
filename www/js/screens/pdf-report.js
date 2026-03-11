@@ -233,11 +233,10 @@ const PERIODS = PERIODS_MAP[lang] || PERIODS_MAP.ru;
     const statusEl = screen.querySelector("#prAutoStatus");
     statusEl.textContent = t("pdf_planning");
     const ok = await scheduleNotifications(selectedDays, timeVal, selectedPeriod);
-    const DAYS2 = t("pdf_days");
     statusEl.textContent = selectedDays.length
       ? (ok
-          ? `✅ ${selectedDays.map(d=>DAYS2[d-1]).join(', ')} ${timeVal}`
-          : `🔔 ${selectedDays.map(d=>DAYS2[d-1]).join(', ')} (${t("pdf_check_perms")})`)
+          ? `✅ ${selectedDays.map(d=>DAYS[d-1]).join(', ')} ${timeVal}`
+          : `🔔 ${selectedDays.map(d=>DAYS[d-1]).join(', ')} (${t("pdf_check_perms")})`)
       : t("pdf_reminder_off");
   });
 
