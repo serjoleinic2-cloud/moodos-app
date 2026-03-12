@@ -57,8 +57,8 @@ export function initMindDump(container) {
       <div id="mdActions" style="display:none;flex-direction:column;gap:10px;align-items:center;margin-bottom:16px;">
         <div style="font-size:15px;color:#666;margin-bottom:4px;">${t("md_what_to_do")}</div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-          <div id="mdSave"   style="padding:12px 20px;border-radius:16px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#5a8dee;font-size:15px;">💾 ${t("md_save")}</div>
-          <div id="mdDelete" style="padding:12px 20px;border-radius:16px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#e05555;font-size:15px;">🗑 ${t("md_delete")}</div>
+          <div id="mdSave"   style="padding:12px 20px;border-radius:16px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#5a8dee;font-size:15px;">${t("md_save")}</div>
+          <div id="mdDelete" style="padding:12px 20px;border-radius:16px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#e05555;font-size:15px;">${t("md_delete")}</div>
         </div>
       </div>
 

@@ -9,6 +9,14 @@ const STATE_RU = {
   "Low mood":"LOW","Stressed":"STRESSED","Neutral":"NEUTRAL","Good":"GOOD","Very good":"HIGH","Unknown":"—"
 };
 
+const PRACTICES = [
+  { key: "breathing",    icon: "🫁", labelKey: "breathing_lbl" },
+  { key: "meditation",   icon: "🧘", labelKey: "meditation_lbl" },
+  { key: "visual-focus", icon: "👁", labelKey: "tools_visual" },
+  { key: "mind-dump",    icon: "🧠", labelKey: "tools_mind" },
+  { key: "tap-calm",     icon: "✋", labelKey: "tools_tap" },
+];
+
 function trendLabel(tr) {
   if (!tr || tr.includes("изучаю")) return t("trend_no_data");
   if (tr.includes("improving")) return t("trend_up");
@@ -52,10 +60,22 @@ function buildDailyMood(history) {
   }));
 }
 
+// Короткое название практики без эмодзи
+function practiceShortLabel(key) {
+  const map = {
+    "breathing":    t("tools_breathing"),
+    "meditation":   t("tools_meditation"),
+    "visual-focus": t("tools_visual"),
+    "mind-dump":    t("tools_mind"),
+    "tap-calm":     t("tools_tap"),
+  };
+  return (map[key] || key).replace(/^[^\s]+\s/, "");
+}
+
 export function onEnter() {
   const container = document.getElementById("insight-content");
   if (!container) return;
-container.innerHTML = "<div>TEST</div>";
+
   const history = getMoodHistory();
   const mood    = getMood();
   const state   = detectMoodState(mood);
@@ -71,14 +91,31 @@ container.innerHTML = "<div>TEST</div>";
   const golden     = calculateGoldenHour(history);
   const avgMood    = Math.round(history.reduce((s,h)=>s+h.value,0)/history.length);
   const recommendation = getPersonalRecommendation(state);
-  const breathingRate     = getEffectivenessRate("breathing");
-  const meditationRate    = getEffectivenessRate("meditation");
-  const breathingLift     = getAverageMoodLift("breathing");
-  const meditationLift    = getAverageMoodLift("meditation");
-  const breathingByState  = getEffectivenessByState("breathing");
-  const meditationByState = getEffectivenessByState("meditation");
 
-  // Перевод состояния
+  // Данные по всем 5 практикам
+  const practiceData = {};
+  PRACTICES.forEach(p => {
+    practiceData[p.key] = {
+      rate:    getEffectivenessRate(p.key),
+      lift:    getAverageMoodLift(p.key),
+      byState: getEffectivenessByState(p.key),
+      sessions: stats ? (stats[p.key.replace("-","") + "Sessions"] ||
+                stats[p.key.replace("-c","C").replace("-f","F").replace("-d","D") + "Sessions"] || 0) : 0,
+    };
+  });
+
+  // Считаем количество сессий правильно из stats
+  if (stats) {
+    practiceData["breathing"].sessions    = stats.breathingSessions    || 0;
+    practiceData["meditation"].sessions   = stats.meditationSessions   || 0;
+    practiceData["visual-focus"].sessions = stats.visualFocusSessions  || 0;
+    practiceData["mind-dump"].sessions    = stats.mindDumpSessions     || 0;
+    practiceData["tap-calm"].sessions     = stats.tapCalmSessions      || 0;
+  }
+
+  // Только практики с данными
+  const activePractices = PRACTICES.filter(p => practiceData[p.key].rate !== null);
+
   const stateCode = STATE_RU[getStateLabel(state)] || state;
   const stateLabelTr = t("state_" + stateCode.toLowerCase()) || getStateLabel(state);
 
@@ -97,7 +134,12 @@ container.innerHTML = "<div>TEST</div>";
       .flip-sub   { font-size:13px; color:#777; margin-top:4px; }
       .flip-hint  { font-size:11px; color:#4caf87; font-weight:600; text-align:right; margin-top:8px; }
       .rec-card { padding:16px; border-radius:18px; background:rgba(232,237,230,0.9); box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff; margin-bottom:12px; }
-      .state-row { display:flex; justify-content:space-between; padding:10px 14px; border-radius:12px; background:rgba(232,237,230,0.9); box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff; margin-bottom:8px; font-size:14px; color:#555; }
+      .state-row { display:flex; align-items:center; gap:6px; padding:10px 12px; border-radius:12px; background:rgba(232,237,230,0.9); box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff; margin-bottom:8px; font-size:13px; color:#555; }
+      .state-cell { flex:1; text-align:center; font-weight:600; font-size:13px; }
+      .state-name { flex:2; font-size:13px; }
+      .state-header { display:flex; align-items:center; gap:6px; padding:0 12px 6px; font-size:11px; color:#aaa; }
+      .state-header-name { flex:2; }
+      .state-header-cell { flex:1; text-align:center; }
     </style>
 
     <div style="padding:4px 0 100px 0;">
@@ -118,7 +160,7 @@ container.innerHTML = "<div>TEST</div>";
               <div class="flip-label">${t("stability_lbl")}</div>
               <div class="flip-value" style="color:${sColor(stability)}">${stability??'—'}%</div>
               <div class="flip-sub">${sText(stability)}</div>
-              <div class="flip-hint">${t("tap_for_chart")}</div>
+              <div class="flip-hint">${t("tap_for_details")}</div>
             </div>
             <div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>
           </div>
@@ -130,7 +172,7 @@ container.innerHTML = "<div>TEST</div>";
               <div class="flip-label">${t("avg_mood_lbl")}</div>
               <div class="flip-value" style="color:${mColor(avgMood)}">${avgMood}%</div>
               <div class="flip-sub">${mText(avgMood)}</div>
-              <div class="flip-hint">${t("tap_for_chart")}</div>
+              <div class="flip-hint">${t("tap_for_details")}</div>
             </div>
             <div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>
           </div>
@@ -156,42 +198,36 @@ container.innerHTML = "<div>TEST</div>";
               <div class="flip-label">${t("golden_lbl")}</div>
               <div class="flip-value" style="font-size:18px;">⭐ ${goldenShort(golden)}</div>
               <div class="flip-sub">${t("golden_sub")}</div>
-              <div class="flip-hint">${t("tap_for_chart")}</div>
+              <div class="flip-hint">${t("tap_for_details")}</div>
             </div>
             <div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>
           </div>
         </div>
       </div>
 
-      ${stats ? `
+      ${activePractices.length > 0 ? `
       <div class="insight-section">
         <div class="insight-section-title">${t("practices_eff")}</div>
-        <div class="flip-wrap" id="flip-breathing">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("breathing_lbl")}</div>
-              <div class="flip-value" style="color:${rColor(breathingRate)}">${breathingRate??'—'}%</div>
-              <div class="flip-sub">${breathingLift!==null?`${t("avg_lift")}: +${breathingLift} пт`:t("no_data_short")} · ${stats.breathingSessions} ${t("sessions_count")}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
+        ${activePractices.map(p => {
+          const d = practiceData[p.key];
+          return `
+          <div class="flip-wrap" id="flip-${p.key}">
+            <div class="flip-inner">
+              <div class="flip-front">
+                <div class="flip-label">${p.icon} ${practiceShortLabel(p.key)}</div>
+                <div class="flip-value" style="color:${rColor(d.rate)}">${d.rate??'—'}%</div>
+                <div class="flip-sub">${d.lift!==null?`${t("avg_lift")}: +${d.lift} пт`:t("no_data_short")} · ${d.sessions} ${t("sessions_count")}</div>
+                <div class="flip-hint">${t("tap_for_details")}</div>
+              </div>
+              <div class="flip-back"><canvas id="chart-${p.key}" width="150" height="150"></canvas></div>
             </div>
-            <div class="flip-back"><canvas id="chartBreathing" width="150" height="150"></canvas></div>
-          </div>
-        </div>
-        <div class="flip-wrap" id="flip-meditation">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("meditation_lbl")}</div>
-              <div class="flip-value" style="color:${rColor(meditationRate)}">${meditationRate??'—'}%</div>
-              <div class="flip-sub">${meditationLift!==null?`${t("avg_lift")}: +${meditationLift} пт`:t("no_data_short")} · ${stats.meditationSessions} ${t("sessions_count")}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
-            </div>
-            <div class="flip-back"><canvas id="chartMeditation" width="150" height="150"></canvas></div>
-          </div>
-        </div>
+          </div>`;
+        }).join('')}
       </div>
+
       <div class="insight-section">
         <div class="insight-section-title">${t("state_helps")}</div>
-        ${buildStateTable(breathingByState, meditationByState)}
+        ${buildStateTable(activePractices, practiceData)}
       </div>
       ` : `
       <div class="insight-section">
@@ -208,7 +244,7 @@ container.innerHTML = "<div>TEST</div>";
         const front = wrap.querySelector(".flip-front");
         const inner = wrap.querySelector(".flip-inner");
         if (front && inner) inner.style.minHeight = front.offsetHeight + "px";
-        setTimeout(() => initChartFor(wrap.id, history, stats, breathingByState, meditationByState), 320);
+        setTimeout(() => initChartFor(wrap.id, history, stats, practiceData), 320);
       }
     });
   });
@@ -219,7 +255,7 @@ function destroyChart(id) {
   if (c && window.Chart) { const ex = window.Chart.getChart(c); if (ex) ex.destroy(); }
 }
 
-function initChartFor(id, history, stats, breathingByState, meditationByState) {
+function initChartFor(id, history, stats, practiceData) {
   const Chart = window.Chart;
   if (!Chart) return;
   const lineOpts = {
@@ -230,8 +266,7 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
   if (id === "flip-stability") {
     destroyChart("chartStability");
     const c = document.getElementById("chartStability"); if (!c) return;
-    c.width = c.parentElement.offsetWidth - 16; // побольше ширина
-    c.height = c.parentElement.offsetHeight * 0.6; // увеличить высоту
+    c.width = c.parentElement.offsetWidth - 16;
     const pts = [];
     for (let i=4; i<history.length; i++) {
       const sl=history.slice(i-4,i+1), avg=sl.reduce((s,h)=>s+h.value,0)/sl.length;
@@ -245,24 +280,36 @@ function initChartFor(id, history, stats, breathingByState, meditationByState) {
   if (id === "flip-mood") {
     destroyChart("chartMood");
     const c = document.getElementById("chartMood"); if (!c) return;
-    c.width = c.parentElement.offsetWidth - 16; // побольше ширина
-    c.height = c.parentElement.offsetHeight * 0.6; // увеличить высоту
+    c.width = c.parentElement.offsetWidth - 16;
     const daily = buildDailyMood(history);
     new Chart(c,{type:"line",data:{labels:daily.map(d=>d.date.slice(5)),datasets:[{data:daily.map(d=>d.avg),borderColor:"#4db8ff",backgroundColor:"rgba(77,184,255,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
   }
   if (id === "flip-golden") {
     destroyChart("chartHours");
     const c = document.getElementById("chartHours"); if (!c) return;
-    c.width = c.parentElement.offsetWidth - 16; // побольше ширина
-    c.height = c.parentElement.offsetHeight * 0.6; // увеличить высоту
+    c.width = c.parentElement.offsetWidth - 16;
     const hours={};
     history.forEach(e=>{const h=new Date(e.time).getHours();if(!hours[h])hours[h]={total:0,count:0};hours[h].total+=e.value;hours[h].count++;});
     const labels=Object.keys(hours).sort((a,b)=>a-b);
     const data=labels.map(h=>Math.round(hours[h].total/hours[h].count));
     new Chart(c,{type:"bar",data:{labels:labels.map(h=>`${h}:00`),datasets:[{data,backgroundColor:data.map(v=>v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"),borderRadius:6}]},options:lineOpts});
   }
-  if (id === "flip-breathing") { destroyChart("chartBreathing"); drawPieChart("chartBreathing", stats?.breathingRate??0, "#4db8ff"); }
-  if (id === "flip-meditation") { destroyChart("chartMeditation"); drawPieChart("chartMeditation", stats?.meditationRate??0, "#9f7aea"); }
+
+  // Практики — по ID вида "flip-breathing", "flip-visual-focus" и т.д.
+  const practiceKey = id.replace("flip-", "");
+  if (practiceData[practiceKey]) {
+    const canvasId = `chart-${practiceKey}`;
+    destroyChart(canvasId);
+    const rate = practiceData[practiceKey].rate ?? 0;
+    const colors = {
+      "breathing":    "#4db8ff",
+      "meditation":   "#9f7aea",
+      "visual-focus": "#4caf87",
+      "mind-dump":    "#f0a500",
+      "tap-calm":     "#e05555",
+    };
+    drawPieChart(canvasId, rate, colors[practiceKey] || "#4caf87");
+  }
 }
 
 function drawPieChart(canvasId, rate, color) {
@@ -280,13 +327,39 @@ function drawPieChart(canvasId, rate, color) {
   });
 }
 
-function buildStateTable(bByState, mByState) {
-  const states=["LOW","STRESSED","NEUTRAL","GOOD","HIGH"];
-  let html=`<div style="display:flex;gap:8px;margin-bottom:8px;font-size:12px;color:#888;padding:0 4px;"><div style="flex:2;">${t("state_col")}</div><div style="flex:1;text-align:center;">🫁</div><div style="flex:1;text-align:center;">🧘</div></div>`;
-  let any=false;
-  states.forEach(state=>{
-    const b=bByState[state],m=mByState[state]; if(!b&&!m) return; any=true;
-    html+=`<div class="state-row"><div style="flex:2;">${t("state_"+state.toLowerCase())}</div><div style="flex:1;text-align:center;color:${rColor(b?.rate)};font-weight:600;">${b?b.rate+"%":"—"}</div><div style="flex:1;text-align:center;color:${rColor(m?.rate)};font-weight:600;">${m?m.rate+"%":"—"}</div></div>`;
-  });
-  return any?html:`<div style="color:#888;font-size:14px;">${t("no_state_data")}</div>`;
+function buildStateTable(activePractices, practiceData) {
+  const states = ["LOW","STRESSED","NEUTRAL","GOOD","HIGH"];
+
+  // Только состояния у которых есть хоть какие-то данные
+  const activeStates = states.filter(state =>
+    activePractices.some(p => practiceData[p.key].byState[state])
+  );
+
+  if (!activeStates.length) {
+    return `<div style="color:#888;font-size:14px;">${t("no_state_data")}</div>`;
+  }
+
+  // Если практик много — разбиваем на группы по 3
+  const groups = [];
+  for (let i = 0; i < activePractices.length; i += 3) {
+    groups.push(activePractices.slice(i, i + 3));
+  }
+
+  return groups.map(group => `
+    <div style="margin-bottom:16px;overflow-x:auto;">
+      <div class="state-header">
+        <div class="state-header-name">${t("state_col")}</div>
+        ${group.map(p => `<div class="state-header-cell">${p.icon}</div>`).join('')}
+      </div>
+      ${activeStates.map(state => `
+        <div class="state-row">
+          <div class="state-name">${t("state_"+state.toLowerCase())}</div>
+          ${group.map(p => {
+            const d = practiceData[p.key].byState[state];
+            return `<div class="state-cell" style="color:${rColor(d?.rate)}">${d ? d.rate+"%" : "—"}</div>`;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
 }
