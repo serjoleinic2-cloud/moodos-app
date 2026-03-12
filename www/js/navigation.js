@@ -1,4 +1,13 @@
-import { closeAllOverlays } from "./screens/pdf-report.js";
+import { checkAutoReminder } from "./screens/pdf-report.js";
+
+// ============================================================
+// closeAllOverlays — живёт здесь, используется навигацией
+// ============================================================
+export function closeAllOverlays() {
+  document.getElementById("pdfReportScreen")?.remove();
+  document.getElementById("moodCalendarOverlay")?.remove();
+  document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
+}
 
 export function initNavigation() {
 
@@ -24,8 +33,6 @@ export function initNavigation() {
   async function loadScreen(name) {
     if (!screenModules[name]) return;
     try {
-      // Не кешируем — каждый раз вызываем onEnter заново
-      // Модуль кешируется браузером автоматически, но onEnter всегда свежий
       if (!loadedScreens[name]) {
         loadedScreens[name] = await screenModules[name]();
       }
@@ -33,7 +40,6 @@ export function initNavigation() {
       if (module && module.onEnter) module.onEnter();
     } catch (err) {
       console.error(`[nav] loadScreen error for "${name}":`, err);
-      // Сбрасываем кеш этого экрана чтобы при следующем тапе попробовать снова
       delete loadedScreens[name];
     }
   }
@@ -82,7 +88,6 @@ export function initNavigation() {
     if (!targetScreen) return;
     targetScreen.classList.add("active");
     if (targetButton && targetButton.id !== "hamburgerBtn") targetButton.classList.add("active");
-    // Всегда вызываем onEnter даже если экран тот же — данные могли обновиться
     currentScreen = name;
     loadScreen(name);
   }
@@ -150,6 +155,9 @@ export function initNavigation() {
     if (btn.id === "hamburgerBtn") return;
     btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); openScreen(btn.dataset.nav); });
   });
+
+  // Push-напоминания инициализируем здесь
+  setTimeout(() => { try { checkAutoReminder(); } catch(e) {} }, 3000);
 
   openScreen("home");
 }
