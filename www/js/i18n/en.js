@@ -263,4 +263,12 @@ settings_baseline_title: "Baseline state",
 settings_baseline_subtitle: "This is my reference point — I measure changes relative to it",
 settings_lang_subtitle: "Choose interface language",
 
+    // Mood calendar
+    cal_title: "Mood Calendar",
+    month_jan: "January", month_feb: "February", month_mar: "March",
+    month_apr: "April", month_may: "May", month_jun: "June",
+    month_jul: "July", month_aug: "August", month_sep: "September",
+    month_oct: "October", month_nov: "November", month_dec: "December",
+    dow_mon: "Mo", dow_tue: "Tu", dow_wed: "We", dow_thu: "Th",
+    dow_fri: "Fr", dow_sat: "Sa", dow_sun: "Su",
 };

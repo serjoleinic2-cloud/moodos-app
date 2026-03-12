@@ -82,6 +82,7 @@ function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
 export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
+  document.getElementById("moodCalendarOverlay")?.remove();
   document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
 }
 

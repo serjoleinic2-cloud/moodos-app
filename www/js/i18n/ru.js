@@ -282,5 +282,13 @@ settings_reminder_subtitle: "Мягкое напоминание раз в де�
 settings_baseline_title: "Базовое состояние",
 settings_baseline_subtitle: "Это моя точка отсчёта — я считаю изменения относительно неё",
 settings_lang_subtitle: "Выбери язык интерфейса",
-  
+
+    // Календарь настроений
+    cal_title: "Календарь настроений",
+    month_jan: "Январь", month_feb: "Февраль", month_mar: "Март",
+    month_apr: "Апрель", month_may: "Май", month_jun: "Июнь",
+    month_jul: "Июль", month_aug: "Август", month_sep: "Сентябрь",
+    month_oct: "Октябрь", month_nov: "Ноябрь", month_dec: "Декабрь",
+    dow_mon: "Пн", dow_tue: "Вт", dow_wed: "Ср", dow_thu: "Чт",
+    dow_fri: "Пт", dow_sat: "Сб", dow_sun: "Вс",
 };

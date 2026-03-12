@@ -260,6 +260,14 @@ settings_effect_subtitle: "Ayuda a interpretar tus valoraciones",
 settings_reminder_subtitle: "Un recordatorio suave una vez al día",
 settings_baseline_title: "Estado base",
 settings_baseline_subtitle: "Este es mi punto de referencia",
-settings_lang_subtitle: "Elige el idioma de la interfaz",  
-  
+settings_lang_subtitle: "Elige el idioma de la interfaz",
+
+    // Calendario de estado de ánimo
+    cal_title: "Calendario de ánimo",
+    month_jan: "Enero", month_feb: "Febrero", month_mar: "Marzo",
+    month_apr: "Abril", month_may: "Mayo", month_jun: "Junio",
+    month_jul: "Julio", month_aug: "Agosto", month_sep: "Septiembre",
+    month_oct: "Octubre", month_nov: "Noviembre", month_dec: "Diciembre",
+    dow_mon: "Lu", dow_tue: "Ma", dow_wed: "Mi", dow_thu: "Ju",
+    dow_fri: "Vi", dow_sat: "Sá", dow_sun: "Do",
 };

@@ -17,6 +17,21 @@ function getTooltips() {
   };
 }
 
+function getMonthNames() {
+  return [
+    t("month_jan"), t("month_feb"), t("month_mar"), t("month_apr"),
+    t("month_may"), t("month_jun"), t("month_jul"), t("month_aug"),
+    t("month_sep"), t("month_oct"), t("month_nov"), t("month_dec")
+  ];
+}
+
+function getDowNames() {
+  return [
+    t("dow_mon"), t("dow_tue"), t("dow_wed"), t("dow_thu"),
+    t("dow_fri"), t("dow_sat"), t("dow_sun")
+  ];
+}
+
 function renderReport() {
   const container = document.getElementById("report-content");
   if (!container) return;
@@ -70,11 +85,11 @@ function renderReport() {
         ${metricCard(t("report_entries"), `<span style="color:#4db8ff">${filtered.length}</span>`, t("report_total"), "entries")}
         ${metricCard(t("report_active_days"), `<span style="color:#9f7aea">${activeDays}</span>`, t("report_with_entries"), "days")}
       </div>
-	  
-<button id="rptCalendarBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:linear-gradient(135deg,#6667AB,#9f7aea);box-shadow:6px 6px 14px rgba(102,103,171,0.4),-4px -4px 10px rgba(255,255,255,0.3);font-size:16px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent;letter-spacing:0.3px;">
-        📅 Календарь настроений
+
+      <button id="rptCalendarBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:linear-gradient(135deg,#6667AB,#9f7aea);box-shadow:6px 6px 14px rgba(102,103,171,0.4),-4px -4px 10px rgba(255,255,255,0.3);font-size:16px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent;letter-spacing:0.3px;">
+        📅 ${t("cal_title")}
       </button>
-	  
+
       <div class="mo-section-title" style="margin-top:16px;">${t("report_dynamics")}</div>
       <div class="mo-metric" style="padding:12px;margin-bottom:16px;">
         <canvas id="reportChart" height="130"></canvas>
@@ -139,17 +154,17 @@ function showMoodCalendarOverlay() {
   let viewYear  = now.getFullYear();
   let viewMonth = now.getMonth();
 
-  const MONTH_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-  const DOW_RU   = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
-
   function renderGrid(year, month) {
+    const MONTH_NAMES = getMonthNames();
+    const DOW_NAMES   = getDowNames();
+
     const firstDay = new Date(year, month, 1);
     const lastDay  = new Date(year, month+1, 0);
     let dow = firstDay.getDay();
     if (dow === 0) dow = 7;
 
     let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">`;
-    DOW_RU.forEach(d => {
+    DOW_NAMES.forEach(d => {
       html += `<div style="text-align:center;font-size:10px;color:#aaa;font-weight:600;padding:2px 0;">${d}</div>`;
     });
     html += `</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
@@ -166,7 +181,9 @@ function showMoodCalendarOverlay() {
       </div>`;
     }
     html += `</div>`;
-    return html;
+
+    // Возвращаем html вместе с заголовком месяца — используем MONTH_NAMES
+    return { gridHtml: html, monthLabel: `${MONTH_NAMES[month]} ${year}` };
   }
 
   const overlay = document.createElement("div");
@@ -174,18 +191,19 @@ function showMoodCalendarOverlay() {
   overlay.style.cssText = "position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:flex;align-items:flex-end;";
 
   function build() {
+    const { gridHtml, monthLabel } = renderGrid(viewYear, viewMonth);
     return `
       <div style="width:100%;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 16px 120px;box-sizing:border-box;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-          <div style="font-size:17px;font-weight:700;color:#3a3530;">📅 Календарь настроений</div>
+          <div style="font-size:17px;font-weight:700;color:#3a3530;">📅 ${t("cal_title")}</div>
           <div id="calClose" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 10px;">✕</div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">‹</div>
-          <div style="font-size:16px;font-weight:600;color:#3a3530;">${MONTH_RU[viewMonth]} ${viewYear}</div>
+          <div style="font-size:16px;font-weight:600;color:#3a3530;">${monthLabel}</div>
           <div id="calNext" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">›</div>
         </div>
-        ${renderGrid(viewYear, viewMonth)}
+        ${gridHtml}
         <div style="display:flex;gap:14px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
             <div style="width:14px;height:14px;border-radius:4px;background:#4caf8733;border:1px solid rgba(0,0,0,0.08);"></div>≥70%
