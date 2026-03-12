@@ -1,5 +1,6 @@
 let mediaRecorder;
 let chunks = [];
+let recordingStartTime = null;
 
 export async function startVoiceRecording(statusEl, onFinish) {
   try {
@@ -7,18 +8,26 @@ export async function startVoiceRecording(statusEl, onFinish) {
 
     mediaRecorder = new MediaRecorder(stream);
     chunks = [];
+    recordingStartTime = Date.now();
 
     mediaRecorder.ondataavailable = e => {
       if (e.data.size > 0) chunks.push(e.data);
     };
 
     mediaRecorder.onstop = () => {
+      const duration = Math.round((Date.now() - recordingStartTime) / 1000);
       stream.getTracks().forEach(track => track.stop());
       const blob   = new Blob(chunks, { type: "audio/webm" });
       const reader = new FileReader();
       reader.onloadend = () => {
         let history = JSON.parse(localStorage.getItem("voice_history")) || [];
-        history.push({ audio: reader.result, time: Date.now(), timestamp: Date.now() });
+        history.push({
+          audio: reader.result,
+          audioUrl: reader.result,
+          time: Date.now(),
+          timestamp: Date.now(),
+          duration: duration
+        });
         localStorage.setItem("voice_history", JSON.stringify(history));
         if (onFinish) onFinish(reader.result);
       };

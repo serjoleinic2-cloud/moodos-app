@@ -193,20 +193,24 @@ function renderHistory(filterDate=null) {
         const audio = new Audio(url);
         btn._audio = audio;
 
-        // Обновление длины как только известна
+        // Сохранённая длина из localStorage (записана в voice.js)
+        const savedDur = parseFloat(btn.dataset.savedDur) || 0;
+        if (totEl && savedDur) totEl.textContent = fmtSec(savedDur);
+
+        // Обновление длины как только WebView определил реальную
         const updateDuration = () => {
-          if (totEl && audio.duration && isFinite(audio.duration)) {
-            totEl.textContent = fmtSec(audio.duration);
+          if (audio.duration && isFinite(audio.duration)) {
+            if (totEl) totEl.textContent = fmtSec(audio.duration);
           }
         };
         audio.addEventListener("loadedmetadata", updateDuration);
         audio.addEventListener("durationchange",  updateDuration);
 
-        // Обновление позиции — только если не тянем ползунок
+        // Обновление позиции — используем реальную длину или savedDur как fallback
         audio.addEventListener("timeupdate", () => {
-          const dur = audio.duration;
+          const dur = (audio.duration && isFinite(audio.duration)) ? audio.duration : savedDur;
           const cur = audio.currentTime;
-          if (!dur || !isFinite(dur)) return;
+          if (!dur) return;
           if (curEl) curEl.textContent = fmtSec(cur);
           if (totEl) totEl.textContent = fmtSec(dur);
           if (seekEl && !seekEl._seeking) seekEl.value = (cur / dur) * 100;
@@ -215,7 +219,8 @@ function renderHistory(filterDate=null) {
         audio.addEventListener("ended", () => {
           btn.textContent = "▶";
           if (seekEl) seekEl.value = 0;
-          if (curEl)  curEl.textContent  = "0:00";
+          if (curEl)  curEl.textContent = "0:00";
+          if (totEl && savedDur) totEl.textContent = fmtSec(savedDur);
         });
       }
 
@@ -311,13 +316,13 @@ function renderCard(item) {
       ${hasAudio?`
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl}"
+          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl}" data-saved-dur="${item.audioDuration||0}"
             style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#9f7aea22;box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;">▶</div>
           <div style="flex:1;">
             <input type="range" class="voice-seek" data-ts="${ts}" min="0" max="100" value="0" step="0.1" style="width:100%;accent-color:#9f7aea;cursor:pointer;">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px;">
               <span class="voice-cur" data-ts="${ts}">0:00</span>
-              <span class="voice-tot" data-ts="${ts}">0:00</span>
+              <span class="voice-tot" data-ts="${ts}">${item.audioDuration?fmtSec(item.audioDuration):"0:00"}</span>
             </div>
           </div>
         </div>

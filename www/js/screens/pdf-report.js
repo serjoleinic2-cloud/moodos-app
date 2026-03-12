@@ -5,8 +5,6 @@ import { getMoodHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
 
-// ⚠️ Capacitor.Plugins НЕ на верхнем уровне — берём внутри функций
-
 async function requestNotificationPermission() {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
@@ -20,7 +18,6 @@ async function requestNotificationPermission() {
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
-    // Отменяем старые уведомления MoodOS
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9007)
@@ -46,11 +43,7 @@ async function scheduleNotifications(days, time, period) {
         id: 9000 + dow,
         title: "MoodOS 📄",
         body: `Время отправить отчёт врачу (за ${period} дней)`,
-        schedule: {
-          at: target,
-          repeats: true,
-          every: "week"
-        },
+        schedule: { at: target, repeats: true, every: "week" },
         actionTypeId: "OPEN_REPORT",
         extra: { action: "openReport" }
       });

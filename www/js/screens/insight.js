@@ -60,7 +60,6 @@ function buildDailyMood(history) {
   }));
 }
 
-// Короткое название практики без эмодзи
 function practiceShortLabel(key) {
   const map = {
     "breathing":    t("tools_breathing"),
@@ -70,6 +69,47 @@ function practiceShortLabel(key) {
     "tap-calm":     t("tools_tap"),
   };
   return (map[key] || key).replace(/^[^\s]+\s/, "");
+}
+
+// ============================================================
+// Эмоциональная память
+// ============================================================
+function pluralMonths(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return "месяц";
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "месяца";
+  return "месяцев";
+}
+function pluralDays(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return "день";
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "дня";
+  return "дней";
+}
+function findEmotionalMemory(history, currentMood) {
+  if (!history || history.length < 10) return null;
+  const sorted = history.slice().sort((a, b) => new Date(a.time) - new Date(b.time));
+  const now = Date.now();
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const lowPeriods = [];
+  let inLow = false, periodStart = null;
+  sorted.forEach(e => {
+    const ts = new Date(e.time).getTime();
+    if (ts >= weekAgo) return;
+    if (e.value <= 40 && !inLow) { inLow = true; periodStart = ts; }
+    if (e.value > 40 && inLow) {
+      inLow = false;
+      const daysToRecover = Math.round((ts - periodStart) / (24 * 60 * 60 * 1000));
+      if (daysToRecover >= 1) lowPeriods.push({ start: periodStart, end: ts, days: daysToRecover });
+    }
+  });
+  if (!lowPeriods.length) return null;
+  const best = lowPeriods[lowPeriods.length - 1];
+  const monthsAgo = Math.round((now - best.start) / (30 * 24 * 60 * 60 * 1000));
+  const weeksAgo  = Math.round((now - best.start) / (7  * 24 * 60 * 60 * 1000));
+  let timeAgo;
+  if (monthsAgo >= 2) timeAgo = monthsAgo + " " + pluralMonths(monthsAgo) + " назад";
+  else if (weeksAgo >= 2) timeAgo = weeksAgo + " недели назад";
+  else timeAgo = "неделю назад";
+  return { timeAgo, daysToRecover: best.days };
 }
 
 export function onEnter() {
@@ -92,19 +132,15 @@ export function onEnter() {
   const avgMood    = Math.round(history.reduce((s,h)=>s+h.value,0)/history.length);
   const recommendation = getPersonalRecommendation(state);
 
-  // Данные по всем 5 практикам
   const practiceData = {};
   PRACTICES.forEach(p => {
     practiceData[p.key] = {
       rate:    getEffectivenessRate(p.key),
       lift:    getAverageMoodLift(p.key),
       byState: getEffectivenessByState(p.key),
-      sessions: stats ? (stats[p.key.replace("-","") + "Sessions"] ||
-                stats[p.key.replace("-c","C").replace("-f","F").replace("-d","D") + "Sessions"] || 0) : 0,
+      sessions: 0,
     };
   });
-
-  // Считаем количество сессий правильно из stats
   if (stats) {
     practiceData["breathing"].sessions    = stats.breathingSessions    || 0;
     practiceData["meditation"].sessions   = stats.meditationSessions   || 0;
@@ -113,11 +149,30 @@ export function onEnter() {
     practiceData["tap-calm"].sessions     = stats.tapCalmSessions      || 0;
   }
 
-  // Только практики с данными
   const activePractices = PRACTICES.filter(p => practiceData[p.key].rate !== null);
-
   const stateCode = STATE_RU[getStateLabel(state)] || state;
   const stateLabelTr = t("state_" + stateCode.toLowerCase()) || getStateLabel(state);
+
+  // --- Эмоциональная память (только если настроение ≤ 40%) ---
+  let memoryBlockHTML = "";
+  if (mood <= 40) {
+    const memory = findEmotionalMemory(history, mood);
+    if (memory) {
+      memoryBlockHTML = `
+      <div class="insight-section" id="emotional-memory-block">
+        <div class="insight-section-title">🧠 Эмоциональная память</div>
+        <div style="padding:18px;border-radius:18px;background:rgba(159,122,234,0.12);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
+          <div style="font-size:15px;color:#444;line-height:1.7;">
+            Вы уже переживали подобное состояние <strong style="color:#9f7aea;">${memory.timeAgo}</strong>.<br>
+            Через <strong style="color:#4caf87;">${memory.daysToRecover} ${pluralDays(memory.daysToRecover)}</strong> состояние улучшилось.
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:#9f7aea;line-height:1.5;">
+            💜 Это временно. Вы уже справлялись с этим раньше.
+          </div>
+        </div>
+      </div>`;
+    }
+  }
 
   container.innerHTML = `
     <style>
@@ -145,6 +200,8 @@ export function onEnter() {
     <div style="padding:4px 0 100px 0;">
       <h2 style="margin-bottom:6px;">${t("insight_title")}</h2>
       <div style="font-size:13px;color:#888;margin-bottom:20px;">${t("current_state")}: <strong style="color:#3a3530;">${stateLabelTr}</strong></div>
+
+      ${memoryBlockHTML}
 
       <div class="insight-section">
         <div class="insight-section-title">${t("personal_rec")}</div>
@@ -295,7 +352,6 @@ function initChartFor(id, history, stats, practiceData) {
     new Chart(c,{type:"bar",data:{labels:labels.map(h=>`${h}:00`),datasets:[{data,backgroundColor:data.map(v=>v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"),borderRadius:6}]},options:lineOpts});
   }
 
-  // Практики — по ID вида "flip-breathing", "flip-visual-focus" и т.д.
   const practiceKey = id.replace("flip-", "");
   if (practiceData[practiceKey]) {
     const canvasId = `chart-${practiceKey}`;
@@ -329,22 +385,16 @@ function drawPieChart(canvasId, rate, color) {
 
 function buildStateTable(activePractices, practiceData) {
   const states = ["LOW","STRESSED","NEUTRAL","GOOD","HIGH"];
-
-  // Только состояния у которых есть хоть какие-то данные
   const activeStates = states.filter(state =>
     activePractices.some(p => practiceData[p.key].byState[state])
   );
-
   if (!activeStates.length) {
     return `<div style="color:#888;font-size:14px;">${t("no_state_data")}</div>`;
   }
-
-  // Если практик много — разбиваем на группы по 3
   const groups = [];
   for (let i = 0; i < activePractices.length; i += 3) {
     groups.push(activePractices.slice(i, i + 3));
   }
-
   return groups.map(group => `
     <div style="margin-bottom:16px;overflow-x:auto;">
       <div class="state-header">

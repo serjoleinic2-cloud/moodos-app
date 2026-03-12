@@ -70,7 +70,11 @@ function renderReport() {
         ${metricCard(t("report_entries"), `<span style="color:#4db8ff">${filtered.length}</span>`, t("report_total"), "entries")}
         ${metricCard(t("report_active_days"), `<span style="color:#9f7aea">${activeDays}</span>`, t("report_with_entries"), "days")}
       </div>
-
+	  
+<button id="rptCalendarBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:linear-gradient(135deg,#6667AB,#9f7aea);box-shadow:6px 6px 14px rgba(102,103,171,0.4),-4px -4px 10px rgba(255,255,255,0.3);font-size:16px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent;letter-spacing:0.3px;">
+        📅 Календарь настроений
+      </button>
+	  
       <div class="mo-section-title" style="margin-top:16px;">${t("report_dynamics")}</div>
       <div class="mo-metric" style="padding:12px;margin-bottom:16px;">
         <canvas id="reportChart" height="130"></canvas>
@@ -91,7 +95,129 @@ function renderReport() {
   bindPeriodBtns(container);
   bindTooltips(container);
   requestAnimationFrame(() => drawChart(filtered));
+  container.querySelector("#rptCalendarBtn").addEventListener("click", () => {
+    showMoodCalendarOverlay(getMoodHistory());
+  });
 }
+
+// ============================================================
+// Календарь настроений — оверлей
+// ============================================================
+function showMoodCalendarOverlay() {
+  const existing = document.getElementById("moodCalendarOverlay");
+  if (existing) existing.remove();
+
+  const history = getMoodHistory();
+  const byDay = {};
+  history.forEach(e => {
+    const d = new Date(e.time);
+    const key = d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0");
+    if (!byDay[key]) byDay[key] = [];
+    byDay[key].push(e.value);
+  });
+  const dayAvg = {};
+  Object.keys(byDay).forEach(k => {
+    dayAvg[k] = Math.round(byDay[k].reduce((a,b)=>a+b,0)/byDay[k].length);
+  });
+
+  function moodBg(v) {
+    if (v === undefined) return "rgba(0,0,0,0.04)";
+    if (v >= 70) return "#4caf8733";
+    if (v >= 40) return "#f0a50033";
+    return "#e0555533";
+  }
+  function moodFg(v) {
+    if (v === undefined) return "#ddd";
+    if (v >= 70) return "#2e7d55";
+    if (v >= 40) return "#b07700";
+    return "#b03030";
+  }
+
+  const now = new Date();
+  let viewYear  = now.getFullYear();
+  let viewMonth = now.getMonth();
+
+  const MONTH_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const DOW_RU   = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+
+  function renderGrid(year, month) {
+    const firstDay = new Date(year, month, 1);
+    const lastDay  = new Date(year, month+1, 0);
+    let dow = firstDay.getDay();
+    if (dow === 0) dow = 7;
+
+    let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">`;
+    DOW_RU.forEach(d => {
+      html += `<div style="text-align:center;font-size:10px;color:#aaa;font-weight:600;padding:2px 0;">${d}</div>`;
+    });
+    html += `</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
+
+    for (let i = 1; i < dow; i++) html += `<div></div>`;
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const key = year + "-" + String(month+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
+      const v = dayAvg[key];
+      const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+      html += `<div style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:${moodBg(v)};border:${isToday?"2px solid #6667AB":"1px solid rgba(0,0,0,0.06)"};box-sizing:border-box;">
+        <span style="font-size:9px;color:#bbb;">${day}</span>
+        ${v !== undefined ? `<span style="font-size:10px;font-weight:700;color:${moodFg(v)};line-height:1.1;">${v}%</span>` : ""}
+      </div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "moodCalendarOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:flex;align-items:flex-end;";
+
+  function build() {
+    return `
+      <div style="width:100%;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 16px 120px;box-sizing:border-box;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div style="font-size:17px;font-weight:700;color:#3a3530;">📅 Календарь настроений</div>
+          <div id="calClose" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 10px;">✕</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">‹</div>
+          <div style="font-size:16px;font-weight:600;color:#3a3530;">${MONTH_RU[viewMonth]} ${viewYear}</div>
+          <div id="calNext" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">›</div>
+        </div>
+        ${renderGrid(viewYear, viewMonth)}
+        <div style="display:flex;gap:14px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+            <div style="width:14px;height:14px;border-radius:4px;background:#4caf8733;border:1px solid rgba(0,0,0,0.08);"></div>≥70%
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+            <div style="width:14px;height:14px;border-radius:4px;background:#f0a50033;border:1px solid rgba(0,0,0,0.08);"></div>40–69%
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+            <div style="width:14px;height:14px;border-radius:4px;background:#e0555533;border:1px solid rgba(0,0,0,0.08);"></div>&lt;40%
+          </div>
+        </div>
+      </div>`;
+  }
+
+  overlay.innerHTML = build();
+  document.body.appendChild(overlay);
+
+  function rebind() {
+    overlay.querySelector("#calClose").onclick = () => overlay.remove();
+    overlay.querySelector("#calPrev").onclick = () => {
+      viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      overlay.innerHTML = build(); rebind();
+    };
+    overlay.querySelector("#calNext").onclick = () => {
+      viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      overlay.innerHTML = build(); rebind();
+    };
+    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  }
+  rebind();
+}
+
 
 function metricCard(label, valueHTML, sub, tooltipKey) {
   const tips = getTooltips();
