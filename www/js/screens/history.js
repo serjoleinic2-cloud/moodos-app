@@ -8,7 +8,7 @@ function moodEmoji(v) { return v>=70?"😊":v>=40?"😐":"😔"; }
 function formatDate(ts) { const d=new Date(ts); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`; }
 function formatTime(ts) { return new Date(ts).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}); }
 function toISODate(ts) { const d=new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
-function fmtSec(s) { if(!s||isNaN(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
+function fmtSec(s) { if(!s||isNaN(s)||!isFinite(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
 
 function SESSION_META() {
   return {
@@ -95,6 +95,9 @@ function renderHistory(filterDate=null) {
   const container = document.getElementById("history-content");
   if (!container) return;
 
+  // Останавливаем текущее аудио при перерендере
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
   allItemsCache = buildTimeline();
   const items  = filterDate ? allItemsCache.filter(i=>toISODate(i.ts)===filterDate) : allItemsCache;
   const groups = groupByDay(items);
@@ -158,35 +161,87 @@ function renderHistory(filterDate=null) {
     });
   });
 
+  // Аудиоплееры
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      const ts=btn.dataset.ts, url=btn.dataset.url; if(!url) return;
-      const seekEl=container.querySelector(`.voice-seek[data-ts="${ts}"]`);
-      const curEl=container.querySelector(`.voice-cur[data-ts="${ts}"]`);
-      const totEl=container.querySelector(`.voice-tot[data-ts="${ts}"]`);
-      if (btn._audio && !btn._audio.paused) { btn._audio.pause(); btn.textContent="▶"; return; }
-      if (currentAudio && currentAudio!==btn._audio) {
-        currentAudio.pause(); currentAudio.currentTime=0;
-        container.querySelectorAll(".voice-play-btn").forEach(b=>{ if(b._audio===currentAudio) b.textContent="▶"; });
+      const url = btn.dataset.url;
+      if (!url) return;
+      const ts     = btn.dataset.ts;
+      const seekEl = container.querySelector(`.voice-seek[data-ts="${ts}"]`);
+      const curEl  = container.querySelector(`.voice-cur[data-ts="${ts}"]`);
+      const totEl  = container.querySelector(`.voice-tot[data-ts="${ts}"]`);
+
+      // Пауза если уже играет
+      if (btn._audio && !btn._audio.paused) {
+        btn._audio.pause();
+        btn.textContent = "▶";
+        return;
       }
+
+      // Остановить другой плеер
+      if (currentAudio && currentAudio !== btn._audio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        container.querySelectorAll(".voice-play-btn").forEach(b => {
+          if (b._audio === currentAudio) b.textContent = "▶";
+        });
+      }
+
+      // Создать аудио один раз
       if (!btn._audio) {
-        btn._audio = new Audio(url);
-        btn._audio.addEventListener("loadedmetadata",()=>{ const dur=btn._audio.duration||0; if(totEl&&dur&&isFinite(dur)) totEl.textContent=fmtSec(dur); });
-        btn._audio.addEventListener("timeupdate",()=>{ const dur=btn._audio.duration||0,cur=btn._audio.currentTime; if(!dur||!isFinite(dur)) return; if(seekEl) seekEl.value=(cur/dur*100); if(curEl) curEl.textContent=fmtSec(cur); if(totEl) totEl.textContent=fmtSec(dur); });
-        btn._audio.addEventListener("ended",()=>{ btn.textContent="▶"; if(seekEl) seekEl.value=0; if(curEl) curEl.textContent="0:00"; });
+        const audio = new Audio(url);
+        btn._audio = audio;
+
+        // Обновление длины как только известна
+        const updateDuration = () => {
+          if (totEl && audio.duration && isFinite(audio.duration)) {
+            totEl.textContent = fmtSec(audio.duration);
+          }
+        };
+        audio.addEventListener("loadedmetadata", updateDuration);
+        audio.addEventListener("durationchange",  updateDuration);
+
+        // Обновление позиции — только если не тянем ползунок
+        audio.addEventListener("timeupdate", () => {
+          const dur = audio.duration;
+          const cur = audio.currentTime;
+          if (!dur || !isFinite(dur)) return;
+          if (curEl) curEl.textContent = fmtSec(cur);
+          if (totEl) totEl.textContent = fmtSec(dur);
+          if (seekEl && !seekEl._seeking) seekEl.value = (cur / dur) * 100;
+        });
+
+        audio.addEventListener("ended", () => {
+          btn.textContent = "▶";
+          if (seekEl) seekEl.value = 0;
+          if (curEl)  curEl.textContent  = "0:00";
+        });
       }
-      btn._audio.play(); currentAudio=btn._audio; btn.innerHTML="<span style='letter-spacing:1px;font-size:13px;'>▋▋</span>";
+
+      btn._audio.play();
+      currentAudio = btn._audio;
+      btn.textContent = "⏸";
     });
   });
 
+  // Перемотка — флаг _seeking блокирует timeupdate пока тянем
   container.querySelectorAll(".voice-seek").forEach(seek => {
-    seek.addEventListener("input", e => {
-      e.stopPropagation();
-      const ts=seek.dataset.ts, pb=container.querySelector(`.voice-play-btn[data-ts="${ts}"]`);
-      if(pb&&pb._audio){ const d=pb._audio.duration; if(d) pb._audio.currentTime=(seek.value/100)*d; }
-    });
+    seek.addEventListener("touchstart",  () => { seek._seeking = true; }, { passive: true });
+    seek.addEventListener("mousedown",   () => { seek._seeking = true; });
+    seek.addEventListener("touchend",    () => { seek._seeking = false; applySeek(seek, container); });
+    seek.addEventListener("mouseup",     () => { seek._seeking = false; applySeek(seek, container); });
+    seek.addEventListener("input",       e  => { e.stopPropagation(); applySeek(seek, container); });
   });
+}
+
+function applySeek(seek, container) {
+  const ts = seek.dataset.ts;
+  const pb = container.querySelector(`.voice-play-btn[data-ts="${ts}"]`);
+  if (pb && pb._audio) {
+    const d = pb._audio.duration;
+    if (d && isFinite(d)) pb._audio.currentTime = (seek.value / 100) * d;
+  }
 }
 
 function showPhotoMenu(container, photoInput) {
@@ -203,7 +258,7 @@ function showPhotoMenu(container, photoInput) {
       <div id="pmCancel"  style="padding:16px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#888;font-size:17px;cursor:pointer;text-align:center;">${t("hist_cancel")}</div>
     </div>`;
   document.body.appendChild(overlay);
-  overlay.querySelector("#pmCamera").onclick = () => { overlay.remove(); photoInput.setAttribute("capture","environment"); photoInput.click(); };
+  overlay.querySelector("#pmCamera").onclick  = () => { overlay.remove(); photoInput.setAttribute("capture","environment"); photoInput.click(); };
   overlay.querySelector("#pmGallery").onclick = () => { overlay.remove(); photoInput.removeAttribute("capture"); photoInput.click(); };
   overlay.querySelector("#pmCancel").onclick  = () => overlay.remove();
   overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
@@ -262,7 +317,7 @@ function renderCard(item) {
             <input type="range" class="voice-seek" data-ts="${ts}" min="0" max="100" value="0" step="0.1" style="width:100%;accent-color:#9f7aea;cursor:pointer;">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px;">
               <span class="voice-cur" data-ts="${ts}">0:00</span>
-              <span class="voice-tot" data-ts="${ts}">${fmtSec(item.audioDuration)}</span>
+              <span class="voice-tot" data-ts="${ts}">0:00</span>
             </div>
           </div>
         </div>
