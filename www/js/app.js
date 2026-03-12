@@ -68,6 +68,9 @@ function render() {
   const moodValue = document.getElementById("moodValue");
   if (moodValue) moodValue.textContent = mood + "%";
 
+  const moodSlider = document.getElementById("moodSlider");
+  if (moodSlider) moodSlider.value = mood;
+
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 

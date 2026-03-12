@@ -1,5 +1,6 @@
 import { detectMoodState } from "../services/state-engine.js";
 import { updateStabilityHistory } from "../app.js";
+import { getMood } from "../state.js";
 import { t } from "../i18n.js";
 
 export function onEnter() {
@@ -9,18 +10,18 @@ export function onEnter() {
 
   if (!slider) return;
 
-  valueLabel.textContent = slider.value + "%";
+  // Синхронизируем слайдер с реальным текущим настроением
+  const currentMood = getMood();
+  slider.value = currentMood;
+  valueLabel.textContent = currentMood + "%";
 
-const newSlider = slider.cloneNode(true);
-slider.parentNode.replaceChild(newSlider, slider);
-
-newSlider.addEventListener("input", () => {
-  valueLabel.textContent = newSlider.value + "%";
-  // синхронизируем state чтобы app.js не читал старый элемент
+  const newSlider = slider.cloneNode(true);
+  slider.parentNode.replaceChild(newSlider, slider);
   newSlider.id = "moodSlider";
-});
 
-newSlider.id = "moodSlider";
+  newSlider.addEventListener("input", () => {
+    valueLabel.textContent = newSlider.value + "%";
+  });
 
   // Клонируем кнопку — убиваем старые слушатели
   const confirmBtn = document.getElementById("moodConfirmBtn");

@@ -62,7 +62,7 @@ export function initBreathing(container) {
       </div>
 
       <!-- КНОПКА СТАРТ/СТОП -->
-      <div style="margin-top:15px; display:flex; justify-content:center;">
+      <div style="margin-top:0; display:flex; justify-content:center;">
         <div id="breathingMainBtn" class="mainBtn">▶</div>
       </div>
 
