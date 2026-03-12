@@ -42,11 +42,18 @@ function mText(v) {
   return t("mood_attention");
 }
 function rColor(r) { if (!r) return "#888"; return r>=70?"#4caf87":r>=40?"#f0a500":"#e05555"; }
+
+// Принимает объект {start, end} или строку (обратная совместимость)
 function goldenShort(g) {
   if (!g) return "—";
+  if (typeof g === "object" && g.start !== undefined) {
+    return `${g.start}:00–${g.end}:00`;
+  }
+  // старый формат — строка
   const m = g.match(/\d{2}:\d{2}[–\-]\d{2}:\d{2}/);
   return m ? m[0] : g;
 }
+
 function buildDailyMood(history) {
   const byDay = {};
   history.forEach(e => {

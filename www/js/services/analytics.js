@@ -21,7 +21,7 @@ export function calculateTrend(history) {
 }
 
 export function calculateGoldenHour(history) {
-  if (!history || history.length < 8) return null;
+  if (!history || history.length < 3) return null;
   const hours = {};
   history.forEach(entry => {
     const hour = new Date(entry.time).getHours();

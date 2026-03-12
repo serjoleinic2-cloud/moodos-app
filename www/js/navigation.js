@@ -23,11 +23,19 @@ export function initNavigation() {
 
   async function loadScreen(name) {
     if (!screenModules[name]) return;
-    if (!loadedScreens[name]) {
-      loadedScreens[name] = await screenModules[name]();
+    try {
+      // Не кешируем — каждый раз вызываем onEnter заново
+      // Модуль кешируется браузером автоматически, но onEnter всегда свежий
+      if (!loadedScreens[name]) {
+        loadedScreens[name] = await screenModules[name]();
+      }
+      const module = loadedScreens[name];
+      if (module && module.onEnter) module.onEnter();
+    } catch (err) {
+      console.error(`[nav] loadScreen error for "${name}":`, err);
+      // Сбрасываем кеш этого экрана чтобы при следующем тапе попробовать снова
+      delete loadedScreens[name];
     }
-    const module = loadedScreens[name];
-    if (module.onEnter) module.onEnter();
   }
 
   const hamburgerBtn = document.getElementById("hamburgerBtn");
@@ -66,8 +74,7 @@ export function initNavigation() {
   function openScreen(name) {
     closeMenu();
     closeToolsMenu();
-    closeAllOverlays(); // закрываем модалки и экран отчёта
-    if (currentScreen === name) return;
+    closeAllOverlays();
     screenElements.forEach(s => s.classList.remove("active"));
     buttons.forEach(b => { if (b.id !== "hamburgerBtn") b.classList.remove("active"); });
     const targetScreen = document.querySelector(`[data-screen="${name}"]`);
@@ -75,6 +82,7 @@ export function initNavigation() {
     if (!targetScreen) return;
     targetScreen.classList.add("active");
     if (targetButton && targetButton.id !== "hamburgerBtn") targetButton.classList.add("active");
+    // Всегда вызываем onEnter даже если экран тот же — данные могли обновиться
     currentScreen = name;
     loadScreen(name);
   }
