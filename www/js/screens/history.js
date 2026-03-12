@@ -5,7 +5,7 @@ export function onEnter() { renderHistory(); }
 
 function moodColor(v) { return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
 function moodEmoji(v) { return v>=70?"😊":v>=40?"😐":"😔"; }
-function formatDate(ts) { return new Date(ts).toLocaleDateString("ru-RU",{day:"2-digit",month:"long",year:"numeric"}); }
+function formatDate(ts) { const d=new Date(ts); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`; }
 function formatTime(ts) { return new Date(ts).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}); }
 function toISODate(ts) { const d=new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function fmtSec(s) { if(!s||isNaN(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
@@ -172,10 +172,11 @@ function renderHistory(filterDate=null) {
       }
       if (!btn._audio) {
         btn._audio = new Audio(url);
-        btn._audio.addEventListener("timeupdate",()=>{ const dur=btn._audio.duration||0,cur=btn._audio.currentTime; if(seekEl) seekEl.value=dur?(cur/dur*100):0; if(curEl) curEl.textContent=fmtSec(cur); if(totEl&&dur) totEl.textContent=fmtSec(dur); });
+        btn._audio.addEventListener("loadedmetadata",()=>{ const dur=btn._audio.duration||0; if(totEl&&dur&&isFinite(dur)) totEl.textContent=fmtSec(dur); });
+        btn._audio.addEventListener("timeupdate",()=>{ const dur=btn._audio.duration||0,cur=btn._audio.currentTime; if(!dur||!isFinite(dur)) return; if(seekEl) seekEl.value=(cur/dur*100); if(curEl) curEl.textContent=fmtSec(cur); if(totEl) totEl.textContent=fmtSec(dur); });
         btn._audio.addEventListener("ended",()=>{ btn.textContent="▶"; if(seekEl) seekEl.value=0; if(curEl) curEl.textContent="0:00"; });
       }
-      btn._audio.play(); currentAudio=btn._audio; btn.textContent="⏸";
+      btn._audio.play(); currentAudio=btn._audio; btn.innerHTML="<span style='letter-spacing:1px;font-size:13px;'>▋▋</span>";
     });
   });
 
