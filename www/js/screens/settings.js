@@ -2,46 +2,28 @@
 // MoodOS Settings Screen
 // =====================================
 
-
 import {
   getProfile,
   saveProfile,
   saveMedReminder,
   removeMedReminder,
   getMedReminder,
-  markOnboardingDone
 } from "../services/user-profile.js";
 import { showPdfReportModal } from "./pdf-report.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
-import { createWeeklyBackup } from "../services/drive-backup.js";
+import { backupAndShare, restoreFromBackup } from "../services/drive-backup.js";
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
   if (!el) return;
   el.innerHTML = renderSettings();
   bindEvents(el);
-  const backupBtn = document.getElementById("backup-drive");
-
-if (backupBtn) {
-
-  backupBtn.addEventListener("click", () => {
-
-    const backup = createWeeklyBackup();
-
-    console.log("Backup file:", backup.fileName);
-    console.log("Blob:", backup.blob);
-
-    alert("Backup created: " + backup.fileName);
-
-  });
-
-}
 }
 
 function renderSettings() {
-  const profile    = getProfile();
-  const reminder   = getMedReminder();
-  const takesMeds  = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
+  const profile   = getProfile();
+  const reminder  = getMedReminder();
+  const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
 
   const medLabels = {
     "нет":             t("med_no"),
@@ -50,7 +32,6 @@ function renderSettings() {
     "другое":          t("med_other"),
     "не_скажу":        t("med_not_said"),
   };
-
   const effectLabels = {
     "лучше":           t("effect_better"),
     "примерно_так_же": t("effect_same"),
@@ -58,7 +39,6 @@ function renderSettings() {
     "побочки":         t("effect_side"),
     "адаптация":       t("effect_adapt"),
   };
-
   const reminderLabels = {
     "нет":   t("reminder_no"),
     "утро":  t("reminder_morning"),
@@ -78,6 +58,7 @@ function renderSettings() {
       .neo-row-value { font-size: 13px; color: #aaa; }
       .neo-row-icon { font-size: 18px; margin-right: 12px; }
       .neo-row-left { display: flex; align-items: center; }
+      .neo-row-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
       .health-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: flex; align-items: flex-end; }
       .health-modal { width: 100%; background: linear-gradient(160deg,#d4ede8,#e8e0d5); border-radius: 24px 24px 0 0; padding: 24px 20px 32px; max-height: 80vh; overflow-y: auto; box-sizing: border-box; animation: slideUp 0.35s ease; }
       @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -100,7 +81,9 @@ function renderSettings() {
         <div class="neo-row" id="settingMeds">
           <div class="neo-row-left">
             <span class="neo-row-icon">💊</span>
-            <span class="neo-row-label">${t("settings_meds_label")}</span>
+            <div>
+              <div class="neo-row-label">${t("settings_meds_label")}</div>
+            </div>
           </div>
           <span class="neo-row-value">${profile ? (medLabels[profile.takesMeds] || t("med_not_said")) : t("med_not_said")} ›</span>
         </div>
@@ -119,7 +102,7 @@ function renderSettings() {
             <span class="neo-row-icon">⏰</span>
             <span class="neo-row-label">${t("settings_reminder_label")}</span>
           </div>
-          ${reminder?.active ? (reminderLabels[profile?.medReminder] || t("settings_reminder_on")) : t("settings_reminder_off")} ›
+          <span class="neo-row-value">${reminder?.active ? (reminderLabels[profile?.medReminder] || t("settings_reminder_on")) : t("settings_reminder_off")} ›</span>
         </div>
         ` : ""}
       </div>
@@ -148,7 +131,7 @@ function renderSettings() {
         </div>
       </div>
 
-      <!-- ОТЧЁТЫ -->
+      <!-- ДАННЫЕ -->
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_data")}</div>
 
@@ -159,6 +142,31 @@ function renderSettings() {
           </div>
           <span class="neo-row-value">PDF ›</span>
         </div>
+
+        <div class="neo-row" id="settingBackup">
+          <div class="neo-row-left">
+            <span class="neo-row-icon">☁️</span>
+            <div>
+              <div class="neo-row-label">${t("backup_title")}</div>
+              <div class="neo-row-sub">${t("backup_subtitle")}</div>
+            </div>
+          </div>
+          <span class="neo-row-value" id="backupStatus">${t("backup_action")} ›</span>
+        </div>
+
+        <div class="neo-row" id="settingRestore">
+          <div class="neo-row-left">
+            <span class="neo-row-icon">📥</span>
+            <div>
+              <div class="neo-row-label">${t("restore_title")}</div>
+              <div class="neo-row-sub">${t("restore_subtitle")}</div>
+            </div>
+          </div>
+          <span class="neo-row-value">›</span>
+        </div>
+
+        <!-- скрытый input для выбора файла восстановления -->
+        <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
 
     </div>
@@ -184,15 +192,15 @@ function bindEvents(el) {
   el.querySelector("#settingEffect")?.addEventListener("click", () => {
     showModal({
       title: t("settings_effect_title"),
-subtitle: t("settings_effect_subtitle"),
+      subtitle: t("settings_effect_subtitle"),
       field: "medEffect",
       options: [
-  { value: "лучше",           label: t("ob_effect_better") },
-  { value: "примерно_так_же", label: t("ob_effect_same") },
-  { value: "приглушённость",  label: t("ob_effect_numb") },
-  { value: "побочки",         label: t("ob_effect_side") },
-  { value: "адаптация",       label: t("ob_effect_adapt") },
-]
+        { value: "лучше",           label: t("ob_effect_better") },
+        { value: "примерно_так_же", label: t("ob_effect_same") },
+        { value: "приглушённость",  label: t("ob_effect_numb") },
+        { value: "побочки",         label: t("ob_effect_side") },
+        { value: "адаптация",       label: t("ob_effect_adapt") },
+      ]
     });
   });
 
@@ -202,11 +210,11 @@ subtitle: t("settings_effect_subtitle"),
       subtitle: t("settings_reminder_subtitle"),
       field: "medReminder",
       options: [
-  { value: "нет",   label: t("ob_reminder_no") },
-  { value: "утро",  label: t("ob_reminder_morning") },
-  { value: "день",  label: t("ob_reminder_day") },
-  { value: "вечер", label: t("ob_reminder_evening") },
-],
+        { value: "нет",   label: t("ob_reminder_no") },
+        { value: "утро",  label: t("ob_reminder_morning") },
+        { value: "день",  label: t("ob_reminder_day") },
+        { value: "вечер", label: t("ob_reminder_evening") },
+      ],
       onSave: (value) => {
         const times = { утро: "08:00", день: "13:00", вечер: "20:00" };
         if (times[value]) saveMedReminder(times[value]);
@@ -226,6 +234,80 @@ subtitle: t("settings_effect_subtitle"),
   el.querySelector("#settingLanguage")?.addEventListener("click", () => {
     showLanguageModal(el);
   });
+
+  // --- БЭКАП ---
+  el.querySelector("#settingBackup")?.addEventListener("click", async () => {
+    const statusEl = el.querySelector("#backupStatus");
+    if (statusEl) statusEl.textContent = t("backup_progress");
+
+    const result = await backupAndShare();
+
+    if (statusEl) {
+      if (result.message === "cancelled") {
+        statusEl.textContent = t("backup_action") + " ›";
+      } else if (result.success) {
+        statusEl.textContent = "✅ " + t("backup_done");
+        setTimeout(() => { if (statusEl) statusEl.textContent = t("backup_action") + " ›"; }, 3000);
+      } else {
+        statusEl.textContent = "❌ " + t("backup_error");
+        setTimeout(() => { if (statusEl) statusEl.textContent = t("backup_action") + " ›"; }, 3000);
+      }
+    }
+  });
+
+  // --- ВОССТАНОВЛЕНИЕ ---
+  const restoreBtn   = el.querySelector("#settingRestore");
+  const restoreInput = el.querySelector("#restoreFileInput");
+
+  restoreBtn?.addEventListener("click", () => {
+    restoreInput?.click();
+  });
+
+  restoreInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    showRestoreConfirmModal(file);
+    restoreInput.value = ""; // сброс чтобы можно было выбрать тот же файл снова
+  });
+}
+
+function showRestoreConfirmModal(file) {
+  const overlay = document.createElement("div");
+  overlay.className = "health-modal-overlay";
+  overlay.innerHTML = `
+    <div class="health-modal">
+      <div class="modal-title">📥 ${t("restore_title")}</div>
+      <div class="modal-subtitle" style="color:#e05555;">${t("restore_warning")}</div>
+      <div style="background:rgba(232,237,230,0.9);border-radius:14px;padding:14px;margin-bottom:20px;font-size:13px;color:#666;">
+        📄 ${file.name}
+      </div>
+      <button class="modal-save-btn" id="restoreConfirm" style="color:#e05555;">${t("restore_confirm_btn")}</button>
+      <div class="modal-cancel" id="restoreCancel">${t("cancel")}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector("#restoreConfirm").addEventListener("click", async () => {
+    overlay.querySelector("#restoreConfirm").textContent = t("restore_progress");
+    overlay.querySelector("#restoreConfirm").disabled = true;
+
+    const result = await restoreFromBackup(file);
+    overlay.remove();
+
+    if (result.success) {
+      // Показываем сообщение и перезагружаем
+      const msg = document.createElement("div");
+      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
+      msg.textContent = "✅ " + t("restore_done");
+      document.body.appendChild(msg);
+      setTimeout(() => { window.location.href = window.location.href; }, 1500);
+    } else {
+      alert(t("restore_error") + ": " + result.message);
+    }
+  });
+
+  overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
 }
 
 function showModal({ title, subtitle, field, options, onSave }) {
@@ -244,7 +326,7 @@ function showModal({ title, subtitle, field, options, onSave }) {
         `).join('')}
       </div>
       <button class="modal-save-btn" id="modalSave">${t("save")}</button>
-<div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
+      <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
 
   document.body.appendChild(overlay);
@@ -305,15 +387,7 @@ function showLanguageModal(el) {
   overlay.querySelector("#modalSave").addEventListener("click", () => {
     setLang(selected);
     overlay.remove();
-    // Перезагружаем приложение чтобы применить язык везде
-    // Capacitor-совместимая перезагрузка
-    setTimeout(() => {
-      try {
-        window.location.href = window.location.href;
-      } catch(e) {
-        window.location.reload(true);
-      }
-    }, 100);
+    setTimeout(() => { window.location.href = window.location.href; }, 100);
   });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
@@ -328,7 +402,7 @@ function showBaselineModal() {
   overlay.innerHTML = `
     <div class="health-modal">
       <div class="modal-title">${t("settings_baseline_title")}</div>
-<div class="modal-subtitle">${t("settings_baseline_subtitle")}</div>
+      <div class="modal-subtitle">${t("settings_baseline_subtitle")}</div>
       <div style="background:rgba(232,237,230,0.9);border-radius:16px;box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;padding:20px;margin-bottom:20px;">
         <div style="text-align:center;font-size:28px;font-weight:800;color:#555;margin-bottom:12px;">
           <span id="baselineVal">${current}%</span>
@@ -336,7 +410,7 @@ function showBaselineModal() {
         <input type="range" id="baselineSlider" min="0" max="100" value="${current}" style="width:100%;accent-color:#7eb8d4;">
       </div>
       <button class="modal-save-btn" id="modalSave">${t("save")}</button>
-<div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
+      <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
 
   document.body.appendChild(overlay);
