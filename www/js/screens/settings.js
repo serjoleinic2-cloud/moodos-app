@@ -1,6 +1,8 @@
 // =====================================
 // MoodOS Settings Screen
 // =====================================
+
+
 import {
   getProfile,
   saveProfile,
@@ -11,6 +13,7 @@ import {
 } from "../services/user-profile.js";
 import { showPdfReportModal } from "./pdf-report.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
+import { createWeeklyBackup } from "../services/drive-backup.js";
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');

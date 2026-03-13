@@ -42,6 +42,7 @@ export const uk = {
     screen_stability: "Стійкість",
     screen_settings: "Налаштування",
     screen_history: "Історія",
+backup_data: "Резервна копія",
     nav_home: "Головна",
     nav_insight: "Інсайт",
     nav_report: "Звіт",

@@ -43,6 +43,7 @@ export const ru = {
     screen_stability: "Устойчивость",
     screen_settings: "Настройки",
     screen_history: "История",
+backup_data: "Резервная копия",
     nav_home: "Главная",
     nav_insight: "Инсайт",
     nav_report: "Отчёт",

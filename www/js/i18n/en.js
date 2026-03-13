@@ -42,6 +42,7 @@ export const en = {
     screen_stability: "Stability",
     screen_settings: "Settings",
     screen_history: "History",
+backup_data: "Backup Data",   
     nav_home: "Home",
     nav_insight: "Insight",
     nav_report: "Report",
