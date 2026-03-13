@@ -17,6 +17,22 @@ export function onEnter() {
   if (!el) return;
   el.innerHTML = renderSettings();
   bindEvents(el);
+  const backupBtn = document.getElementById("backup-drive");
+
+if (backupBtn) {
+
+  backupBtn.addEventListener("click", () => {
+
+    const backup = createWeeklyBackup();
+
+    console.log("Backup file:", backup.fileName);
+    console.log("Blob:", backup.blob);
+
+    alert("Backup created: " + backup.fileName);
+
+  });
+
+}
 }
 
 function renderSettings() {
