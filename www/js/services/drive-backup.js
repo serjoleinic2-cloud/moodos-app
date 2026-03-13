@@ -1,22 +1,19 @@
 // =====================================
 // MoodOS — Backup Service
 // =====================================
-// Автосохранение раз в сутки на Google Drive.
-// OAuth через Google Identity Services (без сервера).
-// Fallback: share / скачивание JSON-файла.
+// Автосохранение раз в сутки.
+// Сохраняет JSON-файл через Capacitor Filesystem (папка Documents/MoodOS/)
+// или через Share/Download если Capacitor недоступен.
+// Google Drive на Android автоматически синхронизирует папку Documents
+// если пользователь включил Drive Backup в настройках телефона.
+// OAuth не нужен — никаких popup, никакой регистрации.
 
 import { getMoodHistory, getNotesHistory, getVoiceHistory, getSessionHistory, getPhotoHistory } from "./memory.js";
 import { getProfile } from "./user-profile.js";
 
-// ─── Константы ────────────────────────────────────────────────
-const DRIVE_SCOPE      = "https://www.googleapis.com/auth/drive.appdata";
-const DRIVE_LIST_URL   = "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q=name='MoodOS-backup.json'";
-const DRIVE_UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
-
-const LS_TOKEN      = "gdrive_token";
-const LS_TOKEN_EXP  = "gdrive_token_exp";
-const LS_LAST_AUTO  = "gdrive_last_auto_backup";
-const LS_CLIENT_ID  = "google_client_id";
+const LS_LAST_AUTO = "last_auto_backup";
+const LS_LAST_PATH = "last_backup_path";
+const ONE_DAY_MS   = 24 * 60 * 60 * 1000;
 
 // ─── Сборка данных ─────────────────────────────────────────────
 export function collectBackupData() {
@@ -32,153 +29,53 @@ export function collectBackupData() {
   };
 }
 
-export function createWeeklyBackup() {
-  const data     = collectBackupData();
-  const dateStr  = new Date().toISOString().slice(0, 10);
-  const json     = JSON.stringify(data, null, 2);
-  const blob     = new Blob([json], { type: "application/json" });
-  const fileName = `MoodOS-backup-${dateStr}.json`;
-  return { fileName, blob, data };
+function makeFileName() {
+  return `MoodOS-backup-${new Date().toISOString().slice(0, 10)}.json`;
 }
 
-// ─── OAuth токен ───────────────────────────────────────────────
-function getSavedToken() {
-  const token = localStorage.getItem(LS_TOKEN);
-  const exp   = parseInt(localStorage.getItem(LS_TOKEN_EXP) || "0");
-  if (token && Date.now() < exp) return token;
-  return null;
-}
+// ─── Capacitor Filesystem ──────────────────────────────────────
+async function saveViaCapacitor(json, fileName) {
+  try {
+    // Динамический импорт — не ломает веб-версию если Capacitor недоступен
+    const cap = window.Capacitor;
+    if (!cap || !cap.isNativePlatform()) return null;
 
-function saveToken(token, expiresIn) {
-  localStorage.setItem(LS_TOKEN, token);
-  localStorage.setItem(LS_TOKEN_EXP, String(Date.now() + (expiresIn - 60) * 1000));
-}
+    const { Filesystem, Directory } = await import("https://cdn.jsdelivr.net/npm/@capacitor/filesystem@6/+esm").catch(() => ({ Filesystem: null }));
+    if (!Filesystem) return null;
 
-export function clearToken() {
-  localStorage.removeItem(LS_TOKEN);
-  localStorage.removeItem(LS_TOKEN_EXP);
-}
-
-export function isSignedIn() {
-  return !!getSavedToken();
-}
-
-export function saveClientId(id) {
-  localStorage.setItem(LS_CLIENT_ID, id.trim());
-}
-
-export function getClientId() {
-  return localStorage.getItem(LS_CLIENT_ID) || "";
-}
-
-function loadGIS() {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts?.oauth2) { resolve(); return; }
-    const s = document.createElement("script");
-    s.src = "https://accounts.google.com/gsi/client";
-    s.onload  = resolve;
-    s.onerror = () => reject(new Error("gsi_load_failed"));
-    document.head.appendChild(s);
-  });
-}
-
-function requestToken() {
-  return new Promise(async (resolve, reject) => {
-    const clientId = getClientId();
-    if (!clientId) { reject(new Error("no_client_id")); return; }
-    try { await loadGIS(); } catch(e) { reject(e); return; }
-    const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: DRIVE_SCOPE,
-      callback: (resp) => {
-        if (resp.error) { reject(new Error(resp.error)); return; }
-        saveToken(resp.access_token, resp.expires_in);
-        resolve(resp.access_token);
-      },
+    await Filesystem.writeFile({
+      path: `MoodOS/${fileName}`,
+      data: json,
+      directory: Directory.Documents,
+      recursive: true,
+      encoding: "utf8",
     });
-    client.requestAccessToken({ prompt: "" });
-  });
-}
-
-async function getToken() {
-  const cached = getSavedToken();
-  if (cached) return cached;
-  return await requestToken();
-}
-
-// ─── Drive API ─────────────────────────────────────────────────
-async function uploadToDrive(token, jsonString) {
-  // Ищем существующий файл чтобы обновить его
-  const listRes  = await fetch(DRIVE_LIST_URL, { headers: { Authorization: `Bearer ${token}` } });
-  const listData = await listRes.json();
-  const existId  = listData.files?.[0]?.id;
-
-  const metaObj = existId
-    ? { name: "MoodOS-backup.json" }
-    : { name: "MoodOS-backup.json", parents: ["appDataFolder"] };
-
-  const form = new FormData();
-  form.append("metadata", new Blob([JSON.stringify(metaObj)], { type: "application/json" }));
-  form.append("file",     new Blob([jsonString],              { type: "application/json" }));
-
-  const url    = existId ? `https://www.googleapis.com/upload/drive/v3/files/${existId}?uploadType=multipart` : DRIVE_UPLOAD_URL;
-  const method = existId ? "PATCH" : "POST";
-
-  const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}` }, body: form });
-  if (!res.ok) throw new Error(`drive_${res.status}`);
-  return await res.json();
-}
-
-// ─── Публичные функции ─────────────────────────────────────────
-
-/**
- * Ручной бэкап — пробует Drive, иначе share/скачивание.
- * @returns {Promise<{success, message, time?}>}
- */
-export async function backupAndShare() {
-  const data = collectBackupData();
-  const json = JSON.stringify(data, null, 2);
-  const dateStr  = new Date().toISOString().slice(0, 10);
-  const fileName = `MoodOS-backup-${dateStr}.json`;
-  const blob     = new Blob([json], { type: "application/json" });
-
-  // Пробуем Drive
-  const clientId = getClientId();
-  if (clientId) {
-    try {
-      const token = await getToken();
-      await uploadToDrive(token, json);
-      localStorage.setItem(LS_LAST_AUTO, Date.now().toString());
-      return { success: true, message: "drive_saved", time: new Date() };
-    } catch(e) {
-      if (e.message === "no_client_id") {
-        return { success: false, message: "need_setup" };
-      }
-      if (e.message === "access_denied" || e.message === "popup_closed_by_user") {
-        return { success: false, message: "cancelled" };
-      }
-      // Drive недоступен — fallback
-      console.warn("Drive failed:", e.message);
-    }
+    const path = `Documents/MoodOS/${fileName}`;
+    localStorage.setItem(LS_LAST_PATH, path);
+    return { success: true, message: "saved_to_documents", path };
+  } catch(e) {
+    console.warn("Capacitor Filesystem:", e.message);
+    return null;
   }
-
-  // Fallback: share / скачивание
-  return await _shareOrDownload(fileName, blob, data);
 }
 
-async function _shareOrDownload(fileName, blob, data) {
-  const count = (data.mood_history?.length || 0) + (data.notes_history?.length || 0) + (data.session_history?.length || 0);
+// ─── Share API / Download ──────────────────────────────────────
+async function saveViaShare(json, fileName) {
+  const blob = new Blob([json], { type: "application/json" });
+  const file = new File([blob], fileName, { type: "application/json" });
+
   if (navigator.share && navigator.canShare) {
-    const file = new File([blob], fileName, { type: "application/json" });
-    if (navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ title: "MoodOS Backup", text: `Резервная копия MoodOS (${count} записей)`, files: [file] });
+    try {
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: "MoodOS Backup", text: "Резервная копия данных MoodOS", files: [file] });
         return { success: true, message: "shared" };
-      } catch(e) {
-        if (e.name === "AbortError") return { success: false, message: "cancelled" };
       }
+    } catch(e) {
+      if (e.name === "AbortError") return { success: false, message: "cancelled" };
     }
   }
+
+  // Скачивание как fallback
   const url = URL.createObjectURL(blob);
   const a   = document.createElement("a");
   a.href = url; a.download = fileName;
@@ -187,39 +84,62 @@ async function _shareOrDownload(fileName, blob, data) {
   return { success: true, message: "downloaded" };
 }
 
+// ─── Публичный API ─────────────────────────────────────────────
+
 /**
- * Автобэкап — вызывать при старте app.js.
- * Тихий, только если уже авторизован и прошли сутки.
+ * Ручной бэкап. Сначала Capacitor, потом Share.
  */
-export async function tryAutoBackup() {
-  const lastAuto = parseInt(localStorage.getItem(LS_LAST_AUTO) || "0");
-  if (Date.now() - lastAuto < 24 * 60 * 60 * 1000) return;
+export async function backupAndShare() {
+  const data = collectBackupData();
+  const json = JSON.stringify(data, null, 2);
+  const fileName = makeFileName();
 
-  const token = getSavedToken();
-  if (!token) return;
-
-  try {
-    const data = collectBackupData();
-    if (!data.mood_history?.length) return;
-    await uploadToDrive(token, JSON.stringify(data, null, 2));
+  const cap = await saveViaCapacitor(json, fileName);
+  if (cap?.success) {
     localStorage.setItem(LS_LAST_AUTO, Date.now().toString());
-    console.log("MoodOS: автобэкап на Drive выполнен");
-  } catch(e) {
-    console.warn("MoodOS: автобэкап не удался:", e.message);
-    if (e.message?.includes("drive_401")) clearToken();
+    return { ...cap, time: new Date() };
   }
+
+  const result = await saveViaShare(json, fileName);
+  if (result.success) localStorage.setItem(LS_LAST_AUTO, Date.now().toString());
+  return { ...result, time: new Date() };
 }
 
 /**
- * Время последнего бэкапа.
+ * Автобэкап при запуске. Тихий, раз в сутки.
  */
+export async function tryAutoBackup() {
+  try {
+    const last = parseInt(localStorage.getItem(LS_LAST_AUTO) || "0");
+    if (Date.now() - last < ONE_DAY_MS) return;
+
+    const data = collectBackupData();
+    if (!data.mood_history?.length) return;
+
+    const json     = JSON.stringify(data, null, 2);
+    const fileName = makeFileName();
+
+    const cap = await saveViaCapacitor(json, fileName);
+    if (cap?.success) {
+      localStorage.setItem(LS_LAST_AUTO, Date.now().toString());
+      console.log("MoodOS: автобэкап →", cap.path);
+    }
+  } catch(e) {
+    console.warn("tryAutoBackup error:", e.message);
+  }
+}
+
 export function getLastBackupTime() {
   const ts = parseInt(localStorage.getItem(LS_LAST_AUTO) || "0");
   return ts ? new Date(ts) : null;
 }
 
+export function getLastBackupPath() {
+  return localStorage.getItem(LS_LAST_PATH) || null;
+}
+
 /**
- * Восстановление из JSON-файла.
+ * Восстановление из .json файла.
  */
 export async function restoreFromBackup(file) {
   return new Promise((resolve) => {

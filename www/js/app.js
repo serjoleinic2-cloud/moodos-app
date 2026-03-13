@@ -5,8 +5,6 @@ import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import { analyzeLatestVoice } from "./ai/voice-analysis.js";
 import { tryAutoBackup } from "./services/drive-backup.js";
-// в DOMContentLoaded или startApp():
-tryAutoBackup();
 import {
   getMoodHistory, saveMoodHistory,
   getNotesHistory, saveNotesHistory
@@ -77,7 +75,7 @@ function render() {
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
-  // Инсайт дня — итог дня
+  // Инсайт дня
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
     insightEl.textContent = buildDayInsight();
@@ -85,7 +83,7 @@ function render() {
   }
 
   // Индекс устойчивости
-  const history = getMoodHistory();
+  const history   = getMoodHistory();
   const stability = calculateStabilityScore(history);
   const trend     = calculateTrend(history);
   const valueEl   = document.getElementById("stabilityValue");
@@ -95,11 +93,11 @@ function render() {
 
   // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
-if (goldenEl) {
-  const g = calculateGoldenHour(history);
-  if (g === null) goldenEl.textContent = t("golden_studying");
-  else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
-}
+  if (goldenEl) {
+    const g = calculateGoldenHour(history);
+    if (g === null) goldenEl.textContent = t("golden_studying");
+    else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
+  }
 }
 
 function getDaysFromStorage() {
@@ -142,6 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
 function startApp() {
   initNavigation();
 
+  // Автобэкап — тихо, раз в сутки
+  tryAutoBackup();
+
   setTimeout(async () => {
     try {
       const { checkAutoReminder } = await import("./screens/pdf-report.js");
@@ -175,7 +176,6 @@ function startApp() {
       history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
 
-      // Обновляем Инсайт дня после новой заметки
       render();
     });
   }
@@ -188,44 +188,44 @@ function startApp() {
 
   if (recordBtn && voiceStatus) {
     recordBtn.addEventListener("click", () => {
-  if (output) output.classList.remove("ai-message");
+      if (output) output.classList.remove("ai-message");
 
-  const timerEl = document.getElementById("voiceTimer");
-  recordBtn.disabled = true;
-  voiceStatus.textContent = t("voice_recording");
+      const timerEl = document.getElementById("voiceTimer");
+      recordBtn.disabled = true;
+      voiceStatus.textContent = t("voice_recording");
 
-  let countdown = 10;
-  if (timerEl) timerEl.textContent = countdown;
-
-  const countdownInterval = setInterval(() => {
-    countdown--;
-    if (countdown > 0) {
+      let countdown = 10;
       if (timerEl) timerEl.textContent = countdown;
-    } else {
-      clearInterval(countdownInterval);
-      if (timerEl) timerEl.textContent = "";
-    }
-  }, 1000);
 
-  const cleanup = () => {
-    clearInterval(countdownInterval);
-    if (timerEl) timerEl.textContent = "";
-    voiceStatus.textContent = "";
-    recordBtn.disabled = false;
-  };
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          if (timerEl) timerEl.textContent = countdown;
+        } else {
+          clearInterval(countdownInterval);
+          if (timerEl) timerEl.textContent = "";
+        }
+      }, 1000);
 
-  startVoiceRecording(voiceStatus, () => {
-    cleanup();
-    const result = analyzeLatestVoice();
-    if (result && voiceOutput) {
-      voiceOutput.textContent = result.insight;
-      voiceOutput.classList.add("ai-message");
-    }
-  }).catch(() => {
-    cleanup();
-    voiceStatus.textContent = "❌";
-  });
-});
+      const cleanup = () => {
+        clearInterval(countdownInterval);
+        if (timerEl) timerEl.textContent = "";
+        voiceStatus.textContent = "";
+        recordBtn.disabled = false;
+      };
+
+      startVoiceRecording(voiceStatus, () => {
+        cleanup();
+        const result = analyzeLatestVoice();
+        if (result && voiceOutput) {
+          voiceOutput.textContent = result.insight;
+          voiceOutput.classList.add("ai-message");
+        }
+      }).catch(() => {
+        cleanup();
+        voiceStatus.textContent = "❌";
+      });
+    });
   }
 }
 
