@@ -4,6 +4,9 @@ import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import { analyzeLatestVoice } from "./ai/voice-analysis.js";
+import { tryAutoBackup } from "./services/drive-backup.js";
+// в DOMContentLoaded или startApp():
+tryAutoBackup();
 import {
   getMoodHistory, saveMoodHistory,
   getNotesHistory, saveNotesHistory
