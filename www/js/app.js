@@ -119,22 +119,8 @@ function applyDomTranslations() {
   });
 }
 
-/* ---------- STORAGE VERSION CHECK ---------- */
-function checkStorageVersion() {
-  const CURRENT = "2";
-  const stored  = localStorage.getItem("app_version");
-  if (stored !== CURRENT) {
-    console.log("Storage version mismatch — clearing");
-    const lang = localStorage.getItem("app_language");
-    localStorage.clear();
-    if (lang) localStorage.setItem("app_language", lang);
-    localStorage.setItem("app_version", CURRENT);
-  }
-}
-
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  checkStorageVersion();
   initState();
   initUI();
   applyDomTranslations();
@@ -152,14 +138,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function startApp() {
   initNavigation();
 
-  setTimeout(async () => {
-    try {
-      const { checkAutoReminder } = await import("./screens/pdf-report.js");
-      checkAutoReminder();
-    } catch(e) {
-      console.warn("checkAutoReminder failed:", e);
-    }
-  }, 3000);
+  // checkAutoReminder — с таймаутом защиты от зависания
+  setTimeout(() => {
+    const timer = setTimeout(() => {
+      console.warn("checkAutoReminder timeout — skipping");
+    }, 2000);
+    import("./screens/pdf-report.js").then(m => {
+      clearTimeout(timer);
+      try { m.checkAutoReminder(); } catch(e) { console.warn("checkAutoReminder:", e); }
+    }).catch(e => {
+      clearTimeout(timer);
+      console.warn("pdf-report import failed:", e);
+    });
+  }, 5000);
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");
