@@ -119,8 +119,22 @@ function applyDomTranslations() {
   });
 }
 
+/* ---------- STORAGE VERSION CHECK ---------- */
+function checkStorageVersion() {
+  const CURRENT = "2";
+  const stored  = localStorage.getItem("app_version");
+  if (stored !== CURRENT) {
+    console.log("Storage version mismatch — clearing");
+    const lang = localStorage.getItem("app_language");
+    localStorage.clear();
+    if (lang) localStorage.setItem("app_language", lang);
+    localStorage.setItem("app_version", CURRENT);
+  }
+}
+
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+  checkStorageVersion();
   initState();
   initUI();
   applyDomTranslations();
