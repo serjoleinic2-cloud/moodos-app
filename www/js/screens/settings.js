@@ -5,7 +5,7 @@
 import { getProfile, saveProfile, saveMedReminder, removeMedReminder, getMedReminder } from "../services/user-profile.js";
 import { showPdfReportModal } from "./pdf-report.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
-import { createSafeBackup, restoreFromBackup, getLastBackupTime } from "../services/drive-backup.js";
+
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
@@ -22,7 +22,7 @@ function renderSettings() {
   const profile   = getProfile();
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
-  const lastTime  = getLastBackupTime();
+  
 
   const medLabels = {
     "нет": t("med_no"), "антидепрессанты": t("med_anti"),
@@ -105,7 +105,7 @@ function renderSettings() {
             <span class="neo-row-icon">☁️</span>
             <div>
               <div class="neo-row-label">Сохранить данные</div>
-              <div class="neo-row-sub">${lastTime ? "Последний: " + fmtTime(lastTime) : "Ещё не сохранялось"}</div>
+              <div class="neo-row-sub">Нет данных</div>
             </div>
           </div>
           <span class="neo-row-value" id="backupVal">Сохранить ›</span>
@@ -158,52 +158,9 @@ function bindEvents(el) {
   el.querySelector("#settingPdfReport")?.addEventListener("click", () => showPdfReportModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
 
-  // ── Бэкап — ТОЛЬКО по клику, async, не блокирует UI ──
-  el.querySelector("#settingBackup")?.addEventListener("click", async () => {
-    const valEl = el.querySelector("#backupVal");
-    if (valEl) valEl.textContent = "⏳ Создаю...";
-
-    console.log("Backup start");
-    const blob = await createSafeBackup();
-
-    if (!blob) {
-      console.log("Backup failed");
-      if (valEl) valEl.textContent = "❌ Ошибка";
-      setTimeout(() => { if (valEl) valEl.textContent = "Сохранить ›"; }, 3000);
-      return;
-    }
-
-    console.log("Backup done");
-    localStorage.setItem("last_auto_backup", String(Date.now()));
-
-    const date     = new Date();
-    const year     = date.getFullYear();
-    const firstDay = new Date(year, 0, 1);
-    const week     = Math.ceil((((date - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
-    const fileName = `MoodOS-backup-${year}-week${week}.json`;
-
-    try {
-      if (navigator.share) {
-        const file = new File([blob], fileName, { type: "application/json" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ title: "MoodOS Backup", files: [file] });
-          if (valEl) valEl.textContent = "✅ Отправлено";
-          setTimeout(() => refresh(), 2000);
-          return;
-        }
-      }
-    } catch (e) {
-      if (e.name === "AbortError") { if (valEl) valEl.textContent = "Сохранить ›"; return; }
-    }
-
-    // Скачивание
-    const url = URL.createObjectURL(blob);
-    const a   = document.createElement("a");
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    if (valEl) valEl.textContent = "✅ Скачано";
-    setTimeout(() => refresh(), 2000);
+  // ── ТЕСТ: просто alert, без бэкапа ──
+  el.querySelector("#settingBackup")?.addEventListener("click", () => {
+    alert("ok");
   });
 
   // ── Восстановить ──

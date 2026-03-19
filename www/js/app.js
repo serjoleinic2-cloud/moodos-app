@@ -227,7 +227,6 @@ function startApp() {
 /* ---------- HELPERS ---------- */
 export function updateStabilityHistory(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
-  setMood(mood);
   const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
