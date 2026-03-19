@@ -17,23 +17,21 @@ import {
 } from "./state.js";
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
-import { t, getDaysLabel, getLang } from "./i18n.js";
+import { t, getDaysLabel } from "./i18n.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
-  const today = new Date();
-  const todayStr = today.toDateString();
+  const todayStr    = new Date().toDateString();
   const moodHistory = getMoodHistory();
   const notesHistory = getNotesHistory();
-  const todayMoods = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
-  const todayNotes = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
+  const todayMoods  = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
+  const todayNotes  = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
 
-  if (todayMoods.length === 0 && todayNotes.length === 0) return t("insight_first");
+  if (!todayMoods.length && !todayNotes.length) return t("insight_first");
 
   const parts = [];
   const total = todayMoods.length + todayNotes.length;
-  if (total === 1) parts.push(t("insight_entries_1"));
-  else parts.push(t("insight_entries_many").replace("{n}", total));
+  parts.push(total === 1 ? t("insight_entries_1") : t("insight_entries_many").replace("{n}", total));
 
   if (todayMoods.length >= 2) {
     const first = todayMoods[0].value;
@@ -47,16 +45,14 @@ function buildDayInsight() {
   }
 
   if (todayNotes.length > 0) {
-    const lastNote = todayNotes[todayNotes.length - 1];
-    if (lastNote.result && lastNote.result.state) {
-      parts.push(t("insight_topic").replace("{s}", lastNote.result.state));
-    }
+    const last = todayNotes[todayNotes.length - 1];
+    if (last.result?.state) parts.push(t("insight_topic").replace("{s}", last.result.state));
   }
 
   return parts.join(" ");
 }
 
-/* ---------- RENDER ----------- */
+/* ---------- RENDER ---------- */
 function render() {
   const mood = getMood();
 
@@ -75,14 +71,12 @@ function render() {
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
-  // Инсайт дня
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
     insightEl.textContent = buildDayInsight();
     insightEl.removeAttribute("data-user-set");
   }
 
-  // Индекс устойчивости
   const history   = getMoodHistory();
   const stability = calculateStabilityScore(history);
   const trend     = calculateTrend(history);
@@ -91,12 +85,12 @@ function render() {
   if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
   if (trendEl) trendEl.textContent = trend;
 
-  // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
   if (goldenEl) {
     const g = calculateGoldenHour(history);
-    if (g === null) goldenEl.textContent = t("golden_studying");
-    else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
+    goldenEl.textContent = g
+      ? t("golden_peak").replace("{start}", g.start).replace("{end}", g.end)
+      : t("golden_studying");
   }
 }
 
@@ -105,10 +99,9 @@ function getDaysFromStorage() {
     const start = localStorage.getItem("startDate");
     if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
     return Math.max(1, Math.ceil((Date.now() - parseInt(start)) / 86400000));
-  } catch(e) { return 1; }
+  } catch { return 1; }
 }
 
-/* ---------- DOM TRANSLATIONS ---------- */
 function applyDomTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     if (el.getAttribute("data-user-set") === "true") return;
@@ -128,10 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyDomTranslations();
 
   if (!isOnboardingDone()) {
-    initOnboarding(() => {
-      applyDomTranslations();
-      startApp();
-    });
+    initOnboarding(() => { applyDomTranslations(); startApp(); });
   } else {
     startApp();
   }
@@ -140,16 +130,15 @@ document.addEventListener("DOMContentLoaded", () => {
 function startApp() {
   initNavigation();
 
-  // Автобэкап — тихо, раз в сутки
-  tryAutoBackup();
+  // Автобэкап — только ставит флаг, не блокирует UI, через 5 сек после старта
+  setTimeout(() => { try { tryAutoBackup(); } catch(e) {} }, 5000);
 
+  // PDF напоминания
   setTimeout(async () => {
     try {
       const { checkAutoReminder } = await import("./screens/pdf-report.js");
       checkAutoReminder();
-    } catch(e) {
-      console.warn("checkAutoReminder failed:", e);
-    }
+    } catch(e) { console.warn("checkAutoReminder:", e); }
   }, 3000);
 
   const btn         = document.getElementById("analyzeNoteBtn");
@@ -175,7 +164,6 @@ function startApp() {
       const history = getNotesHistory();
       history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
-
       render();
     });
   }
@@ -199,12 +187,8 @@ function startApp() {
 
       const countdownInterval = setInterval(() => {
         countdown--;
-        if (countdown > 0) {
-          if (timerEl) timerEl.textContent = countdown;
-        } else {
-          clearInterval(countdownInterval);
-          if (timerEl) timerEl.textContent = "";
-        }
+        if (countdown > 0) { if (timerEl) timerEl.textContent = countdown; }
+        else { clearInterval(countdownInterval); if (timerEl) timerEl.textContent = ""; }
       }, 1000);
 
       const cleanup = () => {
@@ -221,10 +205,7 @@ function startApp() {
           voiceOutput.textContent = result.insight;
           voiceOutput.classList.add("ai-message");
         }
-      }).catch(() => {
-        cleanup();
-        voiceStatus.textContent = "❌";
-      });
+      }).catch(() => { cleanup(); voiceStatus.textContent = "❌"; });
     });
   }
 }
@@ -233,10 +214,9 @@ function startApp() {
 export function updateStabilityHistory(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
   setMood(mood);
-  const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
-  history.push({ value: mood, state, time: now });
+  history.push({ value: mood, state, time: Date.now() });
   if (history.length > 730) history.shift();
   saveMoodHistory(history);
   render();
