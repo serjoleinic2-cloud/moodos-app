@@ -70,7 +70,6 @@ function render() {
 
   const moodSlider = document.getElementById("moodSlider");
 
-
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
@@ -178,7 +177,6 @@ function startApp() {
   }
 
   render();
-
 
   const recordBtn   = document.getElementById("recordVoiceBtn");
   const voiceStatus = document.getElementById("voiceStatus");

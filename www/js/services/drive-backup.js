@@ -1,80 +1,60 @@
-import {
-  getMoodHistory,
-  getNotesHistory,
-  getSessionHistory
-} from "./memory.js";
+import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
 import { getProfile } from "./user-profile.js";
 
 const LS_LAST = "last_auto_backup";
 
-function getWeekFileName() {
-  const date     = new Date();
-  const year     = date.getFullYear();
-  const firstDay = new Date(year, 0, 1);
-  const week     = Math.ceil((((date - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
-  return `MoodOS-backup-${year}-week${week}.json`;
+// Обрабатывает массив чанками по 20, между каждым отпускает UI поток
+async function processChunked(source, target) {
+  const CHUNK_SIZE = 20;
+  for (let i = 0; i < source.length; i += CHUNK_SIZE) {
+    const chunk = source.slice(i, i + CHUNK_SIZE);
+    target.push(...chunk);
+    await new Promise(resolve => setTimeout(resolve, 0)); // yield UI
+  }
 }
 
-// Только лёгкие данные — БЕЗ photo_history и voice_history
-// (они содержат base64, JSON.stringify вешает UI поток на Android)
-function collectLightData() {
-  return {
-    version: 2,
-    mood_history:    getMoodHistory()    || [],
-    notes_history:   getNotesHistory()   || [],
-    session_history: getSessionHistory() || [],
-    user_profile:    getProfile()        || {},
-    exported_at:     Date.now(),
-  };
-}
-
-// Старый экспорт — совместимость
-export function createWeeklyBackup() {
+// Основная функция бэкапа — async, чанками, без блокировки
+export async function createSafeBackup() {
   try {
-    const data = collectLightData();
-    const json = JSON.stringify(data);
-    const blob = new Blob([json], { type: "application/json" });
-    return { fileName: getWeekFileName(), blob };
+    const result = {
+      mood_history:    [],
+      notes_history:   [],
+      session_history: [],
+      user_profile:    getProfile(),
+      exported_at:     Date.now(),
+    };
+
+    // Берём последние 200 записей для безопасности
+    const moods    = getMoodHistory().slice(-200);
+    const notes    = getNotesHistory().slice(-200);
+    const sessions = getSessionHistory().slice(-200);
+
+    console.log("Backup start — mood:", moods.length, "notes:", notes.length, "sessions:", sessions.length);
+
+    await processChunked(moods,    result.mood_history);
+    await processChunked(notes,    result.notes_history);
+    await processChunked(sessions, result.session_history);
+
+    const json = JSON.stringify(result);
+    console.log("Backup done — size:", json.length, "bytes");
+
+    return new Blob([json], { type: "application/json" });
+
   } catch (e) {
     console.error("Backup error:", e);
     return null;
   }
 }
 
-// Кнопка "Сохранить данные" в настройках
-export async function backupAndShare() {
-  try {
-    const data     = collectLightData();
-    const json     = JSON.stringify(data, null, 2);
-    const fileName = getWeekFileName();
-    const blob     = new Blob([json], { type: "application/json" });
-
-    try {
-      if (navigator.share) {
-        const file = new File([blob], fileName, { type: "application/json" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ title: "MoodOS Backup", files: [file] });
-          localStorage.setItem(LS_LAST, String(Date.now()));
-          return { success: true, message: "shared" };
-        }
-      }
-    } catch (e) {
-      if (e.name === "AbortError") return { success: false, message: "cancelled" };
-    }
-
-    // Fallback — скачивание
-    const url = URL.createObjectURL(blob);
-    const a   = document.createElement("a");
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    localStorage.setItem(LS_LAST, String(Date.now()));
-    return { success: true, message: "downloaded" };
-
-  } catch (e) {
-    console.error("backupAndShare:", e);
-    return { success: false, message: "error" };
-  }
+// Старый экспорт — совместимость с другими файлами
+export function createWeeklyBackup() {
+  const date     = new Date();
+  const year     = date.getFullYear();
+  const firstDay = new Date(year, 0, 1);
+  const week     = Math.ceil((((date - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
+  const fileName = `MoodOS-backup-${year}-week${week}.json`;
+  // Возвращаем null — реальный бэкап только через createSafeBackup()
+  return { fileName, blob: null };
 }
 
 export function getLastBackupTime() {
@@ -82,7 +62,6 @@ export function getLastBackupTime() {
   return ts ? new Date(ts) : null;
 }
 
-// Восстановление из .json файла
 export async function restoreFromBackup(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();

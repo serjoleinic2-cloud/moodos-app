@@ -2,16 +2,10 @@
 // MoodOS Settings Screen
 // =====================================
 
-import {
-  getProfile,
-  saveProfile,
-  saveMedReminder,
-  removeMedReminder,
-  getMedReminder,
-} from "../services/user-profile.js";
+import { getProfile, saveProfile, saveMedReminder, removeMedReminder, getMedReminder } from "../services/user-profile.js";
 import { showPdfReportModal } from "./pdf-report.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
-import { backupAndShare, restoreFromBackup, getLastBackupTime } from "../services/drive-backup.js";
+import { createSafeBackup, restoreFromBackup, getLastBackupTime } from "../services/drive-backup.js";
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
@@ -62,7 +56,7 @@ function renderSettings() {
       .modal-title { font-size: 18px; font-weight: 700; color: #3d3d3d; margin-bottom: 6px; }
       .modal-subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
       .modal-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-      .modal-option { padding: 13px 16px; border-radius: 14px; background: rgba(232,237,230,0.9); box-shadow: 4px 4px 9px #b8c4b4, -4px -4px 9px #ffffff; font-size: 15px; color: #555; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: box-shadow 0.15s, color 0.15s; }
+      .modal-option { padding: 13px 16px; border-radius: 14px; background: rgba(232,237,230,0.9); box-shadow: 4px 4px 9px #b8c4b4, -4px -4px 9px #ffffff; font-size: 15px; color: #555; cursor: pointer; }
       .modal-option.selected { box-shadow: inset 3px 3px 7px #b8c4b4, inset -3px -3px 7px #ffffff; color: #7eb8d4; font-weight: 600; }
       .modal-save-btn { width: 100%; padding: 15px; border: none; border-radius: 16px; background: rgba(232,237,230,0.9); box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff; font-size: 16px; font-weight: 700; color: #7eb8d4; cursor: pointer; display: block; box-sizing: border-box; }
       .modal-cancel { width: 100%; padding: 12px; text-align: center; font-size: 14px; color: #bbb; cursor: pointer; margin-top: 8px; }
@@ -71,82 +65,51 @@ function renderSettings() {
     <div class="settings-wrap">
       <div class="settings-title">${t("settings_title")}</div>
 
-      <!-- ЗДОРОВЬЕ -->
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_health")}</div>
-
         <div class="neo-row" id="settingMeds">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">💊</span>
-            <div><div class="neo-row-label">${t("settings_meds_label")}</div></div>
-          </div>
+          <div class="neo-row-left"><span class="neo-row-icon">💊</span><div><div class="neo-row-label">${t("settings_meds_label")}</div></div></div>
           <span class="neo-row-value">${medLabels[profile?.takesMeds] || t("med_not_said")} ›</span>
         </div>
-
         ${takesMeds ? `
         <div class="neo-row" id="settingEffect">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">🔍</span>
-            <span class="neo-row-label">${t("settings_effect_label")}</span>
-          </div>
+          <div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">${t("settings_effect_label")}</span></div>
           <span class="neo-row-value">${effectLabels[profile?.medEffect] || t("med_not_said")} ›</span>
         </div>
         <div class="neo-row" id="settingReminder">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">⏰</span>
-            <span class="neo-row-label">${t("settings_reminder_label")}</span>
-          </div>
+          <div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">${t("settings_reminder_label")}</span></div>
           <span class="neo-row-value">${reminder?.active ? (reminderLabels[profile?.medReminder] || t("settings_reminder_on")) : t("settings_reminder_off")} ›</span>
         </div>` : ""}
       </div>
 
-      <!-- ПРИЛОЖЕНИЕ -->
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_app")}</div>
-
         <div class="neo-row" id="settingBaseFeeling">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">🎯</span>
-            <span class="neo-row-label">${t("settings_baseline_label")}</span>
-          </div>
+          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">${t("settings_baseline_label")}</span></div>
           <span class="neo-row-value">${profile?.moodBaseline ?? 50}% ›</span>
         </div>
-
         <div class="neo-row" id="settingLanguage">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">🌍</span>
-            <span class="neo-row-label">${t("settings_language_label")}</span>
-          </div>
-          <span class="neo-row-value">
-            ${LANG_OPTIONS.find(l => l.code === getLang())?.flag || "🌍"}
-            ${LANG_OPTIONS.find(l => l.code === getLang())?.label || "Русский"} ›
-          </span>
+          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">${t("settings_language_label")}</span></div>
+          <span class="neo-row-value">${LANG_OPTIONS.find(l=>l.code===getLang())?.flag||"🌍"} ${LANG_OPTIONS.find(l=>l.code===getLang())?.label||"Русский"} ›</span>
         </div>
       </div>
 
-      <!-- ДАННЫЕ -->
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_data")}</div>
-
         <div class="neo-row" id="settingPdfReport">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">📄</span>
-            <span class="neo-row-label">${t("settings_pdf_label")}</span>
-          </div>
+          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">${t("settings_pdf_label")}</span></div>
           <span class="neo-row-value">PDF ›</span>
         </div>
-
         <div class="neo-row" id="settingBackup">
           <div class="neo-row-left">
             <span class="neo-row-icon">☁️</span>
             <div>
               <div class="neo-row-label">Сохранить данные</div>
-              <div class="neo-row-sub">${lastTime ? "Последний: " + fmtTime(lastTime) : "Резервная копия не создавалась"}</div>
+              <div class="neo-row-sub">${lastTime ? "Последний: " + fmtTime(lastTime) : "Ещё не сохранялось"}</div>
             </div>
           </div>
           <span class="neo-row-value" id="backupVal">Сохранить ›</span>
         </div>
-
         <div class="neo-row" id="settingRestore">
           <div class="neo-row-left">
             <span class="neo-row-icon">📥</span>
@@ -157,7 +120,6 @@ function renderSettings() {
           </div>
           <span class="neo-row-value">›</span>
         </div>
-
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
     </div>
@@ -168,78 +130,95 @@ function bindEvents(el) {
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({ title: t("meds_intake"), subtitle: t("settings_meds_subtitle"), field: "takesMeds",
       options: [
-        { value: "нет",             label: t("ob_meds_no") },
-        { value: "антидепрессанты", label: t("ob_meds_anti") },
-        { value: "седативные",      label: t("ob_meds_sed") },
-        { value: "другое",          label: t("ob_meds_other") },
-        { value: "не_скажу",        label: t("ob_meds_skip") },
+        { value: "нет", label: t("ob_meds_no") }, { value: "антидепрессанты", label: t("ob_meds_anti") },
+        { value: "седативные", label: t("ob_meds_sed") }, { value: "другое", label: t("ob_meds_other") },
+        { value: "не_скажу", label: t("ob_meds_skip") },
       ]
     });
   });
-
   el.querySelector("#settingEffect")?.addEventListener("click", () => {
     showModal({ title: t("settings_effect_title"), subtitle: t("settings_effect_subtitle"), field: "medEffect",
       options: [
-        { value: "лучше",           label: t("ob_effect_better") },
-        { value: "примерно_так_же", label: t("ob_effect_same") },
-        { value: "приглушённость",  label: t("ob_effect_numb") },
-        { value: "побочки",         label: t("ob_effect_side") },
-        { value: "адаптация",       label: t("ob_effect_adapt") },
+        { value: "лучше", label: t("ob_effect_better") }, { value: "примерно_так_же", label: t("ob_effect_same") },
+        { value: "приглушённость", label: t("ob_effect_numb") }, { value: "побочки", label: t("ob_effect_side") },
+        { value: "адаптация", label: t("ob_effect_adapt") },
       ]
     });
   });
-
   el.querySelector("#settingReminder")?.addEventListener("click", () => {
     showModal({ title: t("med_reminder"), subtitle: t("settings_reminder_subtitle"), field: "medReminder",
       options: [
-        { value: "нет",   label: t("ob_reminder_no") },
-        { value: "утро",  label: t("ob_reminder_morning") },
-        { value: "день",  label: t("ob_reminder_day") },
-        { value: "вечер", label: t("ob_reminder_evening") },
+        { value: "нет", label: t("ob_reminder_no") }, { value: "утро", label: t("ob_reminder_morning") },
+        { value: "день", label: t("ob_reminder_day") }, { value: "вечер", label: t("ob_reminder_evening") },
       ],
-      onSave: (value) => {
-        const times = { утро: "08:00", день: "13:00", вечер: "20:00" };
-        if (times[value]) saveMedReminder(times[value]); else removeMedReminder();
-      }
+      onSave: (v) => { const times={утро:"08:00",день:"13:00",вечер:"20:00"}; if(times[v]) saveMedReminder(times[v]); else removeMedReminder(); }
     });
   });
-
   el.querySelector("#settingBaseFeeling")?.addEventListener("click", showBaselineModal);
   el.querySelector("#settingPdfReport")?.addEventListener("click", () => showPdfReportModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
 
-  // ── Сохранить данные ─────────────────────────────────────────
+  // ── Бэкап — ТОЛЬКО по клику, async, не блокирует UI ──
   el.querySelector("#settingBackup")?.addEventListener("click", async () => {
     const valEl = el.querySelector("#backupVal");
-    if (valEl) valEl.textContent = "⏳...";
+    if (valEl) valEl.textContent = "⏳ Создаю...";
 
-    const result = await backupAndShare();
+    console.log("Backup start");
+    const blob = await createSafeBackup();
 
-    if (!valEl) return;
-    if (result.message === "cancelled") {
-      valEl.textContent = "Сохранить ›";
-    } else if (result.success) {
-      valEl.textContent = result.message === "shared" ? "✅ Отправлено" : "✅ Скачано";
-      setTimeout(() => {
-        const el2 = document.querySelector('[data-screen="settings"]');
-        if (el2) { el2.innerHTML = renderSettings(); bindEvents(el2); }
-      }, 2000);
-    } else {
-      valEl.textContent = "❌ Ошибка";
-      setTimeout(() => { valEl.textContent = "Сохранить ›"; }, 3000);
+    if (!blob) {
+      console.log("Backup failed");
+      if (valEl) valEl.textContent = "❌ Ошибка";
+      setTimeout(() => { if (valEl) valEl.textContent = "Сохранить ›"; }, 3000);
+      return;
     }
+
+    console.log("Backup done");
+    localStorage.setItem("last_auto_backup", String(Date.now()));
+
+    const date     = new Date();
+    const year     = date.getFullYear();
+    const firstDay = new Date(year, 0, 1);
+    const week     = Math.ceil((((date - firstDay) / 86400000) + firstDay.getDay() + 1) / 7);
+    const fileName = `MoodOS-backup-${year}-week${week}.json`;
+
+    try {
+      if (navigator.share) {
+        const file = new File([blob], fileName, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: "MoodOS Backup", files: [file] });
+          if (valEl) valEl.textContent = "✅ Отправлено";
+          setTimeout(() => refresh(), 2000);
+          return;
+        }
+      }
+    } catch (e) {
+      if (e.name === "AbortError") { if (valEl) valEl.textContent = "Сохранить ›"; return; }
+    }
+
+    // Скачивание
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement("a");
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    if (valEl) valEl.textContent = "✅ Скачано";
+    setTimeout(() => refresh(), 2000);
   });
 
-  // ── Восстановить ─────────────────────────────────────────────
-  const restoreBtn   = el.querySelector("#settingRestore");
-  const restoreInput = el.querySelector("#restoreFileInput");
-  restoreBtn?.addEventListener("click", () => restoreInput?.click());
-  restoreInput?.addEventListener("change", (e) => {
+  // ── Восстановить ──
+  el.querySelector("#settingRestore")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
+  el.querySelector("#restoreFileInput")?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
     showRestoreConfirmModal(file);
   });
+}
+
+function refresh() {
+  const el = document.querySelector('[data-screen="settings"]');
+  if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
 }
 
 function showRestoreConfirmModal(file) {
@@ -254,10 +233,9 @@ function showRestoreConfirmModal(file) {
       <div class="modal-cancel" id="restoreCancel">Отмена</div>
     </div>`;
   document.body.appendChild(overlay);
-
   overlay.querySelector("#restoreConfirm").addEventListener("click", async () => {
     const btn = overlay.querySelector("#restoreConfirm");
-    btn.textContent = "⏳ Восстанавливаю..."; btn.disabled = true;
+    btn.textContent = "⏳..."; btn.disabled = true;
     const result = await restoreFromBackup(file);
     overlay.remove();
     if (result.success) {
@@ -283,28 +261,21 @@ function showModal({ title, subtitle, field, options, onSave }) {
     <div class="health-modal">
       <div class="modal-title">${title}</div>
       <div class="modal-subtitle">${subtitle}</div>
-      <div class="modal-options">
-        ${options.map(o => `<div class="modal-option ${o.value === current ? "selected" : ""}" data-value="${o.value}">${o.label}</div>`).join("")}
-      </div>
+      <div class="modal-options">${options.map(o=>`<div class="modal-option ${o.value===current?"selected":""}" data-value="${o.value}">${o.label}</div>`).join("")}</div>
       <button class="modal-save-btn" id="modalSave">${t("save")}</button>
       <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
   document.body.appendChild(overlay);
   let selected = current;
   overlay.querySelectorAll(".modal-option").forEach(opt => {
-    opt.addEventListener("click", () => {
-      overlay.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
-      opt.classList.add("selected"); selected = opt.dataset.value;
-    });
+    opt.addEventListener("click", () => { overlay.querySelectorAll(".modal-option").forEach(o=>o.classList.remove("selected")); opt.classList.add("selected"); selected=opt.dataset.value; });
   });
   overlay.querySelector("#modalSave").addEventListener("click", () => {
-    if (selected) { saveProfile({ ...profile, [field]: selected }); if (onSave) onSave(selected); }
-    overlay.remove();
-    const el = document.querySelector('[data-screen="settings"]');
-    if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
+    if (selected) { saveProfile({...profile,[field]:selected}); if(onSave) onSave(selected); }
+    overlay.remove(); refresh();
   });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
 }
 
 function showLanguageModal(el) {
@@ -315,26 +286,18 @@ function showLanguageModal(el) {
     <div class="health-modal">
       <div class="modal-title">🌍 Язык / Language</div>
       <div class="modal-subtitle">${t("settings_lang_subtitle")}</div>
-      <div class="modal-options">
-        ${LANG_OPTIONS.map(l => `<div class="modal-option ${l.code === current ? "selected" : ""}" data-value="${l.code}"><span style="font-size:20px;margin-right:10px;">${l.flag}</span>${l.label}</div>`).join("")}
-      </div>
+      <div class="modal-options">${LANG_OPTIONS.map(l=>`<div class="modal-option ${l.code===current?"selected":""}" data-value="${l.code}"><span style="font-size:20px;margin-right:10px;">${l.flag}</span>${l.label}</div>`).join("")}</div>
       <button class="modal-save-btn" id="modalSave">Сохранить / Save</button>
       <div class="modal-cancel" id="modalCancel">Отмена / Cancel</div>
     </div>`;
   document.body.appendChild(overlay);
   let selected = current;
   overlay.querySelectorAll(".modal-option").forEach(opt => {
-    opt.addEventListener("click", () => {
-      overlay.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
-      opt.classList.add("selected"); selected = opt.dataset.value;
-    });
+    opt.addEventListener("click", () => { overlay.querySelectorAll(".modal-option").forEach(o=>o.classList.remove("selected")); opt.classList.add("selected"); selected=opt.dataset.value; });
   });
-  overlay.querySelector("#modalSave").addEventListener("click", () => {
-    setLang(selected); overlay.remove();
-    setTimeout(() => { window.location.href = window.location.href; }, 100);
-  });
+  overlay.querySelector("#modalSave").addEventListener("click", () => { setLang(selected); overlay.remove(); setTimeout(()=>{window.location.href=window.location.href;},100); });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
 }
 
 function showBaselineModal() {
@@ -346,7 +309,7 @@ function showBaselineModal() {
     <div class="health-modal">
       <div class="modal-title">${t("settings_baseline_title")}</div>
       <div class="modal-subtitle">${t("settings_baseline_subtitle")}</div>
-      <div style="background:rgba(232,237,230,0.9);border-radius:16px;box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;padding:20px;margin-bottom:20px;">
+      <div style="background:rgba(232,237,230,0.9);border-radius:16px;box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #fff;padding:20px;margin-bottom:20px;">
         <div style="text-align:center;font-size:28px;font-weight:800;color:#555;margin-bottom:12px;"><span id="baselineVal">${current}%</span></div>
         <input type="range" id="baselineSlider" min="0" max="100" value="${current}" style="width:100%;accent-color:#7eb8d4;">
       </div>
@@ -355,14 +318,8 @@ function showBaselineModal() {
     </div>`;
   document.body.appendChild(overlay);
   const slider = overlay.querySelector("#baselineSlider");
-  const val    = overlay.querySelector("#baselineVal");
-  slider.addEventListener("input", () => { val.textContent = slider.value + "%"; });
-  overlay.querySelector("#modalSave").addEventListener("click", () => {
-    saveProfile({ ...profile, moodBaseline: Number(slider.value) });
-    overlay.remove();
-    const el = document.querySelector('[data-screen="settings"]');
-    if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
-  });
+  slider.addEventListener("input", () => { overlay.querySelector("#baselineVal").textContent = slider.value+"%"; });
+  overlay.querySelector("#modalSave").addEventListener("click", () => { saveProfile({...profile,moodBaseline:Number(slider.value)}); overlay.remove(); refresh(); });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
 }
