@@ -12,20 +12,34 @@ import {
   calculateStabilityScore, calculateTrend, calculateGoldenHour
 } from "./services/analytics.js";
 import {
-  initState, getUsageDays, getMood, setMood, subscribe
+  initState, getUsageDays, getMood
 } from "./state.js";
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
-import { t, getDaysLabel, getLang } from "./i18n.js";
+import { t, getDaysLabel } from "./i18n.js";
+
+/* ---------- STORAGE VERSION ---------- */
+function checkStorageVersion() {
+  try {
+    const CURRENT = "3";
+    const stored  = localStorage.getItem("app_version");
+    if (stored !== CURRENT) {
+      const lang = localStorage.getItem("app_language");
+      localStorage.clear();
+      if (lang) localStorage.setItem("app_language", lang);
+      localStorage.setItem("app_version", CURRENT);
+      console.log("Storage cleared — fresh start");
+    }
+  } catch(e) {}
+}
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
-  const today = new Date();
-  const todayStr = today.toDateString();
+  const todayStr    = new Date().toDateString();
   const moodHistory = getMoodHistory();
   const notesHistory = getNotesHistory();
-  const todayMoods = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
-  const todayNotes = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
+  const todayMoods  = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
+  const todayNotes  = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
 
   if (todayMoods.length === 0 && todayNotes.length === 0) return t("insight_first");
 
@@ -55,7 +69,7 @@ function buildDayInsight() {
   return parts.join(" ");
 }
 
-/* ---------- RENDER ----------- */
+/* ---------- RENDER ---------- */
 function render() {
   const mood = getMood();
 
@@ -65,23 +79,21 @@ function render() {
     daysEl.textContent = `${t("home_days")} ${days} ${getDaysLabel(days)}`;
   }
 
-  const moodValue = document.getElementById("moodValue");
-  if (moodValue) moodValue.textContent = mood + "%";
+  const moodValueEl = document.getElementById("moodValue");
+  if (moodValueEl) moodValueEl.textContent = mood + "%";
 
-  const moodSlider = document.getElementById("moodSlider");
+  // НЕ трогаем moodSlider.value — вешает WebView
 
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
-  // Инсайт дня — итог дня
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
     insightEl.textContent = buildDayInsight();
     insightEl.removeAttribute("data-user-set");
   }
 
-  // Индекс устойчивости
-  const history = getMoodHistory();
+  const history   = getMoodHistory();
   const stability = calculateStabilityScore(history);
   const trend     = calculateTrend(history);
   const valueEl   = document.getElementById("stabilityValue");
@@ -89,13 +101,13 @@ function render() {
   if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
   if (trendEl) trendEl.textContent = trend;
 
-  // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
-if (goldenEl) {
-  const g = calculateGoldenHour(history);
-  if (g === null) goldenEl.textContent = t("golden_studying");
-  else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
-}
+  if (goldenEl) {
+    const g = calculateGoldenHour(history);
+    goldenEl.textContent = g
+      ? t("golden_peak").replace("{start}", g.start).replace("{end}", g.end)
+      : t("golden_studying");
+  }
 }
 
 function getDaysFromStorage() {
@@ -106,7 +118,6 @@ function getDaysFromStorage() {
   } catch(e) { return 1; }
 }
 
-/* ---------- DOM TRANSLATIONS ---------- */
 function applyDomTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     if (el.getAttribute("data-user-set") === "true") return;
@@ -121,6 +132,7 @@ function applyDomTranslations() {
 
 /* ---------- BOOT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+  checkStorageVersion(); // сброс старых данных WebView при переустановке
   initState();
   initUI();
   applyDomTranslations();
@@ -137,8 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function startApp() {
   initNavigation();
-
-  // checkAutoReminder вызывается из navigation.js
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");
@@ -163,8 +173,6 @@ function startApp() {
       const history = getNotesHistory();
       history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
-
-      // Обновляем Инсайт дня после новой заметки
       render();
     });
   }
@@ -176,54 +184,53 @@ function startApp() {
 
   if (recordBtn && voiceStatus) {
     recordBtn.addEventListener("click", () => {
-  if (output) output.classList.remove("ai-message");
+      if (output) output.classList.remove("ai-message");
 
-  const timerEl = document.getElementById("voiceTimer");
-  recordBtn.disabled = true;
-  voiceStatus.textContent = t("voice_recording");
+      const timerEl = document.getElementById("voiceTimer");
+      recordBtn.disabled = true;
+      voiceStatus.textContent = t("voice_recording");
 
-  let countdown = 10;
-  if (timerEl) timerEl.textContent = countdown;
-
-  const countdownInterval = setInterval(() => {
-    countdown--;
-    if (countdown > 0) {
+      let countdown = 10;
       if (timerEl) timerEl.textContent = countdown;
-    } else {
-      clearInterval(countdownInterval);
-      if (timerEl) timerEl.textContent = "";
-    }
-  }, 1000);
 
-  const cleanup = () => {
-    clearInterval(countdownInterval);
-    if (timerEl) timerEl.textContent = "";
-    voiceStatus.textContent = "";
-    recordBtn.disabled = false;
-  };
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          if (timerEl) timerEl.textContent = countdown;
+        } else {
+          clearInterval(countdownInterval);
+          if (timerEl) timerEl.textContent = "";
+        }
+      }, 1000);
 
-  startVoiceRecording(voiceStatus, () => {
-    cleanup();
-    const result = analyzeLatestVoice();
-    if (result && voiceOutput) {
-      voiceOutput.textContent = result.insight;
-      voiceOutput.classList.add("ai-message");
-    }
-  }).catch(() => {
-    cleanup();
-    voiceStatus.textContent = "❌";
-  });
-});
+      const cleanup = () => {
+        clearInterval(countdownInterval);
+        if (timerEl) timerEl.textContent = "";
+        voiceStatus.textContent = "";
+        recordBtn.disabled = false;
+      };
+
+      startVoiceRecording(voiceStatus, () => {
+        cleanup();
+        const result = analyzeLatestVoice();
+        if (result && voiceOutput) {
+          voiceOutput.textContent = result.insight;
+          voiceOutput.classList.add("ai-message");
+        }
+      }).catch(() => {
+        cleanup();
+        voiceStatus.textContent = "❌";
+      });
+    });
   }
 }
 
 /* ---------- HELPERS ---------- */
 export function updateStabilityHistory(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
-  const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
-  history.push({ value: mood, state, time: now });
+  history.push({ value: mood, state, time: Date.now() });
   if (history.length > 730) history.shift();
   saveMoodHistory(history);
   render();
