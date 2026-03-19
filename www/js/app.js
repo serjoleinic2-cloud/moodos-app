@@ -138,19 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function startApp() {
   initNavigation();
 
-  // checkAutoReminder — с таймаутом защиты от зависания
-  setTimeout(() => {
-    const timer = setTimeout(() => {
-      console.warn("checkAutoReminder timeout — skipping");
-    }, 2000);
-    import("./screens/pdf-report.js").then(m => {
-      clearTimeout(timer);
-      try { m.checkAutoReminder(); } catch(e) { console.warn("checkAutoReminder:", e); }
-    }).catch(e => {
-      clearTimeout(timer);
-      console.warn("pdf-report import failed:", e);
-    });
-  }, 5000);
+  // checkAutoReminder вызывается из navigation.js
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");

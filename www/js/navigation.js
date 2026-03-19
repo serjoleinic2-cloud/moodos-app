@@ -1,5 +1,3 @@
-import { checkAutoReminder } from "./screens/pdf-report.js";
-
 // ============================================================
 // closeAllOverlays — живёт здесь, используется навигацией
 // ============================================================
@@ -156,8 +154,12 @@ export function initNavigation() {
     btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); openScreen(btn.dataset.nav); });
   });
 
-  // Push-напоминания инициализируем здесь
-  setTimeout(() => { try { checkAutoReminder(); } catch(e) {} }, 3000);
+  // Push-напоминания — динамический импорт, не блокирует старт
+  setTimeout(() => {
+    import("./screens/pdf-report.js").then(m => {
+      try { m.checkAutoReminder(); } catch(e) {}
+    }).catch(() => {});
+  }, 8000);
 
   openScreen("home");
 }
