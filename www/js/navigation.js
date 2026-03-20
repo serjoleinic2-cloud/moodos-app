@@ -8,10 +8,12 @@ export function closeAllOverlays() {
 }
 
 export function initNavigation() {
+  console.log("[NAV] initNavigation started");
 
   const buttons        = document.querySelectorAll("[data-nav]");
   const screenElements = document.querySelectorAll("[data-screen]");
 
+  console.log("[NAV] buttons found:", buttons.length, "screens found:", screenElements.length);
   if (!buttons.length || !screenElements.length) return;
 
   let currentScreen = null;

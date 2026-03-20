@@ -3,7 +3,6 @@ import { getMood, setMood } from "../state.js";
 import { getMoodHistory, saveMoodHistory } from "../services/memory.js";
 import { t } from "../i18n.js";
 
-// Локальная версия updateStabilityHistory — разрывает циклический импорт app.js↔home.js
 function saveAndRender(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
   setMood(mood);
@@ -18,31 +17,19 @@ export function onEnter() {
   const slider     = document.getElementById("moodSlider");
   const valueLabel = document.getElementById("moodValue");
   const savedLabel = document.getElementById("moodSavedLabel");
+  const confirmBtn = document.getElementById("moodConfirmBtn");
 
-  if (!slider) return;
+  if (!slider || !confirmBtn) return;
 
-  // НЕ пишем slider.value — это триггерит events на Android WebView
-  // Текущее значение берём из state и показываем только в label
   const currentMood = getMood();
   if (valueLabel) valueLabel.textContent = currentMood + "%";
 
-  // Клонируем слайдер — убиваем старые слушатели
-  const newSlider = slider.cloneNode(true);
-  slider.parentNode.replaceChild(newSlider, slider);
-  newSlider.id = "moodSlider";
-
-  newSlider.addEventListener("input", () => {
-    if (valueLabel) valueLabel.textContent = newSlider.value + "%";
+  slider.addEventListener("input", () => {
+    if (valueLabel) valueLabel.textContent = slider.value + "%";
   });
 
-  // Клонируем кнопку — убиваем старые слушатели
-  const confirmBtn = document.getElementById("moodConfirmBtn");
-  if (!confirmBtn) return;
-  const newBtn = confirmBtn.cloneNode(true);
-  confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-
-  newBtn.addEventListener("click", () => {
-    const moodValue = Number(newSlider.value);
+  confirmBtn.addEventListener("click", () => {
+    const moodValue = Number(slider.value);
     saveAndRender(moodValue);
 
     const now  = new Date();

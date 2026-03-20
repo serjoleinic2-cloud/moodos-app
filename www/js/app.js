@@ -17,155 +17,26 @@ import {
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel } from "./i18n.js";
-import { App } from "@capacitor/app";
 
-/* ---------- STORAGE VERSION ---------- */
-const LS_INSTALL_ID = "app_install_id";
-const LS_VERSION    = "app_version_v2";
+/* ---------- FRESH INSTALL CHECK ---------- */
+const LS_APP_ID = "moodos_app_id";
+const CURRENT_APP_ID = "20260320";
 
-function getOrCreateInstallId() {
-  let id = localStorage.getItem(LS_INSTALL_ID);
-  if (!id) {
-    id = Date.now().toString(36) + Math.random().toString(36).slice(2);
-    localStorage.setItem(LS_INSTALL_ID, id);
+function checkFreshInstall() {
+  const storedId = localStorage.getItem(LS_APP_ID);
+  if (storedId !== CURRENT_APP_ID) {
+    const lang = localStorage.getItem("app_language");
+    localStorage.clear();
+    if (lang) localStorage.setItem("app_language", lang);
+    localStorage.setItem(LS_APP_ID, CURRENT_APP_ID);
+    console.log("Fresh install — storage cleared");
   }
-  return id;
-}
-
-async function checkFreshInstall() {
-  try {
-    const result = await App.getState();
-    if (result && result.isActive) {
-      const installId = getOrCreateInstallId();
-      const storedId   = sessionStorage.getItem("cap_install_id");
-      if (!storedId) {
-        sessionStorage.setItem("cap_install_id", installId);
-        const lang = localStorage.getItem("app_language");
-        localStorage.clear();
-        if (lang) localStorage.setItem("app_language", lang);
-        localStorage.setItem(LS_INSTALL_ID, installId);
-        console.log("Fresh install detected — storage cleared");
-      }
-    }
-  } catch (e) {
-    checkStorageVersionLegacy();
-  }
-}
-
-function checkStorageVersionLegacy() {
-  try {
-    const CURRENT = "2";
-    const stored  = localStorage.getItem(LS_VERSION);
-    if (stored !== CURRENT) {
-      const lang = localStorage.getItem("app_language");
-      localStorage.clear();
-      if (lang) localStorage.setItem("app_language", lang);
-      localStorage.setItem(LS_VERSION, CURRENT);
-      console.log("Storage cleared — version mismatch");
-    }
-  } catch (e) {}
-}
-
-/* ---------- ИНСАЙТ ДНЯ ---------- */
-function buildDayInsight() {
-  const todayStr    = new Date().toDateString();
-  const moodHistory = getMoodHistory();
-  const notesHistory = getNotesHistory();
-  const todayMoods  = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
-  const todayNotes  = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
-
-  if (todayMoods.length === 0 && todayNotes.length === 0) return t("insight_first");
-
-  const parts = [];
-  const total = todayMoods.length + todayNotes.length;
-  if (total === 1) parts.push(t("insight_entries_1"));
-  else parts.push(t("insight_entries_many").replace("{n}", total));
-
-  if (todayMoods.length >= 2) {
-    const first = todayMoods[0].value;
-    const last  = todayMoods[todayMoods.length - 1].value;
-    const diff  = last - first;
-    if (diff > 5)       parts.push(t("insight_mood_up").replace("{a}", first).replace("{b}", last));
-    else if (diff < -5) parts.push(t("insight_mood_down").replace("{a}", first).replace("{b}", last));
-    else                parts.push(t("insight_mood_stable").replace("{v}", last));
-  } else if (todayMoods.length === 1) {
-    parts.push(t("insight_mood_now").replace("{v}", todayMoods[0].value));
-  }
-
-  if (todayNotes.length > 0) {
-    const lastNote = todayNotes[todayNotes.length - 1];
-    if (lastNote.result && lastNote.result.state) {
-      parts.push(t("insight_topic").replace("{s}", lastNote.result.state));
-    }
-  }
-
-  return parts.join(" ");
-}
-
-/* ---------- RENDER ---------- */
-function render() {
-  const mood = getMood();
-
-  const daysEl = document.getElementById("daysTogether");
-  if (daysEl) {
-    const days = getUsageDays ? getUsageDays() : getDaysFromStorage();
-    daysEl.textContent = `${t("home_days")} ${days} ${getDaysLabel(days)}`;
-  }
-
-  const moodValueEl = document.getElementById("moodValue");
-  if (moodValueEl) moodValueEl.textContent = mood + "%";
-
-  // НЕ трогаем moodSlider.value — вешает WebView
-
-  const fill = document.querySelector(".ecs-fill");
-  if (fill) fill.style.width = mood + "%";
-
-  const insightEl = document.getElementById("todayInsight");
-  if (insightEl) {
-    insightEl.textContent = buildDayInsight();
-    insightEl.removeAttribute("data-user-set");
-  }
-
-  const history   = getMoodHistory();
-  const stability = calculateStabilityScore(history);
-  const trend     = calculateTrend(history);
-  const valueEl   = document.getElementById("stabilityValue");
-  const trendEl   = document.getElementById("stabilityTrend");
-  if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
-  if (trendEl) trendEl.textContent = trend;
-
-  const goldenEl = document.getElementById("goldenHours");
-  if (goldenEl) {
-    const g = calculateGoldenHour(history);
-    goldenEl.textContent = g
-      ? t("golden_peak").replace("{start}", g.start).replace("{end}", g.end)
-      : t("golden_studying");
-  }
-}
-
-function getDaysFromStorage() {
-  try {
-    const start = localStorage.getItem("startDate");
-    if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
-    return Math.max(1, Math.ceil((Date.now() - parseInt(start)) / 86400000));
-  } catch(e) { return 1; }
-}
-
-function applyDomTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    if (el.getAttribute("data-user-set") === "true") return;
-    const val = t(el.getAttribute('data-i18n'));
-    if (val) el.textContent = val;
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const val = t(el.getAttribute('data-i18n-placeholder'));
-    if (val) el.placeholder = val;
-  });
 }
 
 /* ---------- BOOT ---------- */
-document.addEventListener("DOMContentLoaded", async () => {
-  await checkFreshInstall(); // определение переустановки
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("[APP] DOMContentLoaded");
+  checkFreshInstall();
   initState();
   initUI();
   applyDomTranslations();
@@ -181,6 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function startApp() {
+  console.log("[APP] startApp");
   initNavigation();
 
   const btn         = document.getElementById("analyzeNoteBtn");
