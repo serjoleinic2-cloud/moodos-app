@@ -1,3 +1,5 @@
+import { checkAutoReminder } from "./screens/pdf-report.js";
+
 // ============================================================
 // closeAllOverlays — живёт здесь, используется навигацией
 // ============================================================
@@ -8,12 +10,10 @@ export function closeAllOverlays() {
 }
 
 export function initNavigation() {
-  console.log("[NAV] initNavigation started");
 
   const buttons        = document.querySelectorAll("[data-nav]");
   const screenElements = document.querySelectorAll("[data-screen]");
 
-  console.log("[NAV] buttons found:", buttons.length, "screens found:", screenElements.length);
   if (!buttons.length || !screenElements.length) return;
 
   let currentScreen = null;
@@ -156,12 +156,8 @@ export function initNavigation() {
     btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); openScreen(btn.dataset.nav); });
   });
 
-  // Push-напоминания — динамический импорт, не блокирует старт
-  setTimeout(() => {
-    import("./screens/pdf-report.js").then(m => {
-      try { m.checkAutoReminder(); } catch(e) {}
-    }).catch(() => {});
-  }, 8000);
+  // Push-напоминания инициализируем здесь
+  setTimeout(() => { try { checkAutoReminder(); } catch(e) {} }, 3000);
 
   openScreen("home");
 }

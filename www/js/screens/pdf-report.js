@@ -82,17 +82,14 @@ function loadSettings() {
 }
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
-export function checkAutoReminder() {
-  setTimeout(() => {
-    try {
-      if (!window.Capacitor || !window.Capacitor.Plugins) return;
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if (!LocalNotifications) return;
-      LocalNotifications.addListener("localNotificationActionPerformed", () => {
-        showPdfReportModal();
-      });
-    } catch(e) { console.warn("Push init error:", e); }
-  }, 0);
+export async function checkAutoReminder() {
+  try {
+    const { LocalNotifications } = Capacitor.Plugins;
+    await requestNotificationPermission();
+    LocalNotifications.addListener("localNotificationActionPerformed", () => {
+      showPdfReportModal();
+    });
+  } catch(e) { console.warn("Push init error", e); }
 }
 
 export function showPdfReportModal() {
