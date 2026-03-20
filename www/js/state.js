@@ -5,8 +5,6 @@ let state = {
   startDate: null
 };
 
-const listeners = [];
-
 /* ---------- INIT ---------- */
 export function initState() {
   const savedMood = localStorage.getItem("mood");
@@ -24,20 +22,10 @@ export function initState() {
   }
 }
 
-/* ---------- SUBSCRIBE ---------- */
-export function subscribe(fn) {
-  listeners.push(fn);
-}
-
-function notify() {
-  listeners.forEach(fn => fn());
-}
-
 /* ---------- MOOD ---------- */
 export function setMood(value) {
   state.mood = value;
   localStorage.setItem("mood", value);
-  notify();
 }
 
 export function getMood() {

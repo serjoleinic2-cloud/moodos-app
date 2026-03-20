@@ -17,20 +17,53 @@ import {
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel } from "./i18n.js";
+import { App } from "@capacitor/app";
 
 /* ---------- STORAGE VERSION ---------- */
-function checkStorageVersion() {
+const LS_INSTALL_ID = "app_install_id";
+const LS_VERSION    = "app_version_v2";
+
+function getOrCreateInstallId() {
+  let id = localStorage.getItem(LS_INSTALL_ID);
+  if (!id) {
+    id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    localStorage.setItem(LS_INSTALL_ID, id);
+  }
+  return id;
+}
+
+async function checkFreshInstall() {
   try {
-    const CURRENT = "3";
-    const stored  = localStorage.getItem("app_version");
+    const result = await App.getState();
+    if (result && result.isActive) {
+      const installId = getOrCreateInstallId();
+      const storedId   = sessionStorage.getItem("cap_install_id");
+      if (!storedId) {
+        sessionStorage.setItem("cap_install_id", installId);
+        const lang = localStorage.getItem("app_language");
+        localStorage.clear();
+        if (lang) localStorage.setItem("app_language", lang);
+        localStorage.setItem(LS_INSTALL_ID, installId);
+        console.log("Fresh install detected — storage cleared");
+      }
+    }
+  } catch (e) {
+    checkStorageVersionLegacy();
+  }
+}
+
+function checkStorageVersionLegacy() {
+  try {
+    const CURRENT = "2";
+    const stored  = localStorage.getItem(LS_VERSION);
     if (stored !== CURRENT) {
       const lang = localStorage.getItem("app_language");
       localStorage.clear();
       if (lang) localStorage.setItem("app_language", lang);
-      localStorage.setItem("app_version", CURRENT);
-      console.log("Storage cleared — fresh start");
+      localStorage.setItem(LS_VERSION, CURRENT);
+      console.log("Storage cleared — version mismatch");
     }
-  } catch(e) {}
+  } catch (e) {}
 }
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
@@ -131,8 +164,8 @@ function applyDomTranslations() {
 }
 
 /* ---------- BOOT ---------- */
-document.addEventListener("DOMContentLoaded", () => {
-  checkStorageVersion(); // сброс старых данных WebView при переустановке
+document.addEventListener("DOMContentLoaded", async () => {
+  await checkFreshInstall(); // определение переустановки
   initState();
   initUI();
   applyDomTranslations();
