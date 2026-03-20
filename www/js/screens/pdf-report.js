@@ -82,14 +82,17 @@ function loadSettings() {
 }
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
-export async function checkAutoReminder() {
-  try {
-    const { LocalNotifications } = Capacitor.Plugins;
-    await requestNotificationPermission();
-    LocalNotifications.addListener("localNotificationActionPerformed", () => {
-      showPdfReportModal();
-    });
-  } catch(e) { console.warn("Push init error", e); }
+export function checkAutoReminder() {
+  setTimeout(() => {
+    try {
+      if (!window.Capacitor || !window.Capacitor.Plugins) return;
+      const { LocalNotifications } = window.Capacitor.Plugins;
+      if (!LocalNotifications) return;
+      LocalNotifications.addListener("localNotificationActionPerformed", () => {
+        showPdfReportModal();
+      });
+    } catch(e) { console.warn("Push init error:", e); }
+  }, 0);
 }
 
 export function showPdfReportModal() {
@@ -286,21 +289,44 @@ export function showPdfReportModal() {
       const pdfBlob = await generatePdf(fromVal, toVal);
       const fileName = `MoodOS_${fromVal}_${toVal}.pdf`;
 
-      if (navigator.share && navigator.canShare) {
-        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-        if (navigator.canShare({ files: [file] })) {
-          statusEl.textContent = t("pr_opening_menu");
-          await navigator.share({
-            title: `MoodOS ${t("pr_title")} ${fromVal} — ${toVal}`,
-            text: t("pr_share_text"),
-            files: [file]
-          });
-          statusEl.textContent = t("pr_done");
+      statusEl.textContent = t("pr_opening_menu");
+
+      // Capacitor Share — нативное Android меню (Telegram, Drive, почта...)
+      const Share = window.Capacitor?.Plugins?.Share;
+      const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+
+      if (Share && Filesystem) {
+        // Сохраняем PDF во временный файл и шарим через Capacitor
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const base64 = e.target.result.split(",")[1];
+            await Filesystem.writeFile({
+              path: fileName,
+              data: base64,
+              directory: "CACHE",
+            });
+            const fileUri = await Filesystem.getUri({
+              path: fileName,
+              directory: "CACHE",
+            });
+            await Share.share({
+              title: `MoodOS — ${t("pr_title")}`,
+              text: t("pr_share_text"),
+              url: fileUri.uri,
+              dialogTitle: t("pr_title"),
+            });
+            statusEl.textContent = t("pr_done");
+          } catch(err) {
+            if (err.name !== "AbortError") statusEl.textContent = t("pr_error");
+          }
           screen.querySelector("#prGenBtn").disabled = false;
-          return;
-        }
+        };
+        reader.readAsDataURL(pdfBlob);
+        return;
       }
 
+      // Fallback — скачивание
       const url = URL.createObjectURL(pdfBlob);
       const a   = document.createElement("a");
       a.href = url; a.download = fileName;
