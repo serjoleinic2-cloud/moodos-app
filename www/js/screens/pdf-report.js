@@ -381,21 +381,13 @@ export function showPdfReportModal() {
 }
 
 async function generatePdf(fromStr, toStr) {
-  // Загружаем jsPDF
+  // Загружаем библиотеки
   if (!window.jspdf) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
   }
-  // Загружаем шрифт с поддержкой кириллицы
-  if (!window.jspdfFontLoaded) {
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  if (!window.html2canvas) {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
   }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-
-  // Используем встроенный шрифт с кириллицей через UTF-8 encoding
-  // jsPDF поддерживает кириллицу через специальную настройку
-  doc.setLanguage("ru");
 
   const fromDate = new Date(fromStr + "T00:00:00");
   const toDate   = new Date(toStr   + "T23:59:59");
@@ -407,257 +399,214 @@ async function generatePdf(fromStr, toStr) {
     const d = new Date(e.timestamp||0); return d >= fromDate && d <= toDate;
   });
   const allMoodHistory = getMoodHistory();
-  const profile  = getProfile();
-  const sesStats = getFullSessionStats();
+  const profile   = getProfile();
   const stability = calculateStabilityScore(moodHistory);
   const trend     = calculateTrend(allMoodHistory);
 
-  const PAGE_W=210, MARGIN=18, CONTENT_W=PAGE_W-MARGIN*2;
-  let y = MARGIN;
-
-  const C_DARK=[45,45,45], C_GRAY=[120,120,120], C_LIGHT=[180,180,180];
-  const C_GREEN=[76,175,135], C_ORANGE=[240,165,0], C_RED=[224,85,85];
-  const C_PURPLE=[102,103,171], C_LINE=[210,215,208];
-  const C_WHITE=[255,255,255];
-
-  // Шрифт — используем courier как fallback для кириллицы в базовом jsPDF
-  // Для настоящей кириллицы используем html-encode через doc.text с encoding
-  function sf(size, style="normal", color=C_DARK) {
-    doc.setFontSize(size);
-    doc.setFont("courier", style); // courier лучше отображает кириллицу в base jsPDF
-    doc.setTextColor(...color);
-  }
-  function ln(yp) { doc.setDrawColor(...C_LINE); doc.setLineWidth(0.3); doc.line(MARGIN,yp,PAGE_W-MARGIN,yp); }
-  function chk(n=10) { if(y+n>280) { doc.addPage(); y=MARGIN; } }
-  function mc(v) { return v>=70?C_GREEN:v>=40?C_ORANGE:C_RED; }
   function fmtDate(d) { return new Date(d).toLocaleDateString("ru-RU",{day:"2-digit",month:"long",year:"numeric"}); }
   function fmtDT(d) {
     const dt=new Date(d);
     return dt.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"})+" "+
            dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
   }
+  function moodColor(v) { return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
+  function stateLabel(s) { return {HIGH:"Отличное",GOOD:"Хорошее",NEUTRAL:"Нейтральное",STRESSED:"Напряжение",LOW:"Сниженное"}[s]||"—"; }
 
-  // ── Шапка ──────────────────────────────────────────────────
-  doc.setFillColor(76,175,135);
-  doc.rect(0, 0, PAGE_W, 22, "F");
-  doc.setFontSize(16); doc.setFont("courier","bold"); doc.setTextColor(255,255,255);
-  doc.text("MoodOS", MARGIN, 10);
-  doc.setFontSize(9); doc.setFont("courier","normal");
-  doc.text("Otchet ob emoczionalnom sostoyanii", MARGIN, 16);
-  doc.setFontSize(8);
-  doc.text("Period: "+fmtDate(fromDate)+" - "+fmtDate(toDate), MARGIN, 20);
-  doc.text("Sformirovan: "+new Date().toLocaleDateString("ru-RU"), PAGE_W-MARGIN, 20, {align:"right"});
-  y = 30;
+  // Считаем статистику
+  const vals = moodHistory.map(e=>e.value);
+  const avg  = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+  const minV = vals.length ? Math.min(...vals) : null;
+  const maxV = vals.length ? Math.max(...vals) : null;
+  const trendTxt = trend==="improving ↑"?"📈 Улучшается":trend==="declining ↓"?"📉 Снижается":"➡️ Стабильно";
 
-  // ── Блок пациента ──────────────────────────────────────────
-  if (profile) {
-    chk(35);
-    doc.setFillColor(240,244,238); doc.roundedRect(MARGIN,y,CONTENT_W,30,3,3,"F");
-    sf(10,"bold",C_DARK); doc.text("Informacziya o pacziente", MARGIN+4, y+7);
-    sf(8,"normal",C_GRAY);
-    const medLabel = {
-      "net":"Ne prinimaet","antidepressanty":"Antidepressanty",
-      "sedativnye":"Sedativnye","drugoe":"Drugoe","ne_skazhu":"Ne ukazano",
-      "нет":"Ne prinimaet","антидепрессанты":"Antidepressanty",
-      "седативные":"Sedativnye","другое":"Drugoe","не_скажу":"Ne ukazano"
-    };
-    const effLabel = {
-      "лучше":"Stalo luchshe","примерно_так_же":"Primerno tak zhe",
-      "приглушённость":"Priglushennost","побочки":"Pobochki","адаптация":"Adaptacziya"
-    };
-    doc.text("Priem preparatov: "+(medLabel[profile.takesMeds]||"Ne ukazano"), MARGIN+4, y+14);
-    if (profile.takesMeds && profile.takesMeds!=="нет" && profile.takesMeds!=="не_скажу") {
-      doc.text("Effekt: "+(effLabel[profile.medEffect]||"—"), MARGIN+4, y+20);
-    }
-    doc.text("Bazovoe sostoyanie: "+(profile.moodBaseline??50)+"%", MARGIN+90, y+14);
-    y += 36;
-  }
-
-  // ── Статистика ─────────────────────────────────────────────
-  if (moodHistory.length > 0) {
-    chk(50);
-    sf(10,"bold",C_DARK); doc.text("Statistika za period", MARGIN, y); y+=5;
-    ln(y); y+=4;
-
-    const vals = moodHistory.map(e=>e.value);
-    const avg  = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
-    const minV = Math.min(...vals), maxV = Math.max(...vals);
-    const stabVal = stability !== null ? stability+"%" : "—";
-    const trendTxt = trend==="improving ↑"?"Uluchshaetsya":trend==="declining ↓"?"Snizhaetsya":"Stabilno";
-
-    const boxes = [
-      {label:"Srednee nastroenie", value:avg+"%",   color:mc(avg)},
-      {label:"Stabilnost",         value:stabVal,   color:mc(stability||50)},
-      {label:"Minimum",            value:minV+"%",  color:mc(minV)},
-      {label:"Maksimum",           value:maxV+"%",  color:mc(maxV)},
-      {label:"Trend",              value:trendTxt,  color:C_PURPLE},
-      {label:"Zapisej vsego",      value:String(moodHistory.length), color:C_DARK},
-    ];
-    const BW=(CONTENT_W-8)/3, BH=16;
-    boxes.forEach((box,i) => {
-      const bx=MARGIN+(i%3)*(BW+4), by=y+Math.floor(i/3)*(BH+4);
-      doc.setFillColor(240,244,238); doc.roundedRect(bx,by,BW,BH,2,2,"F");
-      sf(7,"normal",C_GRAY); doc.text(box.label, bx+3, by+5);
-      sf(11,"bold",box.color); doc.text(box.value, bx+3, by+13);
-    });
-    y += BH*2+12;
-
-    // График
-    chk(45);
-    sf(10,"bold",C_DARK); doc.text("Grafik nastroenia", MARGIN, y); y+=5;
-    ln(y); y+=3;
-    const CH=32, cx=MARGIN, cy=y;
-    doc.setFillColor(240,244,238); doc.roundedRect(cx,cy,CONTENT_W,CH,2,2,"F");
-    doc.setDrawColor(...C_LINE); doc.setLineWidth(0.15);
-    [0,25,50,75,100].forEach(pct => {
-      const gy=cy+CH-(pct/100*CH);
-      doc.line(cx,gy,cx+CONTENT_W,gy);
-      sf(6,"normal",C_LIGHT); doc.text(pct+"%",cx-1,gy+1,{align:"right"});
-    });
-    const sorted=moodHistory.slice().sort((a,b)=>new Date(a.time)-new Date(b.time));
-    if(sorted.length>1){
-      const pts=sorted.map((e,i)=>({
-        x:cx+(i/(sorted.length-1))*CONTENT_W,
-        y:cy+CH-(e.value/100*CH)
-      }));
-      doc.setDrawColor(...C_GREEN); doc.setLineWidth(0.8);
-      for(let i=1;i<pts.length;i++) doc.line(pts[i-1].x,pts[i-1].y,pts[i].x,pts[i].y);
-      doc.setFillColor(...C_GREEN);
-      pts.forEach(p=>doc.circle(p.x,p.y,0.7,"F"));
-    }
-    y+=CH+8;
-  }
-
-  // ── Практики ───────────────────────────────────────────────
-  if (sessions.length > 0) {
-    chk(30);
-    sf(10,"bold",C_DARK); doc.text("Ispolzovannye praktiki", MARGIN, y); y+=5;
-    ln(y); y+=4;
-
-    const SL = {
-      "breathing":"Dyhanie","meditation":"Meditacziya",
-      "visual-focus":"Zritelnyj yakor","mind-dump":"Vygruzka myslej","tap-calm":"Taktilnaya razryadka"
-    };
-    const bt={};
-    sessions.forEach(s=>{
-      const tp=s.type||"other";
-      if(!bt[tp]) bt[tp]={count:0,positive:0,lift:0};
-      bt[tp].count++;
-      if(s.result==="positive") bt[tp].positive++;
-      if(s.moodBefore!=null&&s.moodAfter!=null) bt[tp].lift+=(s.moodAfter-s.moodBefore);
-    });
-    Object.entries(bt).forEach(([type,data])=>{
-      chk(8);
-      const pct  = Math.round(data.positive/data.count*100);
-      const lift = Math.round(data.lift/data.count);
-      sf(9,"bold",C_DARK); doc.text(SL[type]||type, MARGIN, y);
-      sf(8,"normal",C_GRAY);
-      doc.text(`${data.count} sessij - ${pct}% eff. - rost: ${lift>0?"+":""}${lift}%`, MARGIN+44, y);
-      y+=6;
-    });
-    y+=4;
-  }
-
-  // ── Рекомендации врачу ─────────────────────────────────────
-  chk(60);
-  doc.setFillColor(102,103,171);
-  doc.roundedRect(MARGIN, y, CONTENT_W, 8, 2, 2, "F");
-  sf(10,"bold",C_WHITE); doc.text("Rekomendaczii dlya vracha", MARGIN+4, y+5.5);
-  y+=12;
-
-  const recommendations = [];
-
-  if (moodHistory.length > 0) {
-    const vals = moodHistory.map(e=>e.value);
-    const avg  = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
-    const stab = stability || 0;
-
-    if (avg < 40) {
-      recommendations.push("VNIMANIE: Srednee nastroenie nizhe 40%. Neobhodimo obsuditi prichiny snizheniya.");
-    } else if (avg < 55) {
-      recommendations.push("Nastroenie v zone povyshennogo vnimaniya (40-55%). Rekomenduetsya nablyudenie.");
-    } else {
-      recommendations.push("Nastroenie v stabilnoj zone ("+avg+"%). Dinamika polozhitelnaya.");
-    }
-
-    if (stab < 50) {
-      recommendations.push("Vysokaya volatilnost nastroenia ("+stab+"%). Vozmozhna emoczionalnaya nestabilnost.");
-    }
-
-    if (trend === "declining ↓") {
-      recommendations.push("Trend: nastroenie snizhalsya v techenie perioda. Rekomenduetsya vnimanie.");
-    } else if (trend === "improving ↑") {
-      recommendations.push("Trend: nastroenie uluchshalos v techenie perioda.");
-    }
-  }
-
-  if (profile?.medEffect === "побочки" || profile?.medEffect === "приглушённость") {
-    recommendations.push("Paczient otmechaet pobochnye effekty / priglushennost ot preparatov.");
-  }
-  if (profile?.medEffect === "адаптация") {
-    recommendations.push("Paczient nahodsya v periode adaptaczii k preparatam. Vozmozhen peresmotr dozi.");
-  }
-
-  if (sessions.length > 0) {
-    const bt={};
-    sessions.forEach(s=>{ const tp=s.type||"other"; if(!bt[tp]) bt[tp]={count:0,positive:0}; bt[tp].count++; if(s.result==="positive") bt[tp].positive++; });
-    const best = Object.entries(bt).sort((a,b)=>(b[1].positive/b[1].count)-(a[1].positive/a[1].count))[0];
-    if(best) {
-      const SL={"breathing":"Dyhanie","meditation":"Meditacziya","visual-focus":"Zritelnyj yakor","mind-dump":"Vygruzka myslej","tap-calm":"Taktilnaya razryadka"};
-      const pct = Math.round(best[1].positive/best[1].count*100);
-      recommendations.push("Naibolee effektivnaya praktika: "+(SL[best[0]]||best[0])+" ("+pct+"% polozhitelnyh rezultatov).");
-    }
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push("Nedostatochno dannyh dlya formirovaniya rekomendaczij.");
-  }
-
-  recommendations.forEach(rec => {
-    chk(10);
-    doc.setFillColor(248,248,252);
-    doc.roundedRect(MARGIN, y-3, CONTENT_W, 9, 1, 1, "F");
-    doc.setDrawColor(...C_PURPLE); doc.setLineWidth(0.5);
-    doc.line(MARGIN, y-3, MARGIN, y+6);
-    sf(8,"normal",C_DARK);
-    const lines = doc.splitTextToSize("- "+rec, CONTENT_W-6);
-    doc.text(lines, MARGIN+3, y+2);
-    y += lines.length * 5 + 3;
+  // Практики
+  const practiceStats = {};
+  sessions.forEach(s => {
+    const tp = s.type||"other";
+    if(!practiceStats[tp]) practiceStats[tp]={count:0,positive:0,lift:0};
+    practiceStats[tp].count++;
+    if(s.result==="positive") practiceStats[tp].positive++;
+    if(s.moodBefore!=null&&s.moodAfter!=null) practiceStats[tp].lift+=(s.moodAfter-s.moodBefore);
   });
+  const SESSION_NAMES = {
+    "breathing":"Дыхание","meditation":"Медитация",
+    "visual-focus":"Зрительный якорь","mind-dump":"Выгрузка мыслей","tap-calm":"Тактильная разрядка"
+  };
 
-  // ── Журнал настроения ──────────────────────────────────────
-  chk(20);
-  y+=4;
-  sf(10,"bold",C_DARK); doc.text("Zhurnal nastroenia", MARGIN, y); y+=5;
-  ln(y); y+=4;
-
-  if(moodHistory.length===0){
-    sf(9,"normal",C_GRAY); doc.text("Net dannyh.", MARGIN, y); y+=8;
-  } else {
-    doc.setFillColor(225,232,222); doc.rect(MARGIN,y-3,CONTENT_W,8,"F");
-    sf(8,"bold",C_GRAY);
-    doc.text("Data i vremya", MARGIN+2, y+3);
-    doc.text("Nastr.", MARGIN+54, y+3);
-    doc.text("Sostoyanie", MARGIN+72, y+3);
-    y+=9;
-    const STA={"HIGH":"Otlichnoe","GOOD":"Horoshee","NEUTRAL":"Nejtralnoe","STRESSED":"Napryazhenie","LOW":"Snizhennoe"};
-    moodHistory.slice().sort((a,b)=>new Date(b.time)-new Date(a.time)).forEach((e,i)=>{
-      chk(8);
-      if(i%2===0){doc.setFillColor(246,249,244);doc.rect(MARGIN,y-3,CONTENT_W,7,"F");}
-      sf(8,"normal",C_DARK); doc.text(fmtDT(e.time),MARGIN+2,y+2);
-      sf(8,"bold",mc(e.value)); doc.text(e.value+"%",MARGIN+54,y+2);
-      sf(8,"normal",C_GRAY); doc.text(STA[e.state]||"—",MARGIN+72,y+2);
-      y+=7;
-    });
-    y+=4;
+  // Рекомендации врачу
+  const recs = [];
+  if (avg !== null) {
+    if (avg < 40) recs.push("⚠️ Среднее настроение ниже 40% ("+avg+"%). Рекомендуется детальное обследование эмоционального состояния.");
+    else if (avg < 55) recs.push("🔔 Настроение в зоне повышенного внимания ("+avg+"%). Рекомендуется наблюдение.");
+    else recs.push("✓ Настроение в стабильной зоне ("+avg+"%). Динамика положительная.");
   }
+  if (stability !== null && stability < 50) {
+    recs.push("⚠️ Высокая волатильность настроения (стабильность "+stability+"%). Возможна эмоциональная нестабильность.");
+  }
+  if (trend==="declining ↓") recs.push("📉 Тренд: настроение снижалось в течение периода. Рекомендуется обратить внимание.");
+  else if (trend==="improving ↑") recs.push("📈 Тренд: настроение улучшалось в течение периода.");
+  if (profile?.medEffect==="побочки") recs.push("💊 Пациент отмечает побочные эффекты от препаратов. Рекомендуется пересмотр терапии.");
+  if (profile?.medEffect==="приглушённость") recs.push("💊 Пациент ощущает приглушённость от препаратов. Возможна корректировка дозы.");
+  if (profile?.medEffect==="адаптация") recs.push("⏳ Пациент в периоде адаптации к препаратам. Перепады настроения могут быть нормой.");
+  if (sessions.length > 0) {
+    const best = Object.entries(practiceStats).sort((a,b)=>(b[1].positive/b[1].count)-(a[1].positive/a[1].count))[0];
+    if (best) {
+      const pct = Math.round(best[1].positive/best[1].count*100);
+      recs.push("✓ Наиболее эффективная практика: "+(SESSION_NAMES[best[0]]||best[0])+" ("+pct+"% положительных результатов).");
+    }
+  }
+  if (recs.length === 0) recs.push("Недостаточно данных для формирования рекомендаций.");
 
-  // ── Подвал ─────────────────────────────────────────────────
-  chk(12); ln(y); y+=4;
-  sf(7,"normal",C_LIGHT);
-  doc.text("Otchet sformirovan prilozheniem MoodOS. Predназnachen dlya obsuzhdeniya s vrachom. Ne yavlyaetsya mediczinskim zaklyucheniem.", MARGIN, y, {maxWidth:CONTENT_W});
+  // Строим HTML для рендера
+  const practicesHTML = Object.entries(practiceStats).map(([type,data]) => {
+    const pct  = Math.round(data.positive/data.count*100);
+    const lift = Math.round(data.lift/data.count);
+    return \`<tr>
+      <td style="padding:4px 8px">\${SESSION_NAMES[type]||type}</td>
+      <td style="padding:4px 8px;text-align:center">\${data.count}</td>
+      <td style="padding:4px 8px;text-align:center;color:\${pct>=60?"#4caf87":"#888"}">\${pct}%</td>
+      <td style="padding:4px 8px;text-align:center;color:\${lift>0?"#4caf87":"#888"}">\${lift>0?"+":""}\${lift}%</td>
+    </tr>\`;
+  }).join("");
 
-  return doc.output("blob");
+  const journalRows = moodHistory.slice().sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,50).map((e,i) => \`
+    <tr style="background:\${i%2===0?"#f5faf5":"#fff"}">
+      <td style="padding:3px 8px;font-size:11px">\${fmtDT(e.time)}</td>
+      <td style="padding:3px 8px;font-size:11px;font-weight:700;color:\${moodColor(e.value)}">\${e.value}%</td>
+      <td style="padding:3px 8px;font-size:11px;color:#666">\${stateLabel(e.state)}</td>
+    </tr>\`).join("");
+
+  const html = \`
+  <div style="width:794px;font-family:Arial,sans-serif;color:#333;background:#fff;padding:0;">
+
+    <!-- Шапка -->
+    <div style="background:#4caf87;padding:20px 24px 16px;color:#fff;">
+      <div style="font-size:24px;font-weight:700;margin-bottom:4px;">MoodOS</div>
+      <div style="font-size:13px;opacity:0.85">Отчёт об эмоциональном состоянии</div>
+      <div style="font-size:11px;opacity:0.7;margin-top:6px;">
+        Период: \${fmtDate(fromDate)} — \${fmtDate(toDate)} &nbsp;·&nbsp; Сформирован: \${new Date().toLocaleDateString("ru-RU")}
+      </div>
+    </div>
+
+    <div style="padding:20px 24px;">
+
+      <!-- Пациент -->
+      \${profile ? \`
+      <div style="background:#f0f7f4;border-radius:10px;padding:14px 18px;margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Информация о пациенте</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div><span style="color:#aaa;font-size:12px">Приём препаратов:</span><br><b style="font-size:13px">\${MED_LABELS[profile.takesMeds]||"Не указано"}</b></div>
+          \${profile.takesMeds&&profile.takesMeds!=="нет"&&profile.takesMeds!=="не_скажу"?
+            \`<div><span style="color:#aaa;font-size:12px">Эффект:</span><br><b style="font-size:13px">\${EFFECT_LABELS[profile.medEffect]||"—"}</b></div>\`:""}
+          <div><span style="color:#aaa;font-size:12px">Базовое состояние:</span><br><b style="font-size:13px">\${profile.moodBaseline??50}%</b></div>
+        </div>
+      </div>\` : ""}
+
+      <!-- Статистика -->
+      \${avg !== null ? \`
+      <div style="margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Статистика за период</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          \${[
+            ["Среднее настроение", avg+"%", moodColor(avg)],
+            ["Стабильность", stability!==null?stability+"%":"—", moodColor(stability||0)],
+            ["Минимум", minV+"%", moodColor(minV)],
+            ["Максимум", maxV+"%", moodColor(maxV)],
+            ["Тренд", trendTxt, "#6667AB"],
+            ["Записей", moodHistory.length, "#555"],
+          ].map(([label,val,color]) => \`
+            <div style="flex:1;min-width:100px;background:#f5faf5;border-radius:8px;padding:10px 12px;">
+              <div style="font-size:11px;color:#aaa;margin-bottom:4px">\${label}</div>
+              <div style="font-size:18px;font-weight:700;color:\${color}">\${val}</div>
+            </div>\`).join("")}
+        </div>
+      </div>\` : ""}
+
+      <!-- Рекомендации врачу -->
+      <div style="background:#6667AB;border-radius:10px;padding:14px 18px;margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Рекомендации для врача</div>
+        \${recs.map(r=>\`<div style="color:#fff;font-size:12px;margin-bottom:6px;padding:6px 10px;background:rgba(255,255,255,0.1);border-radius:6px;">\${r}</div>\`).join("")}
+      </div>
+
+      <!-- Практики -->
+      \${sessions.length > 0 ? \`
+      <div style="margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Использованные практики</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#e8ede6;">
+              <th style="padding:6px 8px;text-align:left;color:#888">Практика</th>
+              <th style="padding:6px 8px;text-align:center;color:#888">Сессий</th>
+              <th style="padding:6px 8px;text-align:center;color:#888">Эффект</th>
+              <th style="padding:6px 8px;text-align:center;color:#888">Прирост</th>
+            </tr>
+          </thead>
+          <tbody>\${practicesHTML}</tbody>
+        </table>
+      </div>\` : ""}
+
+      <!-- Журнал -->
+      \${moodHistory.length > 0 ? \`
+      <div style="margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Журнал настроения</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#e8ede6;">
+              <th style="padding:5px 8px;text-align:left;color:#888">Дата и время</th>
+              <th style="padding:5px 8px;text-align:center;color:#888">Настроение</th>
+              <th style="padding:5px 8px;text-align:left;color:#888">Состояние</th>
+            </tr>
+          </thead>
+          <tbody>\${journalRows}</tbody>
+        </table>
+      </div>\` : ""}
+
+      <!-- Подвал -->
+      <div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">
+        Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.
+      </div>
+
+    </div>
+  </div>\`;
+
+  // Рендерим HTML в canvas и конвертируем в PDF
+  const container = document.createElement("div");
+  container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;";
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await window.html2canvas(container.firstElementChild, {
+      scale: 1.5,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      width: 794,
+    });
+    document.body.removeChild(container);
+
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL("image/jpeg", 0.92);
+    const imgW = 210; // A4 ширина в mm
+    const imgH = canvas.height * imgW / canvas.width;
+
+    const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+
+    let posY = 0;
+    const pageH = 297;
+
+    while (posY < imgH) {
+      if (posY > 0) doc.addPage();
+      doc.addImage(imgData, "JPEG", 0, -posY, imgW, imgH);
+      posY += pageH;
+    }
+
+    return doc.output("blob");
+
+  } catch(e) {
+    document.body.removeChild(container);
+    throw e;
+  }
 }
 
 
