@@ -17,7 +17,6 @@ export function addMoodEntry(entry) {
   const history = getMoodHistory();
   history.push(entry);
   saveMoodHistory(history);
-  console.log("MOOD SAVED:", JSON.stringify(entry));
 }
 
 /* ---------- NOTES HISTORY ---------- */
@@ -54,7 +53,6 @@ export function addSessionEntry(entry) {
   const history = getSessionHistory();
   history.push(entry);
   saveSessionHistory(history);
-  console.log("SESSION SAVED:", JSON.stringify(entry));
 }
 
 /* ---------- ACTIVITY HISTORY ---------- */
@@ -71,7 +69,6 @@ export function addActivityEntry(entry) {
   const history = getActivityHistory();
   history.push(entry);
   saveActivityHistory(history);
-  console.log("ACTIVITY SAVED:", JSON.stringify(entry));
 }
 
 /* ---------- PHOTO HISTORY ---------- */
@@ -82,4 +79,24 @@ export function getPhotoHistory() {
 
 export function savePhotoHistory(history) {
   localStorage.setItem("photo_history", JSON.stringify(history));
+}
+
+/* ---------- WEEKLY HISTORY ---------- */
+
+export function getWeeklyHistory() {
+  try {
+    const raw = localStorage.getItem("weekly_history");
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) {
+    localStorage.removeItem("weekly_history");
+    return [];
+  }
+}
+
+export function saveWeeklyHistory(blocks) {
+  try {
+    localStorage.setItem("weekly_history", JSON.stringify(blocks));
+  } catch(e) {
+    console.warn("saveWeeklyHistory failed:", e.message);
+  }
 }

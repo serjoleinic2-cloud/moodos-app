@@ -23,6 +23,52 @@ function SESSION_META() {
 let currentAudio = null;
 let allItemsCache = [];
 
+// ─── Social Sharing ───────────────────────────────────────────
+
+async function shareItem(item) {
+  const date = formatDate(item.ts);
+  const time = formatTime(item.ts);
+  let text = "";
+
+  if (item.type === "mood") {
+    const emoji = moodEmoji(item.value);
+    text = `${emoji} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}\n\n— MoodOS`;
+  } else if (item.type === "note") {
+    text = `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— MoodOS`;
+  } else if (item.type === "session") {
+    const meta = SESSION_META();
+    const m = meta[item.sessionType] || { icon:"🛠", label: item.sessionType };
+    const result = item.result === "positive" ? t("hist_helped") : t("hist_not_helped");
+    text = `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}\n\n— MoodOS`;
+  }
+
+  if (!text) return;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "MoodOS", text });
+    } else {
+      // Fallback — копируем в буфер
+      await navigator.clipboard.writeText(text);
+      showToast("✓ Скопировано");
+    }
+  } catch(e) {
+    if (e.name !== "AbortError") {
+      try { await navigator.clipboard.writeText(text); showToast("✓ Скопировано"); } catch(_) {}
+    }
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.style.cssText = "position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#4caf87;color:#fff;padding:10px 20px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;pointer-events:none;";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// ─── Остальная логика ─────────────────────────────────────────
+
 function buildTimeline() {
   const items = [];
   getMoodHistory().forEach(e => items.push({ type:"mood", ts:new Date(e.time).getTime(), value:e.value }));
@@ -95,7 +141,6 @@ function renderHistory(filterDate=null) {
   const container = document.getElementById("history-content");
   if (!container) return;
 
-  // Останавливаем текущее аудио при перерендере
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 
   allItemsCache = buildTimeline();
@@ -146,6 +191,7 @@ function renderHistory(filterDate=null) {
   container.querySelectorAll(".hist-card[data-clickable='1']").forEach(card => {
     card.onclick = (e) => {
       if (e.target.closest(".hist-delete-btn")) return;
+      if (e.target.closest(".hist-share-btn")) return;
       const ts=parseInt(card.dataset.ts), type=card.dataset.type;
       const item=allItemsCache.find(i=>i.ts===ts&&i.type===type);
       if (item) renderDetail(item, filterDate);
@@ -161,6 +207,16 @@ function renderHistory(filterDate=null) {
     });
   });
 
+  // Share кнопки
+  container.querySelectorAll(".hist-share-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const ts=parseInt(btn.dataset.ts), type=btn.dataset.type;
+      const item=allItemsCache.find(i=>i.ts===ts&&i.type===type);
+      if (item) shareItem(item);
+    });
+  });
+
   // Аудиоплееры
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
     btn.addEventListener("click", e => {
@@ -172,14 +228,12 @@ function renderHistory(filterDate=null) {
       const curEl  = container.querySelector(`.voice-cur[data-ts="${ts}"]`);
       const totEl  = container.querySelector(`.voice-tot[data-ts="${ts}"]`);
 
-      // Пауза если уже играет
       if (btn._audio && !btn._audio.paused) {
         btn._audio.pause();
         btn.textContent = "▶";
         return;
       }
 
-      // Остановить другой плеер
       if (currentAudio && currentAudio !== btn._audio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
@@ -188,16 +242,11 @@ function renderHistory(filterDate=null) {
         });
       }
 
-      // Создать аудио один раз
       if (!btn._audio) {
         const audio = new Audio(url);
         btn._audio = audio;
-
-        // Сохранённая длина из localStorage (записана в voice.js)
         const savedDur = parseFloat(btn.dataset.savedDur) || 0;
         if (totEl && savedDur) totEl.textContent = fmtSec(savedDur);
-
-        // Обновление длины как только WebView определил реальную
         const updateDuration = () => {
           if (audio.duration && isFinite(audio.duration)) {
             if (totEl) totEl.textContent = fmtSec(audio.duration);
@@ -205,8 +254,6 @@ function renderHistory(filterDate=null) {
         };
         audio.addEventListener("loadedmetadata", updateDuration);
         audio.addEventListener("durationchange",  updateDuration);
-
-        // Обновление позиции — используем реальную длину или savedDur как fallback
         audio.addEventListener("timeupdate", () => {
           const dur = (audio.duration && isFinite(audio.duration)) ? audio.duration : savedDur;
           const cur = audio.currentTime;
@@ -215,7 +262,6 @@ function renderHistory(filterDate=null) {
           if (totEl) totEl.textContent = fmtSec(dur);
           if (seekEl && !seekEl._seeking) seekEl.value = (cur / dur) * 100;
         });
-
         audio.addEventListener("ended", () => {
           btn.textContent = "▶";
           if (seekEl) seekEl.value = 0;
@@ -230,7 +276,6 @@ function renderHistory(filterDate=null) {
     });
   });
 
-  // Перемотка — флаг _seeking блокирует timeupdate пока тянем
   container.querySelectorAll(".voice-seek").forEach(seek => {
     seek.addEventListener("touchstart",  () => { seek._seeking = true; }, { passive: true });
     seek.addEventListener("mousedown",   () => { seek._seeking = true; });
@@ -277,24 +322,31 @@ function savePhoto(dataUrl) {
   } catch(e) {}
 }
 
+function shareBtn(item) {
+  const shareable = ["mood","note","session"];
+  if (!shareable.includes(item.type)) return "";
+  return `<div class="hist-share-btn" data-ts="${item.ts}" data-type="${item.type}" style="padding:6px 10px;border-radius:10px;background:rgba(78,170,220,0.1);color:#7eb8d4;font-size:16px;cursor:pointer;flex-shrink:0;">↗</div>`;
+}
+
 function renderCard(item) {
   const time = formatTime(item.ts);
   const meta = SESSION_META();
   const delBtn = (type) => `<div class="hist-delete-btn" data-ts="${item.ts}" data-type="${type}" style="padding:6px 10px;border-radius:10px;background:rgba(224,85,85,0.1);color:#e05555;font-size:16px;cursor:pointer;flex-shrink:0;">🗑</div>`;
+  const sBtn  = shareBtn(item);
 
   if (item.type==="mood") {
     const col=moodColor(item.value), emo=moodEmoji(item.value);
     return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1">
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_mood")}</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:6px;">${sBtn}${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="note") {
     const prev=item.text.length>60?item.text.slice(0,60)+"...":item.text;
     return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1">
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev||"—"}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:6px;">${sBtn}${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="photo") {
     return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1">
@@ -302,7 +354,7 @@ function renderCard(item) {
         ${item.dataUrl?`<img src="${item.dataUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
       </div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:6px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="voice") {
     const prev=item.text&&item.text.length>50?item.text.slice(0,50)+"...":item.text||"";
@@ -311,7 +363,7 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
         <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${prev||t("hist_voice_diary")}</div></div>
-        <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice")}<div class="hist-card-time">${time}</div></div>
+        <div style="display:flex;align-items:center;gap:6px;">${delBtn("voice")}<div class="hist-card-time">${time}</div></div>
       </div>
       ${hasAudio?`
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
@@ -342,7 +394,7 @@ function renderCard(item) {
         <div class="hist-card-title">${m.label}</div>
         <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:6px;">${sBtn}${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   return "";
 }
@@ -352,6 +404,7 @@ function renderDetail(item, filterDate) {
   const meta=SESSION_META();
   const time=formatTime(item.ts), date=formatDate(item.ts);
   let body="";
+  const shareable = ["mood","note","session"].includes(item.type);
 
   if (item.type==="mood") {
     const col=moodColor(item.value);
@@ -397,11 +450,13 @@ function renderDetail(item, filterDate) {
       </div>
       ${body}
     </div>
-    <div style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;z-index:50;">
+    <div style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;gap:12px;z-index:50;">
+      ${shareable ? `<div id="histShareBtn" style="padding:14px 24px;border-radius:20px;background:rgba(126,184,212,0.15);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#7eb8d4;cursor:pointer;">↗ Поделиться</div>` : ""}
       <div id="histBackBtn" style="padding:14px 48px;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#555;cursor:pointer;">${t("hist_back")}</div>
     </div>`;
 
   document.getElementById("histBackBtn").onclick = () => renderHistory(filterDate);
+  document.getElementById("histShareBtn")?.addEventListener("click", () => shareItem(item));
 }
 
 function detRow(label, valHTML) {

@@ -133,7 +133,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function startApp() {
-  initNavigation(); // раскомментировано — навигация нужна
+  initNavigation();
+
+  // Обновляем недельные блоки тихо в фоне
+  setTimeout(() => {
+    import("./services/weekly-analytics.js")
+      .then(m => m.updateWeeklyBlocks())
+      .catch(() => {});
+  }, 2000);
 
   setTimeout(async () => {
     try {
