@@ -1,5 +1,5 @@
-import { detectMoodState } from "./services/state-engine.js";
-import { initNavigation } from "./navigation.js";
+// import { detectMoodState } from "./services/state-engine.js";
+// import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function startApp() {
-  initNavigation();
+  // initNavigation();
 
   setTimeout(async () => {
     try {
