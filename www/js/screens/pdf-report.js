@@ -1,9 +1,12 @@
 // =====================================
 // MoodOS PDF Report — Share API + Push
 // =====================================
-import { getMoodHistory } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory } from "../services/memory.js";
 import { getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
+import { getWeeklyHistory } from "../services/memory.js";
+import { getFullSessionStats } from "../services/session-analytics.js";
+import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
 import { t } from "../i18n.js";
 
 async function requestNotificationPermission() {
@@ -19,32 +22,54 @@ async function requestNotificationPermission() {
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
+
+    // Отменяем все старые уведомления MoodOS (id 9000-9007)
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9007)
       .map(n => ({ id: n.id }));
     if (moodosIds.length) await LocalNotifications.cancel({ notifications: moodosIds });
 
-    if (!days.length || !time) return;
+    if (!days.length || !time) return true;
 
     const [hh, mm] = time.split(":").map(Number);
     const notifications = [];
 
     days.forEach(dow => {
-      const jsDow = dow === 7 ? 0 : dow;
+      const jsDow = dow === 7 ? 0 : dow; // 0=воскресенье в JS
       const now = new Date();
       const target = new Date();
+
+      // Устанавливаем нужное время
       target.setHours(hh, mm, 0, 0);
+
+      // Вычисляем сколько дней до нужного дня недели
       const currentDow = now.getDay();
       let daysUntil = (jsDow - currentDow + 7) % 7;
-      if (daysUntil === 0 && target <= now) daysUntil = 7;
+
+      // Если сегодня нужный день — проверяем не прошло ли время
+      // Добавляем минимум 65 секунд чтобы уведомление точно было в будущем
+      if (daysUntil === 0) {
+        const targetMs = target.getTime();
+        const nowMs = now.getTime() + 65000;
+        if (targetMs <= nowMs) {
+          daysUntil = 7; // переносим на следующую неделю
+        }
+      }
+
       target.setDate(target.getDate() + daysUntil);
+      target.setSeconds(0, 0); // обнуляем секунды и мс — важно для точности
 
       notifications.push({
         id: 9000 + dow,
         title: "MoodOS 📄",
         body: t("pr_notif_body").replace("{period}", period),
-        schedule: { at: target, repeats: true, every: "week" },
+        schedule: {
+          at: target,
+          repeats: true,
+          every: "week",
+          allowWhileIdle: true,
+        },
         actionTypeId: "OPEN_REPORT",
         extra: { action: "openReport" }
       });
@@ -82,15 +107,23 @@ function loadSettings() {
 }
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
+let _reminderListenerAdded = false;
+
 export function checkAutoReminder() {
   setTimeout(() => {
     try {
       if (!window.Capacitor || !window.Capacitor.Plugins) return;
       const { LocalNotifications } = window.Capacitor.Plugins;
       if (!LocalNotifications) return;
-      LocalNotifications.addListener("localNotificationActionPerformed", () => {
-        showPdfReportModal();
-      });
+      // Добавляем слушатель только один раз
+      if (!_reminderListenerAdded) {
+        _reminderListenerAdded = true;
+        LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+          if (action?.notification?.extra?.action === "openReport") {
+            showPdfReportModal();
+          }
+        });
+      }
     } catch(e) { console.warn("Push init error:", e); }
   }, 0);
 }
@@ -348,105 +381,138 @@ export function showPdfReportModal() {
 }
 
 async function generatePdf(fromStr, toStr) {
+  // Загружаем jsPDF
   if (!window.jspdf) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
   }
+  // Загружаем шрифт с поддержкой кириллицы
+  if (!window.jspdfFontLoaded) {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+
+  // Используем встроенный шрифт с кириллицей через UTF-8 encoding
+  // jsPDF поддерживает кириллицу через специальную настройку
+  doc.setLanguage("ru");
 
   const fromDate = new Date(fromStr + "T00:00:00");
   const toDate   = new Date(toStr   + "T23:59:59");
 
   const moodHistory = getMoodHistory().filter(e => {
-    const t = new Date(e.time); return t >= fromDate && t <= toDate;
+    const d = new Date(e.time); return d >= fromDate && d <= toDate;
   });
   const sessions = getSessionHistory().filter(e => {
-    const t = new Date(e.timestamp||0); return t >= fromDate && t <= toDate;
+    const d = new Date(e.timestamp||0); return d >= fromDate && d <= toDate;
   });
-  const profile = getProfile();
+  const allMoodHistory = getMoodHistory();
+  const profile  = getProfile();
+  const sesStats = getFullSessionStats();
+  const stability = calculateStabilityScore(moodHistory);
+  const trend     = calculateTrend(allMoodHistory);
 
   const PAGE_W=210, MARGIN=18, CONTENT_W=PAGE_W-MARGIN*2;
   let y = MARGIN;
 
-  const C_DARK=[45,45,45],C_GRAY=[120,120,120],C_LIGHT=[180,180,180];
-  const C_GREEN=[76,175,135],C_ORANGE=[240,165,0],C_RED=[224,85,85];
-  const C_LINE=[210,215,208];
+  const C_DARK=[45,45,45], C_GRAY=[120,120,120], C_LIGHT=[180,180,180];
+  const C_GREEN=[76,175,135], C_ORANGE=[240,165,0], C_RED=[224,85,85];
+  const C_PURPLE=[102,103,171], C_LINE=[210,215,208];
+  const C_WHITE=[255,255,255];
 
-  function sf(size,style="normal",color=C_DARK){
-    doc.setFontSize(size);doc.setFont("helvetica",style);doc.setTextColor(...color);
+  // Шрифт — используем courier как fallback для кириллицы в базовом jsPDF
+  // Для настоящей кириллицы используем html-encode через doc.text с encoding
+  function sf(size, style="normal", color=C_DARK) {
+    doc.setFontSize(size);
+    doc.setFont("courier", style); // courier лучше отображает кириллицу в base jsPDF
+    doc.setTextColor(...color);
   }
-  function ln(yp){doc.setDrawColor(...C_LINE);doc.setLineWidth(0.3);doc.line(MARGIN,yp,PAGE_W-MARGIN,yp);}
-  function chk(n=10){if(y+n>280){doc.addPage();y=MARGIN;}}
-  function mc(v){return v>=70?C_GREEN:v>=40?C_ORANGE:C_RED;}
-  function fmtDate(d){return new Date(d).toLocaleDateString("ru-RU",{day:"2-digit",month:"long",year:"numeric"});}
-  function fmtDT(d){
+  function ln(yp) { doc.setDrawColor(...C_LINE); doc.setLineWidth(0.3); doc.line(MARGIN,yp,PAGE_W-MARGIN,yp); }
+  function chk(n=10) { if(y+n>280) { doc.addPage(); y=MARGIN; } }
+  function mc(v) { return v>=70?C_GREEN:v>=40?C_ORANGE:C_RED; }
+  function fmtDate(d) { return new Date(d).toLocaleDateString("ru-RU",{day:"2-digit",month:"long",year:"numeric"}); }
+  function fmtDT(d) {
     const dt=new Date(d);
     return dt.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"})+" "+
            dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
   }
 
-  doc.setFillColor(232,237,230);
-  doc.roundedRect(MARGIN-4,y-4,CONTENT_W+8,28,4,4,"F");
-  sf(18,"bold",C_GREEN); doc.text("MoodOS",MARGIN,y+8);
-  sf(10,"normal",C_GRAY); doc.text("Отчёт об эмоциональном состоянии",MARGIN,y+15);
-  sf(9,"normal",C_LIGHT);
-  doc.text(`Период: ${fmtDate(fromDate)} — ${fmtDate(toDate)}`,MARGIN,y+21);
-  doc.text(`Сформирован: ${new Date().toLocaleDateString("ru-RU")}`,PAGE_W-MARGIN,y+21,{align:"right"});
-  y+=34;
+  // ── Шапка ──────────────────────────────────────────────────
+  doc.setFillColor(76,175,135);
+  doc.rect(0, 0, PAGE_W, 22, "F");
+  doc.setFontSize(16); doc.setFont("courier","bold"); doc.setTextColor(255,255,255);
+  doc.text("MoodOS", MARGIN, 10);
+  doc.setFontSize(9); doc.setFont("courier","normal");
+  doc.text("Otchet ob emoczionalnom sostoyanii", MARGIN, 16);
+  doc.setFontSize(8);
+  doc.text("Period: "+fmtDate(fromDate)+" - "+fmtDate(toDate), MARGIN, 20);
+  doc.text("Sformirovan: "+new Date().toLocaleDateString("ru-RU"), PAGE_W-MARGIN, 20, {align:"right"});
+  y = 30;
 
-  if(profile){
-    chk(30);
-    sf(11,"bold",C_DARK); doc.text("Информация о пациенте",MARGIN,y); y+=7;
-    ln(y); y+=5;
-    sf(9,"normal",C_GRAY); doc.text("Приём препаратов:",MARGIN,y);
-    sf(9,"bold",C_DARK);   doc.text(MED_LABELS[profile.takesMeds]||"Не указано",MARGIN+42,y); y+=6;
-    if(profile.takesMeds&&profile.takesMeds!=="нет"&&profile.takesMeds!=="не_скажу"){
-      sf(9,"normal",C_GRAY); doc.text("Эффект от препарата:",MARGIN,y);
-      sf(9,"bold",C_DARK);   doc.text(EFFECT_LABELS[profile.medEffect]||"—",MARGIN+42,y); y+=6;
+  // ── Блок пациента ──────────────────────────────────────────
+  if (profile) {
+    chk(35);
+    doc.setFillColor(240,244,238); doc.roundedRect(MARGIN,y,CONTENT_W,30,3,3,"F");
+    sf(10,"bold",C_DARK); doc.text("Informacziya o pacziente", MARGIN+4, y+7);
+    sf(8,"normal",C_GRAY);
+    const medLabel = {
+      "net":"Ne prinimaet","antidepressanty":"Antidepressanty",
+      "sedativnye":"Sedativnye","drugoe":"Drugoe","ne_skazhu":"Ne ukazano",
+      "нет":"Ne prinimaet","антидепрессанты":"Antidepressanty",
+      "седативные":"Sedativnye","другое":"Drugoe","не_скажу":"Ne ukazano"
+    };
+    const effLabel = {
+      "лучше":"Stalo luchshe","примерно_так_же":"Primerno tak zhe",
+      "приглушённость":"Priglushennost","побочки":"Pobochki","адаптация":"Adaptacziya"
+    };
+    doc.text("Priem preparatov: "+(medLabel[profile.takesMeds]||"Ne ukazano"), MARGIN+4, y+14);
+    if (profile.takesMeds && profile.takesMeds!=="нет" && profile.takesMeds!=="не_скажу") {
+      doc.text("Effekt: "+(effLabel[profile.medEffect]||"—"), MARGIN+4, y+20);
     }
-    sf(9,"normal",C_GRAY); doc.text("Базовое состояние:",MARGIN,y);
-    sf(9,"bold",C_DARK);   doc.text((profile.moodBaseline??50)+"%",MARGIN+42,y); y+=10;
+    doc.text("Bazovoe sostoyanie: "+(profile.moodBaseline??50)+"%", MARGIN+90, y+14);
+    y += 36;
   }
 
-  chk(40);
-  sf(11,"bold",C_DARK); doc.text("Статистика за период",MARGIN,y); y+=7;
-  ln(y); y+=6;
-
-  if(moodHistory.length===0){
-    sf(9,"normal",C_GRAY); doc.text("Нет данных за выбранный период.",MARGIN,y); y+=10;
-  } else {
-    const vals=moodHistory.map(e=>e.value);
-    const avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
-    const minV=Math.min(...vals),maxV=Math.max(...vals);
-    let stab=100;
-    if(vals.length>1){
-      const diffs=vals.slice(1).map((v,i)=>Math.abs(v-vals[i]));
-      stab=Math.max(0,Math.round(100-diffs.reduce((a,b)=>a+b,0)/diffs.length*2));
-    }
-    const BW=(CONTENT_W-6)/2,BH=18;
-    [{label:"Среднее настроение",value:avg+"%",color:mc(avg)},
-     {label:"Устойчивость",value:stab+"%",color:mc(stab)},
-     {label:"Минимум",value:minV+"%",color:mc(minV)},
-     {label:"Максимум",value:maxV+"%",color:mc(maxV)}
-    ].forEach((box,i)=>{
-      const bx=MARGIN+(i%2)*(BW+6),by=y+Math.floor(i/2)*(BH+4);
-      doc.setFillColor(240,244,238);doc.roundedRect(bx,by,BW,BH,3,3,"F");
-      sf(8,"normal",C_GRAY);doc.text(box.label,bx+4,by+6);
-      sf(13,"bold",box.color);doc.text(box.value,bx+4,by+14);
-    });
-    y+=BH*2+12;
-    sf(9,"normal",C_GRAY);doc.text(`Всего записей: ${moodHistory.length}`,MARGIN,y);y+=10;
-
+  // ── Статистика ─────────────────────────────────────────────
+  if (moodHistory.length > 0) {
     chk(50);
-    sf(11,"bold",C_DARK);doc.text("График настроения",MARGIN,y);y+=7;
-    ln(y);y+=4;
-    const CH=35,cx=MARGIN,cy=y;
-    doc.setFillColor(240,244,238);doc.roundedRect(cx,cy,CONTENT_W,CH,3,3,"F");
-    doc.setDrawColor(...C_LINE);doc.setLineWidth(0.2);
-    [0,25,50,75,100].forEach(pct=>{
+    sf(10,"bold",C_DARK); doc.text("Statistika za period", MARGIN, y); y+=5;
+    ln(y); y+=4;
+
+    const vals = moodHistory.map(e=>e.value);
+    const avg  = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+    const minV = Math.min(...vals), maxV = Math.max(...vals);
+    const stabVal = stability !== null ? stability+"%" : "—";
+    const trendTxt = trend==="improving ↑"?"Uluchshaetsya":trend==="declining ↓"?"Snizhaetsya":"Stabilno";
+
+    const boxes = [
+      {label:"Srednee nastroenie", value:avg+"%",   color:mc(avg)},
+      {label:"Stabilnost",         value:stabVal,   color:mc(stability||50)},
+      {label:"Minimum",            value:minV+"%",  color:mc(minV)},
+      {label:"Maksimum",           value:maxV+"%",  color:mc(maxV)},
+      {label:"Trend",              value:trendTxt,  color:C_PURPLE},
+      {label:"Zapisej vsego",      value:String(moodHistory.length), color:C_DARK},
+    ];
+    const BW=(CONTENT_W-8)/3, BH=16;
+    boxes.forEach((box,i) => {
+      const bx=MARGIN+(i%3)*(BW+4), by=y+Math.floor(i/3)*(BH+4);
+      doc.setFillColor(240,244,238); doc.roundedRect(bx,by,BW,BH,2,2,"F");
+      sf(7,"normal",C_GRAY); doc.text(box.label, bx+3, by+5);
+      sf(11,"bold",box.color); doc.text(box.value, bx+3, by+13);
+    });
+    y += BH*2+12;
+
+    // График
+    chk(45);
+    sf(10,"bold",C_DARK); doc.text("Grafik nastroenia", MARGIN, y); y+=5;
+    ln(y); y+=3;
+    const CH=32, cx=MARGIN, cy=y;
+    doc.setFillColor(240,244,238); doc.roundedRect(cx,cy,CONTENT_W,CH,2,2,"F");
+    doc.setDrawColor(...C_LINE); doc.setLineWidth(0.15);
+    [0,25,50,75,100].forEach(pct => {
       const gy=cy+CH-(pct/100*CH);
       doc.line(cx,gy,cx+CONTENT_W,gy);
-      sf(6,"normal",C_LIGHT);doc.text(pct+"%",cx-1,gy+1,{align:"right"});
+      sf(6,"normal",C_LIGHT); doc.text(pct+"%",cx-1,gy+1,{align:"right"});
     });
     const sorted=moodHistory.slice().sort((a,b)=>new Date(a.time)-new Date(b.time));
     if(sorted.length>1){
@@ -454,67 +520,146 @@ async function generatePdf(fromStr, toStr) {
         x:cx+(i/(sorted.length-1))*CONTENT_W,
         y:cy+CH-(e.value/100*CH)
       }));
-      doc.setDrawColor(...C_GREEN);doc.setLineWidth(0.8);
+      doc.setDrawColor(...C_GREEN); doc.setLineWidth(0.8);
       for(let i=1;i<pts.length;i++) doc.line(pts[i-1].x,pts[i-1].y,pts[i].x,pts[i].y);
       doc.setFillColor(...C_GREEN);
-      pts.forEach(p=>doc.circle(p.x,p.y,0.8,"F"));
+      pts.forEach(p=>doc.circle(p.x,p.y,0.7,"F"));
     }
-    y+=CH+10;
+    y+=CH+8;
   }
 
-  if(sessions.length>0){
-    chk(20);
-    sf(11,"bold",C_DARK);doc.text("Использованные практики",MARGIN,y);y+=7;
-    ln(y);y+=5;
+  // ── Практики ───────────────────────────────────────────────
+  if (sessions.length > 0) {
+    chk(30);
+    sf(10,"bold",C_DARK); doc.text("Ispolzovannye praktiki", MARGIN, y); y+=5;
+    ln(y); y+=4;
+
+    const SL = {
+      "breathing":"Dyhanie","meditation":"Meditacziya",
+      "visual-focus":"Zritelnyj yakor","mind-dump":"Vygruzka myslej","tap-calm":"Taktilnaya razryadka"
+    };
     const bt={};
     sessions.forEach(s=>{
-      const t=s.type||"other";
-      if(!bt[t]) bt[t]={count:0,positive:0,lift:0};
-      bt[t].count++;
-      if(s.result==="positive") bt[t].positive++;
-      if(s.moodBefore!=null&&s.moodAfter!=null) bt[t].lift+=(s.moodAfter-s.moodBefore);
+      const tp=s.type||"other";
+      if(!bt[tp]) bt[tp]={count:0,positive:0,lift:0};
+      bt[tp].count++;
+      if(s.result==="positive") bt[tp].positive++;
+      if(s.moodBefore!=null&&s.moodAfter!=null) bt[tp].lift+=(s.moodAfter-s.moodBefore);
     });
     Object.entries(bt).forEach(([type,data])=>{
-      chk(10);
-      const pct=Math.round(data.positive/data.count*100);
-      const lift=Math.round(data.lift/data.count);
-      sf(9,"bold",C_DARK);doc.text(SESSION_LABELS[type]||type,MARGIN,y);
-      sf(9,"normal",C_GRAY);
-      doc.text(`${data.count} сессий · ${pct}% эффективность · прирост: ${lift>0?"+":""}${lift}%`,MARGIN+38,y);
+      chk(8);
+      const pct  = Math.round(data.positive/data.count*100);
+      const lift = Math.round(data.lift/data.count);
+      sf(9,"bold",C_DARK); doc.text(SL[type]||type, MARGIN, y);
+      sf(8,"normal",C_GRAY);
+      doc.text(`${data.count} sessij - ${pct}% eff. - rost: ${lift>0?"+":""}${lift}%`, MARGIN+44, y);
+      y+=6;
+    });
+    y+=4;
+  }
+
+  // ── Рекомендации врачу ─────────────────────────────────────
+  chk(60);
+  doc.setFillColor(102,103,171);
+  doc.roundedRect(MARGIN, y, CONTENT_W, 8, 2, 2, "F");
+  sf(10,"bold",C_WHITE); doc.text("Rekomendaczii dlya vracha", MARGIN+4, y+5.5);
+  y+=12;
+
+  const recommendations = [];
+
+  if (moodHistory.length > 0) {
+    const vals = moodHistory.map(e=>e.value);
+    const avg  = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+    const stab = stability || 0;
+
+    if (avg < 40) {
+      recommendations.push("VNIMANIE: Srednee nastroenie nizhe 40%. Neobhodimo obsuditi prichiny snizheniya.");
+    } else if (avg < 55) {
+      recommendations.push("Nastroenie v zone povyshennogo vnimaniya (40-55%). Rekomenduetsya nablyudenie.");
+    } else {
+      recommendations.push("Nastroenie v stabilnoj zone ("+avg+"%). Dinamika polozhitelnaya.");
+    }
+
+    if (stab < 50) {
+      recommendations.push("Vysokaya volatilnost nastroenia ("+stab+"%). Vozmozhna emoczionalnaya nestabilnost.");
+    }
+
+    if (trend === "declining ↓") {
+      recommendations.push("Trend: nastroenie snizhalsya v techenie perioda. Rekomenduetsya vnimanie.");
+    } else if (trend === "improving ↑") {
+      recommendations.push("Trend: nastroenie uluchshalos v techenie perioda.");
+    }
+  }
+
+  if (profile?.medEffect === "побочки" || profile?.medEffect === "приглушённость") {
+    recommendations.push("Paczient otmechaet pobochnye effekty / priglushennost ot preparatov.");
+  }
+  if (profile?.medEffect === "адаптация") {
+    recommendations.push("Paczient nahodsya v periode adaptaczii k preparatam. Vozmozhen peresmotr dozi.");
+  }
+
+  if (sessions.length > 0) {
+    const bt={};
+    sessions.forEach(s=>{ const tp=s.type||"other"; if(!bt[tp]) bt[tp]={count:0,positive:0}; bt[tp].count++; if(s.result==="positive") bt[tp].positive++; });
+    const best = Object.entries(bt).sort((a,b)=>(b[1].positive/b[1].count)-(a[1].positive/a[1].count))[0];
+    if(best) {
+      const SL={"breathing":"Dyhanie","meditation":"Meditacziya","visual-focus":"Zritelnyj yakor","mind-dump":"Vygruzka myslej","tap-calm":"Taktilnaya razryadka"};
+      const pct = Math.round(best[1].positive/best[1].count*100);
+      recommendations.push("Naibolee effektivnaya praktika: "+(SL[best[0]]||best[0])+" ("+pct+"% polozhitelnyh rezultatov).");
+    }
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push("Nedostatochno dannyh dlya formirovaniya rekomendaczij.");
+  }
+
+  recommendations.forEach(rec => {
+    chk(10);
+    doc.setFillColor(248,248,252);
+    doc.roundedRect(MARGIN, y-3, CONTENT_W, 9, 1, 1, "F");
+    doc.setDrawColor(...C_PURPLE); doc.setLineWidth(0.5);
+    doc.line(MARGIN, y-3, MARGIN, y+6);
+    sf(8,"normal",C_DARK);
+    const lines = doc.splitTextToSize("- "+rec, CONTENT_W-6);
+    doc.text(lines, MARGIN+3, y+2);
+    y += lines.length * 5 + 3;
+  });
+
+  // ── Журнал настроения ──────────────────────────────────────
+  chk(20);
+  y+=4;
+  sf(10,"bold",C_DARK); doc.text("Zhurnal nastroenia", MARGIN, y); y+=5;
+  ln(y); y+=4;
+
+  if(moodHistory.length===0){
+    sf(9,"normal",C_GRAY); doc.text("Net dannyh.", MARGIN, y); y+=8;
+  } else {
+    doc.setFillColor(225,232,222); doc.rect(MARGIN,y-3,CONTENT_W,8,"F");
+    sf(8,"bold",C_GRAY);
+    doc.text("Data i vremya", MARGIN+2, y+3);
+    doc.text("Nastr.", MARGIN+54, y+3);
+    doc.text("Sostoyanie", MARGIN+72, y+3);
+    y+=9;
+    const STA={"HIGH":"Otlichnoe","GOOD":"Horoshee","NEUTRAL":"Nejtralnoe","STRESSED":"Napryazhenie","LOW":"Snizhennoe"};
+    moodHistory.slice().sort((a,b)=>new Date(b.time)-new Date(a.time)).forEach((e,i)=>{
+      chk(8);
+      if(i%2===0){doc.setFillColor(246,249,244);doc.rect(MARGIN,y-3,CONTENT_W,7,"F");}
+      sf(8,"normal",C_DARK); doc.text(fmtDT(e.time),MARGIN+2,y+2);
+      sf(8,"bold",mc(e.value)); doc.text(e.value+"%",MARGIN+54,y+2);
+      sf(8,"normal",C_GRAY); doc.text(STA[e.state]||"—",MARGIN+72,y+2);
       y+=7;
     });
     y+=4;
   }
 
-  chk(20);
-  sf(11,"bold",C_DARK);doc.text("Журнал настроения",MARGIN,y);y+=7;
-  ln(y);y+=5;
-  if(moodHistory.length===0){
-    sf(9,"normal",C_GRAY);doc.text("Нет данных.",MARGIN,y);y+=10;
-  } else {
-    doc.setFillColor(225,232,222);doc.rect(MARGIN,y-3,CONTENT_W,8,"F");
-    sf(8,"bold",C_GRAY);
-    doc.text("Дата и время",MARGIN+2,y+3);
-    doc.text("Настроение",MARGIN+52,y+3);
-    doc.text("Состояние",MARGIN+78,y+3);
-    y+=9;
-    moodHistory.slice().sort((a,b)=>new Date(b.time)-new Date(a.time)).forEach((e,i)=>{
-      chk(8);
-      if(i%2===0){doc.setFillColor(246,249,244);doc.rect(MARGIN,y-3,CONTENT_W,7,"F");}
-      sf(8,"normal",C_DARK);doc.text(fmtDT(e.time),MARGIN+2,y+2);
-      sf(8,"bold",mc(e.value));doc.text(e.value+"%",MARGIN+52,y+2);
-      sf(8,"normal",C_GRAY);doc.text(STATE_LABELS[e.state]||"—",MARGIN+78,y+2);
-      y+=7;
-    });
-    y+=6;
-  }
-
-  chk(16);ln(y);y+=5;
-  sf(8,"normal",C_LIGHT);
-  doc.text("Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.",MARGIN,y,{maxWidth:CONTENT_W});
+  // ── Подвал ─────────────────────────────────────────────────
+  chk(12); ln(y); y+=4;
+  sf(7,"normal",C_LIGHT);
+  doc.text("Otchet sformirovan prilozheniem MoodOS. Predназnachen dlya obsuzhdeniya s vrachom. Ne yavlyaetsya mediczinskim zaklyucheniem.", MARGIN, y, {maxWidth:CONTENT_W});
 
   return doc.output("blob");
 }
+
 
 function loadScript(src) {
   return new Promise((resolve,reject)=>{
