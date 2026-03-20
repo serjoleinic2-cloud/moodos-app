@@ -10,7 +10,11 @@ import {
   getMedReminder,
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
-import { backupAndShare, restoreFromBackup, getLastBackupTime } from "../services/drive-backup.js";
+
+// Безопасная обёртка — если ключ не найден возвращает пустую строку
+function st(key, fallback = "") {
+  try { const v = t(key); return v || fallback; } catch(e) { return fallback; }
+}
 
 export function onEnter() {
   const el = document.querySelector('[data-screen="settings"]');
@@ -27,123 +31,100 @@ function renderSettings() {
   const profile   = getProfile();
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
-  const lastTime  = getLastBackupTime();
+  const lastTime  = null; // drive-backup загружается динамически
 
-  const medLabels = {
-    "нет": t("med_no"), "антидепрессанты": t("med_anti"),
-    "седативные": t("med_sed"), "другое": t("med_other"), "не_скажу": t("med_not_said"),
-  };
-  const effectLabels = {
-    "лучше": t("effect_better"), "примерно_так_же": t("effect_same"),
-    "приглушённость": t("effect_numb"), "побочки": t("effect_side"), "адаптация": t("effect_adapt"),
-  };
-  const reminderLabels = {
-    "нет": t("reminder_no"), "утро": t("reminder_morning"),
-    "день": t("reminder_day"), "вечер": t("reminder_evening"),
-  };
+  const medVal    = {"нет":"Не принимаю","антидепрессанты":"Антидепрессанты","седативные":"Седативные","другое":"Другое","не_скажу":"Не указано"};
+  const effVal    = {"лучше":"Стало лучше","примерно_так_же":"Так же","приглушённость":"Приглушённость","побочки":"Побочки","адаптация":"Адаптация"};
+  const remVal    = {"нет":"Выключено","утро":"Утром 8:00","день":"Днём 13:00","вечер":"Вечером 20:00"};
+  const langInfo  = LANG_OPTIONS.find(l=>l.code===getLang()) || {flag:"🌍",label:"Русский"};
+
+  const medsSection = takesMeds ? (
+    '<div class="neo-row" id="settingEffect">' +
+      '<div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">Как влияет</span></div>' +
+      '<span class="neo-row-value">' + (effVal[profile.medEffect]||"Не указано") + ' ›</span>' +
+    '</div>' +
+    '<div class="neo-row" id="settingReminder">' +
+      '<div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">Напоминание о приёме</span></div>' +
+      '<span class="neo-row-value">' + (reminder?.active ? (remVal[profile?.medReminder]||"Включено") : "Выключено") + ' ›</span>' +
+    '</div>'
+  ) : "";
+
+  const backupSub = lastTime ? "Последний: " + lastTime.toLocaleDateString("ru-RU") : "Резервная копия не создавалась";
 
   return `
     <style>
-      .settings-wrap { padding: 20px 16px 100px; font-family: -apple-system, 'SF Pro Display', sans-serif; }
-      .settings-title { font-size: 22px; font-weight: 700; color: #3d3d3d; margin-bottom: 24px; }
-      .settings-section { margin-bottom: 28px; }
-      .settings-section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #b0b8c4; margin-bottom: 10px; padding-left: 4px; }
-      .neo-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(232,237,230,0.9); border-radius: 18px; box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff; margin-bottom: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-      .neo-row:active { box-shadow: inset 4px 4px 8px #b8c4b4, inset -4px -4px 8px #ffffff; }
-      .neo-row-label { font-size: 15px; color: #555; font-weight: 500; }
-      .neo-row-value { font-size: 13px; color: #aaa; text-align: right; flex-shrink: 0; margin-left: 8px; }
-      .neo-row-icon { font-size: 18px; margin-right: 12px; flex-shrink: 0; }
-      .neo-row-left { display: flex; align-items: center; flex: 1; }
-      .neo-row-sub { font-size: 11px; color: #bbb; margin-top: 2px; }
-      .health-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: flex; align-items: flex-end; }
-      .health-modal { width: 100%; background: linear-gradient(160deg,#d4ede8,#e8e0d5); border-radius: 24px 24px 0 0; padding: 24px 20px 32px; max-height: 80vh; overflow-y: auto; box-sizing: border-box; animation: slideUp 0.35s ease; }
-      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-      .modal-title { font-size: 18px; font-weight: 700; color: #3d3d3d; margin-bottom: 6px; }
-      .modal-subtitle { font-size: 13px; color: #aaa; margin-bottom: 20px; }
-      .modal-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-      .modal-option { padding: 13px 16px; border-radius: 14px; background: rgba(232,237,230,0.9); box-shadow: 4px 4px 9px #b8c4b4, -4px -4px 9px #ffffff; font-size: 15px; color: #555; cursor: pointer; }
-      .modal-option.selected { box-shadow: inset 3px 3px 7px #b8c4b4, inset -3px -3px 7px #ffffff; color: #7eb8d4; font-weight: 600; }
-      .modal-save-btn { width: 100%; padding: 15px; border: none; border-radius: 16px; background: rgba(232,237,230,0.9); box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff; font-size: 16px; font-weight: 700; color: #7eb8d4; cursor: pointer; display: block; box-sizing: border-box; }
-      .modal-cancel { width: 100%; padding: 12px; text-align: center; font-size: 14px; color: #bbb; cursor: pointer; margin-top: 8px; }
+      .settings-wrap{padding:20px 16px 100px;font-family:-apple-system,'SF Pro Display',sans-serif}
+      .settings-title{font-size:22px;font-weight:700;color:#3d3d3d;margin-bottom:24px}
+      .settings-section{margin-bottom:28px}
+      .settings-section-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#b0b8c4;margin-bottom:10px;padding-left:4px}
+      .neo-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:rgba(232,237,230,0.9);border-radius:18px;box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+      .neo-row:active{box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff}
+      .neo-row-label{font-size:15px;color:#555;font-weight:500}
+      .neo-row-value{font-size:13px;color:#aaa;text-align:right;flex-shrink:0;margin-left:8px}
+      .neo-row-icon{font-size:18px;margin-right:12px;flex-shrink:0}
+      .neo-row-left{display:flex;align-items:center;flex:1}
+      .neo-row-sub{font-size:11px;color:#bbb;margin-top:2px}
+      .health-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:flex;align-items:flex-end}
+      .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
+      @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+      .modal-title{font-size:18px;font-weight:700;color:#3d3d3d;margin-bottom:6px}
+      .modal-subtitle{font-size:13px;color:#aaa;margin-bottom:20px}
+      .modal-options{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+      .modal-option{padding:13px 16px;border-radius:14px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;font-size:15px;color:#555;cursor:pointer}
+      .modal-option.selected{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;color:#7eb8d4;font-weight:600}
+      .modal-save-btn{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#7eb8d4;cursor:pointer;display:block;box-sizing:border-box}
+      .modal-cancel{width:100%;padding:12px;text-align:center;font-size:14px;color:#bbb;cursor:pointer;margin-top:8px}
     </style>
-
     <div class="settings-wrap">
-      <div class="settings-title">${t("settings_title")}</div>
+      <div class="settings-title">Настройки</div>
 
-      <!-- ЗДОРОВЬЕ -->
       <div class="settings-section">
-        <div class="settings-section-label">${t("settings_health")}</div>
-
+        <div class="settings-section-label">Здоровье</div>
         <div class="neo-row" id="settingMeds">
-          <div class="neo-row-left">
-            <span class="neo-row-icon">💊</span>
-            <div><div class="neo-row-label">${t("settings_meds_label")}</div></div>
-          </div>
-          <span class="neo-row-value">${medLabels[profile?.takesMeds] || t("med_not_said")} ›</span>
+          <div class="neo-row-left"><span class="neo-row-icon">💊</span><span class="neo-row-label">Приём лекарств</span></div>
+          <span class="neo-row-value">${medVal[profile?.takesMeds]||"Не указано"} ›</span>
         </div>
-
-        ${takesMeds ? `
-        <div class="neo-row" id="settingEffect">
-          <div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">${t("settings_effect_label")}</span></div>
-          <span class="neo-row-value">${effectLabels[profile?.medEffect] || t("med_not_said")} ›</span>
-        </div>
-        <div class="neo-row" id="settingReminder">
-          <div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">${t("settings_reminder_label")}</span></div>
-          <span class="neo-row-value">${reminder?.active ? (reminderLabels[profile?.medReminder] || t("settings_reminder_on")) : t("settings_reminder_off")} ›</span>
-        </div>` : ""}
+        ${medsSection}
       </div>
 
-      <!-- ПРИЛОЖЕНИЕ -->
       <div class="settings-section">
-        <div class="settings-section-label">${t("settings_app")}</div>
-
+        <div class="settings-section-label">Приложение</div>
         <div class="neo-row" id="settingBaseFeeling">
-          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">${t("settings_baseline_label")}</span></div>
-          <span class="neo-row-value">${profile?.moodBaseline ?? 50}% ›</span>
+          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">Базовое состояние</span></div>
+          <span class="neo-row-value">${profile?.moodBaseline??50}% ›</span>
         </div>
-
         <div class="neo-row" id="settingLanguage">
-          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">${t("settings_language_label")}</span></div>
-          <span class="neo-row-value">${LANG_OPTIONS.find(l=>l.code===getLang())?.flag||"🌍"} ${LANG_OPTIONS.find(l=>l.code===getLang())?.label||"Русский"} ›</span>
+          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">Язык</span></div>
+          <span class="neo-row-value">${langInfo.flag} ${langInfo.label} ›</span>
         </div>
       </div>
 
-      <!-- ДАННЫЕ -->
       <div class="settings-section">
-        <div class="settings-section-label">${t("settings_data")}</div>
-
+        <div class="settings-section-label">Данные</div>
         <div class="neo-row" id="settingPdfReport">
-          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">${t("settings_pdf_label")}</span></div>
+          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">Отчёт для врача</span></div>
           <span class="neo-row-value">PDF ›</span>
         </div>
-
         <div class="neo-row" id="settingBackup">
           <div class="neo-row-left">
             <span class="neo-row-icon">☁️</span>
-            <div>
-              <div class="neo-row-label">Сохранить данные</div>
-              <div class="neo-row-sub">${lastTime ? "Последний: " + fmtTime(lastTime) : "Резервная копия не создавалась"}</div>
-            </div>
+            <div><div class="neo-row-label">Сохранить данные</div><div class="neo-row-sub">${backupSub}</div></div>
           </div>
           <span class="neo-row-value" id="backupVal">Сохранить ›</span>
         </div>
-
         <div class="neo-row" id="settingRestore">
           <div class="neo-row-left">
             <span class="neo-row-icon">📥</span>
-            <div>
-              <div class="neo-row-label">Восстановить данные</div>
-              <div class="neo-row-sub">Загрузить из файла .json</div>
-            </div>
+            <div><div class="neo-row-label">Восстановить данные</div><div class="neo-row-sub">Загрузить из .json</div></div>
           </div>
           <span class="neo-row-value">›</span>
         </div>
-
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
     </div>
   `;
 }
+
 
 function bindEvents(el) {
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
@@ -191,15 +172,21 @@ function bindEvents(el) {
   el.querySelector("#settingBackup")?.addEventListener("click", async () => {
     const valEl = el.querySelector("#backupVal");
     if (valEl) valEl.textContent = "⏳...";
-    const result = await backupAndShare();
-    if (!valEl) return;
-    if (result.message === "cancelled") { valEl.textContent = "Сохранить ›"; return; }
-    if (result.success) {
-      valEl.textContent = result.message === "shared" ? "✅ Отправлено" : "✅ Скачано";
-      setTimeout(() => refresh(), 2000);
-    } else {
-      valEl.textContent = "❌ Ошибка";
-      setTimeout(() => { valEl.textContent = "Сохранить ›"; }, 3000);
+    try {
+      const m = await import("../services/drive-backup.js");
+      const result = await m.backupAndShare();
+      if (!valEl) return;
+      if (result.message === "cancelled") { valEl.textContent = "Сохранить ›"; return; }
+      if (result.success) {
+        valEl.textContent = result.message === "shared" ? "✅ Отправлено" : "✅ Скачано";
+        setTimeout(() => refresh(), 2000);
+      } else {
+        valEl.textContent = "❌ Ошибка";
+        setTimeout(() => { if(valEl) valEl.textContent = "Сохранить ›"; }, 3000);
+      }
+    } catch(e) {
+      console.warn("drive-backup not available:", e);
+      if (valEl) valEl.textContent = "Недоступно";
     }
   });
 
@@ -233,6 +220,7 @@ function showRestoreConfirmModal(file) {
   overlay.querySelector("#restoreConfirm").addEventListener("click", async () => {
     const btn = overlay.querySelector("#restoreConfirm");
     btn.textContent = "⏳..."; btn.disabled = true;
+    const { restoreFromBackup } = await import("../services/drive-backup.js");
     const result = await restoreFromBackup(file);
     overlay.remove();
     if (result.success) {
