@@ -223,7 +223,7 @@ function startApp() {
 /* ---------- HELPERS ---------- */
 export function updateStabilityHistory(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
-  // setMood убран — вызывал subscribe → render → бесконечный цикл
+  setMood(mood);  // обновляем state — без subscribe цикла нет
   const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
