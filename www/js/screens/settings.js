@@ -2,8 +2,6 @@
 // MoodOS Settings Screen
 // =====================================
 
-import { getProfile } from "../services/user-profile.js";
-import { createWeeklyBackup } from "../services/drive-backup.js";
 
 import {
   getProfile,
