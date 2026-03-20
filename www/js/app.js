@@ -1,5 +1,5 @@
-// import { detectMoodState } from "./services/state-engine.js";
-// import { initNavigation } from "./navigation.js";
+import { detectMoodState } from "./services/state-engine.js";
+import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
@@ -12,7 +12,7 @@ import {
   calculateStabilityScore, calculateTrend, calculateGoldenHour
 } from "./services/analytics.js";
 import {
-  initState, getUsageDays, getMood, setMood, subscribe
+  initState, getUsageDays, getMood, setMood
 } from "./state.js";
 import { isOnboardingDone } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
@@ -68,20 +68,17 @@ function render() {
   const moodValue = document.getElementById("moodValue");
   if (moodValue) moodValue.textContent = mood + "%";
 
-  const moodSlider = document.getElementById("moodSlider");
-  if (moodSlider) moodSlider.value = mood;
+  // НЕ пишем moodSlider.value — триггерит events на Android WebView
 
   const fill = document.querySelector(".ecs-fill");
   if (fill) fill.style.width = mood + "%";
 
-  // Инсайт дня — итог дня
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
     insightEl.textContent = buildDayInsight();
     insightEl.removeAttribute("data-user-set");
   }
 
-  // Индекс устойчивости
   const history = getMoodHistory();
   const stability = calculateStabilityScore(history);
   const trend     = calculateTrend(history);
@@ -90,13 +87,12 @@ function render() {
   if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
   if (trendEl) trendEl.textContent = trend;
 
-  // Золотые часы
   const goldenEl = document.getElementById("goldenHours");
-if (goldenEl) {
-  const g = calculateGoldenHour(history);
-  if (g === null) goldenEl.textContent = t("golden_studying");
-  else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
-}
+  if (goldenEl) {
+    const g = calculateGoldenHour(history);
+    if (g === null) goldenEl.textContent = t("golden_studying");
+    else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
+  }
 }
 
 function getDaysFromStorage() {
@@ -137,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function startApp() {
-  // initNavigation();
+  initNavigation(); // раскомментировано — навигация нужна
 
   setTimeout(async () => {
     try {
@@ -171,65 +167,63 @@ function startApp() {
       const history = getNotesHistory();
       history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
       saveNotesHistory(history);
-
-      // Обновляем Инсайт дня после новой заметки
       render();
     });
   }
 
   render();
-  subscribe(render);
+  // subscribe(render) убран — вызывал бесконечный цикл
 
   const recordBtn   = document.getElementById("recordVoiceBtn");
   const voiceStatus = document.getElementById("voiceStatus");
 
   if (recordBtn && voiceStatus) {
     recordBtn.addEventListener("click", () => {
-  if (output) output.classList.remove("ai-message");
+      if (output) output.classList.remove("ai-message");
 
-  const timerEl = document.getElementById("voiceTimer");
-  recordBtn.disabled = true;
-  voiceStatus.textContent = t("voice_recording");
+      const timerEl = document.getElementById("voiceTimer");
+      recordBtn.disabled = true;
+      voiceStatus.textContent = t("voice_recording");
 
-  let countdown = 10;
-  if (timerEl) timerEl.textContent = countdown;
-
-  const countdownInterval = setInterval(() => {
-    countdown--;
-    if (countdown > 0) {
+      let countdown = 10;
       if (timerEl) timerEl.textContent = countdown;
-    } else {
-      clearInterval(countdownInterval);
-      if (timerEl) timerEl.textContent = "";
-    }
-  }, 1000);
 
-  const cleanup = () => {
-    clearInterval(countdownInterval);
-    if (timerEl) timerEl.textContent = "";
-    voiceStatus.textContent = "";
-    recordBtn.disabled = false;
-  };
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          if (timerEl) timerEl.textContent = countdown;
+        } else {
+          clearInterval(countdownInterval);
+          if (timerEl) timerEl.textContent = "";
+        }
+      }, 1000);
 
-  startVoiceRecording(voiceStatus, () => {
-    cleanup();
-    const result = analyzeLatestVoice();
-    if (result && voiceOutput) {
-      voiceOutput.textContent = result.insight;
-      voiceOutput.classList.add("ai-message");
-    }
-  }).catch(() => {
-    cleanup();
-    voiceStatus.textContent = "❌";
-  });
-});
+      const cleanup = () => {
+        clearInterval(countdownInterval);
+        if (timerEl) timerEl.textContent = "";
+        voiceStatus.textContent = "";
+        recordBtn.disabled = false;
+      };
+
+      startVoiceRecording(voiceStatus, () => {
+        cleanup();
+        const result = analyzeLatestVoice();
+        if (result && voiceOutput) {
+          voiceOutput.textContent = result.insight;
+          voiceOutput.classList.add("ai-message");
+        }
+      }).catch(() => {
+        cleanup();
+        voiceStatus.textContent = "❌";
+      });
+    });
   }
 }
 
 /* ---------- HELPERS ---------- */
 export function updateStabilityHistory(moodValue) {
   const mood    = moodValue !== undefined ? moodValue : getMood();
-  setMood(mood);
+  // setMood убран — вызывал subscribe → render → бесконечный цикл
   const now     = Date.now();
   const history = getMoodHistory();
   const state   = detectMoodState(mood);
