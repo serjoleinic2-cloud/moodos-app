@@ -50,7 +50,7 @@ async function scheduleNotifications(days, time, period) {
           id: idCounter++,
           title: "MoodOS 📄",
           body: t("pr_notif_body").replace("{period}", period),
-          schedule: { at: target, allowWhileIdle: true },
+          schedule: { at: target, allowWhileIdle: true, exact: true },
           actionTypeId: "OPEN_REPORT",
           extra: { action: "openReport" }
         });
@@ -256,7 +256,7 @@ export function showPdfReportModal() {
         id: 8999,
         title: "MoodOS тест",
         body: "Уведомления работают!",
-        schedule: { at: target, allowWhileIdle: true },
+        schedule: { at: target, allowWhileIdle: true, exact: true },
       }]});
       statusEl.textContent = "✅ Запланировано на " + target.toLocaleTimeString("ru-RU") + " | Разрешение: " + perm.display;
     } catch(e) {
