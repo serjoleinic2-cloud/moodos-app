@@ -95,11 +95,15 @@ export function checkAutoReminder() {
 
       const s = loadSettings();
       if (s.autoDays && s.autoDays.length && s.autoTime) {
-        LocalNotifications.getPending().then(p => {
-          const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
-          if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
-        }).catch(() => {});
-      }
+  LocalNotifications.checkPermissions().then(perm => {
+    if (perm.display !== "granted") return LocalNotifications.requestPermissions();
+  }).then(() => {
+    return LocalNotifications.getPending();
+  }).then(p => {
+    const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
+    if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
+  }).catch(() => {});
+}
 
       if (!_reminderListenerAdded) {
         _reminderListenerAdded = true;
@@ -275,6 +279,7 @@ export function showPdfReportModal() {
     const statusEl = screen.querySelector("#prAutoStatus");
     statusEl.textContent = t("pr_scheduling");
     await requestNotificationPermission();
+    try { const Battery = window.Capacitor.Plugins.Battery; if (Battery) { const { ignoring } = await Battery.isIgnoringBatteryOptimizations(); if (!ignoring) await Battery.requestIgnoreBatteryOptimizations(); } } catch(e) {}
     const ok = await scheduleNotifications(selectedDays, timeVal, selectedPeriod);
     const activeDayLabels = selectedDays.map(function(d) { return DAYS[d-1]; }).join(', ');
 
