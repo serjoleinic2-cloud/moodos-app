@@ -4,6 +4,7 @@ import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getF
 import { detectMoodState, getStateLabel } from "../services/state-engine.js";
 import { getMood } from "../state.js";
 import { t } from "../i18n.js";
+import { getYearComparison } from "../services/weekly-analytics.js";
 
 const STATE_RU = {
   "Low mood":"LOW","Stressed":"STRESSED","Neutral":"NEUTRAL","Good":"GOOD","Very good":"HIGH","Unknown":"—"
@@ -43,13 +44,11 @@ function mText(v) {
 }
 function rColor(r) { if (!r) return "#888"; return r>=70?"#4caf87":r>=40?"#f0a500":"#e05555"; }
 
-// Принимает объект {start, end} или строку (обратная совместимость)
 function goldenShort(g) {
   if (!g) return "—";
   if (typeof g === "object" && g.start !== undefined) {
-    return `${g.start}:00–${g.end}:00`;
+    return g.start + ":00–" + g.end + ":00";
   }
-  // старый формат — строка
   const m = g.match(/\d{2}:\d{2}[–\-]\d{2}:\d{2}/);
   return m ? m[0] : g;
 }
@@ -58,7 +57,7 @@ function buildDailyMood(history) {
   const byDay = {};
   history.forEach(e => {
     const d = new Date(e.time);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
     if (!byDay[key]) byDay[key] = [];
     byDay[key].push(e.value);
   });
@@ -78,9 +77,6 @@ function practiceShortLabel(key) {
   return (map[key] || key).replace(/^[^\s]+\s/, "");
 }
 
-// ============================================================
-// Эмоциональная память
-// ============================================================
 function pluralMonths(n) {
   if (n % 10 === 1 && n % 100 !== 11) return "месяц";
   if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "месяца";
@@ -119,6 +115,81 @@ function findEmotionalMemory(history, currentMood) {
   return { timeAgo, daysToRecover: best.days };
 }
 
+function buildYearComparisonBlock() {
+  const yc = getYearComparison();
+
+  // Нет данных вообще
+  if (!yc) return "";
+
+  // Есть только текущая неделя — год назад данных нет
+  if (!yc.lastYear) {
+    return '<div class="insight-section">' +
+      '<div class="insight-section-title">📅 Год назад</div>' +
+      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
+        '📊 Данные за прошлый год ещё копятся.<br><span style="font-size:12px;">Появятся через год использования.</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  const cur  = yc.current;
+  const prev = yc.lastYear;
+  const diff = yc.improvement;
+
+  const diffColor  = diff > 0 ? "#4caf87" : diff < 0 ? "#e05555" : "#888";
+  const diffSign   = diff > 0 ? "+" : "";
+  const diffEmoji  = diff > 3 ? "📈" : diff < -3 ? "📉" : "➡️";
+  const diffText   = diff > 3 ? "Стало лучше" : diff < -3 ? "Стало сложнее" : "Примерно так же";
+
+  const curMoodColor  = cur  ? mColor(cur.averageMood)  : "#888";
+  const prevMoodColor = prev ? mColor(prev.averageMood) : "#888";
+
+  const curMood  = cur  ? cur.averageMood  + "%" : "—";
+  const prevMood = prev ? prev.averageMood + "%" : "—";
+
+  const curEntries  = cur  ? cur.entries  + " замеров" : "—";
+  const prevEntries = prev ? prev.entries + " замеров" : "—";
+
+  const curSessions  = cur  ? cur.sessions  + " практик" : "—";
+  const prevSessions = prev ? prev.sessions + " практик" : "—";
+
+  return '<div class="insight-section">' +
+    '<div class="insight-section-title">📅 Эта неделя vs год назад</div>' +
+    '<div style="padding:18px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+
+      // Две колонки
+      '<div style="display:flex;gap:12px;margin-bottom:16px;">' +
+
+        // Год назад
+        '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
+          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Год назад</div>' +
+          '<div style="font-size:26px;font-weight:700;color:' + prevMoodColor + ';margin-bottom:4px;">' + prevMood + '</div>' +
+          '<div style="font-size:12px;color:#888;">' + prevEntries + '</div>' +
+          '<div style="font-size:12px;color:#888;">' + prevSessions + '</div>' +
+        '</div>' +
+
+        // Сейчас
+        '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
+          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Сейчас</div>' +
+          '<div style="font-size:26px;font-weight:700;color:' + curMoodColor + ';margin-bottom:4px;">' + curMood + '</div>' +
+          '<div style="font-size:12px;color:#888;">' + curEntries + '</div>' +
+          '<div style="font-size:12px;color:#888;">' + curSessions + '</div>' +
+        '</div>' +
+
+      '</div>' +
+
+      // Итог
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
+        '<div style="font-size:28px;">' + diffEmoji + '</div>' +
+        '<div>' +
+          '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' пт — ' + diffText + '</div>' +
+          '<div style="font-size:12px;color:#888;margin-top:2px;">Изменение среднего настроения за год</div>' +
+        '</div>' +
+      '</div>' +
+
+    '</div>' +
+  '</div>';
+}
+
 export function onEnter() {
   const container = document.getElementById("insight-content");
   if (!container) return;
@@ -129,7 +200,7 @@ export function onEnter() {
   const stats   = getFullSessionStats();
 
   if (!history || history.length === 0) {
-    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">${t("no_data_insight")}</div></div>`;
+    container.innerHTML = '<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">' + t("no_data_insight") + '</div></div>';
     return;
   }
 
@@ -160,155 +231,160 @@ export function onEnter() {
   const stateCode = STATE_RU[getStateLabel(state)] || state;
   const stateLabelTr = t("state_" + stateCode.toLowerCase()) || getStateLabel(state);
 
-  // --- Эмоциональная память (только если настроение ≤ 40%) ---
+  // Эмоциональная память
   let memoryBlockHTML = "";
   if (mood <= 40) {
     const memory = findEmotionalMemory(history, mood);
     if (memory) {
-      memoryBlockHTML = `
-      <div class="insight-section" id="emotional-memory-block">
-        <div class="insight-section-title">🧠 Эмоциональная память</div>
-        <div style="padding:18px;border-radius:18px;background:rgba(159,122,234,0.12);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
-          <div style="font-size:15px;color:#444;line-height:1.7;">
-            Вы уже переживали подобное состояние <strong style="color:#9f7aea;">${memory.timeAgo}</strong>.<br>
-            Через <strong style="color:#4caf87;">${memory.daysToRecover} ${pluralDays(memory.daysToRecover)}</strong> состояние улучшилось.
-          </div>
-          <div style="margin-top:12px;font-size:13px;color:#9f7aea;line-height:1.5;">
-            💜 Это временно. Вы уже справлялись с этим раньше.
-          </div>
-        </div>
-      </div>`;
+      memoryBlockHTML =
+        '<div class="insight-section" id="emotional-memory-block">' +
+          '<div class="insight-section-title">🧠 Эмоциональная память</div>' +
+          '<div style="padding:18px;border-radius:18px;background:rgba(159,122,234,0.12);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+            '<div style="font-size:15px;color:#444;line-height:1.7;">' +
+              'Вы уже переживали подобное состояние <strong style="color:#9f7aea;">' + memory.timeAgo + '</strong>.<br>' +
+              'Через <strong style="color:#4caf87;">' + memory.daysToRecover + ' ' + pluralDays(memory.daysToRecover) + '</strong> состояние улучшилось.' +
+            '</div>' +
+            '<div style="margin-top:12px;font-size:13px;color:#9f7aea;line-height:1.5;">💜 Это временно. Вы уже справлялись с этим раньше.</div>' +
+          '</div>' +
+        '</div>';
     }
   }
 
-  container.innerHTML = `
-    <style>
-      .insight-section { margin-bottom: 24px; }
-      .insight-section-title { font-size:13px; color:#888; font-weight:600; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; }
-      .flip-wrap { perspective:1000px; margin-bottom:12px; cursor:pointer; }
-      .flip-inner { position:relative; width:100%; transform-style:preserve-3d; transition:transform 0.5s ease; border-radius:18px; }
-      .flip-wrap.flipped .flip-inner { transform:rotateY(180deg); }
-      .flip-front, .flip-back { backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:18px; padding:16px; box-sizing:border-box; background:rgba(232,237,230,0.9); box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff; }
-      .flip-front { position:relative; }
-      .flip-back { position:absolute; top:0; left:0; width:100%; height:100%; transform:rotateY(180deg); display:flex; align-items:center; justify-content:center; flex-direction:column; }
-      .flip-label { font-size:12px; color:#999; margin-bottom:4px; }
-      .flip-value { font-size:28px; font-weight:700; color:#3a3530; }
-      .flip-sub   { font-size:13px; color:#777; margin-top:4px; }
-      .flip-hint  { font-size:11px; color:#4caf87; font-weight:600; text-align:right; margin-top:8px; }
-      .rec-card { padding:16px; border-radius:18px; background:rgba(232,237,230,0.9); box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff; margin-bottom:12px; }
-      .state-row { display:flex; align-items:center; gap:6px; padding:10px 12px; border-radius:12px; background:rgba(232,237,230,0.9); box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff; margin-bottom:8px; font-size:13px; color:#555; }
-      .state-cell { flex:1; text-align:center; font-weight:600; font-size:13px; }
-      .state-name { flex:2; font-size:13px; }
-      .state-header { display:flex; align-items:center; gap:6px; padding:0 12px 6px; font-size:11px; color:#aaa; }
-      .state-header-name { flex:2; }
-      .state-header-cell { flex:1; text-align:center; }
-    </style>
+  // Year Comparison блок
+  const yearComparisonHTML = buildYearComparisonBlock();
 
-    <div style="padding:4px 0 100px 0;">
-      <h2 style="margin-bottom:6px;">${t("insight_title")}</h2>
-      <div style="font-size:13px;color:#888;margin-bottom:20px;">${t("current_state")}: <strong style="color:#3a3530;">${stateLabelTr}</strong></div>
+  const practicesHTML = activePractices.length > 0 ? (
+    '<div class="insight-section">' +
+      '<div class="insight-section-title">' + t("practices_eff") + '</div>' +
+      activePractices.map(function(p) {
+        const d = practiceData[p.key];
+        return '<div class="flip-wrap" id="flip-' + p.key + '">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
+              '<div class="flip-value" style="color:' + rColor(d.rate) + '">' + (d.rate !== null ? d.rate : '—') + '%</div>' +
+              '<div class="flip-sub">' + (d.lift !== null ? t("avg_lift") + ': +' + d.lift + ' пт' : t("no_data_short")) + ' · ' + d.sessions + ' ' + t("sessions_count") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+    '<div class="insight-section">' +
+      '<div class="insight-section-title">' + t("state_helps") + '</div>' +
+      buildStateTable(activePractices, practiceData) +
+    '</div>'
+  ) : (
+    '<div class="insight-section">' +
+      '<div class="rec-card" style="text-align:center;color:#888;">' + t("no_sessions") + '</div>' +
+    '</div>'
+  );
 
-      ${memoryBlockHTML}
+  container.innerHTML =
+    '<style>' +
+    '.insight-section{margin-bottom:24px;}' +
+    '.insight-section-title{font-size:13px;color:#888;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}' +
+    '.flip-wrap{perspective:1000px;margin-bottom:12px;cursor:pointer;}' +
+    '.flip-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform 0.5s ease;border-radius:18px;}' +
+    '.flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}' +
+    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
+    '.flip-front{position:relative;}' +
+    '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
+    '.flip-label{font-size:12px;color:#999;margin-bottom:4px;}' +
+    '.flip-value{font-size:28px;font-weight:700;color:#3a3530;}' +
+    '.flip-sub{font-size:13px;color:#777;margin-top:4px;}' +
+    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;margin-top:8px;}' +
+    '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
+    '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
+    '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
+    '.state-name{flex:2;font-size:13px;}' +
+    '.state-header{display:flex;align-items:center;gap:6px;padding:0 12px 6px;font-size:11px;color:#aaa;}' +
+    '.state-header-name{flex:2;}' +
+    '.state-header-cell{flex:1;text-align:center;}' +
+    '</style>' +
 
-      <div class="insight-section">
-        <div class="insight-section-title">${t("personal_rec")}</div>
-        <div class="rec-card"><div style="font-size:15px;color:#444;line-height:1.5;">${recommendation}</div></div>
-      </div>
+    '<div style="padding:4px 0 100px 0;">' +
+      '<h2 style="margin-bottom:6px;">' + t("insight_title") + '</h2>' +
+      '<div style="font-size:13px;color:#888;margin-bottom:20px;">' + t("current_state") + ': <strong style="color:#3a3530;">' + stateLabelTr + '</strong></div>' +
 
-      <div class="insight-section">
-        <div class="insight-section-title">${t("key_metrics")}</div>
+      memoryBlockHTML +
 
-        <div class="flip-wrap" id="flip-stability">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("stability_lbl")}</div>
-              <div class="flip-value" style="color:${sColor(stability)}">${stability??'—'}%</div>
-              <div class="flip-sub">${sText(stability)}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
-            </div>
-            <div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>
-          </div>
-        </div>
+      '<div class="insight-section">' +
+        '<div class="insight-section-title">' + t("personal_rec") + '</div>' +
+        '<div class="rec-card"><div style="font-size:15px;color:#444;line-height:1.5;">' + recommendation + '</div></div>' +
+      '</div>' +
 
-        <div class="flip-wrap" id="flip-mood">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("avg_mood_lbl")}</div>
-              <div class="flip-value" style="color:${mColor(avgMood)}">${avgMood}%</div>
-              <div class="flip-sub">${mText(avgMood)}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
-            </div>
-            <div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>
-          </div>
-        </div>
+      '<div class="insight-section">' +
+        '<div class="insight-section-title">' + t("key_metrics") + '</div>' +
 
-        <div class="flip-wrap" id="flip-trend">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("trend_lbl")}</div>
-              <div class="flip-value" style="font-size:20px;color:#3a3530;">${trendLabel(trend)}</div>
-              <div class="flip-sub">${t("trend_sub")}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
-            </div>
-            <div class="flip-back" style="padding:20px;">
-              <div style="font-size:15px;color:#555;text-align:center;line-height:1.6;">${trendExplain(trend)}</div>
-            </div>
-          </div>
-        </div>
+        '<div class="flip-wrap" id="flip-stability">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("stability_lbl") + '</div>' +
+              '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : '—') + '%</div>' +
+              '<div class="flip-sub">' + sText(stability) + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
 
-        <div class="flip-wrap" id="flip-golden">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="flip-label">${t("golden_lbl")}</div>
-              <div class="flip-value" style="font-size:18px;">⭐ ${goldenShort(golden)}</div>
-              <div class="flip-sub">${t("golden_sub")}</div>
-              <div class="flip-hint">${t("tap_for_details")}</div>
-            </div>
-            <div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>
-          </div>
-        </div>
-      </div>
+        '<div class="flip-wrap" id="flip-mood">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
+              '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
+              '<div class="flip-sub">' + mText(avgMood) + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
 
-      ${activePractices.length > 0 ? `
-      <div class="insight-section">
-        <div class="insight-section-title">${t("practices_eff")}</div>
-        ${activePractices.map(p => {
-          const d = practiceData[p.key];
-          return `
-          <div class="flip-wrap" id="flip-${p.key}">
-            <div class="flip-inner">
-              <div class="flip-front">
-                <div class="flip-label">${p.icon} ${practiceShortLabel(p.key)}</div>
-                <div class="flip-value" style="color:${rColor(d.rate)}">${d.rate??'—'}%</div>
-                <div class="flip-sub">${d.lift!==null?`${t("avg_lift")}: +${d.lift} пт`:t("no_data_short")} · ${d.sessions} ${t("sessions_count")}</div>
-                <div class="flip-hint">${t("tap_for_details")}</div>
-              </div>
-              <div class="flip-back"><canvas id="chart-${p.key}" width="150" height="150"></canvas></div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
+        '<div class="flip-wrap" id="flip-trend">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("trend_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
+              '<div class="flip-sub">' + t("trend_sub") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back" style="padding:20px;">' +
+              '<div style="font-size:15px;color:#555;text-align:center;line-height:1.6;">' + trendExplain(trend) + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
 
-      <div class="insight-section">
-        <div class="insight-section-title">${t("state_helps")}</div>
-        ${buildStateTable(activePractices, practiceData)}
-      </div>
-      ` : `
-      <div class="insight-section">
-        <div class="rec-card" style="text-align:center;color:#888;">${t("no_sessions")}</div>
-      </div>`}
-    </div>`;
+        '<div class="flip-wrap" id="flip-golden">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("golden_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:18px;">⭐ ' + goldenShort(golden) + '</div>' +
+              '<div class="flip-sub">' + t("golden_sub") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
 
-  document.querySelectorAll(".flip-wrap").forEach(wrap => {
-    wrap.addEventListener("click", () => {
+      yearComparisonHTML +
+
+      practicesHTML +
+
+    '</div>';
+
+  document.querySelectorAll(".flip-wrap").forEach(function(wrap) {
+    wrap.addEventListener("click", function() {
       const wasFlipped = wrap.classList.contains("flipped");
-      document.querySelectorAll(".flip-wrap").forEach(w => w.classList.remove("flipped"));
+      document.querySelectorAll(".flip-wrap").forEach(function(w) { w.classList.remove("flipped"); });
       if (!wasFlipped) {
         wrap.classList.add("flipped");
         const front = wrap.querySelector(".flip-front");
         const inner = wrap.querySelector(".flip-inner");
         if (front && inner) inner.style.minHeight = front.offsetHeight + "px";
-        setTimeout(() => initChartFor(wrap.id, history, stats, practiceData), 320);
+        setTimeout(function() { initChartFor(wrap.id, history, stats, practiceData); }, 320);
       }
     });
   });
@@ -337,33 +413,33 @@ function initChartFor(id, history, stats, practiceData) {
       const v=sl.reduce((s,h)=>s+Math.pow(h.value-avg,2),0)/sl.length;
       const st=Math.round(Math.max(5,Math.min(100,100-Math.sqrt(v))));
       const d=new Date(history[i].time);
-      pts.push({label:`${d.getDate()}.${d.getMonth()+1}`,value:st});
+      pts.push({label:d.getDate()+"."+( d.getMonth()+1),value:st});
     }
-    new Chart(c,{type:"line",data:{labels:pts.map(p=>p.label),datasets:[{data:pts.map(p=>p.value),borderColor:"#4caf87",backgroundColor:"rgba(76,175,135,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
+    new Chart(c,{type:"line",data:{labels:pts.map(function(p){return p.label;}),datasets:[{data:pts.map(function(p){return p.value;}),borderColor:"#4caf87",backgroundColor:"rgba(76,175,135,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
   }
   if (id === "flip-mood") {
     destroyChart("chartMood");
     const c = document.getElementById("chartMood"); if (!c) return;
     c.width = c.parentElement.offsetWidth - 16;
     const daily = buildDailyMood(history);
-    new Chart(c,{type:"line",data:{labels:daily.map(d=>d.date.slice(5)),datasets:[{data:daily.map(d=>d.avg),borderColor:"#4db8ff",backgroundColor:"rgba(77,184,255,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
+    new Chart(c,{type:"line",data:{labels:daily.map(function(d){return d.date.slice(5);}),datasets:[{data:daily.map(function(d){return d.avg;}),borderColor:"#4db8ff",backgroundColor:"rgba(77,184,255,0.12)",tension:0.4,pointRadius:3,fill:true}]},options:lineOpts});
   }
   if (id === "flip-golden") {
     destroyChart("chartHours");
     const c = document.getElementById("chartHours"); if (!c) return;
     c.width = c.parentElement.offsetWidth - 16;
     const hours={};
-    history.forEach(e=>{const h=new Date(e.time).getHours();if(!hours[h])hours[h]={total:0,count:0};hours[h].total+=e.value;hours[h].count++;});
-    const labels=Object.keys(hours).sort((a,b)=>a-b);
-    const data=labels.map(h=>Math.round(hours[h].total/hours[h].count));
-    new Chart(c,{type:"bar",data:{labels:labels.map(h=>`${h}:00`),datasets:[{data,backgroundColor:data.map(v=>v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"),borderRadius:6}]},options:lineOpts});
+    history.forEach(function(e){const h=new Date(e.time).getHours();if(!hours[h])hours[h]={total:0,count:0};hours[h].total+=e.value;hours[h].count++;});
+    const labels=Object.keys(hours).sort(function(a,b){return a-b;});
+    const data=labels.map(function(h){return Math.round(hours[h].total/hours[h].count);});
+    new Chart(c,{type:"bar",data:{labels:labels.map(function(h){return h+":00";}),datasets:[{data:data,backgroundColor:data.map(function(v){return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555";}),borderRadius:6}]},options:lineOpts});
   }
 
   const practiceKey = id.replace("flip-", "");
   if (practiceData[practiceKey]) {
-    const canvasId = `chart-${practiceKey}`;
+    const canvasId = "chart-" + practiceKey;
     destroyChart(canvasId);
-    const rate = practiceData[practiceKey].rate ?? 0;
+    const rate = practiceData[practiceKey].rate !== null ? practiceData[practiceKey].rate : 0;
     const colors = {
       "breathing":    "#4db8ff",
       "meditation":   "#9f7aea",
@@ -381,42 +457,45 @@ function drawPieChart(canvasId, rate, color) {
     type:"doughnut",
     data:{datasets:[{data:[rate,100-rate],backgroundColor:[color,"#d0d5de"],borderWidth:0}]},
     options:{cutout:"70%",plugins:{legend:{display:false},tooltip:{enabled:false}}},
-    plugins:[{id:"ct",afterDraw(chart){
-      const {ctx,chartArea:{width,height,left,top}}=chart;
+    plugins:[{id:"ct",afterDraw:function(chart){
+      const ctx=chart.ctx;
+      const chartArea=chart.chartArea;
+      const width=chartArea.width, height=chartArea.height;
+      const left=chartArea.left, top=chartArea.top;
       ctx.save(); ctx.font="bold 20px sans-serif"; ctx.fillStyle="#3a3530";
       ctx.textAlign="center"; ctx.textBaseline="middle";
-      ctx.fillText(`${rate??0}%`,left+width/2,top+height/2); ctx.restore();
+      ctx.fillText((rate !== null ? rate : 0)+"%", left+width/2, top+height/2); ctx.restore();
     }}]
   });
 }
 
 function buildStateTable(activePractices, practiceData) {
   const states = ["LOW","STRESSED","NEUTRAL","GOOD","HIGH"];
-  const activeStates = states.filter(state =>
-    activePractices.some(p => practiceData[p.key].byState[state])
-  );
+  const activeStates = states.filter(function(state) {
+    return activePractices.some(function(p) { return practiceData[p.key].byState[state]; });
+  });
   if (!activeStates.length) {
-    return `<div style="color:#888;font-size:14px;">${t("no_state_data")}</div>`;
+    return '<div style="color:#888;font-size:14px;">' + t("no_state_data") + '</div>';
   }
   const groups = [];
   for (let i = 0; i < activePractices.length; i += 3) {
     groups.push(activePractices.slice(i, i + 3));
   }
-  return groups.map(group => `
-    <div style="margin-bottom:16px;overflow-x:auto;">
-      <div class="state-header">
-        <div class="state-header-name">${t("state_col")}</div>
-        ${group.map(p => `<div class="state-header-cell">${p.icon}</div>`).join('')}
-      </div>
-      ${activeStates.map(state => `
-        <div class="state-row">
-          <div class="state-name">${t("state_"+state.toLowerCase())}</div>
-          ${group.map(p => {
+  return groups.map(function(group) {
+    return '<div style="margin-bottom:16px;overflow-x:auto;">' +
+      '<div class="state-header">' +
+        '<div class="state-header-name">' + t("state_col") + '</div>' +
+        group.map(function(p) { return '<div class="state-header-cell">' + p.icon + '</div>'; }).join('') +
+      '</div>' +
+      activeStates.map(function(state) {
+        return '<div class="state-row">' +
+          '<div class="state-name">' + t("state_"+state.toLowerCase()) + '</div>' +
+          group.map(function(p) {
             const d = practiceData[p.key].byState[state];
-            return `<div class="state-cell" style="color:${rColor(d?.rate)}">${d ? d.rate+"%" : "—"}</div>`;
-          }).join('')}
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+            return '<div class="state-cell" style="color:' + rColor(d ? d.rate : null) + '">' + (d ? d.rate+"%" : "—") + '</div>';
+          }).join('') +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }).join('');
 }
