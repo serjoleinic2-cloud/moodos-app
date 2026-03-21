@@ -1,11 +1,8 @@
 // =====================================
 // MoodOS PDF Report — Share API + Push
 // =====================================
-import { getMoodHistory, getNotesHistory } from "../services/memory.js";
-import { getSessionHistory } from "../services/memory.js";
+import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
-import { getWeeklyHistory } from "../services/memory.js";
-import { getFullSessionStats } from "../services/session-analytics.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
 import { t } from "../i18n.js";
 
