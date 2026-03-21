@@ -10,9 +10,10 @@ async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
 
+    // Отменяем все старые (id 9000-9099)
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
-      .filter(n => n.id >= 9000 && n.id <= 9007)
+      .filter(n => n.id >= 9000 && n.id <= 9099)
       .map(n => ({ id: n.id }));
     if (moodosIds.length) await LocalNotifications.cancel({ notifications: moodosIds });
 
@@ -20,27 +21,35 @@ async function scheduleNotifications(days, time, period) {
 
     const [hh, mm] = time.split(":").map(Number);
     const notifications = [];
+    let idCounter = 9000;
 
+    // Планируем 8 недель вперёд для каждого дня
     days.forEach(dow => {
       const jsDow = dow === 7 ? 0 : dow;
       const now = new Date();
-      const target = new Date();
-      target.setHours(hh, mm, 0, 0);
-      const currentDow = now.getDay();
-      let daysUntil = (jsDow - currentDow + 7) % 7;
-      if (daysUntil === 0) {
-        if (target.getTime() <= now.getTime() + 65000) daysUntil = 7;
+
+      for (let week = 0; week < 8; week++) {
+        const target = new Date();
+        target.setHours(hh, mm, 0, 0);
+
+        const currentDow = now.getDay();
+        let daysUntil = (jsDow - currentDow + 7) % 7;
+        if (daysUntil === 0 && target.getTime() <= now.getTime() + 65000) {
+          daysUntil = 7;
+        }
+        daysUntil += week * 7;
+
+        target.setDate(target.getDate() + daysUntil);
+
+        notifications.push({
+          id: idCounter++,
+          title: "MoodOS 📄",
+          body: t("pr_notif_body").replace("{period}", period),
+          schedule: { at: target, allowWhileIdle: true },
+          actionTypeId: "OPEN_REPORT",
+          extra: { action: "openReport" }
+        });
       }
-      target.setDate(target.getDate() + daysUntil);
-      target.setSeconds(0, 0);
-      notifications.push({
-        id: 9000 + dow,
-        title: "MoodOS 📄",
-        body: t("pr_notif_body").replace("{period}", period),
-        schedule: { at: target, repeats: true, every: "week", allowWhileIdle: true },
-        actionTypeId: "OPEN_REPORT",
-        extra: { action: "openReport" }
-      });
     });
 
     await LocalNotifications.schedule({ notifications });
@@ -85,7 +94,15 @@ export function checkAutoReminder() {
       if (!window.Capacitor || !window.Capacitor.Plugins) return;
       const { LocalNotifications } = window.Capacitor.Plugins;
       if (!LocalNotifications) return;
-      if (!_reminderListenerAdded) {
+      // Перепланируем если осталось мало уведомлений
+const s = loadSettings();
+if (s.autoDays && s.autoDays.length && s.autoTime) {
+  LocalNotifications.getPending().then(p => {
+    const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
+    if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
+  }).catch(() => {});
+}
+	  if (!_reminderListenerAdded) {
         _reminderListenerAdded = true;
         LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
           if (action && action.notification && action.notification.extra && action.notification.extra.action === "openReport") {
