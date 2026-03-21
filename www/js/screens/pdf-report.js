@@ -6,11 +6,18 @@ import { getProfile } from "../services/user-profile.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
 import { t } from "../i18n.js";
 
+async function requestNotificationPermission() {
+  try {
+    const { LocalNotifications } = Capacitor.Plugins;
+    const { display } = await LocalNotifications.checkPermissions();
+    if (display !== "granted") await LocalNotifications.requestPermissions();
+  } catch(e) { console.warn("Notifications not available", e); }
+}
+
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
 
-    // Отменяем все старые (id 9000-9099)
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9099)
@@ -23,7 +30,6 @@ async function scheduleNotifications(days, time, period) {
     const notifications = [];
     let idCounter = 9000;
 
-    // Планируем 8 недель вперёд для каждого дня
     days.forEach(dow => {
       const jsDow = dow === 7 ? 0 : dow;
       const now = new Date();
@@ -38,7 +44,6 @@ async function scheduleNotifications(days, time, period) {
           daysUntil = 7;
         }
         daysUntil += week * 7;
-
         target.setDate(target.getDate() + daysUntil);
 
         notifications.push({
@@ -74,13 +79,6 @@ const SESSION_NAMES = {
 };
 
 const STORE_KEY = "pdf_report_settings";
-async function requestNotificationPermission() {
-  try {
-    const { LocalNotifications } = Capacitor.Plugins;
-    const { display } = await LocalNotifications.checkPermissions();
-    if (display !== "granted") await LocalNotifications.requestPermissions();
-  } catch(e) { console.warn("Notifications not available", e); }
-}
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
 }
@@ -94,15 +92,16 @@ export function checkAutoReminder() {
       if (!window.Capacitor || !window.Capacitor.Plugins) return;
       const { LocalNotifications } = window.Capacitor.Plugins;
       if (!LocalNotifications) return;
-      // Перепланируем если осталось мало уведомлений
-const s = loadSettings();
-if (s.autoDays && s.autoDays.length && s.autoTime) {
-  LocalNotifications.getPending().then(p => {
-    const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
-    if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
-  }).catch(() => {});
-}
-	  if (!_reminderListenerAdded) {
+
+      const s = loadSettings();
+      if (s.autoDays && s.autoDays.length && s.autoTime) {
+        LocalNotifications.getPending().then(p => {
+          const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
+          if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
+        }).catch(() => {});
+      }
+
+      if (!_reminderListenerAdded) {
         _reminderListenerAdded = true;
         LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
           if (action && action.notification && action.notification.extra && action.notification.extra.action === "openReport") {
@@ -213,7 +212,7 @@ export function showPdfReportModal() {
         '<input type="time" id="prAutoTime" class="pr-time-input" value="' + autoTime + '" style="margin-bottom:16px;">' +
         '<div class="pr-auto-label">' + t("pr_reminder_period") + '</div>' +
         '<div class="pr-period-row" id="prPeriodRow">' + periodsHTML + '</div>' +
-		'<button class="pr-auto-save" id="prTestNotif" style="background:rgba(255,100,100,0.3);margin-bottom:8px;">🔔 Тест — уведомление через 1 мин</button>' +
+        '<button class="pr-auto-save" id="prTestNotif" style="background:rgba(255,100,100,0.3);margin-bottom:8px;">🔔 Тест — уведомление через 1 мин</button>' +
         '<button class="pr-auto-save" id="prAutoSave">' + t("pr_save_schedule") + '</button>' +
         '<div class="pr-auto-status" id="prAutoStatus">' + autoStatusText + '</div>' +
       '</div>' +
@@ -246,6 +245,25 @@ export function showPdfReportModal() {
     });
   });
 
+  screen.querySelector("#prTestNotif").addEventListener("click", async function() {
+    const statusEl = screen.querySelector("#prAutoStatus");
+    try {
+      const { LocalNotifications } = Capacitor.Plugins;
+      await requestNotificationPermission();
+      const perm = await LocalNotifications.checkPermissions();
+      const target = new Date(Date.now() + 60000);
+      await LocalNotifications.schedule({ notifications: [{
+        id: 8999,
+        title: "MoodOS тест",
+        body: "Уведомления работают!",
+        schedule: { at: target, allowWhileIdle: true },
+      }]});
+      statusEl.textContent = "✅ Запланировано на " + target.toLocaleTimeString("ru-RU") + " | Разрешение: " + perm.display;
+    } catch(e) {
+      statusEl.textContent = "❌ Ошибка: " + e.message;
+    }
+  });
+
   screen.querySelector("#prAutoSave").addEventListener("click", async function() {
     const timeVal = screen.querySelector("#prAutoTime").value || "09:00";
     const st = loadSettings();
@@ -256,7 +274,7 @@ export function showPdfReportModal() {
 
     const statusEl = screen.querySelector("#prAutoStatus");
     statusEl.textContent = t("pr_scheduling");
-await requestNotificationPermission();
+    await requestNotificationPermission();
     const ok = await scheduleNotifications(selectedDays, timeVal, selectedPeriod);
     const activeDayLabels = selectedDays.map(function(d) { return DAYS[d-1]; }).join(', ');
 
@@ -287,7 +305,6 @@ await requestNotificationPermission();
     try {
       const pdfBlob = await generatePdf(fromVal, toVal);
       const fileName = "MoodOS_" + fromVal + "_" + toVal + ".pdf";
-
       statusEl.textContent = t("pr_opening_menu");
 
       const Share      = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
@@ -316,7 +333,6 @@ await requestNotificationPermission();
         return;
       }
 
-      // Fallback
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement("a");
       a.href = url; a.download = fileName;
@@ -336,23 +352,7 @@ await requestNotificationPermission();
     screen.querySelector("#prGenBtn").disabled = false;
   });
 }
-screen.querySelector("#prTestNotif").addEventListener("click", async function() {
-  try {
-    const { LocalNotifications } = Capacitor.Plugins;
-    await requestNotificationPermission();
-    const perm = await LocalNotifications.checkPermissions();
-    const target = new Date(Date.now() + 60000);
-    await LocalNotifications.schedule({ notifications: [{
-      id: 8999,
-      title: "MoodOS тест",
-      body: "Уведомления работают!",
-      schedule: { at: target, allowWhileIdle: true },
-    }]});
-    screen.querySelector("#prAutoStatus").textContent = "✅ Запланировано на " + target.toLocaleTimeString("ru-RU") + " | Разрешение: " + perm.display;
-  } catch(e) {
-    screen.querySelector("#prAutoStatus").textContent = "❌ Ошибка: " + e.message;
-  }
-});
+
 async function generatePdf(fromStr, toStr) {
   if (!window.jspdf) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
@@ -394,7 +394,6 @@ async function generatePdf(fromStr, toStr) {
   const maxV = vals.length ? Math.max.apply(null, vals) : null;
   const trendTxt = trend === "improving ↑" ? "📈 Улучшается" : trend === "declining ↓" ? "📉 Снижается" : "➡️ Стабильно";
 
-  // Практики
   const practiceStats = {};
   sessions.forEach(function(s) {
     const tp = s.type || "other";
@@ -404,16 +403,13 @@ async function generatePdf(fromStr, toStr) {
     if (s.moodBefore != null && s.moodAfter != null) practiceStats[tp].lift += (s.moodAfter - s.moodBefore);
   });
 
-  // Рекомендации врачу
   const recs = [];
   if (avg !== null) {
     if (avg < 40) recs.push("⚠️ Среднее настроение ниже 40% (" + avg + "%). Рекомендуется детальное обследование эмоционального состояния.");
     else if (avg < 55) recs.push("🔔 Настроение в зоне повышенного внимания (" + avg + "%). Рекомендуется наблюдение.");
     else recs.push("✓ Настроение в стабильной зоне (" + avg + "%). Динамика положительная.");
   }
-  if (stability !== null && stability < 50) {
-    recs.push("⚠️ Высокая волатильность настроения (стабильность " + stability + "%). Возможна эмоциональная нестабильность.");
-  }
+  if (stability !== null && stability < 50) recs.push("⚠️ Высокая волатильность настроения (стабильность " + stability + "%). Возможна эмоциональная нестабильность.");
   if (trend === "declining ↓") recs.push("📉 Тренд: настроение снижалось в течение периода. Рекомендуется обратить внимание.");
   else if (trend === "improving ↑") recs.push("📈 Тренд: настроение улучшалось в течение периода.");
   if (profile && profile.medEffect === "побочки") recs.push("💊 Пациент отмечает побочные эффекты от препаратов. Рекомендуется пересмотр терапии.");
@@ -430,7 +426,6 @@ async function generatePdf(fromStr, toStr) {
   }
   if (recs.length === 0) recs.push("Недостаточно данных для формирования рекомендаций.");
 
-  // Практики HTML
   const practicesHTML = Object.entries(practiceStats).map(function(entry) {
     const type = entry[0]; const data = entry[1];
     const pct  = Math.round(data.positive / data.count * 100);
@@ -443,7 +438,6 @@ async function generatePdf(fromStr, toStr) {
       '</tr>';
   }).join("");
 
-  // Журнал HTML
   const journalRows = moodHistory.slice().sort(function(a,b) {
     return new Date(b.time) - new Date(a.time);
   }).slice(0, 50).map(function(e, i) {
@@ -454,7 +448,6 @@ async function generatePdf(fromStr, toStr) {
       '</tr>';
   }).join("");
 
-  // Блок пациента
   let patientBlock = "";
   if (profile) {
     const showEffect = profile.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
@@ -469,7 +462,6 @@ async function generatePdf(fromStr, toStr) {
       '</div>';
   }
 
-  // Блок статистики
   let statsBlock = "";
   if (avg !== null) {
     const statItems = [
@@ -493,7 +485,6 @@ async function generatePdf(fromStr, toStr) {
       '</div>';
   }
 
-  // Блок рекомендаций
   const recsHTML = recs.map(function(r) {
     return '<div style="color:#fff;font-size:12px;margin-bottom:6px;padding:6px 10px;background:rgba(255,255,255,0.1);border-radius:6px;">' + r + '</div>';
   }).join("");
@@ -503,7 +494,6 @@ async function generatePdf(fromStr, toStr) {
       recsHTML +
     '</div>';
 
-  // Блок практик
   let practicesBlock = "";
   if (sessions.length > 0) {
     practicesBlock =
@@ -521,7 +511,6 @@ async function generatePdf(fromStr, toStr) {
       '</div>';
   }
 
-  // Блок журнала
   let journalBlock = "";
   if (moodHistory.length > 0) {
     journalBlock =
@@ -546,11 +535,7 @@ async function generatePdf(fromStr, toStr) {
         '<div style="font-size:11px;opacity:0.7;margin-top:6px;">Период: ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' &nbsp;·&nbsp; Сформирован: ' + new Date().toLocaleDateString("ru-RU") + '</div>' +
       '</div>' +
       '<div style="padding:20px 24px;">' +
-        patientBlock +
-        statsBlock +
-        recsBlock +
-        practicesBlock +
-        journalBlock +
+        patientBlock + statsBlock + recsBlock + practicesBlock + journalBlock +
         '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.</div>' +
       '</div>' +
     '</div>';
@@ -562,11 +547,7 @@ async function generatePdf(fromStr, toStr) {
 
   try {
     const canvas = await window.html2canvas(container.firstElementChild, {
-      scale: 1.5,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#ffffff",
-      width: 794,
+      scale: 1.5, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", width: 794,
     });
     document.body.removeChild(container);
 
@@ -583,7 +564,6 @@ async function generatePdf(fromStr, toStr) {
       doc.addImage(imgData, "JPEG", 0, -posY, imgW, imgH);
       posY += pageH;
     }
-
     return doc.output("blob");
 
   } catch(e) {
