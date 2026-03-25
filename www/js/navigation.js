@@ -106,46 +106,91 @@ export function initNavigation() {
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
   document.getElementById("toolsBreathing").onclick = async () => {
+    console.log("[DEBUG] breathing clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initBreathing } = await import("./screens/practices/breathing.js");
-    const c = document.getElementById("tools-content");
-    if (c) { c.innerHTML = ""; initBreathing(c); }
+    console.log("[DEBUG] importing breathing");
+    try {
+      const { initBreathing } = await import("./screens/practices/breathing.js");
+      console.log("[DEBUG] breathing imported, initBreathing:", typeof initBreathing);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initBreathing(c); }
+      console.log("[DEBUG] breathing init done");
+    } catch(e) {
+      console.error("[DEBUG] breathing error:", e.message, e.stack);
+    }
   };
 
   document.getElementById("toolsMeditation").onclick = async () => {
+    console.log("[DEBUG] meditation clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initMeditation } = await import("./screens/practices/meditation.js");
-    const c = document.getElementById("tools-content");
-    if (c) { c.innerHTML = ""; initMeditation(c); }
+    console.log("[DEBUG] importing meditation");
+    try {
+      const { initMeditation } = await import("./screens/practices/meditation.js");
+      console.log("[DEBUG] meditation imported, initMeditation:", typeof initMeditation);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initMeditation(c); }
+      console.log("[DEBUG] meditation init done");
+    } catch(e) {
+      console.error("[DEBUG] meditation error:", e.message, e.stack);
+    }
   };
 
   const vfBtn = document.getElementById("toolsVisualFocus");
   if (vfBtn) vfBtn.onclick = async () => {
+    console.log("[DEBUG] visual-focus clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initVisualFocus } = await import("./screens/practices/visual-focus.js");
-    const c = document.getElementById("tools-content");
-    if (c) { c.innerHTML = ""; initVisualFocus(c); }
+    console.log("[DEBUG] importing visual-focus");
+    try {
+      const { initVisualFocus } = await import("./screens/practices/visual-focus.js");
+      console.log("[DEBUG] visual-focus imported, initVisualFocus:", typeof initVisualFocus);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initVisualFocus(c); }
+      console.log("[DEBUG] visual-focus init done");
+    } catch(e) {
+      console.error("[DEBUG] visual-focus error:", e.message, e.stack);
+    }
   };
 
   const mdBtn = document.getElementById("toolsMindDump");
   if (mdBtn) mdBtn.onclick = async () => {
+    console.log("[DEBUG] mind-dump clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initMindDump } = await import("./screens/practices/mind-dump.js");
-    const c = document.getElementById("tools-content");
-    if (c) { c.innerHTML = ""; initMindDump(c); }
+    console.log("[DEBUG] importing mind-dump");
+    try {
+      const { initMindDump } = await import("./screens/practices/mind-dump.js");
+      console.log("[DEBUG] mind-dump imported, initMindDump:", typeof initMindDump);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initMindDump(c); }
+      console.log("[DEBUG] mind-dump init done");
+    } catch(e) {
+      console.error("[DEBUG] mind-dump error:", e.message, e.stack);
+    }
   };
 
   const tcBtn = document.getElementById("toolsTapCalm");
   if (tcBtn) tcBtn.onclick = async () => {
+    console.log("[DEBUG] tap-calm clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initTapCalm } = await import("./screens/practices/tap-calm.js");
-    const c = document.getElementById("tools-content");
-    if (c) { c.innerHTML = ""; initTapCalm(c); }
+    console.log("[DEBUG] importing tap-calm");
+    try {
+      const { initTapCalm } = await import("./screens/practices/tap-calm.js");
+      console.log("[DEBUG] tap-calm imported, initTapCalm:", typeof initTapCalm);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initTapCalm(c); }
+      console.log("[DEBUG] tap-calm init done");
+    } catch(e) {
+      console.error("[DEBUG] tap-calm error:", e.message, e.stack);
+    }
   };
 
   buttons.forEach(btn => {
