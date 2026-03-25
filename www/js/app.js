@@ -149,7 +149,7 @@ function startApp() {
     } catch(e) {
       console.warn("checkAutoReminder failed:", e);
     }
-  }, 999999);
+  }, 3000);
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");

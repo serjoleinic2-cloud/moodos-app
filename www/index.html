@@ -166,7 +166,11 @@
   }
   import('./js/i18n.js?v=20260321').then(m => {
     applyI18n(m.t);
-    const obs = new MutationObserver(() => applyI18n(m.t));
+    let i18nTimer = null;
+    const obs = new MutationObserver(() => {
+      if (i18nTimer) clearTimeout(i18nTimer);
+      i18nTimer = setTimeout(() => applyI18n(m.t), 300);
+    });
     obs.observe(document.getElementById('app'), { childList: true, subtree: true });
     window._t = m.t;
     window._getLang = m.getLang;
