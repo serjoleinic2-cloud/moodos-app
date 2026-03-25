@@ -3,7 +3,7 @@
 // ===============================
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
-import { detectMoodState } from "../services/state-engine.js";
+import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
 let animationId;
@@ -143,10 +143,10 @@ export function initBreathing(container) {
     }
   };
 
-  document.getElementById("breathingHelped").onclick = () => {
+  document.getElementById("breathingHelped").onclick = async () => {
     const moodAfter = getMood();
     const duration  = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
-    const stateAfter = detectMoodState(moodAfter);
+    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
 
 addSessionEntry({
   type: "breathing",
@@ -194,12 +194,12 @@ function updatePhases() {
   ];
 }
 
-function startBreathing() {
+async function startBreathing() {
   if (running) return;
   running = true;
   sessionStartTime  = Date.now();
   moodBeforeSession = getMood();
-  stateBeforeSession = detectMoodState(moodBeforeSession);
+  stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
   phaseIndex        = 0;
   phaseStartTime    = performance.now();
   cycleCount        = 0;

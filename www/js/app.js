@@ -1,12 +1,11 @@
-import { detectMoodState } from "./services/state-engine.js";
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import { analyzeLatestVoice } from "./ai/voice-analysis.js";
+import SystemCore from "./system-core.js";
 import {
-  getMoodHistory, saveMoodHistory,
-  getNotesHistory, saveNotesHistory
+  getMoodHistory, getNotesHistory
 } from "./services/memory.js";
 import {
   calculateStabilityScore, calculateTrend, calculateGoldenHour
@@ -56,7 +55,7 @@ function buildDayInsight() {
 }
 
 /* ---------- RENDER ----------- */
-function render() {
+export function render() {
   const mood = getMood();
 
   const daysEl = document.getElementById("daysTogether");
@@ -174,9 +173,7 @@ function startApp() {
         requestAnimationFrame(() => { output.style.opacity = "1"; });
       }
 
-      const history = getNotesHistory();
-      history.push({ text, mood, result, time: Date.now(), timestamp: Date.now() });
-      saveNotesHistory(history);
+      SystemCore.dispatch('SAVE_NOTE', { text, mood, result });
       render();
     });
   }
@@ -231,14 +228,4 @@ function startApp() {
 }
 
 /* ---------- HELPERS ---------- */
-export function updateStabilityHistory(moodValue) {
-  const mood    = moodValue !== undefined ? moodValue : getMood();
-  setMood(mood);  // обновляем state — без subscribe цикла нет
-  const now     = Date.now();
-  const history = getMoodHistory();
-  const state   = detectMoodState(mood);
-  history.push({ value: mood, state, time: now });
-  if (history.length > 730) history.shift();
-  saveMoodHistory(history);
-  render();
-}
+// updateStabilityHistory moved to SystemCore

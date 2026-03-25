@@ -1,3 +1,4 @@
+// ⚠️ Использовать только через SystemCore
 // ===============================
 // MoodOS Pattern Engine
 // Поиск закономерностей и триггеров
@@ -201,4 +202,11 @@ export function getPatternSummary() {
     bestBreathTime: getBestPracticeTime("breathing"),
     bestMeditTime:  getBestPracticeTime("meditation"),
   };
+}
+
+export async function detect(currentState) {
+  return {
+    summary: getPatternSummary(),
+    bestTime: getBestHourOfDay()
+  }
 }

@@ -4,7 +4,7 @@
 // ===============================
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
-import { detectMoodState } from "../services/state-engine.js";
+import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
 let running = false;
@@ -98,9 +98,9 @@ export function initMindDump(container) {
   function showActions() { actions.style.display="flex"; mainBtn.style.display="none"; clearBtn.style.display="none"; }
   function showFeedback() { actions.style.display="none"; feedback.style.display="flex"; }
 
-  function startSession() {
+  async function startSession() {
     running=true; sessionStartTime=Date.now();
-    moodBeforeSession=getMood(); stateBeforeSession=detectMoodState(moodBeforeSession);
+    moodBeforeSession=getMood(); stateBeforeSession=(await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
     mainBtn.innerText="⏸"; clearBtn.style.display="flex";
     textarea.disabled=false; textarea.focus();
     status.textContent = t("md_writing");
@@ -132,10 +132,10 @@ export function initMindDump(container) {
     showFeedback();
   };
 
-  function saveSession(result) {
+  async function saveSession() {
     const moodAfter=getMood();
     const duration=sessionStartTime?Math.floor((Date.now()-sessionStartTime)/1000):0;
-    const stateAfter=detectMoodState(moodAfter);
+    const stateAfter=(await SystemCore.analyzeMoodOnly(moodAfter)).state;
     addSessionEntry({
       type:"mind-dump",
       moodBefore:moodBeforeSession,

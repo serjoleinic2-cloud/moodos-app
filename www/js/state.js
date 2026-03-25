@@ -34,6 +34,19 @@ export function getMood() {
   return state.mood;
 }
 
+/* ---------- STATE UPDATE ---------- */
+export function update(data) {
+  if (data.mood !== undefined) {
+    state.mood = data.mood;
+    localStorage.setItem("mood", data.mood);
+  }
+  if (data.startDate !== undefined) {
+    state.startDate = data.startDate;
+    localStorage.setItem("startDate", data.startDate);
+  }
+  return state;
+}
+
 /* ---------- USAGE DAYS ---------- */
 export function getUsageDays() {
   if (!state.startDate) return 1;

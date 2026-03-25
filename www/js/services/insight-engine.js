@@ -1,3 +1,4 @@
+// ⚠️ Использовать только через SystemCore
 // ===============================
 // MoodOS Insight Engine
 // Объяснения состояния, прогнозы, микро-привычки
@@ -158,4 +159,10 @@ export function getFullInsight(currentMood, currentState) {
     resilience,
     trendDirection: trend ? trend.direction : "stable"
   };
+}
+
+export async function generate(currentState) {
+  const explanation = explainCurrentState()
+  const full = getFullInsight(null, currentState)
+  return { explanation, full }
 }

@@ -1,7 +1,7 @@
 // ===============================
 // Meditation Screen (Aura Advanced)
 // ===============================
-import { detectMoodState } from "../services/state-engine.js";
+import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
 import { t } from "../i18n.js";
@@ -133,10 +133,10 @@ function attachEvents() {
     };
   });
 
-  document.getElementById("medHelped").onclick = () => {
+  document.getElementById("medHelped").onclick = async () => {
     const moodAfter  = getMood();
     const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
-    const stateAfter = detectMoodState(moodAfter);
+    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
     addSessionEntry({
       type: "meditation",
       moodBefore:  moodBeforeSession,
@@ -151,10 +151,10 @@ function attachEvents() {
     showPlayer();
   };
 
-  document.getElementById("medNotHelped").onclick = () => {
+  document.getElementById("medNotHelped").onclick = async () => {
     const moodAfter  = getMood();
     const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
-    const stateAfter = detectMoodState(moodAfter);
+    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
     addSessionEntry({
       type: "meditation",
       moodBefore:  moodBeforeSession,
@@ -185,12 +185,12 @@ function showFeedback() {
   document.getElementById("meditationFeedback").style.display = "flex";
 }
 
-function toggleMeditation() {
+async function toggleMeditation() {
   if (!running) {
     running = true;
     sessionStartTime   = Date.now();
     moodBeforeSession  = getMood();
-    stateBeforeSession = detectMoodState(moodBeforeSession);
+    stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
     audio.play();
     animate();
     document.getElementById("centerButton").innerText = "❚❚";

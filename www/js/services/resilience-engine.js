@@ -1,3 +1,4 @@
+// ⚠️ Использовать только через SystemCore
 // ===============================
 // MoodOS Resilience Engine
 // Индекс эмоциональной устойчивости
@@ -122,4 +123,11 @@ export function getResilienceSummary() {
     stability:  getMoodStability(),
     volatility: getMoodVolatility()
   };
+}
+
+export async function evaluate(currentState) {
+  return {
+    index: getResilienceIndex(),
+    summary: getResilienceSummary()
+  }
 }

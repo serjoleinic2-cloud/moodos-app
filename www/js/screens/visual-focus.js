@@ -4,7 +4,7 @@
 // ===============================
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
-import { detectMoodState } from "../services/state-engine.js";
+import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
 let animationId = null;
@@ -128,7 +128,7 @@ export function initVisualFocus(container) {
     running = true;
     sessionStartTime   = Date.now();
     moodBeforeSession  = getMood();
-    stateBeforeSession = detectMoodState(moodBeforeSession);
+    stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
     mainBtn.innerText  = "⏸";
     status.textContent = t("vf_watching");
 
@@ -184,21 +184,22 @@ export function initVisualFocus(container) {
     animationId = requestAnimationFrame(step);
   }
 
-  mainBtn.onclick = () => {
+  mainBtn.onclick = async () => {
     if (!running) {
       startSession();
     } else {
       stopSession();
+      await saveSession();
       showFeedback();
     }
   };
 
-  function saveSession(result) {
+  async function saveSession() {
     const moodAfter  = getMood();
     const duration   = sessionStartTime
       ? Math.floor((Date.now() - sessionStartTime) / 1000)
       : 0;
-    const stateAfter = detectMoodState(moodAfter);
+    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
     addSessionEntry({
       type: "visual-focus",
       moodBefore:  moodBeforeSession,

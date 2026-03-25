@@ -14,7 +14,6 @@ export function getLang() {
 
 export function setLang(lang) {
   localStorage.setItem(LANG_KEY, lang);
-  document.dispatchEvent(new Event("languageChanged"));
 }
 
 const TRANSLATIONS = { ru, en, es, uk };

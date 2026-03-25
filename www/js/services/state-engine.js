@@ -1,3 +1,4 @@
+// ⚠️ Использовать только через SystemCore
 // js/services/state-engine.js
 
 export function detectMoodState(mood) {
@@ -38,4 +39,10 @@ export function getStateLabel(state){
 
  }
 
+}
+
+export async function analyze(input) {
+  const state = detectMoodState(input)
+  const label = getStateLabel(state)
+  return { state, label }
 }

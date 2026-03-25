@@ -1,7 +1,6 @@
-import { detectMoodState } from "../services/state-engine.js";
-import { updateStabilityHistory } from "../app.js";
 import { getMood } from "../state.js";
-import { t } from "../i18n.js";
+import SystemCore from "../system-core.js";
+import { render } from "../app.js";
 
 export function onEnter() {
   const slider     = document.getElementById("moodSlider");
@@ -28,9 +27,17 @@ valueLabel.textContent = currentMood + "%";
   const newBtn = confirmBtn.cloneNode(true);
   confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
 
-  newBtn.addEventListener("click", () => {
+  newBtn.addEventListener("click", async () => {
     const moodValue = Number(newSlider.value);
-    updateStabilityHistory(moodValue);
+    const result = await SystemCore.dispatch('MOOD_SUBMIT', moodValue);
+
+    if (!result || result.error) {
+      console.warn('UI received error:', result);
+      alert('Ошибка обработки. Попробуйте ещё раз.');
+      return;
+    }
+
+    render();
 
     const now  = new Date();
     const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });

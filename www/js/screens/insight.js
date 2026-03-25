@@ -1,7 +1,8 @@
 import { getMoodHistory } from "../services/memory.js";
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation } from "../services/session-analytics.js";
-import { detectMoodState, getStateLabel } from "../services/state-engine.js";
+import { getStateLabel } from "../services/state-engine.js";
+import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
@@ -190,13 +191,13 @@ function buildYearComparisonBlock() {
   '</div>';
 }
 
-export function onEnter() {
+export async function onEnter() {
   const container = document.getElementById("insight-content");
   if (!container) return;
 
   const history = getMoodHistory();
   const mood    = getMood();
-  const state   = detectMoodState(mood);
+  const state   = (await SystemCore.analyzeMoodOnly(mood)).state;
   const stats   = getFullSessionStats();
 
   if (!history || history.length === 0) {
