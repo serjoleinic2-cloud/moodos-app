@@ -86,8 +86,15 @@ function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
 let _reminderListenerAdded = false;
 
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(null), ms))
+  ]);
+}
+
 export function checkAutoReminder() {
-  setTimeout(() => {
+  setTimeout(async () => {
     try {
       if (!window.Capacitor || !window.Capacitor.Plugins) return;
       const { LocalNotifications } = window.Capacitor.Plugins;
@@ -95,15 +102,16 @@ export function checkAutoReminder() {
 
       const s = loadSettings();
       if (s.autoDays && s.autoDays.length && s.autoTime) {
-  LocalNotifications.checkPermissions().then(perm => {
-    if (perm.display !== "granted") return LocalNotifications.requestPermissions();
-  }).then(() => {
-    return LocalNotifications.getPending();
-  }).then(p => {
-    const remaining = p.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
-    if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
-  }).catch(() => {});
-}
+        const perm = await withTimeout(LocalNotifications.checkPermissions(), 4000);
+        if (perm && perm.display !== "granted") {
+          await withTimeout(LocalNotifications.requestPermissions(), 4000);
+        }
+        const pending = await withTimeout(LocalNotifications.getPending(), 4000);
+        if (pending) {
+          const remaining = pending.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
+          if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
+        }
+      }
 
       if (!_reminderListenerAdded) {
         _reminderListenerAdded = true;
