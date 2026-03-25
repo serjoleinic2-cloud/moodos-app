@@ -85,10 +85,36 @@ export async function restoreFromBackup(file) {
           resolve({ success: false, message: "Неверный формат файла" });
           return;
         }
-        if (data.mood_history)    localStorage.setItem("mood_history",    JSON.stringify(data.mood_history));
-        if (data.notes_history)   localStorage.setItem("notes_history",   JSON.stringify(data.notes_history));
-        if (data.session_history) localStorage.setItem("session_history", JSON.stringify(data.session_history));
-        if (data.user_profile)    localStorage.setItem("user_profile",    JSON.stringify(data.user_profile));
+
+        function mergeByTimestamp(localKey, backupArr, timestampField) {
+          try {
+            const local = JSON.parse(localStorage.getItem(localKey) || "[]");
+            const merged = [...local, ...backupArr];
+            const seen = new Set();
+            const deduped = merged.filter(item => {
+              const key = item[timestampField] || item.time || item.timestamp;
+              if (!key || seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+            deduped.sort((a, b) => {
+              const ta = a[timestampField] || a.time || a.timestamp || 0;
+              const tb = b[timestampField] || b.time || b.timestamp || 0;
+              return ta - tb;
+            });
+            localStorage.setItem(localKey, JSON.stringify(deduped));
+          } catch(err) {
+            console.warn("mergeByTimestamp error for " + localKey + ":", err.message);
+          }
+        }
+
+        if (data.mood_history)    mergeByTimestamp("mood_history",    data.mood_history,    "time");
+        if (data.notes_history)   mergeByTimestamp("notes_history",   data.notes_history,   "timestamp");
+        if (data.session_history) mergeByTimestamp("session_history", data.session_history, "timestamp");
+
+        // user_profile — просто перезаписываем (не массив)
+        if (data.user_profile) localStorage.setItem("user_profile", JSON.stringify(data.user_profile));
+
         resolve({ success: true });
       } catch(err) {
         resolve({ success: false, message: "Ошибка чтения: " + err.message });

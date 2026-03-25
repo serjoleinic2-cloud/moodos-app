@@ -112,7 +112,7 @@ export function initNavigation() {
     if (!c) return;
     c.innerHTML = "<div style='padding:20px;color:red;font-size:16px;'>Загрузка...</div>";
     try {
-      const mod = await import("./screens/practices/breathing.js");
+      const mod = await import("./screens/breathing.js");
       c.innerHTML = "<div style='padding:20px;color:green;font-size:16px;'>Модуль загружен: " + Object.keys(mod).join(", ") + "</div>";
       if (mod.initBreathing) mod.initBreathing(c);
     } catch(e) {
@@ -126,7 +126,7 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing meditation");
     try {
-      const { initMeditation } = await import("./screens/practices/meditation.js");
+      const { initMeditation } = await import("./screens/meditation.js");
       console.log("[DEBUG] meditation imported, initMeditation:", typeof initMeditation);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
@@ -144,7 +144,7 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing visual-focus");
     try {
-      const { initVisualFocus } = await import("./screens/practices/visual-focus.js");
+      const { initVisualFocus } = await import("./screens/visual-focus.js");
       console.log("[DEBUG] visual-focus imported, initVisualFocus:", typeof initVisualFocus);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
@@ -162,7 +162,7 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing mind-dump");
     try {
-      const { initMindDump } = await import("./screens/practices/mind-dump.js");
+      const { initMindDump } = await import("./screens/mind-dump.js");
       console.log("[DEBUG] mind-dump imported, initMindDump:", typeof initMindDump);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
@@ -180,7 +180,7 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing tap-calm");
     try {
-      const { initTapCalm } = await import("./screens/practices/tap-calm.js");
+      const { initTapCalm } = await import("./screens/tap-calm.js");
       console.log("[DEBUG] tap-calm imported, initTapCalm:", typeof initTapCalm);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
