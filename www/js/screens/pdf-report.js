@@ -224,7 +224,6 @@ export function showPdfReportModal() {
         '<input type="time" id="prAutoTime" class="pr-time-input" value="' + autoTime + '" style="margin-bottom:16px;">' +
         '<div class="pr-auto-label">' + t("pr_reminder_period") + '</div>' +
         '<div class="pr-period-row" id="prPeriodRow">' + periodsHTML + '</div>' +
-        '<button class="pr-auto-save" id="prTestNotif" style="background:rgba(255,100,100,0.3);margin-bottom:8px;">🔔 Тест — уведомление через 1 мин</button>' +
         '<button class="pr-auto-save" id="prAutoSave">' + t("pr_save_schedule") + '</button>' +
         '<div class="pr-auto-status" id="prAutoStatus">' + autoStatusText + '</div>' +
       '</div>' +
@@ -255,25 +254,6 @@ export function showPdfReportModal() {
       btn.classList.add("active");
       selectedPeriod = btn.dataset.period;
     });
-  });
-
-  screen.querySelector("#prTestNotif").addEventListener("click", async function() {
-    const statusEl = screen.querySelector("#prAutoStatus");
-    try {
-      const { LocalNotifications } = Capacitor.Plugins;
-      await requestNotificationPermission();
-      const perm = await LocalNotifications.checkPermissions();
-      const target = new Date(Date.now() + 60000);
-      await LocalNotifications.schedule({ notifications: [{
-        id: 8999,
-        title: "MoodOS тест",
-        body: "Уведомления работают!",
-        schedule: { at: target, allowWhileIdle: true, exact: true },
-      }]});
-      statusEl.textContent = "✅ Запланировано на " + target.toLocaleTimeString("ru-RU") + " | Разрешение: " + perm.display;
-    } catch(e) {
-      statusEl.textContent = "❌ Ошибка: " + e.message;
-    }
   });
 
   screen.querySelector("#prAutoSave").addEventListener("click", async function() {

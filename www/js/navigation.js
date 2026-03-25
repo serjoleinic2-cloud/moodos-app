@@ -108,7 +108,7 @@ export function initNavigation() {
   document.getElementById("toolsBreathing").onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initBreathing } = await import("./breathing.js");
+    const { initBreathing } = await import("./screens/practices/breathing.js");
     const c = document.getElementById("tools-content");
     if (c) { c.innerHTML = ""; initBreathing(c); }
   };
@@ -116,7 +116,7 @@ export function initNavigation() {
   document.getElementById("toolsMeditation").onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initMeditation } = await import("./screens/meditation.js");
+    const { initMeditation } = await import("./screens/practices/meditation.js");
     const c = document.getElementById("tools-content");
     if (c) { c.innerHTML = ""; initMeditation(c); }
   };
@@ -125,7 +125,7 @@ export function initNavigation() {
   if (vfBtn) vfBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initVisualFocus } = await import("./visual-focus.js");
+    const { initVisualFocus } = await import("./screens/practices/visual-focus.js");
     const c = document.getElementById("tools-content");
     if (c) { c.innerHTML = ""; initVisualFocus(c); }
   };
@@ -134,7 +134,7 @@ export function initNavigation() {
   if (mdBtn) mdBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initMindDump } = await import("./mind-dump.js");
+    const { initMindDump } = await import("./screens/practices/mind-dump.js");
     const c = document.getElementById("tools-content");
     if (c) { c.innerHTML = ""; initMindDump(c); }
   };
@@ -143,7 +143,7 @@ export function initNavigation() {
   if (tcBtn) tcBtn.onclick = async () => {
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    const { initTapCalm } = await import("./tap-calm.js");
+    const { initTapCalm } = await import("./screens/practices/tap-calm.js");
     const c = document.getElementById("tools-content");
     if (c) { c.innerHTML = ""; initTapCalm(c); }
   };
