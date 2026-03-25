@@ -106,19 +106,17 @@ export function initNavigation() {
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
   document.getElementById("toolsBreathing").onclick = async () => {
-    console.log("[DEBUG] breathing clicked");
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing breathing");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
+    c.innerHTML = "<div style='padding:20px;color:red;font-size:16px;'>Загрузка...</div>";
     try {
-      const { initBreathing } = await import("./screens/practices/breathing.js");
-      console.log("[DEBUG] breathing imported, initBreathing:", typeof initBreathing);
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initBreathing(c); }
-      console.log("[DEBUG] breathing init done");
+      const mod = await import("./screens/practices/breathing.js");
+      c.innerHTML = "<div style='padding:20px;color:green;font-size:16px;'>Модуль загружен: " + Object.keys(mod).join(", ") + "</div>";
+      if (mod.initBreathing) mod.initBreathing(c);
     } catch(e) {
-      console.error("[DEBUG] breathing error:", e.message, e.stack);
+      c.innerHTML = "<div style='padding:20px;color:red;font-size:14px;'>ОШИБКА: " + e.message + "</div>";
     }
   };
 
