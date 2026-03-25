@@ -1,0 +1,152 @@
+Полное дерево файлов
+www/js/
+├── app.js (241)
+├── state.js (44)
+├── navigation.js (165)
+├── onboarding.js (375)
+├── i18n.js (41)
+├── monthly-check.js (150)
+├── ui-controller.js (8)
+│
+├── ai/
+│   ├── voice.js (49)
+│   ├── offline-ai.js (266)
+│   └── voice-analysis.js (56)
+│
+├── screens/
+│   ├── home.js (40)
+│   ├── pdf-report.js (595)
+│   ├── settings.js (343)
+│   ├── insight.js (501)
+│   ├── history.js (444)
+│   ├── report.js (311)
+│   ├── stability.js (158)
+│   ├── tools.js (8)
+│   ├── meditation.js (301)
+│   └── voice.js (45)
+│
+├── services/
+│   ├── memory.js (102)
+│   ├── analytics.js (41)
+│   ├── weekly-analytics.js (226)
+│   ├── session-analytics.js (180)
+│   ├── drive-backup.js (100)
+│   ├── user-profile.js (99)
+│   ├── state-engine.js (41)
+│   ├── pattern-engine.js (204)
+│   ├── resilience-engine.js (125)
+│   ├── insight-engine.js (161)
+│   └── voice-service.js (73)
+│
+├── i18n/
+│   ├── ru.js
+│   ├── en.js
+│   ├── es.js
+│   └── uk.js
+│
+├── breathing.js (297)
+├── mind-dump.js (153)
+├── visual-focus.js (222)
+├── tap-calm.js (255)
+├── pattern-engine.js (202) ← ДУБЛЬ!
+├── resilience-engine.js (163) ← ДУБЛЬ!
+└── insight-engine.js (204) ← ДУБЛЬ!
+2. Файлы не на своём месте
+Практики в корне (должны быть в services/practices/):
+- breathing.js
+- mind-dump.js
+- visual-focus.js
+- tap-calm.js
+Дубликаты engine-файлов (в корне и в services/):
+- pattern-engine.js / services/pattern-engine.js
+- resilience-engine.js / services/resilience-engine.js
+- insight-engine.js / services/insight-engine.js
+3. Файлы > 300 строк (кандидаты на разбивку)
+1. screens/pdf-report.js - 595 строк ⚠️
+2. screens/insight.js - 501 строк
+3. screens/history.js - 444 строк
+4. screens/settings.js - 343 строк
+5. screens/report.js - 311 строк
+6. screens/meditation.js - 301 строк
+Основные кандидаты на рефакторинг: pdf-report, insight и history превышают 500 строк, settings и report приближаются к 350 строкам, meditation держится на границе.
+Обнаружена критическая проблема с дублированием движков — три файла существуют в двух экземплярах (pattern-engine, resilience-engine и insight-engine), причём версии в корневой дире отличаются по размеру от аналогов в папке services.
+Аудит структуры www/js/
+1. Полное дерево файлов (43 файла)
+www/js/
+├── app.js (241)
+├── state.js (44)
+├── navigation.js (165)
+├── onboarding.js (375)
+├── i18n.js (41)
+├── monthly-check.js (150)
+├── ui-controller.js (8)
+│
+├── ai/
+│   ├── voice.js (49)
+│   ├── offline-ai.js (266)
+│   └── voice-analysis.js (56)
+│
+├── screens/
+│   ├── home.js (40)
+│   ├── pdf-report.js (595)
+│   ├── settings.js (343)
+│   ├── insight.js (501)
+│   ├── history.js (444)
+│   ├── report.js (311)
+│   ├── stability.js (158)
+│   ├── tools.js (8)
+│   ├── meditation.js (301)
+│   └── voice.js (45)
+│
+├── services/
+│   ├── memory.js (102)
+│   ├── analytics.js (41)
+│   ├── weekly-analytics.js (226)
+│   ├── session-analytics.js (180)
+│   ├── drive-backup.js (100)
+│   ├── user-profile.js (99)
+│   ├── state-engine.js (41)
+│   ├── pattern-engine.js (204)
+│   ├── resilience-engine.js (125)
+│   ├── insight-engine.js (161)
+│   └── voice-service.js (73)
+│
+├── i18n/
+│   ├── ru.js, en.js, es.js, uk.js
+│
+├── breathing.js (297)
+├── mind-dump.js (153)
+├── visual-focus.js (222)
+├── tap-calm.js (255)
+├── pattern-engine.js (202) ⚠️ ДУБЛЬ
+├── resilience-engine.js (163) ⚠️ ДУБЛЬ
+└── insight-engine.js (204) ⚠️ ДУБЛЬ
+---
+2. Файлы не на своём месте
+Практики в корне (должны быть в одной папке):
+Файл	Строк	Проблема
+breathing.js	297	Практика в корне
+mind-dump.js	153	Практика в корне
+visual-focus.js	222	Практика в корне
+tap-calm.js	255	Практика в корне
+screens/meditation.js	301	Практика в screens, не в общей папке
+Дубликаты engine файлов:
+В корне	В services/	Строк (корень)
+pattern-engine.js	services/pattern-engine.js	202
+resilience-engine.js	services/resilience-engine.js	163
+insight-engine.js	services/insight-engine.js	204
+---
+3. Файлы > 300 строк (кандидаты на разбивку)
+Файл	Строк
+screens/pdf-report.js	595
+screens/insight.js	501
+screens/history.js	444
+screens/settings.js	343
+screens/report.js	311
+---
+4. Дублирующийся код
+3 пары дубликатов engine файлов:
+- pattern-engine.js ↔ services/pattern-engine.js
+- resilience-engine.js ↔ services/resilience-engine.js
+- insight-engine.js ↔ services/insight-engine.js
+Разные версии — возможно, рассинхронизация кода. Нужно проверить какой из каждой пары актуальный и удалить дубликат.
