@@ -12,7 +12,7 @@
 
 // system-core.js — Orchestrator
 
-import state from './state.js'
+import { update } from './state.js'
 import * as StateEngine from './services/state-engine.js'
 import * as InsightEngine from './services/insight-engine.js'
 import * as PatternEngine from './services/pattern-engine.js'
@@ -28,7 +28,7 @@ const SystemCore = {
     try {
 
       const stateResult = await StateEngine.analyze(mood)
-      const newState = state.update(stateResult)
+      const newState = update(stateResult)
 
       const insights = await InsightEngine.generate(newState)
       const patterns = await PatternEngine.detect(newState)

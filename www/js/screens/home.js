@@ -3,6 +3,7 @@ import SystemCore from "../system-core.js";
 import { render } from "../app.js";
 
 export function onEnter() {
+  console.log('home.onEnter() called');
   const slider     = document.getElementById("moodSlider");
   const valueLabel = document.getElementById("moodValue");
   const savedLabel = document.getElementById("moodSavedLabel");
@@ -28,14 +29,21 @@ valueLabel.textContent = currentMood + "%";
   confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
 
   newBtn.addEventListener("click", async () => {
+    console.log('MOOD_SUBMIT clicked');
     const moodValue = Number(newSlider.value);
+    console.log('moodValue:', moodValue);
     const result = await SystemCore.dispatch('MOOD_SUBMIT', moodValue);
+    console.log('dispatch result:', result);
 
     if (!result || result.error) {
       console.warn('UI received error:', result);
       alert('Ошибка обработки. Попробуйте ещё раз.');
       return;
     }
+
+    const mood = result.state?.mood || moodValue;
+    newSlider.value = mood;
+    valueLabel.textContent = mood + '%';
 
     render();
 

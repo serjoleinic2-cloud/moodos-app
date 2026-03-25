@@ -157,6 +157,7 @@ function startApp() {
 
   if (btn && note) {
     btn.addEventListener("click", () => {
+      console.log('AI note clicked');
       const text   = note.value;
       const mood   = getMood();
       const slider = document.getElementById("moodSlider");

@@ -4,6 +4,20 @@
 // Отвечает ТОЛЬКО за localStorage
 // =====================================
 
+/* ---------- GENERIC SAVE ---------- */
+export function save(data) {
+  if (data.mood !== undefined) {
+    const history = getMoodHistory();
+    history.push({
+      value: data.mood,
+      state: data.state,
+      time: Date.now()
+    });
+    if (history.length > 730) history.shift();
+    saveMoodHistory(history);
+  }
+}
+
 /* ---------- MOOD HISTORY ---------- */
 
 export function getMoodHistory() {
