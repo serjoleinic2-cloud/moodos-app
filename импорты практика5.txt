@@ -1,0 +1,45 @@
+Блоки вызова практик в navigation.js
+initBreathing (строки 108-114)
+document.getElementById("toolsBreathing").onclick = async () => {
+  closeToolsMenu(); openScreen("tools");
+  await new Promise(r => setTimeout(r, 50));
+  const { initBreathing } = await import("./screens/practices/breathing.js");
+  const c = document.getElementById("tools-content");
+  if (c) { c.innerHTML = ""; initBreathing(c); }
+};
+initMeditation (строки 116-122)
+document.getElementById("toolsMeditation").onclick = async () => {
+  closeToolsMenu(); openScreen("tools");
+  await new Promise(r => setTimeout(r, 50));
+  const { initMeditation } = await import("./screens/practices/meditation.js");
+  const c = document.getElementById("tools-content");
+  if (c) { c.innerHTML = ""; initMeditation(c); }
+};
+initVisualFocus (строки 124-131)
+const vfBtn = document.getElementById("toolsVisualFocus");
+if (vfBtn) vfBtn.onclick = async () => {
+  closeToolsMenu(); openScreen("tools");
+  await new Promise(r => setTimeout(r, 50));
+  const { initVisualFocus } = await import("./screens/practices/visual-focus.js");
+  const c = document.getElementById("tools-content");
+  if (c) { c.innerHTML = ""; initVisualFocus(c); }
+};
+initMindDump (строки 133-140)
+const mdBtn = document.getElementById("toolsMindDump");
+if (mdBtn) mdBtn.onclick = async () => {
+  closeToolsMenu(); openScreen("tools");
+  await new Promise(r => setTimeout(r, 50));
+  const { initMindDump } = await import("./screens/practices/mind-dump.js");
+  const c = document.getElementById("tools-content");
+  if (c) { c.innerHTML = ""; initMindDump(c); }
+};
+initTapCalm (строки 142-149)
+const tcBtn = document.getElementById("toolsTapCalm");
+if (tcBtn) tcBtn.onclick = async () => {
+  closeToolsMenu(); openScreen("tools");
+  await new Promise(r => setTimeout(r, 50));
+  const { initTapCalm } = await import("./screens/practices/tap-calm.js");
+  const c = document.getElementById("tools-content");
+  if (c) { c.innerHTML = ""; initTapCalm(c); }
+};
+Все пути корректные — "./screens/practices/*.js".
