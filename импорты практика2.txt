@@ -1,0 +1,29 @@
+Результаты проверки импортов практик
+Файлы в www/js/screens/practices/
+❌ breathing.js — НЕПРАВИЛЬНЫЕ ПУТИ
+import { getMood } from "./state.js";                    // ❌ должно быть "../state.js"
+import { addSessionEntry } from "./services/memory.js";   // ❌ должно быть "../services/memory.js"
+import { detectMoodState } from "./services/state-engine.js"; // ❌ должно быть "../services/state-engine.js"
+import { t } from "./i18n.js";                           // ❌ должно быть "../i18n.js"
+✅ meditation.js — ПРАВИЛЬНЫЕ ПУТИ
+import { detectMoodState } from "../services/state-engine.js";  // ✓
+import { getMood } from "../state.js";                           // ✓
+import { addSessionEntry } from "../services/memory.js";          // ✓
+import { t } from "../i18n.js";                                  // ✓
+❌ visual-focus.js — НЕПРАВИЛЬНЫЕ ПУТИ
+import { getMood } from "./state.js";                    // ❌ должно быть "../state.js"
+import { addSessionEntry } from "./services/memory.js";   // ❌ должно быть "../services/memory.js"
+import { detectMoodState } from "./services/state-engine.js"; // ❌ должно быть "../services/state-engine.js"
+import { t } from "./i18n.js";                           // ❌ должно быть "../i18n.js"
+❌ mind-dump.js — НЕПРАВИЛЬНЫЕ ПУТИ
+import { getMood } from "./state.js";                    // ❌ должно быть "../state.js"
+import { addSessionEntry } from "./services/memory.js";   // ❌ должно быть "../services/memory.js"
+import { detectMoodState } from "./services/state-engine.js"; // ❌ должно быть "../services/state-engine.js"
+import { t } from "./i18n.js";                           // ❌ должно быть "../i18n.js"
+❌ tap-calm.js — НЕПРАВИЛЬНЫЕ ПУТИ
+import { getMood } from "./state.js";                    // ❌ должно быть "../state.js"
+import { addSessionEntry } from "./services/memory.js";   // ❌ должно быть "../services/memory.js"
+import { detectMoodState } from "./services/state-engine.js"; // ❌ должно быть "../services/state-engine.js"
+import { t } from "./i18n.js";                           // ❌ должно быть "../i18n.js"
+---
+Итого: 4 файла из 5 сломаны. Только meditation.js имел правильные пути (видимо, изначально был в screens/).
