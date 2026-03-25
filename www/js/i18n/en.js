@@ -299,4 +299,6 @@ export const en = {
     pr_error: "Error",
     pr_share_text: "Emotional state report",
     pr_notif_body: "Time to send a report to your doctor (for {period} days)",
+    week_vs_year: "📅 This week vs year ago",
+    year_ago: "Year ago",
 };

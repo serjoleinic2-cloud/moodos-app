@@ -218,6 +218,44 @@ const responses = {
 // ---- ГЛАВНАЯ ФУНКЦИЯ ----
 
 export function analyzeText(text, mood) {
+  const t = (text || "").toLowerCase();
+
+  // detect negative text
+  const isNegative =
+  t.includes("плохо") ||
+  t.includes("хреново") ||
+  t.includes("тревога") ||
+  t.includes("устал") ||
+  t.includes("депресс") ||
+  t.includes("нет сил");
+
+  // detect positive text
+  const isPositive =
+  t.includes("хорошо") ||
+  t.includes("отлично") ||
+  t.includes("рад") ||
+  t.includes("спокойно");
+
+  // PRIORITY: TEXT > SLIDER
+
+  if (isNegative) {
+    return {
+      insight: "Ты отмечаешь высокий уровень по шкале, но по ощущениям тебе тяжело. Это важный сигнал — попробуй снизить нагрузку и уделить внимание себе.",
+      emotion: "low",
+      confidence: 0.9,
+      tags: ["text_priority", "negative"]
+    };
+  }
+
+  if (isPositive) {
+    return {
+      insight: "Ты чувствуешь себя хорошо — продолжай в том же духе и закрепляй это состояние.",
+      emotion: "positive",
+      confidence: 0.9,
+      tags: ["text_priority", "positive"]
+    };
+  }
+
   const lang = detectLang();
   const bank = responses[lang] || responses.en;
 
@@ -234,33 +272,29 @@ export function analyzeText(text, mood) {
     };
   }
 
-  // Проверяем ключевые слова в тексте
-  const lower = text.toLowerCase();
-  for (const [keyword, reply] of Object.entries(bank.keywords)) {
-    if (lower.includes(keyword)) {
-      const bonus = mood < 40
-        ? (lang === "ru" ? " Береги себя." : lang === "uk" ? " Бережи себе." : lang === "es" ? " Cuídate." : " Take care of yourself.")
-        : "";
-      return {
-        insight: reply + bonus,
-        emotion: mood<40?"low":mood>70?"positive":"neutral",
-        confidence: 0.85, tags: ["keyword_match", lang]
-      };
-    }
+  // fallback to slider
+  if (mood >= 70) {
+    return {
+      insight: "Состояние стабильное. Поддерживай этот уровень.",
+      emotion: "positive",
+      confidence: 0.75,
+      tags: ["offline_ai", "mood_high"]
+    };
   }
 
-  // Выбираем пул по настроению
-  const pool = mood < 35 ? bank.low : mood > 70 ? bank.high : bank.neutral;
-  const base = pool[Math.floor(Math.random() * pool.length)];
-
-  let emotion = "neutral";
-  if (mood < 35)      emotion = "low";
-  else if (mood > 70) emotion = "positive";
+  if (mood <= 40) {
+    return {
+      insight: "Есть признаки снижения состояния. Попробуй отдохнуть или переключиться.",
+      emotion: "low",
+      confidence: 0.75,
+      tags: ["offline_ai", "mood_low"]
+    };
+  }
 
   return {
-    insight:    base,
-    emotion,
+    insight: "Состояние нейтральное. Продолжай наблюдать.",
+    emotion: "neutral",
     confidence: 0.75,
-    tags:       ["offline_ai", lang]
+    tags: ["offline_ai", "mood_neutral"]
   };
 }

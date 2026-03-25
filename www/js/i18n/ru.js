@@ -300,4 +300,6 @@ export const ru = {
     pr_error: "Ошибка",
     pr_share_text: "Отчёт об эмоциональном состоянии",
     pr_notif_body: "Время отправить отчёт врачу (за {period} дней)",
+    week_vs_year: "📅 Эта неделя vs год назад",
+    year_ago: "Год назад",
 };

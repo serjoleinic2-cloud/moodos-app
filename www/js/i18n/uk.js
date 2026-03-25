@@ -299,4 +299,6 @@ export const uk = {
     pr_error: "Помилка",
     pr_share_text: "Звіт про емоційний стан",
     pr_notif_body: "Час надіслати звіт лікарю (за {period} днів)",
+    week_vs_year: "📅 Цей тиждень vs рік тому",
+    year_ago: "Рік тому",
 };

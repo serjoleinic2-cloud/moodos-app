@@ -153,7 +153,7 @@ function buildYearComparisonBlock() {
   const prevSessions = prev ? prev.sessions + " практик" : "—";
 
   return '<div class="insight-section">' +
-    '<div class="insight-section-title">📅 Эта неделя vs год назад</div>' +
+    '<div class="insight-section-title">' + t("week_vs_year") + '</div>' +
     '<div style="padding:18px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
 
       // Две колонки
@@ -161,7 +161,7 @@ function buildYearComparisonBlock() {
 
         // Год назад
         '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
-          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Год назад</div>' +
+          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("year_ago") + '</div>' +
           '<div style="font-size:26px;font-weight:700;color:' + prevMoodColor + ';margin-bottom:4px;">' + prevMood + '</div>' +
           '<div style="font-size:12px;color:#888;">' + prevEntries + '</div>' +
           '<div style="font-size:12px;color:#888;">' + prevSessions + '</div>' +
@@ -499,3 +499,7 @@ function buildStateTable(activePractices, practiceData) {
     '</div>';
   }).join('');
 }
+
+document.addEventListener("languageChanged", () => {
+  onEnter();
+});

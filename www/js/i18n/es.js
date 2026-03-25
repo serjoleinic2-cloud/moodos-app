@@ -299,4 +299,6 @@ export const es = {
     pr_error: "Error",
     pr_share_text: "Informe del estado emocional",
     pr_notif_body: "Es hora de enviar el informe al médico (últimos {period} días)",
+    week_vs_year: "📅 Esta semana vs año pasado",
+    year_ago: "Año pasado",
 };

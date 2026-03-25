@@ -160,7 +160,10 @@ function startApp() {
     btn.addEventListener("click", () => {
       const text   = note.value;
       const mood   = getMood();
-      const result = analyzeText(text, mood);
+      const slider = document.getElementById("moodSlider");
+      const moodValue = slider ? Number(slider.value) : mood;
+
+      const result = analyzeText(text, moodValue);
 
       if (output) {
         output.textContent = result.insight;
