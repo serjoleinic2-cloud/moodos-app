@@ -119,6 +119,10 @@ function renderSettings() {
           </div>
           <span class="neo-row-value">›</span>
         </div>
+		'<div class="neo-row" id="settingTestYear">' +
+  '<div class="neo-row-left"><span class="neo-row-icon">🧪</span><span class="neo-row-label">Тест: данные год назад</span></div>' +
+  '<span class="neo-row-value">Добавить ›</span>' +
+'</div>' +
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
     </div>
@@ -198,6 +202,34 @@ function bindEvents(el) {
     e.target.value = "";
     showRestoreConfirmModal(file);
   });
+  
+  el.querySelector("#settingTestYear")?.addEventListener("click", function() {
+  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+  const d = new Date(oneYearAgo);
+  const year = d.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+  const weekNum = Math.ceil((((d - jan1) / 86400000) + jan1.getDay() + 1) / 7);
+  const weekKey = year + "-W" + String(weekNum).padStart(2, "0");
+  const existing = JSON.parse(localStorage.getItem("weekly_history") || "[]");
+  const already = existing.find(function(b) { return b.weekKey === weekKey; });
+  if (already) { alert("Уже есть: " + weekKey); return; }
+  existing.push({
+    weekKey: weekKey,
+    weekStart: oneYearAgo,
+    weekEnd: oneYearAgo + 6 * 24 * 60 * 60 * 1000,
+    averageMood: 54,
+    minMood: 30,
+    maxMood: 75,
+    entries: 12,
+    activeDays: 5,
+    dominantState: "NEUTRAL",
+    sessions: 2,
+    updatedAt: oneYearAgo
+  });
+  localStorage.setItem("weekly_history", JSON.stringify(existing));
+  alert("✅ Добавлен блок: " + weekKey + "\nСреднее год назад: 54%");
+});
+  
 }
 
 function refresh() {
