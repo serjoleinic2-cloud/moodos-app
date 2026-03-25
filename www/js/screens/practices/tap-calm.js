@@ -2,10 +2,10 @@
 // MoodOS Tap Calm
 // Тактильная разрядка — 60 секунд
 // ===============================
-import { getMood } from "./state.js";
-import { addSessionEntry } from "./services/memory.js";
-import { detectMoodState } from "./services/state-engine.js";
-import { t } from "./i18n.js";
+import { getMood } from "../state.js";
+import { addSessionEntry } from "../services/memory.js";
+import { detectMoodState } from "../services/state-engine.js";
+import { t } from "../i18n.js";
 
 let running = false;
 let sessionStartTime = null;

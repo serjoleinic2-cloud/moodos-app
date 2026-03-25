@@ -2,10 +2,10 @@
 // MoodOS Visual Focus (EMDR-style)
 // Зрительный якорь — 2 минуты
 // ===============================
-import { getMood } from "./state.js";
-import { addSessionEntry } from "./services/memory.js";
-import { detectMoodState } from "./services/state-engine.js";
-import { t } from "./i18n.js";
+import { getMood } from "../state.js";
+import { addSessionEntry } from "../services/memory.js";
+import { detectMoodState } from "../services/state-engine.js";
+import { t } from "../i18n.js";
 
 let animationId = null;
 let running = false;
