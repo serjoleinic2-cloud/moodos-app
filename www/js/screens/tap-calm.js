@@ -134,7 +134,6 @@ function bindEvents() {
         await startSession();
       } else {
         stopSession();
-        await saveSession();
         showFeedback();
       }
     };
@@ -144,14 +143,26 @@ function bindEvents() {
   if (tcHelped) {
     const newTcHelped = tcHelped.cloneNode(true);
     tcHelped.replaceWith(newTcHelped);
-    newTcHelped.onclick = () => saveSessionWithResult("positive");
+    newTcHelped.onclick = () => {
+      if (newTcHelped.dataset.locked) return;
+      newTcHelped.dataset.locked = 'true';
+      console.log('tap calm helped');
+      saveSessionWithResult("positive");
+      setTimeout(() => { newTcHelped.dataset.locked = ''; }, 1000);
+    };
   }
 
   const tcNotHelped = document.getElementById("tcNotHelped");
   if (tcNotHelped) {
     const newTcNotHelped = tcNotHelped.cloneNode(true);
     tcNotHelped.replaceWith(newTcNotHelped);
-    newTcNotHelped.onclick = () => saveSessionWithResult("negative");
+    newTcNotHelped.onclick = () => {
+      if (newTcNotHelped.dataset.locked) return;
+      newTcNotHelped.dataset.locked = 'true';
+      console.log('tap calm not helped');
+      saveSessionWithResult("negative");
+      setTimeout(() => { newTcNotHelped.dataset.locked = ''; }, 1000);
+    };
   }
 }
 

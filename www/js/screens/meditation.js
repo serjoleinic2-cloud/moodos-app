@@ -61,6 +61,22 @@ function bindEvents() {
     };
   }
 
+  const medProgress = document.getElementById("medProgress");
+  if (medProgress) {
+    const newMedProgress = medProgress.cloneNode(true);
+    medProgress.replaceWith(newMedProgress);
+    newMedProgress.oninput = (e) => {
+      if (audio) audio.currentTime = e.target.value;
+    };
+  }
+
+  document.querySelectorAll(".track").forEach(track => {
+    track.onclick = () => {
+      currentIndex = parseInt(track.dataset.index);
+      switchTrack();
+    };
+  });
+
   const medHelped = document.getElementById("medHelped");
   if (medHelped) {
     const newMedHelped = medHelped.cloneNode(true);
@@ -81,6 +97,7 @@ function bindEvents() {
       });
       sessionStartTime = null;
       moodBeforeSession = null;
+      showPlayer();
     };
   }
 
@@ -104,6 +121,7 @@ function bindEvents() {
       });
       sessionStartTime = null;
       moodBeforeSession = null;
+      showPlayer();
     };
   }
 }
@@ -177,7 +195,6 @@ export function initMeditation(container) {
   ctx    = canvas.getContext("2d");
 
   initAudio();
-  attachEvents();
 }
 
 function initAudio() {
@@ -195,67 +212,6 @@ function initAudio() {
   };
 
   audio.onended = handleTrackEnd;
-}
-
-function attachEvents() {
-  document.getElementById("centerButton").onclick = toggleMeditation;
-
-  document.getElementById("loopBtn").onclick = () => {
-    loopMode = !loopMode;
-    updateButtonState("loopBtn", loopMode);
-  };
-
-  document.getElementById("chainBtn").onclick = () => {
-    chainMode = !chainMode;
-    updateButtonState("chainBtn", chainMode);
-  };
-
-  document.getElementById("medProgress").oninput = (e) => {
-    audio.currentTime = e.target.value;
-  };
-
-  document.querySelectorAll(".track").forEach(track => {
-    track.onclick = () => {
-      currentIndex = parseInt(track.dataset.index);
-      switchTrack();
-    };
-  });
-
-  document.getElementById("medHelped").onclick = async () => {
-    const moodAfter  = getMood();
-    const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
-    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
-    addSessionEntry({
-      type: "meditation",
-      moodBefore:  moodBeforeSession,
-      stateBefore: stateBeforeSession,
-      moodAfter, stateAfter,
-      result: "positive",
-      duration,
-      timestamp: Date.now()
-    });
-    sessionStartTime  = null;
-    moodBeforeSession = null;
-    showPlayer();
-  };
-
-  document.getElementById("medNotHelped").onclick = async () => {
-    const moodAfter  = getMood();
-    const duration   = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
-    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
-    addSessionEntry({
-      type: "meditation",
-      moodBefore:  moodBeforeSession,
-      stateBefore: stateBeforeSession,
-      moodAfter, stateAfter,
-      result: "negative",
-      duration,
-      timestamp: Date.now()
-    });
-    sessionStartTime  = null;
-    moodBeforeSession = null;
-    showPlayer();
-  };
 }
 
 function showPlayer() {

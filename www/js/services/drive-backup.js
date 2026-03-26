@@ -6,8 +6,15 @@
 
 import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
 import { getProfile } from "./user-profile.js";
+import { t } from "../i18n.js";
 
 const LS_LAST_BACKUP = "last_auto_backup";
+const FREE_DAYS_LIMIT = 7;
+
+export function isPremium() {
+  const profile = getProfile();
+  return !!(profile?.isPremium || profile?.googleConnected);
+}
 
 export function getLastBackupTime() {
   try {
@@ -16,14 +23,54 @@ export function getLastBackupTime() {
   } catch(e) { return null; }
 }
 
+function filterLast7Days(arr, timestampField) {
+  const now = Date.now();
+  const sevenDaysAgo = now - (FREE_DAYS_LIMIT * 24 * 60 * 60 * 1000);
+  return arr.filter(item => {
+    const ts = item[timestampField] || item.time || item.timestamp;
+    return ts && parseInt(ts) >= sevenDaysAgo;
+  });
+}
+
 function buildBackupData() {
+  const profile = getProfile() || {};
+  const premium = isPremium();
+  
+  const moodHistory = getMoodHistory();
+  const notesHistory = getNotesHistory();
+  const sessionHistory = getSessionHistory();
+
+  let moodData, notesData, sessionData;
+  
+  if (premium) {
+    moodData = moodHistory.slice(-500);
+    notesData = notesHistory.slice(-500);
+    sessionData = sessionHistory.slice(-500);
+  } else {
+    const filteredMood = filterLast7Days(moodHistory, "time");
+    const filteredNotes = filterLast7Days(notesHistory, "timestamp");
+    const filteredSessions = filterLast7Days(sessionHistory, "timestamp");
+    moodData = filteredMood.slice(-500);
+    notesData = filteredNotes.slice(-500);
+    sessionData = filteredSessions.slice(-500);
+  }
+
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
-    mood_history:    getMoodHistory().slice(-500),
-    notes_history:   getNotesHistory().slice(-500),
-    session_history: getSessionHistory().slice(-500),
-    user_profile:    getProfile() || {},
+    isLimitedBackup: !premium,
+    mood_history:    moodData,
+    notes_history:   notesData,
+    session_history: sessionData,
+    user_profile:    profile,
+  };
+}
+
+export function getHistoryLimitInfo() {
+  return {
+    isLimited: !isPremium(),
+    message: t("free_history_limit_title"),
+    description: t("free_history_limit_desc"),
   };
 }
 
@@ -86,10 +133,31 @@ export async function restoreFromBackup(file) {
           return;
         }
 
+        const premium = isPremium();
+        const isLimitedBackup = data.isLimitedBackup && !premium;
+        let limitWarning = null;
+
         function mergeByTimestamp(localKey, backupArr, timestampField) {
           try {
+            let arrToMerge = backupArr;
+            
+            if (!premium) {
+              const now = Date.now();
+              const sevenDaysAgo = now - (FREE_DAYS_LIMIT * 24 * 60 * 60 * 1000);
+              arrToMerge = backupArr.filter(item => {
+                const ts = item[timestampField] || item.time || item.timestamp;
+                return ts && parseInt(ts) >= sevenDaysAgo;
+              });
+              if (arrToMerge.length < backupArr.length) {
+                limitWarning = {
+                  title: t("free_history_limit_title"),
+                  desc: t("free_history_limit_desc")
+                };
+              }
+            }
+
             const local = JSON.parse(localStorage.getItem(localKey) || "[]");
-            const merged = [...local, ...backupArr];
+            const merged = [...local, ...arrToMerge];
             const seen = new Set();
             const deduped = merged.filter(item => {
               const key = item[timestampField] || item.time || item.timestamp;
@@ -112,10 +180,9 @@ export async function restoreFromBackup(file) {
         if (data.notes_history)   mergeByTimestamp("notes_history",   data.notes_history,   "timestamp");
         if (data.session_history) mergeByTimestamp("session_history", data.session_history, "timestamp");
 
-        // user_profile — просто перезаписываем (не массив)
         if (data.user_profile) localStorage.setItem("user_profile", JSON.stringify(data.user_profile));
 
-        resolve({ success: true });
+        resolve({ success: true, limitWarning });
       } catch(err) {
         resolve({ success: false, message: "Ошибка чтения: " + err.message });
       }

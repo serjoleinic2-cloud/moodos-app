@@ -326,4 +326,12 @@ export const es = {
     avatar_lock_feeling: "Fijemos esta sensación",
     avatar_mood_changed: "Veo cómo cambia tu estado",
     settings_backup_last: "Último",
+    cloud_section: "Copia en la nube",
+    google_connect_title: "Conectar Google",
+    google_connect_desc: "Guarda tus notas, voz y datos. Nada se perderá incluso al cambiar de teléfono.",
+    google_connect_btn: "Conectar",
+    google_connected: "Conectado",
+    google_coming_soon: "Función próximamente",
+    free_history_limit_title: "Solo disponible la última semana",
+    free_history_limit_desc: "Historial completo disponible en Premium",
 };

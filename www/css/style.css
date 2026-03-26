@@ -127,7 +127,15 @@ h2 { font-size: 20px; color: #3a3530; }
 
 /* ===== MOOD СЛАЙДЕР ===== */
 input[type="range"] { width: 100%; margin: 12px 0; }
-#medProgress.slider { margin-bottom: 20px; }
+#medProgress {
+  position: relative;
+  z-index: 1;
+  transform: translateY(20px); /* подбери: 8–20px */
+}
+#centerButton {
+  position: relative;
+  z-index: 5;
+}
 #moodValue { font-size: 22px; font-weight: bold; color: #3a3530; }
 .mood-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .mood-value-row { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
@@ -273,9 +281,9 @@ textarea {
 
 #avatar-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 120px;
   left: 16px;
-  z-index: 999;
+  z-index: 1001;
 }
 
 #avatar-face {

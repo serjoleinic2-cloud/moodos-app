@@ -327,4 +327,12 @@ export const ru = {
     avatar_lock_feeling: "Давай закрепим это ощущение",
     avatar_mood_changed: "Я вижу, как меняется твоё состояние",
     settings_backup_last: "Последний",
+    cloud_section: "Облачное сохранение",
+    google_connect_title: "Подключить Google",
+    google_connect_desc: "Сохраняйте заметки, голос и данные. Ничего не потеряется даже при смене телефона.",
+    google_connect_btn: "Подключить",
+    google_connected: "Подключено",
+    google_coming_soon: "Функция скоро появится",
+    free_history_limit_title: "Доступна только последняя неделя",
+    free_history_limit_desc: "Полная история доступна в Premium",
 };

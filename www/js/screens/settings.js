@@ -119,11 +119,32 @@ function renderSettings() {
           </div>
           <span class="neo-row-value">›</span>
         </div>
-        <div class="neo-row" id="settingTestYear">
-          <div class="neo-row-left"><span class="neo-row-icon">🧪</span><span class="neo-row-label">${t("settings_test_label")}</span></div>
-          <span class="neo-row-value">${t("settings_test_add_btn")} ›</span>
-        </div>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-label">${t("cloud_section")}</div>
+        <div id="google-connect" style="
+          background: rgba(232,237,230,0.9);
+          border-radius: 18px;
+          padding: 18px;
+          box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
+          margin-bottom: 10px;
+        ">
+          <div style="display:flex; align-items:center; margin-bottom:10px;">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMy4yOTNBMTAuNjUgMTAuNjUgMCAwIDAgNy41IDE1Ljc1bDMuNSAzLjUgMy41LTMuNUExMC42NSAxMC42NSAwIDAgMCAxMiAzLjI5M3ptMCAxMi4xMzNWNi40NjRBMTAuNjUgMTAuNjUgMCAwIDAgNy41IDE1Ljc1bDMuNSAzLjUgMy41LTMuNUExMC42NSAxMC42NSAwIDAgMCAxMiA1Ljc1eiIgZmlsbD0iIzNBOUUzMyIvPjxwYXRoIGQ9Ik0xMiA1Ljc1bC0zLjUgMy41IDMuNSAzLjUgMy41LTMuNSAtMy41LTMuNXptMCAxMi4xMzNWMTcuNWwzLjUgMy41IDMuNS0zLjUgMy41LTMuNSAtMy41LTMuNSAtMy41IDMuNXoiIGZpbGw9IiNGQ0Y0RjQiLz48cGF0aCBkPSJNMTIgMTcuNWwtMy41IDMuNSAzLjUgMy41IDMuNS0zLjUgLTMuNS0zLjV6bTAtMTIuMTI1TDMuNSA3LjUgNyA0IDEwLjUgNyA3IDEwLjVsNS01LjI1WiIgZmlsbD0iIzNBOUUzMyIvPjxwYXRoIGQ9Ik0xMiA1Ljc1bC0zLjUgMy41IDMuNSAzLjUgMy41LTMuNSAtMy41LTMuNXptMCAxMi4xMzNWMTcuNWwzLjUgMy41IDMuNS0zLjUgMy41LTMuNSAtMy41LTMuNSAtMy41IDMuNXoiIGZpbGw9IiNGQ0Y0RjQiLz48cGF0aCBkPSJNMTIgMTcuNWwtMy41IDMuNSAzLjUgMy41IDMuNS0zLjUgLTMuNS0zLjV6bTAtMTIuMTI1TDMuNSA3LjUgNyA0IDEwLjUgNyA3IDEwLjVsNS01LjI1WiIgZmlsbD0iI0ZGRkZGRiIvPjwvc3ZnPg==" style="width:24px; height:24px; margin-right:10px;">
+            <span style="font-size:15px; font-weight:600; color:#555;">${t("google_connect_title")}</span>
+          </div>
+          <div id="googleConnectDesc" style="font-size:13px; color:#888; margin-bottom:14px; line-height:1.4;">
+            ${t("google_connect_desc")}
+          </div>
+          <button id="connectGoogleBtn" style="
+            width:100%; padding:13px; border:none; border-radius:14px;
+            background: linear-gradient(145deg, #f5efe6, #ede5d8);
+            box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+            font-size:15px; font-weight:600; color:#7a6a58; cursor:pointer;
+          ">${t("google_connect_btn")}</button>
+        </div>
       </div>
     </div>
   `;
@@ -202,34 +223,25 @@ function bindEvents(el) {
     e.target.value = "";
     showRestoreConfirmModal(file);
   });
-  
-  el.querySelector("#settingTestYear")?.addEventListener("click", function() {
-  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
-  const d = new Date(oneYearAgo);
-  const year = d.getFullYear();
-  const jan1 = new Date(year, 0, 1);
-  const weekNum = Math.ceil((((d - jan1) / 86400000) + jan1.getDay() + 1) / 7);
-  const weekKey = year + "-W" + String(weekNum).padStart(2, "0");
-  const existing = JSON.parse(localStorage.getItem("weekly_history") || "[]");
-  const already = existing.find(function(b) { return b.weekKey === weekKey; });
-  if (already) { alert(t("settings_test_exists") + ": " + weekKey); return; }
-  existing.push({
-    weekKey: weekKey,
-    weekStart: oneYearAgo,
-    weekEnd: oneYearAgo + 6 * 24 * 60 * 60 * 1000,
-    averageMood: 54,
-    minMood: 30,
-    maxMood: 75,
-    entries: 12,
-    activeDays: 5,
-    dominantState: "NEUTRAL",
-    sessions: 2,
-    updatedAt: oneYearAgo
-  });
-  localStorage.setItem("weekly_history", JSON.stringify(existing));
-  alert("✅ " + t("settings_test_added") + ": " + weekKey + "\n" + t("year_ago") + ": 54%");
-});
-  
+
+  // Google Connect
+  const googleBtn = el.querySelector("#connectGoogleBtn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", () => {
+      const profile = getProfile();
+      if (profile?.googleConnected) return;
+      saveProfile({...profile, googleConnected: true});
+      const btn = el.querySelector("#connectGoogleBtn");
+      const desc = el.querySelector("#googleConnectDesc");
+      if (btn) {
+        btn.textContent = t("google_connected");
+        btn.style.color = "#4caf87";
+        btn.disabled = true;
+      }
+      if (desc) desc.textContent = t("google_connected");
+    });
+  }
+   
 }
 
 function refresh() {
@@ -256,11 +268,19 @@ function showRestoreConfirmModal(file) {
     const result = await restoreFromBackup(file);
     overlay.remove();
     if (result.success) {
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;";
-      msg.textContent = "✅ " + t("settings_restore_success");
-      document.body.appendChild(msg);
-      setTimeout(() => { window.location.href = window.location.href; }, 1500);
+      if (result.limitWarning) {
+        const warn = document.createElement("div");
+        warn.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f59e0b;color:#fff;padding:20px 28px;border-radius:18px;font-size:15px;font-weight:600;z-index:9999;text-align:center;max-width:280px;";
+        warn.innerHTML = "⚠️ " + result.limitWarning.title + "<br><small style='font-weight:400;opacity:0.9;'>" + result.limitWarning.desc + "</small>";
+        document.body.appendChild(warn);
+        setTimeout(() => { window.location.href = window.location.href; }, 3000);
+      } else {
+        const msg = document.createElement("div");
+        msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;";
+        msg.textContent = "✅ " + t("settings_restore_success");
+        document.body.appendChild(msg);
+        setTimeout(() => { window.location.href = window.location.href; }, 1500);
+      }
     } else { alert(t("settings_backup_error") + ": " + result.message); }
   });
   overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());

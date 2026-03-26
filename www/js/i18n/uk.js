@@ -326,4 +326,12 @@ export const uk = {
     avatar_lock_feeling: "Давай закріпимо це відчуття",
     avatar_mood_changed: "Я бачу, як змінюється твій стан",
     settings_backup_last: "Останній",
+    cloud_section: "Хмарне збереження",
+    google_connect_title: "Підключити Google",
+    google_connect_desc: "Зберігайте нотатки, голос та дані. Нічого не втратиться навіть при зміні телефону.",
+    google_connect_btn: "Підключити",
+    google_connected: "Підключено",
+    google_coming_soon: "Функція скоро з'явиться",
+    free_history_limit_title: "Доступна лише останнім тиждень",
+    free_history_limit_desc: "Повна історія доступна в Premium",
 };
