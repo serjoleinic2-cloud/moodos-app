@@ -21,7 +21,95 @@ let loopMode  = false;
 let chainMode = false;
 let radiusBase = 105;
 
+export function onEnter(container) {
+  console.log('[DEBUG] meditation onEnter called');
+  render(container);
+  bindEvents();
+}
+
+function render(container) {
+  initMeditation(container);
+}
+
+function bindEvents() {
+  console.log('[DEBUG] meditation bindEvents called');
+
+  const centerButton = document.getElementById("centerButton");
+  if (centerButton) {
+    const newCenterButton = centerButton.cloneNode(true);
+    centerButton.replaceWith(newCenterButton);
+    newCenterButton.onclick = toggleMeditation;
+  }
+
+  const loopBtn = document.getElementById("loopBtn");
+  if (loopBtn) {
+    const newLoopBtn = loopBtn.cloneNode(true);
+    loopBtn.replaceWith(newLoopBtn);
+    newLoopBtn.onclick = () => {
+      loopMode = !loopMode;
+      updateButtonState("loopBtn", loopMode);
+    };
+  }
+
+  const chainBtn = document.getElementById("chainBtn");
+  if (chainBtn) {
+    const newChainBtn = chainBtn.cloneNode(true);
+    chainBtn.replaceWith(newChainBtn);
+    newChainBtn.onclick = () => {
+      chainMode = !chainMode;
+      updateButtonState("chainBtn", chainMode);
+    };
+  }
+
+  const medHelped = document.getElementById("medHelped");
+  if (medHelped) {
+    const newMedHelped = medHelped.cloneNode(true);
+    medHelped.replaceWith(newMedHelped);
+    newMedHelped.onclick = async () => {
+      const moodAfter = getMood();
+      const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+      const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
+      const stateAfter = analysisResult ? analysisResult.state : null;
+      addSessionEntry({
+        type: "meditation",
+        moodBefore: moodBeforeSession,
+        stateBefore: stateBeforeSession,
+        moodAfter, stateAfter,
+        result: "positive",
+        duration,
+        timestamp: Date.now()
+      });
+      sessionStartTime = null;
+      moodBeforeSession = null;
+    };
+  }
+
+  const medNotHelped = document.getElementById("medNotHelped");
+  if (medNotHelped) {
+    const newMedNotHelped = medNotHelped.cloneNode(true);
+    medNotHelped.replaceWith(newMedNotHelped);
+    newMedNotHelped.onclick = async () => {
+      const moodAfter = getMood();
+      const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+      const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
+      const stateAfter = analysisResult ? analysisResult.state : null;
+      addSessionEntry({
+        type: "meditation",
+        moodBefore: moodBeforeSession,
+        stateBefore: stateBeforeSession,
+        moodAfter, stateAfter,
+        result: "negative",
+        duration,
+        timestamp: Date.now()
+      });
+      sessionStartTime = null;
+      moodBeforeSession = null;
+    };
+  }
+}
+
 export function initMeditation(container) {
+  console.log('[DEBUG] initMeditation called');
 
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">

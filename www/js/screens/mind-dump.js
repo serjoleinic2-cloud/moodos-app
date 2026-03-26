@@ -13,11 +13,17 @@ let moodBeforeSession = null;
 let stateBeforeSession = null;
 let countdownInterval = null;
 let savedText = "";
+let result = null;
 
 const DURATION = 60;
 
-export function initMindDump(container) {
+export function onEnter(container) {
+  console.log('[DEBUG] mind-dump onEnter called');
+  render(container);
+  bindEvents();
+}
 
+function render(container) {
   container.innerHTML = `
     <div style="text-align:center; margin-top:20px;">
 
@@ -41,7 +47,7 @@ export function initMindDump(container) {
       </div>
 
       <div style="width:100%;height:6px;border-radius:3px;background:#e0e5ec;box-shadow:inset 2px 2px 4px #b8bec7,inset -2px -2px 4px #ffffff;margin-bottom:12px;overflow:hidden;">
-        <div id="mdProgress" style="height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#f9a8d4,#a78bfa);transition:width 1s linear;"></div>
+        <div id="mdProgress" style="height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#f9a8d4,#a855f7);transition:width 1s linear;"></div>
       </div>
 
       <div id="mdTimerWrap" style="margin-bottom:16px;">
@@ -70,84 +76,185 @@ export function initMindDump(container) {
 
     </div>
   `;
+}
 
-  const mainBtn  = document.getElementById("mdMainBtn");
+function bindEvents() {
+  console.log('[DEBUG] mind-dump bindEvents called');
+
+  const mainBtn = document.getElementById("mdMainBtn");
+  if (mainBtn) {
+    const newMainBtn = mainBtn.cloneNode(true);
+    mainBtn.replaceWith(newMainBtn);
+    newMainBtn.onclick = () => {
+      if (!running) {
+        startSession();
+      } else {
+        stopSession();
+        showActions();
+      }
+    };
+  }
+
   const clearBtn = document.getElementById("mdClearBtn");
-  const textarea = document.getElementById("mdText");
-  const status   = document.getElementById("mdStatus");
-  const actions  = document.getElementById("mdActions");
-  const feedback = document.getElementById("mdFeedback");
-  const progress = document.getElementById("mdProgress");
-
-  function updateTimerDisplay(sec) {
-    const m=Math.floor(sec/60), s=sec%60;
-    document.getElementById("mdTimer").textContent=`${m}:${String(s).padStart(2,"0")}`;
-    progress.style.width=((DURATION-sec)/DURATION*100)+"%";
+  if (clearBtn) {
+    const newClearBtn = clearBtn.cloneNode(true);
+    clearBtn.replaceWith(newClearBtn);
+    newClearBtn.onclick = () => {
+      const textarea = document.getElementById("mdText");
+      if (textarea) textarea.value = "";
+    };
   }
 
-  function showPlayer() {
-    document.getElementById("mdTimerWrap").style.display="block";
-    document.getElementById("mdInputWrap").style.display="block";
-    mainBtn.style.display="flex"; clearBtn.style.display="none";
-    actions.style.display="none"; feedback.style.display="none";
-    textarea.disabled=true; textarea.value=""; savedText="";
-    progress.style.width="0%"; updateTimerDisplay(DURATION);
-    status.textContent = t("md_ready");
+  const mdSave = document.getElementById("mdSave");
+  if (mdSave) {
+    const newMdSave = mdSave.cloneNode(true);
+    mdSave.replaceWith(newMdSave);
+    newMdSave.onclick = () => {
+      const textarea = document.getElementById("mdText");
+      if (textarea) savedText = textarea.value;
+      showFeedback();
+    };
   }
 
-  function showActions() { actions.style.display="flex"; mainBtn.style.display="none"; clearBtn.style.display="none"; }
-  function showFeedback() { actions.style.display="none"; feedback.style.display="flex"; }
-
-  async function startSession() {
-    running=true; sessionStartTime=Date.now();
-    moodBeforeSession=getMood(); stateBeforeSession=(await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
-    mainBtn.innerText="⏸"; clearBtn.style.display="flex";
-    textarea.disabled=false; textarea.focus();
-    status.textContent = t("md_writing");
-    let remaining=DURATION; updateTimerDisplay(remaining);
-    countdownInterval=setInterval(()=>{
-      remaining--; updateTimerDisplay(remaining);
-      if(remaining<=0){ stopSession(); showActions(); }
-    },1000);
+  const mdDelete = document.getElementById("mdDelete");
+  if (mdDelete) {
+    const newMdDelete = mdDelete.cloneNode(true);
+    mdDelete.replaceWith(newMdDelete);
+    newMdDelete.onclick = () => {
+      savedText = "";
+      const textarea = document.getElementById("mdText");
+      if (textarea) textarea.value = "";
+      showFeedback();
+    };
   }
 
-  function stopSession() {
-    running=false; clearInterval(countdownInterval);
-    textarea.disabled=true; mainBtn.innerText="▶"; status.textContent = t("md_done");
+  const mdHelped = document.getElementById("mdHelped");
+  if (mdHelped) {
+    const newMdHelped = mdHelped.cloneNode(true);
+    mdHelped.replaceWith(newMdHelped);
+    newMdHelped.onclick = () => saveSessionWithResult("positive");
   }
 
-  mainBtn.onclick=()=>{ if(!running){ startSession(); } else { stopSession(); showActions(); } };
-  clearBtn.onclick=()=>{ textarea.value=""; };
+  const mdNotHelped = document.getElementById("mdNotHelped");
+  if (mdNotHelped) {
+    const newMdNotHelped = mdNotHelped.cloneNode(true);
+    mdNotHelped.replaceWith(newMdNotHelped);
+    newMdNotHelped.onclick = () => saveSessionWithResult("negative");
+  }
+}
 
-  document.getElementById("mdSave").onclick=()=>{
-    savedText=textarea.value;
-    // НЕ пишем в notes_history — это создавало дубль в истории.
-    // Текст будет сохранён в session entry ниже.
-    showFeedback();
+function getElements() {
+  return {
+    mainBtn: document.getElementById("mdMainBtn"),
+    clearBtn: document.getElementById("mdClearBtn"),
+    textarea: document.getElementById("mdText"),
+    status: document.getElementById("mdStatus"),
+    actions: document.getElementById("mdActions"),
+    feedback: document.getElementById("mdFeedback"),
+    progress: document.getElementById("mdProgress")
   };
+}
 
-  document.getElementById("mdDelete").onclick=()=>{
-    savedText="";
-    textarea.value="";
-    showFeedback();
-  };
+function updateTimerDisplay(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  const timerEl = document.getElementById("mdTimer");
+  const progressEl = document.getElementById("mdProgress");
+  if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+  if (progressEl) progressEl.style.width = ((DURATION - sec) / DURATION * 100) + "%";
+}
 
-  async function saveSession() {
-    const moodAfter=getMood();
-    const duration=sessionStartTime?Math.floor((Date.now()-sessionStartTime)/1000):0;
-    const stateAfter=(await SystemCore.analyzeMoodOnly(moodAfter)).state;
-    addSessionEntry({
-      type:"mind-dump",
-      moodBefore:moodBeforeSession,
-      stateBefore:stateBeforeSession,
-      moodAfter, stateAfter, result, duration,
-      text: savedText,   // ← текст хранится прямо в сессии
-      timestamp:Date.now()
-    });
-    sessionStartTime=null; moodBeforeSession=null; savedText="";
-    showPlayer();
-  }
+function showPlayer() {
+  const { mainBtn, clearBtn, textarea, actions, feedback, progress, status } = getElements();
+  document.getElementById("mdTimerWrap").style.display = "block";
+  document.getElementById("mdInputWrap").style.display = "block";
+  if (mainBtn) mainBtn.style.display = "flex";
+  if (clearBtn) clearBtn.style.display = "none";
+  if (actions) actions.style.display = "none";
+  if (feedback) feedback.style.display = "none";
+  if (textarea) { textarea.disabled = true; textarea.value = ""; }
+  savedText = "";
+  if (progress) progress.style.width = "0%";
+  updateTimerDisplay(DURATION);
+  if (status) status.textContent = t("md_ready");
+}
 
-  document.getElementById("mdHelped").onclick=()=>saveSession("positive");
-  document.getElementById("mdNotHelped").onclick=()=>saveSession("negative");
+function showActions() {
+  const { mainBtn, clearBtn, actions, feedback } = getElements();
+  if (actions) actions.style.display = "flex";
+  if (mainBtn) mainBtn.style.display = "none";
+  if (clearBtn) clearBtn.style.display = "none";
+}
+
+function showFeedback() {
+  const { actions, feedback } = getElements();
+  if (actions) actions.style.display = "none";
+  if (feedback) feedback.style.display = "flex";
+}
+
+async function startSession() {
+  const { mainBtn, clearBtn, textarea, status } = getElements();
+  
+  running = true;
+  sessionStartTime = Date.now();
+  moodBeforeSession = getMood();
+  const analysisResult = await SystemCore.analyzeMoodOnly(moodBeforeSession);
+  stateBeforeSession = analysisResult ? analysisResult.state : null;
+  
+  if (mainBtn) mainBtn.innerText = "⏸";
+  if (clearBtn) clearBtn.style.display = "flex";
+  if (textarea) { textarea.disabled = false; textarea.focus(); }
+  if (status) status.textContent = t("md_writing");
+  
+  let remaining = DURATION;
+  updateTimerDisplay(remaining);
+  
+  countdownInterval = setInterval(() => {
+    remaining--;
+    updateTimerDisplay(remaining);
+    if (remaining <= 0) {
+      stopSession();
+      showActions();
+    }
+  }, 1000);
+}
+
+function stopSession() {
+  const { mainBtn, textarea, status } = getElements();
+  
+  running = false;
+  if (countdownInterval) clearInterval(countdownInterval);
+  if (textarea) textarea.disabled = true;
+  if (mainBtn) mainBtn.innerText = "▶";
+  if (status) status.textContent = t("md_done");
+}
+
+async function saveSession() {
+  const { textarea } = getElements();
+  
+  const moodAfter = getMood();
+  const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+  const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
+  const stateAfter = analysisResult ? analysisResult.state : null;
+  
+  addSessionEntry({
+    type: "mind-dump",
+    moodBefore: moodBeforeSession,
+    stateBefore: stateBeforeSession,
+    moodAfter,
+    stateAfter,
+    result,
+    duration,
+    text: savedText,
+    timestamp: Date.now()
+  });
+  
+  sessionStartTime = null;
+  moodBeforeSession = null;
+  savedText = "";
+  showPlayer();
+}
+
+function saveSessionWithResult(res) {
+  result = res;
+  saveSession();
 }

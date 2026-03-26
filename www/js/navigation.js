@@ -126,11 +126,11 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing meditation");
     try {
-      const { initMeditation } = await import("./screens/meditation.js");
-      console.log("[DEBUG] meditation imported, initMeditation:", typeof initMeditation);
+      const { onEnter } = await import("./screens/meditation.js");
+      console.log("[DEBUG] meditation imported, onEnter:", typeof onEnter);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initMeditation(c); }
+      if (c) { c.innerHTML = ""; onEnter(c); }
       console.log("[DEBUG] meditation init done");
     } catch(e) {
       console.error("[DEBUG] meditation error:", e.message, e.stack);
@@ -144,11 +144,11 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing visual-focus");
     try {
-      const { initVisualFocus } = await import("./screens/visual-focus.js");
-      console.log("[DEBUG] visual-focus imported, initVisualFocus:", typeof initVisualFocus);
+      const { onEnter } = await import("./screens/visual-focus.js");
+      console.log("[DEBUG] visual-focus imported, onEnter:", typeof onEnter);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initVisualFocus(c); }
+      if (c) { c.innerHTML = ""; onEnter(c); }
       console.log("[DEBUG] visual-focus init done");
     } catch(e) {
       console.error("[DEBUG] visual-focus error:", e.message, e.stack);
@@ -162,11 +162,11 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing mind-dump");
     try {
-      const { initMindDump } = await import("./screens/mind-dump.js");
-      console.log("[DEBUG] mind-dump imported, initMindDump:", typeof initMindDump);
+      const { onEnter } = await import("./screens/mind-dump.js");
+      console.log("[DEBUG] mind-dump imported, onEnter:", typeof onEnter);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initMindDump(c); }
+      if (c) { c.innerHTML = ""; onEnter(c); }
       console.log("[DEBUG] mind-dump init done");
     } catch(e) {
       console.error("[DEBUG] mind-dump error:", e.message, e.stack);
@@ -180,11 +180,11 @@ export function initNavigation() {
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing tap-calm");
     try {
-      const { initTapCalm } = await import("./screens/tap-calm.js");
-      console.log("[DEBUG] tap-calm imported, initTapCalm:", typeof initTapCalm);
+      const { onEnter } = await import("./screens/tap-calm.js");
+      console.log("[DEBUG] tap-calm imported, onEnter:", typeof onEnter);
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initTapCalm(c); }
+      if (c) { c.innerHTML = ""; onEnter(c); }
       console.log("[DEBUG] tap-calm init done");
     } catch(e) {
       console.error("[DEBUG] tap-calm error:", e.message, e.stack);

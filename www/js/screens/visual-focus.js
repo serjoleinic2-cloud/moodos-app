@@ -16,8 +16,16 @@ let countdownInterval = null;
 
 const DURATION = 120;
 
-export function initVisualFocus(container) {
+let speedMs = 2200;
+let result = null;
 
+export function onEnter(container) {
+  console.log('[DEBUG] visual-focus onEnter called');
+  render(container);
+  bindEvents();
+}
+
+function render(container) {
   container.innerHTML = `
     <div style="text-align:center; margin-top:20px;">
 
@@ -83,9 +91,15 @@ export function initVisualFocus(container) {
 
     </div>
   `;
+}
 
-  let speedMs = 2200;
+function bindEvents() {
+  console.log('[DEBUG] visual-focus bindEvents called');
 
+  document.querySelectorAll(".vfSpeed").forEach(btn => {
+    btn.replaceWith(btn.cloneNode(true));
+  });
+  
   document.querySelectorAll(".vfSpeed").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".vfSpeed").forEach(b => b.style.fontWeight = "normal");
@@ -97,127 +111,165 @@ export function initVisualFocus(container) {
     };
   });
 
-  const mainBtn  = document.getElementById("vfMainBtn");
-  const feedback = document.getElementById("vfFeedback");
-  const dot      = document.getElementById("vfDot");
-  const field    = document.getElementById("vfField");
-  const status   = document.getElementById("vfStatus");
-
-  function showPlayer() {
-    document.getElementById("vfSpeedRow").style.display  = "flex";
-    document.getElementById("vfTimerWrap").style.display = "block";
-    mainBtn.style.display  = "flex";
-    feedback.style.display = "none";
-  }
-
-  function showFeedback() {
-    document.getElementById("vfSpeedRow").style.display  = "none";
-    document.getElementById("vfTimerWrap").style.display = "none";
-    mainBtn.style.display  = "none";
-    feedback.style.display = "flex";
-  }
-
-  function updateTimerDisplay(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    document.getElementById("vfTimer").textContent =
-      `${m}:${String(s).padStart(2, "0")}`;
-  }
-
-  function startSession() {
-    running = true;
-    sessionStartTime   = Date.now();
-    moodBeforeSession  = getMood();
-    stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
-    mainBtn.innerText  = "⏸";
-    status.textContent = t("vf_watching");
-
-    let remaining = DURATION;
-    updateTimerDisplay(remaining);
-
-    countdownInterval = setInterval(() => {
-      remaining--;
-      updateTimerDisplay(remaining);
-      if (remaining <= 0) {
+  const mainBtn = document.getElementById("vfMainBtn");
+  if (mainBtn) {
+    const newMainBtn = mainBtn.cloneNode(true);
+    mainBtn.replaceWith(newMainBtn);
+    newMainBtn.onclick = async () => {
+      console.log('[DEBUG] mainBtn clicked, running:', running);
+      if (!running) {
+        await startSession();
+      } else {
         stopSession();
+        await saveSession();
         showFeedback();
       }
-    }, 1000);
-
-    animateDot();
+    };
   }
 
-  function stopSession() {
-    running = false;
-    cancelAnimationFrame(animationId);
-    clearInterval(countdownInterval);
-    status.textContent = t("vf_stopped");
+  const vfHelped = document.getElementById("vfHelped");
+  if (vfHelped) {
+    const newHelped = vfHelped.cloneNode(true);
+    vfHelped.replaceWith(newHelped);
+    newHelped.onclick = () => saveSessionWithResult("positive");
   }
 
-  function animateDot() {
+  const vfNotHelped = document.getElementById("vfNotHelped");
+  if (vfNotHelped) {
+    const newNotHelped = vfNotHelped.cloneNode(true);
+    vfNotHelped.replaceWith(newNotHelped);
+    newNotHelped.onclick = () => saveSessionWithResult("negative");
+  }
+}
+
+function getElements() {
+  return {
+    mainBtn: document.getElementById("vfMainBtn"),
+    feedback: document.getElementById("vfFeedback"),
+    dot: document.getElementById("vfDot"),
+    field: document.getElementById("vfField"),
+    status: document.getElementById("vfStatus")
+  };
+}
+
+function showPlayer() {
+  document.getElementById("vfSpeedRow").style.display = "flex";
+  document.getElementById("vfTimerWrap").style.display = "block";
+  const { mainBtn, feedback } = getElements();
+  if (mainBtn) mainBtn.style.display = "flex";
+  if (feedback) feedback.style.display = "none";
+}
+
+function showFeedback() {
+  document.getElementById("vfSpeedRow").style.display = "none";
+  document.getElementById("vfTimerWrap").style.display = "none";
+  const { mainBtn, feedback } = getElements();
+  if (mainBtn) mainBtn.style.display = "none";
+  if (feedback) feedback.style.display = "flex";
+}
+
+function updateTimerDisplay(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  const timerEl = document.getElementById("vfTimer");
+  if (timerEl) timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+}
+
+async function startSession() {
+  running = true;
+  sessionStartTime = Date.now();
+  moodBeforeSession = getMood();
+  const analysisResult = await SystemCore.analyzeMoodOnly(moodBeforeSession);
+  stateBeforeSession = analysisResult ? analysisResult.state : null;
+  
+  const { mainBtn, status } = getElements();
+  if (mainBtn) mainBtn.innerText = "⏸";
+  if (status) status.textContent = t("vf_watching");
+
+  let remaining = DURATION;
+  updateTimerDisplay(remaining);
+
+  countdownInterval = setInterval(() => {
+    remaining--;
+    updateTimerDisplay(remaining);
+    if (remaining <= 0) {
+      stopSession();
+      showFeedback();
+    }
+  }, 1000);
+
+  animateDot();
+}
+
+function stopSession() {
+  running = false;
+  if (animationId) cancelAnimationFrame(animationId);
+  if (countdownInterval) clearInterval(countdownInterval);
+  const { status } = getElements();
+  if (status) status.textContent = t("vf_stopped");
+}
+
+function animateDot() {
+  const { dot, field } = getElements();
+  if (!dot || !field) return;
+  
+  if (!running) return;
+  const fieldW = field.offsetWidth;
+  const dotW = 36;
+  const maxLeft = fieldW - dotW - 10;
+  let goRight = true;
+  let startX = 10;
+  let startTime = null;
+
+  function step(ts) {
     if (!running) return;
-    const fieldW  = field.offsetWidth;
-    const dotW    = 36;
-    const maxLeft = fieldW - dotW - 10;
-    let goRight   = true;
-    let startX    = 10;
-    let startTime = null;
+    if (!startTime) startTime = ts;
+    const elapsed = ts - startTime;
+    const progress = Math.min(elapsed / speedMs, 1);
+    const eased = 0.5 - Math.cos(progress * Math.PI) / 2;
+    const fromX = goRight ? startX : maxLeft;
+    const toX = goRight ? maxLeft : 10;
+    const x = fromX + (toX - fromX) * eased;
+    dot.style.left = x + "px";
 
-    function step(ts) {
-      if (!running) return;
-      if (!startTime) startTime = ts;
-      const elapsed  = ts - startTime;
-      const progress = Math.min(elapsed / speedMs, 1);
-      const eased    = 0.5 - Math.cos(progress * Math.PI) / 2;
-      const fromX    = goRight ? startX : maxLeft;
-      const toX      = goRight ? maxLeft : 10;
-      const x        = fromX + (toX - fromX) * eased;
-      dot.style.left = x + "px";
-
-      if (progress >= 1) {
-        goRight   = !goRight;
-        startX    = x;
-        startTime = null;
-      }
-      animationId = requestAnimationFrame(step);
+    if (progress >= 1) {
+      goRight = !goRight;
+      startX = x;
+      startTime = null;
     }
     animationId = requestAnimationFrame(step);
   }
+  animationId = requestAnimationFrame(step);
+}
 
-  mainBtn.onclick = async () => {
-    if (!running) {
-      startSession();
-    } else {
-      stopSession();
-      await saveSession();
-      showFeedback();
-    }
-  };
+async function saveSession() {
+  const moodAfter = getMood();
+  const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+  const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
+  const stateAfter = analysisResult ? analysisResult.state : null;
+  
+  addSessionEntry({
+    type: "visual-focus",
+    moodBefore: moodBeforeSession,
+    stateBefore: stateBeforeSession,
+    moodAfter,
+    stateAfter,
+    result,
+    duration,
+    timestamp: Date.now()
+  });
+  
+  sessionStartTime = null;
+  moodBeforeSession = null;
+  updateTimerDisplay(DURATION);
+  
+  const { mainBtn, status } = getElements();
+  if (mainBtn) mainBtn.innerText = "▶";
+  if (status) status.textContent = t("vf_ready");
+  showPlayer();
+}
 
-  async function saveSession() {
-    const moodAfter  = getMood();
-    const duration   = sessionStartTime
-      ? Math.floor((Date.now() - sessionStartTime) / 1000)
-      : 0;
-    const stateAfter = (await SystemCore.analyzeMoodOnly(moodAfter)).state;
-    addSessionEntry({
-      type: "visual-focus",
-      moodBefore:  moodBeforeSession,
-      stateBefore: stateBeforeSession,
-      moodAfter,
-      stateAfter,
-      result,
-      duration,
-      timestamp: Date.now()
-    });
-    sessionStartTime  = null;
-    moodBeforeSession = null;
-    updateTimerDisplay(DURATION);
-    mainBtn.innerText  = "▶";
-    status.textContent = t("vf_ready");
-    showPlayer();
-  }
-
-  document.getElementById("vfHelped").onclick    = () => saveSession("positive");
-  document.getElementById("vfNotHelped").onclick = () => saveSession("negative");
+function saveSessionWithResult(res) {
+  result = res;
+  saveSession();
 }

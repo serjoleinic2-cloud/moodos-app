@@ -28,7 +28,10 @@ const SystemCore = {
     try {
 
       const stateResult = await StateEngine.analyze(mood)
-      const newState = update(stateResult)
+      const newState = update({
+        mood,
+        ...stateResult
+      })
 
       const insights = await InsightEngine.generate(newState)
       const patterns = await PatternEngine.detect(newState)
