@@ -26,6 +26,7 @@ export function initNavigation() {
     settings:  () => import("./screens/settings.js"),
     premium:   () => import("./screens/premium.js"),
     history:   () => import("./screens/history.js"),
+    paywall:   () => import("./screens/paywall.js"),
   };
 
   async function loadScreen(name) {

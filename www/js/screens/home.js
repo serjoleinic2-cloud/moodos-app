@@ -1,6 +1,7 @@
 import { getMood } from "../state.js";
 import SystemCore from "../system-core.js";
 import { render } from "../app.js";
+import { showAvatarHint } from "../avatar.js";
 
 export function onEnter() {
   console.log('home.onEnter() called');
@@ -20,6 +21,7 @@ valueLabel.textContent = currentMood + "%";
 
   newSlider.addEventListener("input", () => {
     valueLabel.textContent = newSlider.value + "%";
+    showAvatarHint(Number(newSlider.value));
   });
 
   // Клонируем кнопку — убиваем старые слушатели

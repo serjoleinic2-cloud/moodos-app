@@ -8,6 +8,8 @@ import {
   saveMedReminder,
   removeMedReminder,
   getMedReminder,
+  getPremiumInfo,
+  activateTrial,
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
@@ -32,11 +34,29 @@ function renderSettings() {
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
   const lastTime  = null;
+  const premiumInfo = getPremiumInfo();
 
   const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
   const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
   const remVal    = {нет:t("settings_reminder_off"),утро:t("reminder_morning"),день:t("reminder_day"),вечер:t("reminder_evening")};
   const langInfo  = LANG_OPTIONS.find(l=>l.code===getLang()) || {flag:"🌍",label:"Русский"};
+
+  const statusLabels = {
+    free: t("premium_status_free"),
+    trial: t("premium_status_trial"),
+    premium: t("premium_status_premium")
+  };
+  const statusColors = {
+    free: "#888",
+    trial: "#f59e0b",
+    premium: "#4caf87"
+  };
+  const premiumStatusLabel = statusLabels[premiumInfo.status] || t("premium_status_free");
+  const premiumStatusColor = statusColors[premiumInfo.status] || "#888";
+  const trialInfo = premiumInfo.status === "trial" 
+    ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_days_left")}: ${premiumInfo.trialDaysLeft}</div>` 
+    : "";
+  const showTrialBtn = premiumInfo.status === "free";
 
   const medsSection = takesMeds ? (
     '<div class="neo-row" id="settingEffect">' +
@@ -65,7 +85,7 @@ function renderSettings() {
       .neo-row-left{display:flex;align-items:center;flex:1}
       .neo-row-sub{font-size:11px;color:#bbb;margin-top:2px}
       .health-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:flex;align-items:flex-end}
-      .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
+      .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px calc(32px + env(safe-area-inset-bottom));max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
       @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
       .modal-title{font-size:18px;font-weight:700;color:#3d3d3d;margin-bottom:6px}
       .modal-subtitle{font-size:13px;color:#aaa;margin-bottom:20px}
@@ -144,6 +164,40 @@ function renderSettings() {
             box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
             font-size:15px; font-weight:600; color:#7a6a58; cursor:pointer;
           ">${t("google_connect_btn")}</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-label">${t("premium_section")}</div>
+        <div id="premiumBlock" style="
+          background: rgba(232,237,230,0.9);
+          border-radius: 18px;
+          padding: 18px;
+          box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
+          margin-bottom: 10px;
+          text-align: center;
+        ">
+          <div id="premiumStatus" style="
+            font-size: 16px;
+            font-weight: 700;
+            color: ${premiumStatusColor};
+            margin-bottom: 4px;
+          ">${premiumStatusLabel}</div>
+          ${trialInfo}
+          <div style="font-size:12px; color:#aaa; margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "5 " + t("gemini_limit_reached").toLowerCase().split(" ").slice(-2).join(" ")}</div>
+          ${showTrialBtn ? `<button id="startTrialBtn" style="
+            margin-top: 14px;
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #fef3c7, #fde68a);
+            box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            color: #92400e;
+            cursor: pointer;
+          ">${t("premium_open_access")} (7 ${t("premium_days_left").toLowerCase()})</button>` : ""}
         </div>
       </div>
     </div>
@@ -239,6 +293,20 @@ function bindEvents(el) {
         btn.disabled = true;
       }
       if (desc) desc.textContent = t("google_connected");
+    });
+  }
+
+  // Start Trial
+  const trialBtn = el.querySelector("#startTrialBtn");
+  if (trialBtn) {
+    trialBtn.addEventListener("click", () => {
+      activateTrial();
+      refresh();
+      const msg = document.createElement("div");
+      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
+      msg.innerHTML = "✅ " + t("premium_status_trial") + "<br><small style='font-weight:400;opacity:0.9;'>7 " + t("premium_days_left").toLowerCase() + "</small>";
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 2500);
     });
   }
    

@@ -1,10 +1,24 @@
 import { getMoodHistory } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
+import { isPremium } from "../services/user-profile.js";
+import { showPremiumModal } from "../premium-modal.js";
+import { getYearComparison } from "../services/year-comparison.js";
 
 let currentPeriod = 7;
 
 export function onEnter() { renderReport(); }
+
+function checkHistoryLimit() {
+  if (currentPeriod > 7 && !isPremium()) {
+    showPremiumModal({
+      title: t("free_history_limit_title"),
+      desc: t("free_history_limit_desc")
+    });
+    return false;
+  }
+  return true;
+}
 
 function getTooltips() {
   return {
@@ -72,11 +86,53 @@ function renderReport() {
 
   const periodLabel = currentPeriod > 3650 ? t("report_all_time") : `${currentPeriod} ${t("report_days")}`;
 
+  let yearComparisonHTML = "";
+  if (isPremium()) {
+    const comparison = getYearComparison();
+    if (comparison) {
+      const arrow = comparison.trend === "up" ? "↑" : comparison.trend === "down" ? "↓" : "→";
+      const color = comparison.trend === "up" ? "#4caf87" : comparison.trend === "down" ? "#e05555" : "#f0a500";
+      const absDiff = Math.abs(comparison.difference);
+      let mainText = "";
+      if (comparison.trend === "up") {
+        mainText = `${t("year_comparison_better").replace("{n}", absDiff)}`;
+      } else if (comparison.trend === "down") {
+        mainText = `${t("year_comparison_worse").replace("{n}", absDiff)}`;
+      } else {
+        mainText = `${t("year_comparison_same")}`;
+      }
+      yearComparisonHTML = `
+        <div style="margin-top:16px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#2a3a4a,#1a2530);box-shadow:4px 4px 12px rgba(0,0,0,0.2),-2px -2px 8px rgba(255,255,255,0.1);">
+          <div style="font-size:12px;color:#888;margin-bottom:8px;">${t("year_comparison_title")}</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:28px;font-weight:700;color:${color};">${arrow}</div>
+            <div>
+              <div style="font-size:16px;font-weight:600;color:#fff;">${mainText}</div>
+              <div style="font-size:11px;color:#666;margin-top:2px;">${t("year_comparison_vs_period")}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+  } else {
+    yearComparisonHTML = `
+      <div id="yearComparisonLocked" style="margin-top:16px;padding:16px;border-radius:16px;background:rgba(0,0,0,0.04);border:1px dashed rgba(0,0,0,0.1);cursor:pointer;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:20px;">🔒</div>
+          <div>
+            <div style="font-size:13px;color:#666;">${t("year_comparison_locked").replace("🔒 ", "")}</div>
+            <div style="font-size:11px;color:#888;margin-top:2px;">${t("year_comparison_sell")}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
   container.innerHTML = `
     <div style="padding:4px 0 100px;">
       <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("report_period_label")} ${periodLabel}</div>
 
       ${periodBtns}
+
+      ${yearComparisonHTML}
 
       <div class="mo-section-title">${t("report_summary")}</div>
       <div class="mo-grid-2">
@@ -113,6 +169,16 @@ function renderReport() {
   container.querySelector("#rptCalendarBtn").addEventListener("click", () => {
     showMoodCalendarOverlay(getMoodHistory());
   });
+  
+  const lockedBtn = container.querySelector("#yearComparisonLocked");
+  if (lockedBtn) {
+    lockedBtn.addEventListener("click", () => {
+      showPremiumModal({
+        title: t("year_comparison_locked").replace("🔒 ", ""),
+        desc: t("free_history_limit_desc")
+      });
+    });
+  }
 }
 
 // ============================================================
@@ -251,7 +317,18 @@ function metricCard(label, valueHTML, sub, tooltipKey) {
 
 function bindPeriodBtns(container) {
   container.querySelectorAll(".period-btn").forEach(btn => {
-    btn.onclick = () => { currentPeriod = Number(btn.dataset.days); renderReport(); };
+    btn.onclick = () => { 
+      const newPeriod = Number(btn.dataset.days);
+      if (newPeriod > 7 && !isPremium()) {
+        showPremiumModal({
+          title: t("free_history_limit_title"),
+          desc: t("free_history_limit_desc")
+        });
+        return;
+      }
+      currentPeriod = newPeriod; 
+      renderReport(); 
+    };
   });
 }
 

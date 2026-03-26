@@ -49,9 +49,31 @@ export function update(data) {
 
 /* ---------- USAGE DAYS ---------- */
 export function getUsageDays() {
+  try {
+    const history = JSON.parse(localStorage.getItem("mood_history") || "[]");
+    
+    if (history && history.length > 0) {
+      const validHistory = history.filter(e => e.time || e.date);
+      if (validHistory.length > 0) {
+        const sorted = [...validHistory].sort((a, b) => (a.time || a.date) - (b.time || b.date));
+        const firstEntry = sorted[0];
+        const firstDate = firstEntry?.time || firstEntry?.date;
+        
+        if (firstDate) {
+          const start = new Date(parseInt(firstDate));
+          const now = new Date();
+          const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+          return Math.max(1, diff);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Error calculating usage days:", e);
+  }
+  
   if (!state.startDate) return 1;
   const start = new Date(state.startDate);
-  const now   = new Date();
-  const diff  = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+  const now = new Date();
+  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(1, diff);
 }

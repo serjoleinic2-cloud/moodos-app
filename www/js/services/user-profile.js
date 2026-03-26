@@ -97,3 +97,134 @@ export function shouldShowMonthlyCheck() {
 export function markMonthlyCheckDone() {
   localStorage.setItem(MED_CHECK_KEY, String(Date.now()));
 }
+
+// ---- PREMIUM ----
+
+const PREMIUM_KEY = "premium_status";
+const GEMINI_COUNTER_KEY = "gemini_daily_counter";
+const GEMINI_COUNTER_DATE_KEY = "gemini_counter_date";
+const FREE_GEMINI_LIMIT = 5;
+
+export function getPremiumStatus() {
+  const profile = getProfile();
+  if (!profile) return "free";
+  if (profile.isPremium) return "premium";
+  if (profile.premiumTrial?.active) {
+    const startDate = new Date(profile.premiumTrial.startDate);
+    const trialEnd = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    if (Date.now() <= trialEnd.getTime()) return "trial";
+    return "free";
+  }
+  return "free";
+}
+
+export function getPremiumInfo() {
+  const profile = getProfile();
+  const status = getPremiumStatus();
+  let trialDaysLeft = 0;
+  let trialEndDate = null;
+  let plan = null;
+  let expiresAt = null;
+  let isExpired = false;
+  
+  if (status === "trial" && profile?.premiumTrial?.startDate) {
+    const startDate = new Date(profile.premiumTrial.startDate);
+    const trialEnd = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    trialEndDate = trialEnd;
+    expiresAt = trialEnd;
+    const msLeft = trialEnd.getTime() - Date.now();
+    trialDaysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+    plan = "trial";
+  } else if (status === "premium") {
+    plan = profile.premiumPlan || "monthly";
+    expiresAt = profile.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
+    if (expiresAt && Date.now() > expiresAt.getTime()) {
+      isExpired = true;
+    }
+  }
+  
+  return {
+    status,
+    trialDaysLeft,
+    trialEndDate,
+    plan,
+    expiresAt,
+    isExpired,
+    isPremium: status === "premium" || status === "trial"
+  };
+}
+
+export function isPremium() {
+  return getPremiumInfo().isPremium;
+}
+
+export function activateTrial() {
+  const profile = getProfile() || {};
+  profile.premiumTrial = {
+    active: true,
+    startDate: new Date().toISOString()
+  };
+  saveProfile(profile);
+}
+
+export function activatePremium(plan = "monthly") {
+  const profile = getProfile() || {};
+  const durationMs = plan === "yearly" ? 365 : 30;
+  const expiresAt = new Date(Date.now() + durationMs * 24 * 60 * 60 * 1000);
+  
+  profile.isPremium = true;
+  profile.premiumTrial = { active: false };
+  profile.premiumPlan = plan;
+  profile.premiumExpiresAt = expiresAt.getTime();
+  saveProfile(profile);
+}
+
+export function getGeminiCounter() {
+  const today = new Date().toDateString();
+  const savedDate = localStorage.getItem(GEMINI_COUNTER_DATE_KEY);
+  
+  if (savedDate !== today) {
+    localStorage.setItem(GEMINI_COUNTER_DATE_KEY, today);
+    localStorage.setItem(GEMINI_COUNTER_KEY, "0");
+    return 0;
+  }
+  
+  return parseInt(localStorage.getItem(GEMINI_COUNTER_KEY) || "0");
+}
+
+export function incrementGeminiCounter() {
+  const count = getGeminiCounter() + 1;
+  localStorage.setItem(GEMINI_COUNTER_KEY, String(count));
+  return count;
+}
+
+export function canMakeGeminiRequest() {
+  if (isPremium()) return { allowed: true, remaining: Infinity };
+  
+  const used = getGeminiCounter();
+  const remaining = Math.max(0, FREE_GEMINI_LIMIT - used);
+  
+  return {
+    allowed: remaining > 0,
+    used,
+    remaining,
+    limit: FREE_GEMINI_LIMIT
+  };
+}
+
+export function checkPremiumExpiry() {
+  const info = getPremiumInfo();
+  return info.isExpired;
+}
+
+export function deactivateExpiredPremium() {
+  const info = getPremiumInfo();
+  if (info.isExpired) {
+    const profile = getProfile() || {};
+    profile.isPremium = false;
+    profile.premiumExpiresAt = null;
+    saveProfile(profile);
+    return true;
+  }
+  return false;
+}

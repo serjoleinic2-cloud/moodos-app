@@ -18,7 +18,7 @@ import * as InsightEngine from './services/insight-engine.js'
 import * as PatternEngine from './services/pattern-engine.js'
 import * as ResilienceEngine from './services/resilience-engine.js'
 import * as Memory from './services/memory.js'
-import { showAvatar } from './avatar.js'
+import { showAvatarForMood } from './avatar.js'
 import { t } from './i18n.js'
 
 const SystemCore = {
@@ -137,7 +137,7 @@ const SystemCore = {
 
         case 'MOOD_SUBMIT':
           result = await this.handleMoodFlow(payload)
-          showAvatar(t("avatar_see_state"))
+          showAvatarForMood(mood)
           break
 
         case 'SAVE_NOTE':

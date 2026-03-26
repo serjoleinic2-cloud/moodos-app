@@ -95,8 +95,16 @@
   <h1 data-i18n="screen_settings">Настройки</h1>
 </div>
 
+<div class="screen" data-screen="premium">
+  <div id="premium-content"></div>
+</div>
+
 <div class="screen" data-screen="history">
   <div id="history-content"></div>
+</div>
+
+<div class="screen" data-screen="paywall">
+  <div id="paywall-content"></div>
 </div>
 
 <!-- ================= NAV ================= -->
@@ -144,8 +152,12 @@
 </div>
 
   <div id="avatar-container">
+    <div id="avatar-effects"></div>
     <div id="avatar-face">🙂</div>
-    <div id="avatar-bubble"></div>
+    <div id="avatar-bubble">
+      <div id="avatar-text"></div>
+      <div id="avatar-actions"></div>
+    </div>
   </div>
 </div><!-- #app -->
 
@@ -181,5 +193,62 @@
   });
 })();
 </script>
+
+<!-- Premium Modal -->
+<div id="premium-modal" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);
+    border-radius: 24px;
+    padding: 28px 24px;
+    max-width: 320px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  ">
+    <div style="font-size: 48px; margin-bottom: 16px;">👑</div>
+    <h3 id="premium-modal-title" style="
+      font-size: 18px;
+      font-weight: 700;
+      color: #3a3530;
+      margin: 0 0 12px 0;
+    "></h3>
+    <p id="premium-modal-desc" style="
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    "></p>
+    <button id="premium-modal-btn" style="
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #9f7aea, #805ad5);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
+    "></button>
+    <div id="premium-modal-close" style="
+      margin-top: 12px;
+      font-size: 13px;
+      color: #999;
+      cursor: pointer;
+    ">Закрыть</div>
+  </div>
+</div>
+
 </body>
 </html>

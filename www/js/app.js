@@ -13,10 +13,12 @@ import {
 import {
   initState, getUsageDays, getMood, setMood
 } from "./state.js";
-import { isOnboardingDone } from "./services/user-profile.js";
+import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
-import { showAvatar } from "./avatar.js";
+import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
+import { showPremiumModal } from "./premium-modal.js";
+import { checkPremiumExpiry, deactivateExpiredPremium } from "./services/user-profile.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
@@ -97,6 +99,23 @@ export function render() {
 
 function getDaysFromStorage() {
   try {
+    const history = JSON.parse(localStorage.getItem("mood_history") || "[]");
+    
+    if (history && history.length > 0) {
+      const validHistory = history.filter(e => e.time || e.date);
+      if (validHistory.length > 0) {
+        const sorted = [...validHistory].sort((a, b) => (a.time || a.date) - (b.time || b.date));
+        const firstEntry = sorted[0];
+        const firstDate = firstEntry?.time || firstEntry?.date;
+        
+        if (firstDate) {
+          const start = new Date(parseInt(firstDate));
+          const diff = Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24)) + 1;
+          return Math.max(1, diff);
+        }
+      }
+    }
+    
     const start = localStorage.getItem("startDate");
     if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
     return Math.max(1, Math.ceil((Date.now() - parseInt(start)) / 86400000));
@@ -133,6 +152,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function startApp() {
+  initAvatarTap();
+  trackUserActivity();
+  
+  document.addEventListener('click', trackUserActivity, { passive: true });
+  document.addEventListener('touchstart', trackUserActivity, { passive: true });
+  document.addEventListener('scroll', trackUserActivity, { passive: true });
+  
+  setTimeout(() => {
+    maybeShowAvatarProactive();
+  }, 3000);
+  
+  if (checkPremiumExpiry()) {
+    deactivateExpiredPremium();
+    showPremiumModal({
+      title: t("premium_expired_title"),
+      desc: t("premium_expired_desc")
+    });
+  }
+  
   initNavigation();
 
   // Обновляем недельные блоки тихо в фоне
@@ -164,6 +202,18 @@ function startApp() {
       const slider = document.getElementById("moodSlider");
       const moodValue = slider ? Number(slider.value) : mood;
 
+      const limitCheck = canMakeGeminiRequest();
+      if (!limitCheck.allowed) {
+        showPremiumModal({
+          title: t("gemini_limit_reached"),
+          desc: t("gemini_limit_desc")
+            .replace("{used}", limitCheck.used)
+            .replace("{limit}", limitCheck.limit)
+        });
+        return;
+      }
+
+      incrementGeminiCounter();
       const result = analyzeText(text, moodValue);
 
       if (output) {

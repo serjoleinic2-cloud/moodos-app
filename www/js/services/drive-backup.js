@@ -5,16 +5,11 @@
 // =====================================
 
 import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
-import { getProfile } from "./user-profile.js";
+import { getProfile, isPremium } from "./user-profile.js";
 import { t } from "../i18n.js";
 
 const LS_LAST_BACKUP = "last_auto_backup";
 const FREE_DAYS_LIMIT = 7;
-
-export function isPremium() {
-  const profile = getProfile();
-  return !!(profile?.isPremium || profile?.googleConnected);
-}
 
 export function getLastBackupTime() {
   try {

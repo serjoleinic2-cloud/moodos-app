@@ -18,6 +18,7 @@ const DURATION = 120;
 
 let speedMs = 2200;
 let result = null;
+let finalDuration = 0;
 
 export function onEnter(container) {
   console.log('[DEBUG] visual-focus onEnter called');
@@ -121,7 +122,6 @@ function bindEvents() {
         await startSession();
       } else {
         stopSession();
-        await saveSession();
         showFeedback();
       }
     };
@@ -131,14 +131,22 @@ function bindEvents() {
   if (vfHelped) {
     const newHelped = vfHelped.cloneNode(true);
     vfHelped.replaceWith(newHelped);
-    newHelped.onclick = () => saveSessionWithResult("positive");
+    newHelped.onclick = () => {
+      if (newHelped.dataset.locked) return;
+      newHelped.dataset.locked = 'true';
+      saveSessionWithResult("positive");
+    };
   }
 
   const vfNotHelped = document.getElementById("vfNotHelped");
   if (vfNotHelped) {
     const newNotHelped = vfNotHelped.cloneNode(true);
     vfNotHelped.replaceWith(newNotHelped);
-    newNotHelped.onclick = () => saveSessionWithResult("negative");
+    newNotHelped.onclick = () => {
+      if (newNotHelped.dataset.locked) return;
+      newNotHelped.dataset.locked = 'true';
+      saveSessionWithResult("negative");
+    };
   }
 }
 
@@ -207,6 +215,10 @@ function stopSession() {
   if (countdownInterval) clearInterval(countdownInterval);
   const { status } = getElements();
   if (status) status.textContent = t("vf_stopped");
+  
+  if (sessionStartTime) {
+    finalDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
+  }
 }
 
 function animateDot() {
@@ -244,7 +256,6 @@ function animateDot() {
 
 async function saveSession() {
   const moodAfter = getMood();
-  const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
   const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
   const stateAfter = analysisResult ? analysisResult.state : null;
   
@@ -255,12 +266,13 @@ async function saveSession() {
     moodAfter,
     stateAfter,
     result,
-    duration,
+    duration: finalDuration,
     timestamp: Date.now()
   });
   
   sessionStartTime = null;
   moodBeforeSession = null;
+  finalDuration = 0;
   updateTimerDisplay(DURATION);
   
   const { mainBtn, status } = getElements();
