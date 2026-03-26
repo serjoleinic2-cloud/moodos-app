@@ -31,25 +31,25 @@ function renderSettings() {
   const profile   = getProfile();
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
-  const lastTime  = null; // drive-backup загружается динамически
+  const lastTime  = null;
 
-  const medVal    = {"нет":"Не принимаю","антидепрессанты":"Антидепрессанты","седативные":"Седативные","другое":"Другое","не_скажу":"Не указано"};
-  const effVal    = {"лучше":"Стало лучше","примерно_так_же":"Так же","приглушённость":"Приглушённость","побочки":"Побочки","адаптация":"Адаптация"};
-  const remVal    = {"нет":"Выключено","утро":"Утром 8:00","день":"Днём 13:00","вечер":"Вечером 20:00"};
+  const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
+  const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
+  const remVal    = {нет:t("settings_reminder_off"),утро:t("reminder_morning"),день:t("reminder_day"),вечер:t("reminder_evening")};
   const langInfo  = LANG_OPTIONS.find(l=>l.code===getLang()) || {flag:"🌍",label:"Русский"};
 
   const medsSection = takesMeds ? (
     '<div class="neo-row" id="settingEffect">' +
-      '<div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">Как влияет</span></div>' +
-      '<span class="neo-row-value">' + (effVal[profile.medEffect]||"Не указано") + ' ›</span>' +
+      '<div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">' + t("settings_effect_label") + '</span></div>' +
+      '<span class="neo-row-value">' + (effVal[profile.medEffect]||t("not_specified")) + ' ›</span>' +
     '</div>' +
     '<div class="neo-row" id="settingReminder">' +
-      '<div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">Напоминание о приёме</span></div>' +
-      '<span class="neo-row-value">' + (reminder?.active ? (remVal[profile?.medReminder]||"Включено") : "Выключено") + ' ›</span>' +
+      '<div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">' + t("settings_reminder_label") + '</span></div>' +
+      '<span class="neo-row-value">' + (reminder?.active ? (remVal[profile?.medReminder]||t("settings_reminder_on")) : t("settings_reminder_off")) + ' ›</span>' +
     '</div>'
   ) : "";
 
-  const backupSub = lastTime ? "Последний: " + lastTime.toLocaleDateString("ru-RU") : "Резервная копия не создавалась";
+  const backupSub = lastTime ? t("settings_backup_last") + " " + lastTime.toLocaleDateString("ru-RU") : t("settings_backup_never");
 
   return `
     <style>
@@ -76,53 +76,53 @@ function renderSettings() {
       .modal-cancel{width:100%;padding:12px;text-align:center;font-size:14px;color:#bbb;cursor:pointer;margin-top:8px}
     </style>
     <div class="settings-wrap">
-      <div class="settings-title">Настройки</div>
+      <div class="settings-title">${t("settings_title")}</div>
 
       <div class="settings-section">
-        <div class="settings-section-label">Здоровье</div>
+        <div class="settings-section-label">${t("settings_health")}</div>
         <div class="neo-row" id="settingMeds">
-          <div class="neo-row-left"><span class="neo-row-icon">💊</span><span class="neo-row-label">Приём лекарств</span></div>
-          <span class="neo-row-value">${medVal[profile?.takesMeds]||"Не указано"} ›</span>
+          <div class="neo-row-left"><span class="neo-row-icon">💊</span><span class="neo-row-label">${t("settings_meds_label")}</span></div>
+          <span class="neo-row-value">${medVal[profile?.takesMeds]||t("not_specified")} ›</span>
         </div>
         ${medsSection}
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-label">Приложение</div>
+        <div class="settings-section-label">${t("settings_app")}</div>
         <div class="neo-row" id="settingBaseFeeling">
-          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">Базовое состояние</span></div>
+          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">${t("settings_baseline_label")}</span></div>
           <span class="neo-row-value">${profile?.moodBaseline??50}% ›</span>
         </div>
         <div class="neo-row" id="settingLanguage">
-          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">Язык</span></div>
+          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">${t("settings_language_label")}</span></div>
           <span class="neo-row-value">${langInfo.flag} ${langInfo.label} ›</span>
         </div>
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-label">Данные</div>
+        <div class="settings-section-label">${t("settings_data")}</div>
         <div class="neo-row" id="settingPdfReport">
-          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">Отчёт для врача</span></div>
+          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">${t("settings_pdf_label")}</span></div>
           <span class="neo-row-value">PDF ›</span>
         </div>
         <div class="neo-row" id="settingBackup">
           <div class="neo-row-left">
             <span class="neo-row-icon">☁️</span>
-            <div><div class="neo-row-label">Сохранить данные</div><div class="neo-row-sub">${backupSub}</div></div>
+            <div><div class="neo-row-label">${t("settings_backup_save")}</div><div class="neo-row-sub">${backupSub}</div></div>
           </div>
-          <span class="neo-row-value" id="backupVal">Сохранить ›</span>
+          <span class="neo-row-value" id="backupVal">${t("settings_backup_save_btn")} ›</span>
         </div>
         <div class="neo-row" id="settingRestore">
           <div class="neo-row-left">
             <span class="neo-row-icon">📥</span>
-            <div><div class="neo-row-label">Восстановить данные</div><div class="neo-row-sub">Загрузить из .json</div></div>
+            <div><div class="neo-row-label">${t("settings_restore_label")}</div><div class="neo-row-sub">${t("settings_restore_hint")}</div></div>
           </div>
           <span class="neo-row-value">›</span>
         </div>
-		'<div class="neo-row" id="settingTestYear">' +
-  '<div class="neo-row-left"><span class="neo-row-icon">🧪</span><span class="neo-row-label">Тест: данные год назад</span></div>' +
-  '<span class="neo-row-value">Добавить ›</span>' +
-'</div>' +
+        <div class="neo-row" id="settingTestYear">
+          <div class="neo-row-left"><span class="neo-row-icon">🧪</span><span class="neo-row-label">${t("settings_test_label")}</span></div>
+          <span class="neo-row-value">${t("settings_test_add_btn")} ›</span>
+        </div>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
     </div>
@@ -175,22 +175,22 @@ function bindEvents(el) {
   // Бэкап
   el.querySelector("#settingBackup")?.addEventListener("click", async () => {
     const valEl = el.querySelector("#backupVal");
-    if (valEl) valEl.textContent = "⏳...";
+    if (valEl) valEl.textContent = t("settings_backup_processing");
     try {
       const m = await import("../services/drive-backup.js");
       const result = await m.backupAndShare();
       if (!valEl) return;
-      if (result.message === "cancelled") { valEl.textContent = "Сохранить ›"; return; }
+      if (result.message === "cancelled") { valEl.textContent = t("settings_backup_save_btn") + " ›"; return; }
       if (result.success) {
-        valEl.textContent = result.message === "shared" ? "✅ Отправлено" : "✅ Скачано";
+        valEl.textContent = result.message === "shared" ? "✅ " + t("settings_backup_sent") : "✅ " + t("settings_backup_downloaded");
         setTimeout(() => refresh(), 2000);
       } else {
-        valEl.textContent = "❌ Ошибка";
-        setTimeout(() => { if(valEl) valEl.textContent = "Сохранить ›"; }, 3000);
+        valEl.textContent = "❌ " + t("settings_backup_error");
+        setTimeout(() => { if(valEl) valEl.textContent = t("settings_backup_save_btn") + " ›"; }, 3000);
       }
     } catch(e) {
       console.warn("drive-backup not available:", e);
-      if (valEl) valEl.textContent = "Недоступно";
+      if (valEl) valEl.textContent = t("settings_backup_unavailable");
     }
   });
 
@@ -212,7 +212,7 @@ function bindEvents(el) {
   const weekKey = year + "-W" + String(weekNum).padStart(2, "0");
   const existing = JSON.parse(localStorage.getItem("weekly_history") || "[]");
   const already = existing.find(function(b) { return b.weekKey === weekKey; });
-  if (already) { alert("Уже есть: " + weekKey); return; }
+  if (already) { alert(t("settings_test_exists") + ": " + weekKey); return; }
   existing.push({
     weekKey: weekKey,
     weekStart: oneYearAgo,
@@ -227,7 +227,7 @@ function bindEvents(el) {
     updatedAt: oneYearAgo
   });
   localStorage.setItem("weekly_history", JSON.stringify(existing));
-  alert("✅ Добавлен блок: " + weekKey + "\nСреднее год назад: 54%");
+  alert("✅ " + t("settings_test_added") + ": " + weekKey + "\n" + t("year_ago") + ": 54%");
 });
   
 }
@@ -242,11 +242,11 @@ function showRestoreConfirmModal(file) {
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">📥 Восстановить данные</div>
-      <div class="modal-subtitle" style="color:#e05555;">Текущие данные будут заменены!</div>
+      <div class="modal-title">${t("settings_restore_title")}</div>
+      <div class="modal-subtitle" style="color:#e05555;">${t("settings_restore_warn")}</div>
       <div style="background:rgba(232,237,230,0.9);border-radius:14px;padding:14px;margin-bottom:20px;font-size:13px;color:#666;">📄 ${file.name}</div>
-      <button class="modal-save-btn" id="restoreConfirm" style="color:#e05555;">Восстановить</button>
-      <div class="modal-cancel" id="restoreCancel">Отмена</div>
+      <button class="modal-save-btn" id="restoreConfirm" style="color:#e05555;">${t("settings_restore_confirm")}</button>
+      <div class="modal-cancel" id="restoreCancel">${t("cancel")}</div>
     </div>`;
   document.body.appendChild(overlay);
   overlay.querySelector("#restoreConfirm").addEventListener("click", async () => {
@@ -258,10 +258,10 @@ function showRestoreConfirmModal(file) {
     if (result.success) {
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;";
-      msg.textContent = "✅ Данные восстановлены";
+      msg.textContent = "✅ " + t("settings_restore_success");
       document.body.appendChild(msg);
       setTimeout(() => { window.location.href = window.location.href; }, 1500);
-    } else { alert("Ошибка: " + result.message); }
+    } else { alert(t("settings_backup_error") + ": " + result.message); }
   });
   overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
@@ -299,11 +299,11 @@ function showLanguageModal(el) {
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">🌍 Язык / Language</div>
+      <div class="modal-title">🌍 ${t("settings_language_label")}</div>
       <div class="modal-subtitle">${t("settings_lang_subtitle")}</div>
       <div class="modal-options">${LANG_OPTIONS.map(l=>`<div class="modal-option ${l.code===current?"selected":""}" data-value="${l.code}"><span style="font-size:20px;margin-right:10px;">${l.flag}</span>${l.label}</div>`).join("")}</div>
-      <button class="modal-save-btn" id="modalSave">Сохранить / Save</button>
-      <div class="modal-cancel" id="modalCancel">Отмена / Cancel</div>
+      <button class="modal-save-btn" id="modalSave">${t("save")}</button>
+      <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
     </div>`;
   document.body.appendChild(overlay);
   let selected = current;
