@@ -2,7 +2,19 @@
 
 let state = {
   mood: 50,
-  startDate: null
+  startDate: null,
+  avatar: {
+    visible: false,
+    message: '',
+    type: 'default',
+    timestamp: 0,
+    actions: null,
+    position: {
+      x: 20,
+      y: 100
+    },
+    isIdle: true
+  }
 };
 
 
@@ -11,6 +23,7 @@ let state = {
 export function initState() {
   const savedMood = localStorage.getItem("mood");
   const savedDate = localStorage.getItem("startDate");
+  const savedAvatarPosition = localStorage.getItem("avatar_position");
 
   if (savedMood !== null) {
     state.mood = Number(savedMood);
@@ -22,6 +35,18 @@ export function initState() {
     state.startDate = new Date().toISOString();
     localStorage.setItem("startDate", state.startDate);
   }
+  
+  if (savedAvatarPosition) {
+    try {
+      const pos = JSON.parse(savedAvatarPosition);
+      if (pos && typeof pos.x === 'number' && typeof pos.y === 'number' && !isNaN(pos.x) && !isNaN(pos.y)) {
+        state.avatar.position = pos;
+      } else {
+        console.warn('[AVATAR] Invalid saved position, using default');
+        state.avatar.position = { x: 20, y: 100 };
+      }
+    } catch (e) {}
+  }
 }
 
 /* ---------- MOOD ---------- */
@@ -32,6 +57,29 @@ export function setMood(value) {
 
 export function getMood() {
   return state.mood;
+}
+
+/* ---------- AVATAR ---------- */
+export function getAvatarState() {
+  return state.avatar;
+}
+
+export function setAvatarState(config) {
+  state.avatar = {
+    visible: config.visible !== undefined ? config.visible : state.avatar.visible,
+    message: config.message !== undefined ? config.message : state.avatar.message,
+    type: config.type || state.avatar.type,
+    timestamp: config.timestamp !== undefined ? config.timestamp : Date.now(),
+    actions: config.actions !== undefined ? config.actions : state.avatar.actions,
+    position: config.position !== undefined ? config.position : state.avatar.position,
+    isIdle: config.isIdle !== undefined ? config.isIdle : state.avatar.isIdle
+  };
+  
+  if (config.position !== undefined) {
+    localStorage.setItem("avatar_position", JSON.stringify(state.avatar.position));
+  }
+  
+  return state.avatar;
 }
 
 /* ---------- STATE UPDATE ---------- */

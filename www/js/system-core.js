@@ -18,7 +18,7 @@ import * as InsightEngine from './services/insight-engine.js'
 import * as PatternEngine from './services/pattern-engine.js'
 import * as ResilienceEngine from './services/resilience-engine.js'
 import * as Memory from './services/memory.js'
-import { showAvatarForMood } from './avatar.js'
+import { showAvatarForMood, showAvatar } from './avatar.js'
 import { t } from './i18n.js'
 
 const SystemCore = {
@@ -121,9 +121,10 @@ const SystemCore = {
   },
 
   async dispatch(event, payload) {
+    console.log('[SYSTEM] dispatch:', event, payload);
 
     if (this.processingEvents.has(event)) {
-      console.warn('Blocked duplicate event:', event)
+      console.warn('[SYSTEM] Blocked duplicate event:', event)
       return null
     }
 
@@ -136,8 +137,9 @@ const SystemCore = {
       switch (event) {
 
         case 'MOOD_SUBMIT':
+          console.log('[AVATAR DEBUG] MOOD_SUBMIT with payload:', payload);
           result = await this.handleMoodFlow(payload)
-          showAvatarForMood(mood)
+          showAvatarForMood(payload)
           break
 
         case 'SAVE_NOTE':
@@ -147,12 +149,44 @@ const SystemCore = {
           })
           break
 
+        case 'AVATAR_TEST':
+          console.log('[AVATAR DEBUG] AVATAR_TEST event');
+          showAvatar({
+            text: 'Тестовая реакция 👀',
+            source: 'test',
+            force: true
+          });
+          result = { success: true };
+          break
+
+        case 'AVATAR_TAP':
+          console.log('[AVATAR DEBUG] AVATAR_TAP event');
+          showAvatar({
+            text: this.getTapMessage(),
+            source: 'tap',
+            force: true
+          });
+          result = { success: true };
+          break
+
+        case 'USER_INACTIVE':
+        case 'SCREEN_ENTER':
+        case 'FIRST_OPEN_TODAY':
+          console.log('[AVATAR DEBUG]', event, 'event received');
+          showAvatar({
+            text: this.getInactivityMessage(),
+            source: event,
+            force: true
+          });
+          result = { success: true };
+          break
+
         default:
-          console.warn('Unknown event:', event)
+          console.warn('[SYSTEM] Unknown event:', event)
       }
 
       if (result?.error) {
-        console.warn('Handled error in event:', event)
+        console.warn('[SYSTEM] Handled error in event:', event)
       }
 
     } finally {
@@ -160,6 +194,30 @@ const SystemCore = {
     }
 
     return result
+  },
+
+  getTapMessage() {
+    const lang = localStorage.getItem('app_language') || 'ru';
+    const msgs = {
+      ru: ['Я здесь', 'Можешь продолжить', 'Попробуй ещё раз зафиксировать состояние'],
+      en: ["I'm here", "You can continue", "Try to note your state again"],
+      es: ["Estoy aquí", "Puedes continuar", "Intenta notar tu estado de nuevo"],
+      uk: ["Я тут", "Можеш продовжити", "Спробуй ще раз зафіксувати стан"]
+    };
+    const langMsgs = msgs[lang] || msgs.ru;
+    return langMsgs[Math.floor(Math.random() * langMsgs.length)];
+  },
+
+  getInactivityMessage() {
+    const lang = localStorage.getItem('app_language') || 'ru';
+    const msgs = {
+      ru: ['Я рядом, если что', 'Ты давно не заходил', 'Можешь зафиксировать состояние'],
+      en: ["I'm here if you need", "You haven't been here for a while", "You can note your state"],
+      es: ["Estoy aquí si necesitas", "Hace tiempo que no vienes", "Puedes anotar tu estado"],
+      uk: ["Я поруч, якщо що", "Ти давно не заходив", "Можеш зафіксувати стан"]
+    };
+    const langMsgs = msgs[lang] || msgs.ru;
+    return langMsgs[Math.floor(Math.random() * langMsgs.length)];
   }
 
 }

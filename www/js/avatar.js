@@ -1,3 +1,5 @@
+import { setAvatarState, getAvatarState } from './state.js';
+
 let avatarEnabled = true;
 let lastShowTime = 0;
 let lastEffectTime = 0;
@@ -8,6 +10,44 @@ const EFFECT_COOLDOWN = 30000;
 const ACTIVITY_TIMEOUT = 10000;
 const SHOW_DELAY = 2000;
 const SLIDER_COOLDOWN = 5000;
+
+let isDragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let moveDistance = 0;
+
+function getViewportWidth() {
+  return window.visualViewport?.width || window.innerWidth;
+}
+
+function getViewportHeight() {
+  return window.visualViewport?.height || window.innerHeight;
+}
+
+const SAFE_TOP = 10;
+const SAFE_BOTTOM = 80;
+const SAFE_SIDE = 10;
+const AVATAR_WIDTH = 50;
+const AVATAR_HEIGHT = 50;
+const IDLE_TIMEOUT = 8000;
+
+let idleTimer = null;
+
+function exitIdleMode() {
+  if (idleTimer) clearTimeout(idleTimer);
+  setAvatarState({ isIdle: false });
+  triggerAvatarRender();
+  idleTimer = setTimeout(() => {
+    setAvatarState({ isIdle: true });
+    triggerAvatarRender();
+  }, IDLE_TIMEOUT);
+}
+
+function triggerAvatarRender() {
+  if (window.renderAvatarApp) {
+    window.renderAvatarApp();
+  }
+}
 
 const SILENT_SCREENS = ['meditation', 'breathing', 'tap-calm', 'visual-focus', 'mind-dump'];
 
@@ -390,19 +430,37 @@ export function showAvatar(message, immediate = false, actions = null) {
   if (!avatarEnabled) return;
   
   const now = Date.now();
-  if (now - lastShowTime < MIN_INTERVAL) return;
+  
+  let config = typeof message === 'object' ? message : { text: message };
+  const force = config.force || immediate;
+  
+  if (!force && now - lastShowTime < MIN_INTERVAL) {
+    return;
+  }
+  
   lastShowTime = now;
   
   const container = document.getElementById('avatar-container');
-  const bubble = document.getElementById('avatar-bubble');
   const textEl = document.getElementById('avatar-text');
   const actionsEl = document.getElementById('avatar-actions');
   
-  if (!container || !bubble || !textEl || !actionsEl) return;
+  if (!container || !textEl || !actionsEl) {
+    return;
+  }
   
   const showNow = () => {
-    const text = typeof message === 'object' ? message.text : (message || getDefaultMessage());
-    const actionList = typeof message === 'object' ? message.actions : actions;
+    const text = config.text || getDefaultMessage();
+    const actionList = config.actions || actions;
+    
+    exitIdleMode();
+    
+    setAvatarState({
+      visible: true,
+      message: text,
+      type: config.source || 'default',
+      actions: actionList,
+      timestamp: now
+    });
     
     textEl.textContent = text;
     actionsEl.innerHTML = '';
@@ -414,6 +472,7 @@ export function showAvatar(message, immediate = false, actions = null) {
         btn.textContent = action.label;
         btn.onclick = () => {
           handleAvatarAction(action.action);
+          setAvatarState({ visible: false });
           container.classList.remove('active');
         };
         actionsEl.appendChild(btn);
@@ -424,11 +483,12 @@ export function showAvatar(message, immediate = false, actions = null) {
     
     const duration = actionList && actionList.length > 0 ? 6000 : 4000;
     setTimeout(() => {
+      setAvatarState({ visible: false });
       container.classList.remove('active');
     }, duration);
   };
   
-  if (immediate) {
+  if (immediate || force) {
     showNow();
   } else {
     setTimeout(() => {
@@ -554,32 +614,280 @@ function getTapMessage() {
   return msgs[Math.floor(Math.random() * msgs.length)];
 }
 
+const SAFE_TOP = 10;
+const SAFE_BOTTOM = 80;
+const SAFE_SIDE = 10;
+const AVATAR_WIDTH = 50;
+const AVATAR_HEIGHT = 50;
+const IDLE_TIMEOUT = 8000;
+
+let idleTimer = null;
+
+function exitIdleMode() {
+  if (idleTimer) clearTimeout(idleTimer);
+  setAvatarState({ isIdle: false });
+  triggerAvatarRender();
+  idleTimer = setTimeout(() => {
+    setAvatarState({ isIdle: true });
+    triggerAvatarRender();
+  }, IDLE_TIMEOUT);
+}
+
 export function initAvatarTap() {
   const avatarFace = document.getElementById('avatar-face');
   const avatarContainer = document.getElementById('avatar-container');
   
+  console.log('[AVATAR INIT] face:', avatarFace ? 'found' : 'NULL');
+  console.log('[AVATAR INIT] container:', avatarContainer ? 'found' : 'NULL');
+  
   if (avatarFace) {
     avatarFace.onclick = () => {
-      console.log('[AVATAR] TAP');
-      handleAvatarTap();
+      if (moveDistance < 5) {
+        onAvatarTap();
+        exitIdleMode();
+      }
     };
-    avatarFace.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      console.log('[AVATAR] TOUCH TAP');
-      handleAvatarTap();
-    }, { passive: false });
+  }
+  
+  if (!avatarContainer) {
+    console.warn('[AVATAR INIT] Container not found!');
+    return;
+  }
+  
+  let lastX = 0, lastY = 0;
+  
+  function handleDragStart(clientX, clientY) {
+    exitIdleMode();
+    const rect = avatarContainer.getBoundingClientRect();
+    dragOffsetX = clientX - rect.left;
+    dragOffsetY = clientY - rect.top;
+    isDragging = true;
+    moveDistance = 0;
+    lastX = 0;
+    lastY = 0;
+  }
+  
+  function handleDragMove(clientX, clientY) {
+    if (!isDragging) return;
+    
+    const viewportWidth = getViewportWidth();
+    const viewportHeight = getViewportHeight();
+    
+    let newX = clientX - dragOffsetX;
+    let newY = clientY - dragOffsetY;
+    
+    moveDistance = Math.max(
+      Math.abs(clientX - (getAvatarState().position.x + dragOffsetX)),
+      Math.abs(clientY - (getAvatarState().position.y + dragOffsetY))
+    );
+    
+    if (moveDistance > 5) {
+      if (isNaN(newX) || isNaN(newY)) return;
+      
+      newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
+      newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
+      
+      if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
+      lastX = newX;
+      lastY = newY;
+      
+      setAvatarState({
+        position: { x: newX, y: newY }
+      });
+      
+      avatarContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+      updateBubblePosition(newX, newY);
+    }
+  }
+  
+  function handleDragEnd() {
+    if (isDragging && moveDistance < 5) {
+      onAvatarTap();
+      exitIdleMode();
+    }
+    isDragging = false;
+    moveDistance = 0;
+    lastX = 0;
+    lastY = 0;
+  }
+  
+  avatarContainer.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  
+  avatarContainer.addEventListener('touchmove', (e) => {
+    e.stopPropagation();
+    handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  
+  avatarContainer.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    handleDragEnd();
+  }, { passive: true });
+  
+  avatarContainer.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+    handleDragStart(e.clientX, e.clientY);
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    handleDragMove(e.clientX, e.clientY);
+  });
+  
+  document.addEventListener('mouseup', () => {
+    handleDragEnd();
+  });
+}
+    };
   }
   
   if (avatarContainer) {
-    avatarContainer.onclick = (e) => {
-      if (e.target === avatarContainer || e.target.id === 'avatar-face') return;
-      handleAvatarTap();
-    };
+    avatarContainer.addEventListener('touchstart', (e) => {
+      exitIdleMode();
+      const touch = e.touches[0];
+      const rect = avatarContainer.getBoundingClientRect();
+      
+      dragOffsetX = touch.clientX - rect.left;
+      dragOffsetY = touch.clientY - rect.top;
+      
+      isDragging = true;
+      moveDistance = 0;
+    }, { passive: true });
+    
+    let lastX = 0, lastY = 0;
+    
+    avatarContainer.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      
+      const viewportWidth = getViewportWidth();
+      const viewportHeight = getViewportHeight();
+      
+      let newX = touch.clientX - dragOffsetX;
+      let newY = touch.clientY - dragOffsetY;
+      
+      moveDistance = Math.max(Math.abs(touch.clientX - (getAvatarState().position.x + dragOffsetX)), 
+                             Math.abs(touch.clientY - (getAvatarState().position.y + dragOffsetY)));
+      
+      if (moveDistance > 5) {
+        if (isNaN(newX) || isNaN(newY)) return;
+        
+        newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
+        newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
+        
+        if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
+        lastX = newX;
+        lastY = newY;
+        
+        setAvatarState({
+          position: { x: newX, y: newY }
+        });
+        
+        avatarContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+        updateBubblePosition(newX, newY);
+      }
+    }, { passive: true });
+    
+    avatarContainer.addEventListener('touchend', () => {
+      if (isDragging && moveDistance < 5) {
+        onAvatarTap();
+      }
+      isDragging = false;
+      moveDistance = 0;
+      lastX = 0;
+      lastY = 0;
+    });
+    
+    avatarContainer.addEventListener('mousedown', (e) => {
+      const rect = avatarContainer.getBoundingClientRect();
+      
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      
+      isDragging = true;
+      moveDistance = 0;
+    });
+  }
+  
+  let lastX = 0, lastY = 0;
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    
+    const viewportWidth = getViewportWidth();
+    const viewportHeight = getViewportHeight();
+    
+    let newX = e.clientX - dragOffsetX;
+    let newY = e.clientY - dragOffsetY;
+    
+    moveDistance = Math.max(Math.abs(e.clientX - (getAvatarState().position.x + dragOffsetX)), 
+                           Math.abs(e.clientY - (getAvatarState().position.y + dragOffsetY)));
+    
+    if (moveDistance > 5) {
+      if (isNaN(newX) || isNaN(newY)) return;
+      
+      newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
+      newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
+      
+      if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
+      lastX = newX;
+      lastY = newY;
+      
+      setAvatarState({
+        position: { x: newX, y: newY }
+      });
+      
+      const container = document.getElementById('avatar-container');
+      if (container) {
+        container.style.transform = `translate(${newX}px, ${newY}px)`;
+        updateBubblePosition(newX, newY);
+      }
+    }
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isDragging && moveDistance < 5) {
+      onAvatarTap();
+      exitIdleMode();
+    }
+    isDragging = false;
+    moveDistance = 0;
+    lastX = 0;
+    lastY = 0;
+  });
+}
+
+function updateBubblePosition(x, y = 0) {
+  const bubble = document.getElementById('avatar-bubble');
+  if (!bubble) return;
+  
+  const isRightSide = x > getViewportWidth() / 2;
+  const isNearTop = y < 80;
+  
+  bubble.classList.remove('right', 'left', 'bottom');
+  
+  if (isRightSide) {
+    bubble.classList.add('left');
+  } else {
+    bubble.classList.add('right');
+  }
+  
+  if (isNearTop) {
+    bubble.classList.add('bottom');
+  }
+}
+
+function onAvatarTap() {
+  if (window.SystemCore) {
+    window.SystemCore.dispatch('AVATAR_TAP');
+  } else {
+    showAvatar(getTapMessage(), true);
   }
 }
 
 function handleAvatarTap() {
-  showAvatar(getTapMessage());
+  showAvatar(getTapMessage(), true);
 }
 
 export function setAvatarEnabled(enabled) {

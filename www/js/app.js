@@ -4,6 +4,8 @@ import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import { analyzeLatestVoice } from "./ai/voice-analysis.js";
 import SystemCore from "./system-core.js";
+
+window.SystemCore = SystemCore;
 import {
   getMoodHistory, getNotesHistory
 } from "./services/memory.js";
@@ -11,7 +13,7 @@ import {
   calculateStabilityScore, calculateTrend, calculateGoldenHour
 } from "./services/analytics.js";
 import {
-  initState, getUsageDays, getMood, setMood
+  initState, getUsageDays, getMood, setMood, getAvatarState, setAvatarState
 } from "./state.js";
 import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
@@ -136,23 +138,72 @@ function applyDomTranslations() {
 }
 
 /* ---------- BOOT ---------- */
+console.log('[BOOT] DOMContentLoaded listener registered');
+
 document.addEventListener("DOMContentLoaded", () => {
-  initState();
-  initUI();
+  console.log('[BOOT] DOMContentLoaded fired');
+  try {
+    initState();
+    console.log('[BOOT] initState done');
+  } catch (e) {
+    console.error('[BOOT ERROR] initState:', e);
+  }
+  
+  try {
+    initUI();
+    console.log('[BOOT] initUI done');
+  } catch (e) {
+    console.error('[BOOT ERROR] initUI:', e);
+  }
+  
   applyDomTranslations();
 
   if (!isOnboardingDone()) {
     initOnboarding(() => {
       applyDomTranslations();
-      startApp();
+      try {
+        startApp();
+        console.log('[BOOT] startApp done (after onboarding)');
+      } catch (e) {
+        console.error('[BOOT ERROR] startApp:', e);
+      }
     });
   } else {
-    startApp();
+    try {
+      startApp();
+      console.log('[BOOT] startApp done');
+    } catch (e) {
+      console.error('[BOOT ERROR] startApp:', e);
+    }
   }
 });
 
+const AVATAR_WIDTH = 50;
+const AVATAR_HEIGHT = 50;
+
+console.log('[AUDIT] === APP STARTING ===');
+
 function startApp() {
-  initAvatarTap();
+  console.log('[AUDIT] startApp called');
+  
+  try {
+    initAvatarTap();
+    console.log('[AUDIT] initAvatarTap done');
+  } catch (e) {
+    console.error('[AUDIT ERROR] initAvatarTap:', e);
+  }
+  
+  setTimeout(() => {
+    try {
+      console.log('[AUDIT] Setting avatar state');
+      setAvatarState({ visible: true, isIdle: true });
+      renderAvatar();
+      console.log('[AUDIT] Avatar rendered');
+    } catch (e) {
+      console.error('[AUDIT ERROR] renderAvatar:', e);
+    }
+  }, 100);
+  
   trackUserActivity();
   
   document.addEventListener('click', trackUserActivity, { passive: true });
@@ -281,3 +332,153 @@ function startApp() {
 
 /* ---------- HELPERS ---------- */
 // updateStabilityHistory moved to SystemCore
+
+function getViewportWidth() {
+  return window.visualViewport?.width || window.innerWidth;
+}
+
+function getViewportHeight() {
+  return window.visualViewport?.height || window.innerHeight;
+}
+
+let renderCounter = 0;
+const MAX_RENDERS = 100;
+let lastRenderTime = 0;
+
+/* ---------- AVATAR RENDERER ---------- */
+export function renderAvatar() {
+  renderCounter++;
+  const now = Date.now();
+  
+  if (renderCounter > MAX_RENDERS) {
+    console.error('[AUDIT ERROR] Too many renders! Possible infinite loop.');
+    return;
+  }
+  
+  if (now - lastRenderTime < 16) {
+    console.warn('[AUDIT] Rapid renders detected:', renderCounter);
+  }
+  lastRenderTime = now;
+  
+  console.log('[AUDIT] renderAvatar #', renderCounter);
+  
+  const container = document.getElementById('avatar-container');
+  if (!container) {
+    console.error('[AUDIT] Container not found');
+    return;
+  }
+  
+  const avatarState = getAvatarState();
+  console.log('[AUDIT] Avatar state:', JSON.stringify(avatarState));
+  
+  let x = avatarState.position?.x;
+  let y = avatarState.position?.y;
+  
+  if (x === undefined || y === undefined || isNaN(x) || isNaN(y)) {
+    console.log('[AUDIT] Invalid position, resetting');
+    x = 20;
+    y = 100;
+    setAvatarState({ position: { x, y } });
+  }
+  
+  const viewportWidth = getViewportWidth();
+  const viewportHeight = getViewportHeight();
+  console.log('[AUDIT] Viewport:', { width: viewportWidth, height: viewportHeight });
+  
+  if (avatarState.isIdle) {
+    x = viewportWidth - (AVATAR_WIDTH + 10);
+    y = Math.min(y || 100, viewportHeight - AVATAR_HEIGHT - 80);
+  }
+  
+  console.log('[AUDIT] Final position:', { x, y });
+  container.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  
+  if (avatarState.isIdle) {
+    container.classList.add('idle');
+  } else {
+    container.classList.remove('idle');
+  }
+  
+  const textEl = document.getElementById('avatar-text');
+  const actionsEl = document.getElementById('avatar-actions');
+  const bubble = document.getElementById('avatar-bubble');
+  
+  if (avatarState.visible) {
+    if (textEl) textEl.textContent = avatarState.message;
+    if (actionsEl) actionsEl.innerHTML = '';
+    
+    if (avatarState.actions && avatarState.actions.length > 0) {
+      avatarState.actions.slice(0, 2).forEach(action => {
+        const btn = document.createElement('button');
+        btn.className = 'avatar-action-btn';
+        btn.textContent = action.label;
+        btn.onclick = () => {
+          if (window.navigateTo) {
+            window.navigateTo(action.action);
+          }
+          setAvatarState({ visible: false });
+          renderAvatar();
+        };
+        if (actionsEl) actionsEl.appendChild(btn);
+      });
+    }
+    
+    container.classList.add('active');
+  } else {
+    container.classList.remove('active');
+  }
+  
+  if (bubble) {
+    const viewportWidth = getViewportWidth();
+    const isRightSide = x > (viewportWidth / 2);
+    const isNearTop = y < 80;
+    
+    bubble.classList.remove('right', 'left', 'bottom');
+    
+    if (isRightSide) {
+      bubble.classList.add('left');
+    } else {
+      bubble.classList.add('right');
+    }
+    
+    if (isNearTop) {
+      bubble.classList.add('bottom');
+    }
+  }
+}
+
+window.renderAvatarApp = renderAvatar;
+
+window.AUDIT = {
+  disableAvatar: function() {
+    const el = document.getElementById('avatar-container');
+    if (el) {
+      el.style.pointerEvents = 'none';
+      el.style.display = 'none';
+      console.log('[AUDIT] Avatar disabled');
+    }
+  },
+  enableAvatar: function() {
+    const el = document.getElementById('avatar-container');
+    if (el) {
+      el.style.pointerEvents = 'auto';
+      el.style.display = 'block';
+      console.log('[AUDIT] Avatar enabled');
+    }
+  },
+  testUI: function() {
+    console.log('=== UI TEST ===');
+    const el = document.elementFromPoint(100, 100);
+    console.log('elementAt100,100:', el?.tagName, el?.id);
+    const avatarEl = document.getElementById('avatar-container');
+    if (avatarEl) {
+      const rect = avatarEl.getBoundingClientRect();
+      console.log('Avatar rect:', rect);
+    }
+  },
+  getState: function() {
+    return window.renderAvatarApp ? 'renderAvatar available' : 'renderAvatar NOT available';
+  }
+};
+
+console.log('[AUDIT] Functions registered. Use: AUDIT.disableAvatar(), AUDIT.enableAvatar(), AUDIT.testUI()');
