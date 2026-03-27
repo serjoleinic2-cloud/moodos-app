@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <title>MoodOS</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/avatar.css">
 </head>
 <body>
 <div id="app">
@@ -136,11 +137,11 @@
 <!-- TOOLS MENU -->
 <div id="toolsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;"></div>
 <div id="toolsPanel" style="
-  position:fixed; bottom:-560px; left:0; width:100%;
+  position:fixed; bottom:-620px; left:0; width:100%;
   background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);
   border-radius:24px 24px 0 0;
   padding:20px 20px 110px 20px;
-  max-height:520px; z-index:101; box-sizing:border-box;
+  max-height:580px; z-index:101; box-sizing:border-box;
   transition: bottom 0.35s ease;
   box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
 ">
@@ -149,6 +150,7 @@
   <div id="toolsVisualFocus" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_visual">👁 Зрительный якорь</div>
   <div id="toolsMindDump"    style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_mind">🧠 Выгрузка мыслей</div>
   <div id="toolsTapCalm"     style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_tap">✋ Тактильная разрядка</div>
+  <div id="toolsSupportTexts" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_support">💌 Тексты поддержки</div>
 </div><!-- tools -->
 </div><!-- #app -->
 
@@ -162,7 +164,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script type="module" src="js/app.js?v=20260335"></script>
+<script type="module" src="js/app.js?v=20260336"></script>
 
 <!-- i18n применяем сразу при загрузке до инициализации модулей -->
 <script>

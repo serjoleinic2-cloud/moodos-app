@@ -149,6 +149,14 @@ const SystemCore = {
           })
           break
 
+        case 'SUPPORT_TEXT_FEEDBACK':
+          console.log('[SUPPORT] Feedback received:', payload);
+          result = await this.saveEvent({
+            type: 'support_feedback',
+            ...payload
+          });
+          break
+
         case 'AVATAR_TEST':
           console.log('[AVATAR DEBUG] AVATAR_TEST event');
           showAvatar({

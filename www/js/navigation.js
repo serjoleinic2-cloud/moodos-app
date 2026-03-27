@@ -192,6 +192,24 @@ export function initNavigation() {
     }
   };
 
+  const stBtn = document.getElementById("toolsSupportTexts");
+  if (stBtn) stBtn.onclick = async () => {
+    console.log("[DEBUG] support-texts clicked");
+    closeToolsMenu(); openScreen("tools");
+    await new Promise(r => setTimeout(r, 50));
+    console.log("[DEBUG] importing support-texts");
+    try {
+      const { initSupportTexts } = await import("./screens/support-texts.js");
+      console.log("[DEBUG] support-texts imported, initSupportTexts:", typeof initSupportTexts);
+      const c = document.getElementById("tools-content");
+      console.log("[DEBUG] tools-content:", c);
+      if (c) { c.innerHTML = ""; initSupportTexts(c); }
+      console.log("[DEBUG] support-texts init done");
+    } catch(e) {
+      console.error("[DEBUG] support-texts error:", e.message, e.stack);
+    }
+  };
+  
   buttons.forEach(btn => {
     if (btn.dataset.nav === "tools") return;
     if (btn.id === "hamburgerBtn") return;

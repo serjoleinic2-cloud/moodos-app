@@ -56,6 +56,7 @@ export const en = {
     tools_visual: "👁 Visual Anchor",
     tools_mind: "🧠 Mind Dump",
     tools_tap: "✋ Tap Calm",
+    tools_support: "💌 Support Texts",
     stab_screen_sub: "Emotional fluctuation analysis",
     stab_metrics: "📊 Metrics",
     stab_metric_stab: "Stability",
@@ -378,4 +379,43 @@ export const en = {
     year_comparison_better: "You're doing better by +{n}%",
     year_comparison_worse: "State dropped by {n}%",
     year_comparison_same: "State is stable",
+    support_texts_title: "Support Texts",
+    support_texts_calm: "Calm",
+    support_texts_affirmations: "Support",
+    support_texts_prayer: "Prayer",
+    support_texts_next: "More",
+    support_texts_done: "Done",
+    support_texts_helped: "Helped ✓",
+    support_texts_not_helped: "Not helped",
+    support_texts_placeholder: "Choose text type",
+    support_texts_calm_list: [
+        "You are safe. Take a slow breath.",
+        "This moment will pass. Breathe.",
+        "You will handle it. Everything will be fine.",
+        "Allow yourself to stop for a moment.",
+        "You are stronger than you think.",
+        "Everything you feel is valid.",
+        "Take a break. You deserve rest.",
+        "This is temporary. It will change."
+    ],
+    support_texts_affirmations_list: [
+        "I handle the difficulties that come my way.",
+        "I deserve peace and happiness.",
+        "Every new day is a new opportunity.",
+        "I am content with who I am.",
+        "I am creating the life I want.",
+        "My feelings matter, and I honor them.",
+        "I am getting better every day.",
+        "I am worthy of love and respect."
+    ],
+    support_texts_prayer_list: [
+        "Lord, grant me the serenity to accept the things I cannot change.",
+        "God, give me strength to get through this moment.",
+        "Soul, find peace in this hour.",
+        "Universe, guide me to the light.",
+        "Bless this day and everything in it.",
+        "Thy will be done.",
+        "My spirit finds peace and strength.",
+        "In the silence of my heart, I find answers."
+    ]
 };
