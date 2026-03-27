@@ -1,3 +1,13 @@
+console.log('🔥🔥🔥 NEW APP.JS 20260334 LOADED 🔥🔥🔥');
+
+document.addEventListener('touchstart', (e) => {
+  console.log('[GLOBAL TOUCH]', { target: e.target?.id, x: e.touches[0]?.clientX, y: e.touches[0]?.clientY });
+}, { passive: true });
+
+document.addEventListener('mousedown', (e) => {
+  console.log('[GLOBAL MOUSE]', { target: e.target?.id, x: e.clientX, y: e.clientY });
+}, { passive: true });
+
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
@@ -185,6 +195,7 @@ console.log('[AUDIT] === APP STARTING ===');
 
 function startApp() {
   console.log('[AUDIT] startApp called');
+  console.log('[CHECK] initAvatarTap called');
   
   try {
     initAvatarTap();
@@ -195,14 +206,23 @@ function startApp() {
   
   setTimeout(() => {
     try {
-      console.log('[AUDIT] Setting avatar state');
+      const avatarState = getAvatarState();
+      const container = document.getElementById('avatar-container');
+      
+      let x = avatarState.position?.x ?? 20;
+      let y = avatarState.position?.y ?? 100;
+      
+      if (container) {
+        container.style.transform = `translate(${x}px, ${y}px)`;
+      }
+      
       setAvatarState({ visible: true, isIdle: true });
       renderAvatar();
-      console.log('[AUDIT] Avatar rendered');
+      console.log('[AVATAR] Initial position set:', { x, y });
     } catch (e) {
       console.error('[AUDIT ERROR] renderAvatar:', e);
     }
-  }, 100);
+  }, 200);
   
   trackUserActivity();
   
@@ -347,6 +367,7 @@ let lastRenderTime = 0;
 
 /* ---------- AVATAR RENDERER ---------- */
 export function renderAvatar() {
+  console.log('[AVATAR] renderAvatar called');
   renderCounter++;
   const now = Date.now();
   
@@ -360,38 +381,15 @@ export function renderAvatar() {
   }
   lastRenderTime = now;
   
-  console.log('[AUDIT] renderAvatar #', renderCounter);
+  console.log('[AVATAR RENDER] visual only update');
   
   const container = document.getElementById('avatar-container');
   if (!container) {
-    console.error('[AUDIT] Container not found');
+    console.error('[AVATAR RENDER] Container not found');
     return;
   }
   
   const avatarState = getAvatarState();
-  console.log('[AUDIT] Avatar state:', JSON.stringify(avatarState));
-  
-  let x = avatarState.position?.x;
-  let y = avatarState.position?.y;
-  
-  if (x === undefined || y === undefined || isNaN(x) || isNaN(y)) {
-    console.log('[AUDIT] Invalid position, resetting');
-    x = 20;
-    y = 100;
-    setAvatarState({ position: { x, y } });
-  }
-  
-  const viewportWidth = getViewportWidth();
-  const viewportHeight = getViewportHeight();
-  console.log('[AUDIT] Viewport:', { width: viewportWidth, height: viewportHeight });
-  
-  if (avatarState.isIdle) {
-    x = viewportWidth - (AVATAR_WIDTH + 10);
-    y = Math.min(y || 100, viewportHeight - AVATAR_HEIGHT - 80);
-  }
-  
-  console.log('[AUDIT] Final position:', { x, y });
-  container.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   
   if (avatarState.isIdle) {
     container.classList.add('idle');

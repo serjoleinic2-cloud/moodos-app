@@ -1,5 +1,8 @@
 import { setAvatarState, getAvatarState } from './state.js';
 
+console.log('🔥🔥🔥 NEW VERSION 20260334 LOADED - avatar.js 🔥🔥🔥');
+console.log('[BOOT] avatar.js loaded');
+
 let avatarEnabled = true;
 let lastShowTime = 0;
 let lastEffectTime = 0;
@@ -10,11 +13,6 @@ const EFFECT_COOLDOWN = 30000;
 const ACTIVITY_TIMEOUT = 10000;
 const SHOW_DELAY = 2000;
 const SLIDER_COOLDOWN = 5000;
-
-let isDragging = false;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let moveDistance = 0;
 
 function getViewportWidth() {
   return window.visualViewport?.width || window.innerWidth;
@@ -37,10 +35,11 @@ function exitIdleMode() {
   if (idleTimer) clearTimeout(idleTimer);
   setAvatarState({ isIdle: false });
   triggerAvatarRender();
-  idleTimer = setTimeout(() => {
-    setAvatarState({ isIdle: true });
-    triggerAvatarRender();
-  }, IDLE_TIMEOUT);
+  // TEMP disable idle timer
+  // idleTimer = setTimeout(() => {
+  //   setAvatarState({ isIdle: true });
+  //   triggerAvatarRender();
+  // }, IDLE_TIMEOUT);
 }
 
 function triggerAvatarRender() {
@@ -481,11 +480,12 @@ export function showAvatar(message, immediate = false, actions = null) {
     
     container.classList.add('active');
     
-    const duration = actionList && actionList.length > 0 ? 6000 : 4000;
-    setTimeout(() => {
-      setAvatarState({ visible: false });
-      container.classList.remove('active');
-    }, duration);
+    // TEMP disable auto-hide
+    // const duration = actionList && actionList.length > 0 ? 6000 : 4000;
+    // setTimeout(() => {
+    //   setAvatarState({ visible: false });
+    //   container.classList.remove('active');
+    // }, duration);
   };
   
   if (immediate || force) {
@@ -614,248 +614,117 @@ function getTapMessage() {
   return msgs[Math.floor(Math.random() * msgs.length)];
 }
 
-const SAFE_TOP = 10;
-const SAFE_BOTTOM = 80;
-const SAFE_SIDE = 10;
-const AVATAR_WIDTH = 50;
-const AVATAR_HEIGHT = 50;
-const IDLE_TIMEOUT = 8000;
-
-let idleTimer = null;
-
-function exitIdleMode() {
-  if (idleTimer) clearTimeout(idleTimer);
-  setAvatarState({ isIdle: false });
-  triggerAvatarRender();
-  idleTimer = setTimeout(() => {
-    setAvatarState({ isIdle: true });
-    triggerAvatarRender();
-  }, IDLE_TIMEOUT);
-}
-
 export function initAvatarTap() {
-  const avatarFace = document.getElementById('avatar-face');
-  const avatarContainer = document.getElementById('avatar-container');
+  console.log('[AVATAR NEW INIT]');
   
-  console.log('[AVATAR INIT] face:', avatarFace ? 'found' : 'NULL');
-  console.log('[AVATAR INIT] container:', avatarContainer ? 'found' : 'NULL');
-  
-  if (avatarFace) {
-    avatarFace.onclick = () => {
-      if (moveDistance < 5) {
-        onAvatarTap();
-        exitIdleMode();
-      }
-    };
+  if (window.__avatarInitialized) {
+    console.log('[AVATAR] Already initialized, skipping');
+    return;
   }
+  window.__avatarInitialized = true;
   
-  if (!avatarContainer) {
+  const oldContainer = document.getElementById('avatar-container');
+  if (!oldContainer) {
     console.warn('[AVATAR INIT] Container not found!');
     return;
   }
   
-  let lastX = 0, lastY = 0;
+  const rect = oldContainer.getBoundingClientRect();
+  console.log('[AVATAR INIT] container rect:', { width: rect.width, height: rect.height, top: rect.top, left: rect.left });
   
-  function handleDragStart(clientX, clientY) {
-    exitIdleMode();
-    const rect = avatarContainer.getBoundingClientRect();
-    dragOffsetX = clientX - rect.left;
-    dragOffsetY = clientY - rect.top;
-    isDragging = true;
-    moveDistance = 0;
-    lastX = 0;
-    lastY = 0;
-  }
+  const avatarContainer = oldContainer.cloneNode(true);
+  oldContainer.parentNode.replaceChild(avatarContainer, oldContainer);
+  console.log('[AVATAR INIT] container cloned, new:', avatarContainer ? 'found' : 'NULL');
+  console.log('[EVENT] initAvatarTap - listeners about to be added');
   
-  function handleDragMove(clientX, clientY) {
-    if (!isDragging) return;
-    
-    const viewportWidth = getViewportWidth();
-    const viewportHeight = getViewportHeight();
-    
-    let newX = clientX - dragOffsetX;
-    let newY = clientY - dragOffsetY;
-    
-    moveDistance = Math.max(
-      Math.abs(clientX - (getAvatarState().position.x + dragOffsetX)),
-      Math.abs(clientY - (getAvatarState().position.y + dragOffsetY))
-    );
-    
-    if (moveDistance > 5) {
-      if (isNaN(newX) || isNaN(newY)) return;
-      
-      newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
-      newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
-      
-      if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
-      lastX = newX;
-      lastY = newY;
-      
-      setAvatarState({
-        position: { x: newX, y: newY }
-      });
-      
-      avatarContainer.style.transform = `translate(${newX}px, ${newY}px)`;
-      updateBubblePosition(newX, newY);
-    }
-  }
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let startX = 0;
+  let startY = 0;
   
-  function handleDragEnd() {
-    if (isDragging && moveDistance < 5) {
-      onAvatarTap();
-      exitIdleMode();
-    }
-    isDragging = false;
-    moveDistance = 0;
-    lastX = 0;
-    lastY = 0;
-  }
+  // TEMP DISABLED - avatar pointer-events: none
+  // avatarContainer.addEventListener('touchstart', (e) => {
+  //   console.log('[EVENT] touchstart fired!');
+  //   e.preventDefault();
+  //   const touch = e.touches[0];
+  //   const elRect = avatarContainer.getBoundingClientRect();
+  //   console.log('[EVENT] touch pos:', { x: touch.clientX, y: touch.clientY, elRect });
+  //   
+  //   isDragging = true;
+  //   startX = touch.clientX;
+  //   startY = touch.clientY;
+  //   dragOffsetX = touch.clientX - elRect.left;
+  //   dragOffsetY = touch.clientY - elRect.top;
+  // }, { passive: false });
   
-  avatarContainer.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
-    handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-  
-  avatarContainer.addEventListener('touchmove', (e) => {
-    e.stopPropagation();
-    handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-  
-  avatarContainer.addEventListener('touchend', (e) => {
-    e.stopPropagation();
-    handleDragEnd();
-  }, { passive: true });
-  
-  avatarContainer.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    handleDragStart(e.clientX, e.clientY);
-  });
-  
-  document.addEventListener('mousemove', (e) => {
-    handleDragMove(e.clientX, e.clientY);
-  });
-  
-  document.addEventListener('mouseup', () => {
-    handleDragEnd();
-  });
-}
-    };
-  }
-  
-  if (avatarContainer) {
-    avatarContainer.addEventListener('touchstart', (e) => {
-      exitIdleMode();
-      const touch = e.touches[0];
-      const rect = avatarContainer.getBoundingClientRect();
-      
-      dragOffsetX = touch.clientX - rect.left;
-      dragOffsetY = touch.clientY - rect.top;
-      
-      isDragging = true;
-      moveDistance = 0;
-    }, { passive: true });
-    
-    let lastX = 0, lastY = 0;
-    
-    avatarContainer.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      
-      const viewportWidth = getViewportWidth();
-      const viewportHeight = getViewportHeight();
-      
-      let newX = touch.clientX - dragOffsetX;
-      let newY = touch.clientY - dragOffsetY;
-      
-      moveDistance = Math.max(Math.abs(touch.clientX - (getAvatarState().position.x + dragOffsetX)), 
-                             Math.abs(touch.clientY - (getAvatarState().position.y + dragOffsetY)));
-      
-      if (moveDistance > 5) {
-        if (isNaN(newX) || isNaN(newY)) return;
-        
-        newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
-        newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
-        
-        if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
-        lastX = newX;
-        lastY = newY;
-        
-        setAvatarState({
-          position: { x: newX, y: newY }
-        });
-        
-        avatarContainer.style.transform = `translate(${newX}px, ${newY}px)`;
-        updateBubblePosition(newX, newY);
-      }
-    }, { passive: true });
-    
-    avatarContainer.addEventListener('touchend', () => {
-      if (isDragging && moveDistance < 5) {
-        onAvatarTap();
-      }
-      isDragging = false;
-      moveDistance = 0;
-      lastX = 0;
-      lastY = 0;
-    });
-    
-    avatarContainer.addEventListener('mousedown', (e) => {
-      const rect = avatarContainer.getBoundingClientRect();
-      
-      dragOffsetX = e.clientX - rect.left;
-      dragOffsetY = e.clientY - rect.top;
-      
-      isDragging = true;
-      moveDistance = 0;
-    });
-  }
-  
-  let lastX = 0, lastY = 0;
-  
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    
-    const viewportWidth = getViewportWidth();
-    const viewportHeight = getViewportHeight();
-    
-    let newX = e.clientX - dragOffsetX;
-    let newY = e.clientY - dragOffsetY;
-    
-    moveDistance = Math.max(Math.abs(e.clientX - (getAvatarState().position.x + dragOffsetX)), 
-                           Math.abs(e.clientY - (getAvatarState().position.y + dragOffsetY)));
-    
-    if (moveDistance > 5) {
-      if (isNaN(newX) || isNaN(newY)) return;
-      
-      newX = Math.max(SAFE_SIDE, Math.min(newX, viewportWidth - AVATAR_WIDTH - SAFE_SIDE));
-      newY = Math.max(SAFE_TOP, Math.min(newY, viewportHeight - AVATAR_HEIGHT - SAFE_BOTTOM));
-      
-      if (Math.abs(newX - lastX) < 1 && Math.abs(newY - lastY) < 1) return;
-      lastX = newX;
-      lastY = newY;
-      
-      setAvatarState({
-        position: { x: newX, y: newY }
-      });
-      
-      const container = document.getElementById('avatar-container');
-      if (container) {
-        container.style.transform = `translate(${newX}px, ${newY}px)`;
-        updateBubblePosition(newX, newY);
-      }
-    }
-  });
-  
-  document.addEventListener('mouseup', () => {
-    if (isDragging && moveDistance < 5) {
-      onAvatarTap();
-      exitIdleMode();
-    }
-    isDragging = false;
-    moveDistance = 0;
-    lastX = 0;
-    lastY = 0;
-  });
+  // TEMP DISABLED - global listeners blocked UI
+  // document.addEventListener('touchmove', (e) => {
+  //   if (!isDragging) return;
+  //   console.log('[DRAG MOVE NEW]');
+  //   
+  //   const touch = e.touches[0];
+  //   let x = touch.clientX - dragOffsetX;
+  //   let y = touch.clientY - dragOffsetY;
+  //   
+  //   const maxX = window.innerWidth - 60;
+  //   const maxY = window.innerHeight - 60;
+  //   
+  //   x = Math.max(10, Math.min(x, maxX));
+  //   y = Math.max(10, Math.min(y, maxY));
+  //   
+  //   avatarContainer.style.transform = `translate(${x}px, ${y}px)`;
+  // }, { passive: false });
+  // 
+  // document.addEventListener('touchend', (e) => {
+  //   if (!isDragging) return;
+  //   
+  //   const movedX = Math.abs(startX - (e.changedTouches[0]?.clientX || startX));
+  //   const movedY = Math.abs(startY - (e.changedTouches[0]?.clientY || startY));
+  //   
+  //   const rect = avatarContainer.getBoundingClientRect();
+  //   const finalX = rect.left;
+  //   const finalY = rect.top;
+  //   setAvatarState({ position: { x: finalX, y: finalY } });
+  //   
+  //   if (movedX < 10 && movedY < 10) {
+  //     onAvatarTap();
+  //   }
+  //   
+  //   isDragging = false;
+  // });
+  // 
+  // avatarContainer.addEventListener('mousedown', (e) => {
+  //   isDragging = true;
+  //   startX = e.clientX;
+  //   startY = e.clientY;
+  //   const rect = avatarContainer.getBoundingClientRect();
+  //   dragOffsetX = e.clientX - rect.left;
+  //   dragOffsetY = e.clientY - rect.top;
+  // });
+  // 
+  // document.addEventListener('mousemove', (e) => {
+  //   if (!isDragging) return;
+  //   
+  //   let x = e.clientX - dragOffsetX;
+  //   let y = e.clientY - dragOffsetY;
+  //   
+  //   const maxX = window.innerWidth - 60;
+  //   const maxY = window.innerHeight - 60;
+  //   
+  //   x = Math.max(10, Math.min(x, maxX));
+  //   y = Math.max(10, Math.min(y, maxY));
+  //   
+  //   avatarContainer.style.transform = `translate(${x}px, ${y}px)`;
+  // });
+  // 
+  // document.addEventListener('mouseup', () => {
+  //   if (isDragging) {
+  //     const rect = avatarContainer.getBoundingClientRect();
+  //     setAvatarState({ position: { x: rect.left, y: rect.top } });
+  //   }
+  //   isDragging = false;
+  // });
 }
 
 function updateBubblePosition(x, y = 0) {
