@@ -11,6 +11,7 @@ let currentIndex = 0;
 let container = null;
 let sessionStartTime = null;
 let moodBeforeSession = null;
+let stateBeforeSession = null;
 let result = null;
 
 function showToast(message) {
@@ -66,7 +67,7 @@ function render() {
   if (!container) return;
   
   container.innerHTML = `
-    <div style="text-align:center; margin-top:20px;">
+    <div style="text-align:center; margin-top:20px; height:calc(100% - 40px); display:flex; flex-direction:column;">
       <h2 style="margin-bottom:6px;">${t("support_texts_title")}</h2>
       
       ${currentType === null ? renderTypeSelector() : renderTextDisplay()}
@@ -74,9 +75,10 @@ function render() {
   `;
 }
 
+// ✅ ИСПРАВЛЕНИЕ 2: кнопки центрированы по высоте экрана
 function renderTypeSelector() {
   return `
-    <div style="display:flex;flex-direction:column;gap:14px;padding:0 4px;">
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:stretch; gap:14px; padding:0 4px; flex:1;">
       <div id="stCalm" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#a8d8ea;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">🧘 ${t("support_texts_calm")}</div>
       <div id="stAffirmations" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#a8e6cf;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">💬 ${t("support_texts_affirmations")}</div>
       <div id="stPrayer" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#ffd3a5;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">🙏 ${t("support_texts_prayer")}</div>
@@ -97,7 +99,8 @@ function renderTextDisplay() {
       <div id="stNext" style="padding:14px 24px;border-radius:14px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#555;font-size:15px;">${t("support_texts_next")}</div>
     </div>
     
-    <div id="stFeedback" style="flex-direction:column;gap:14px;align-items:center;margin-top:10px;">
+    <!-- ✅ ИСПРАВЛЕНИЕ 3: добавлен display:flex чтобы flexbox заработал -->
+    <div id="stFeedback" style="display:flex; flex-direction:column; gap:14px; align-items:center; margin-top:10px;">
       <div style="font-size:16px;color:#666;margin-bottom:6px;">${t("md_how_feel")}</div>
       <div id="stHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#4a7c59;font-size:18px;text-align:center;">👍 ${t("hist_helped")}</div>
       <div id="stNotHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#888;font-size:18px;text-align:center;">👎 ${t("hist_not_helped")}</div>
@@ -166,11 +169,13 @@ function bindEvents() {
   }
 }
 
-function selectType(type) {
+async function selectType(type) {
   currentType = type;
   currentIndex = 0;
   sessionStartTime = Date.now();
   moodBeforeSession = getMood();
+  const analysis = await SystemCore.analyzeMoodOnly(moodBeforeSession);
+  stateBeforeSession = analysis ? analysis.state : null;
   render();
   bindEvents();
 }
@@ -183,10 +188,12 @@ async function saveSessionWithResult(res) {
   const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
   const stateAfter = analysisResult ? analysisResult.state : null;
   
+  // ✅ ИСПРАВЛЕНИЕ 1: type изменён с "support-texts" на "support_texts"
+  // чтобы session-analytics.js и insight.js считали эти сессии
   addSessionEntry({
-    type: "support-texts",
+    type: "support_texts",
     moodBefore: moodBeforeSession,
-    stateBefore: null,
+    stateBefore: stateBeforeSession,
     moodAfter,
     stateAfter,
     result: result,
@@ -196,6 +203,7 @@ async function saveSessionWithResult(res) {
     timestamp: Date.now()
   });
   
+  // ✅ GENERATE_INSIGHT с type: 'practice' — как требует insight-engine.js
   SystemCore.dispatch('GENERATE_INSIGHT', {
     type: 'practice',
     source: 'support_texts',
@@ -206,6 +214,7 @@ async function saveSessionWithResult(res) {
   
   sessionStartTime = null;
   moodBeforeSession = null;
+  stateBeforeSession = null;
   result = null;
   
   setTimeout(() => {

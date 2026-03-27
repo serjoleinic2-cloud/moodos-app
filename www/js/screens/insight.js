@@ -17,6 +17,7 @@ const PRACTICES = [
   { key: "visual-focus", icon: "👁", labelKey: "tools_visual" },
   { key: "mind-dump",    icon: "🧠", labelKey: "tools_mind" },
   { key: "tap-calm",     icon: "✋", labelKey: "tools_tap" },
+  { key: "support_texts", icon: "💬", labelKey: "support_texts_title" },
 ];
 
 function trendLabel(tr) {
@@ -74,6 +75,7 @@ function practiceShortLabel(key) {
     "visual-focus": t("tools_visual"),
     "mind-dump":    t("tools_mind"),
     "tap-calm":     t("tools_tap"),
+    "support_texts": t("support_texts_title"),
   };
   return (map[key] || key).replace(/^[^\s]+\s/, "");
 }
@@ -226,6 +228,7 @@ export async function onEnter() {
     practiceData["visual-focus"].sessions = stats.visualFocusSessions  || 0;
     practiceData["mind-dump"].sessions    = stats.mindDumpSessions     || 0;
     practiceData["tap-calm"].sessions     = stats.tapCalmSessions      || 0;
+    practiceData["support_texts"].sessions = stats.supportTextsSessions || 0;
   }
 
   const activePractices = PRACTICES.filter(p => practiceData[p.key].rate !== null);

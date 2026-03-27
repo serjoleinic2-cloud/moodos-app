@@ -47,7 +47,8 @@ export function getEffectivenessByState(type) {
 
 // ---- ЛУЧШИЙ ИНСТРУМЕНТ для текущего состояния ----
 export function getBestToolForState(currentState) {
-  const types = ["breathing", "meditation", "visual-focus", "mind-dump", "tap-calm"];
+  // ✅ ИСПРАВЛЕНИЕ: добавлен "support_texts"
+  const types = ["breathing", "meditation", "visual-focus", "mind-dump", "tap-calm", "support_texts"];
 
   let bestTool = null;
   let bestRate = -1;
@@ -71,11 +72,13 @@ export function getPersonalRecommendation(currentState) {
   const meditationRate  = getEffectivenessRate("meditation");
 
   const toolNames = {
-    "breathing":     t("tools_breathing").replace(/^[^\s]+\s/, ""),
-    "meditation":    t("tools_meditation").replace(/^[^\s]+\s/, ""),
-    "visual-focus":  t("tools_visual").replace(/^[^\s]+\s/, ""),
-    "mind-dump":     t("tools_mind").replace(/^[^\s]+\s/, ""),
-    "tap-calm":      t("tools_tap").replace(/^[^\s]+\s/, ""),
+    "breathing":      t("tools_breathing").replace(/^[^\s]+\s/, ""),
+    "meditation":     t("tools_meditation").replace(/^[^\s]+\s/, ""),
+    "visual-focus":   t("tools_visual").replace(/^[^\s]+\s/, ""),
+    "mind-dump":      t("tools_mind").replace(/^[^\s]+\s/, ""),
+    "tap-calm":       t("tools_tap").replace(/^[^\s]+\s/, ""),
+    // ✅ ИСПРАВЛЕНИЕ: добавлено имя для support_texts
+    "support_texts":  t("support_texts_title").replace(/^[^\s]+\s/, ""),
   };
 
   if (breathingRate === null && meditationRate === null) {
@@ -109,35 +112,41 @@ export function getFullSessionStats() {
   const sessions = getSessionHistory();
   if (!sessions.length) return null;
 
-  const breathing   = sessions.filter(s => s.type === "breathing");
-  const meditation  = sessions.filter(s => s.type === "meditation");
-  const visualFocus = sessions.filter(s => s.type === "visual-focus");
-  const mindDump    = sessions.filter(s => s.type === "mind-dump");
-  const tapCalm     = sessions.filter(s => s.type === "tap-calm");
+  const breathing    = sessions.filter(s => s.type === "breathing");
+  const meditation   = sessions.filter(s => s.type === "meditation");
+  const visualFocus  = sessions.filter(s => s.type === "visual-focus");
+  const mindDump     = sessions.filter(s => s.type === "mind-dump");
+  const tapCalm      = sessions.filter(s => s.type === "tap-calm");
+  // ✅ ИСПРАВЛЕНИЕ: добавлен счётчик support_texts
+  const supportTexts = sessions.filter(s => s.type === "support_texts");
 
   const totalDuration = sessions.reduce((a, s) => a + (s.duration || 0), 0);
   const minutes = Math.floor(totalDuration / 60);
 
   return {
-    totalSessions:       sessions.length,
-    breathingSessions:   breathing.length,
-    meditationSessions:  meditation.length,
-    visualFocusSessions: visualFocus.length,
-    mindDumpSessions:    mindDump.length,
-    tapCalmSessions:     tapCalm.length,
-    totalMinutes:        minutes,
-    breathingRate:       getEffectivenessRate("breathing"),
-    meditationRate:      getEffectivenessRate("meditation"),
-    visualFocusRate:     getEffectivenessRate("visual-focus"),
-    mindDumpRate:        getEffectivenessRate("mind-dump"),
-    tapCalmRate:         getEffectivenessRate("tap-calm"),
-    breathingLift:       getAverageMoodLift("breathing"),
-    meditationLift:      getAverageMoodLift("meditation"),
-    visualFocusLift:     getAverageMoodLift("visual-focus"),
-    mindDumpLift:        getAverageMoodLift("mind-dump"),
-    tapCalmLift:         getAverageMoodLift("tap-calm"),
-    breathingByState:    getEffectivenessByState("breathing"),
-    meditationByState:   getEffectivenessByState("meditation"),
+    totalSessions:          sessions.length,
+    breathingSessions:      breathing.length,
+    meditationSessions:     meditation.length,
+    visualFocusSessions:    visualFocus.length,
+    mindDumpSessions:       mindDump.length,
+    tapCalmSessions:        tapCalm.length,
+    // ✅ ИСПРАВЛЕНИЕ: добавлено поле supportTextsSessions
+    supportTextsSessions:   supportTexts.length,
+    totalMinutes:           minutes,
+    breathingRate:          getEffectivenessRate("breathing"),
+    meditationRate:         getEffectivenessRate("meditation"),
+    visualFocusRate:        getEffectivenessRate("visual-focus"),
+    mindDumpRate:           getEffectivenessRate("mind-dump"),
+    tapCalmRate:            getEffectivenessRate("tap-calm"),
+    supportTextsRate:       getEffectivenessRate("support_texts"),
+    breathingLift:          getAverageMoodLift("breathing"),
+    meditationLift:         getAverageMoodLift("meditation"),
+    visualFocusLift:        getAverageMoodLift("visual-focus"),
+    mindDumpLift:           getAverageMoodLift("mind-dump"),
+    tapCalmLift:            getAverageMoodLift("tap-calm"),
+    supportTextsLift:       getAverageMoodLift("support_texts"),
+    breathingByState:       getEffectivenessByState("breathing"),
+    meditationByState:      getEffectivenessByState("meditation"),
   };
 }
 
