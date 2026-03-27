@@ -177,6 +177,13 @@ export function getFullInsight(currentMood, currentState) {
 }
 
 export async function generate(currentState) {
+  if (currentState?.type === 'practice' && currentState?.source === 'support_texts') {
+    return {
+      insight: getSupportTextInsight(currentState.result, currentState.source),
+      type: 'practice'
+    };
+  }
+  
   if (currentState?.type === 'support_text' || currentState?.source === 'support_texts') {
     return {
       insight: getSupportTextInsight(currentState.result, currentState.category || currentState.source),

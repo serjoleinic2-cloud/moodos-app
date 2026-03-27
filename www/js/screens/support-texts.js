@@ -66,8 +66,8 @@ function render() {
   if (!container) return;
   
   container.innerHTML = `
-    <div style="text-align:center; min-height:60vh; display:flex; flex-direction:column; justify-content:center; padding:20px 16px;">
-      <h2 style="margin-bottom:24px;">${t("support_texts_title")}</h2>
+    <div style="text-align:center; margin-top:20px;">
+      <h2 style="margin-bottom:6px;">${t("support_texts_title")}</h2>
       
       ${currentType === null ? renderTypeSelector() : renderTextDisplay()}
     </div>
@@ -76,7 +76,7 @@ function render() {
 
 function renderTypeSelector() {
   return `
-    <div style="display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;flex-direction:column;gap:14px;padding:0 4px;">
       <div id="stCalm" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#a8d8ea;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">🧘 ${t("support_texts_calm")}</div>
       <div id="stAffirmations" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#a8e6cf;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">💬 ${t("support_texts_affirmations")}</div>
       <div id="stPrayer" style="padding:16px 20px;border-radius:16px;cursor:pointer;background:#ffd3a5;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#fff;font-size:16px;font-weight:500;">🙏 ${t("support_texts_prayer")}</div>
@@ -89,18 +89,18 @@ function renderTextDisplay() {
   const text = texts[currentIndex % texts.length];
   
   return `
-    <div style="margin:16px 0;padding:24px 16px;border-radius:20px;background:#fff;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;min-height:100px;display:flex;align-items:center;justify-content:center;">
+    <div style="margin:20px 4px 16px;padding:24px 16px;border-radius:20px;background:#fff;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;min-height:100px;display:flex;align-items:center;justify-content:center;">
       <p style="font-size:17px;line-height:1.6;color:#444;margin:0;">${text}</p>
     </div>
     
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
       <div id="stNext" style="padding:14px 24px;border-radius:14px;cursor:pointer;background:#e0e5ec;box-shadow:5px 5px 10px #b8bec7,-5px -5px 10px #ffffff;color:#555;font-size:15px;">${t("support_texts_next")}</div>
     </div>
     
-    <div style="flex-direction:column;gap:12px;align-items:center;">
-      <div style="font-size:15px;color:#666;margin-bottom:4px;">${t("md_how_feel")}</div>
-      <div id="stHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#4a7c59;font-size:16px;text-align:center;">👍 ${t("hist_helped")}</div>
-      <div id="stNotHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#888;font-size:16px;text-align:center;">👎 ${t("hist_not_helped")}</div>
+    <div id="stFeedback" style="flex-direction:column;gap:14px;align-items:center;margin-top:10px;">
+      <div style="font-size:16px;color:#666;margin-bottom:6px;">${t("md_how_feel")}</div>
+      <div id="stHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#4a7c59;font-size:18px;text-align:center;">👍 ${t("hist_helped")}</div>
+      <div id="stNotHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#888;font-size:18px;text-align:center;">👎 ${t("hist_not_helped")}</div>
     </div>
   `;
 }
