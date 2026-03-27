@@ -1,0 +1,210 @@
+# 🚨 TASK: Fix Support Texts (Insight + Centering + Button overlap)
+
+## 📌 Goal
+
+Исправить 3 проблемы:
+
+1. Нет записи в Insight
+2. 3 кнопки (Спокойствие / Поддержка / Молитва) не по центру
+3. Кнопки "Помогло / Не помогло" наезжают друг на друга
+
+---
+
+# 🔴 PART 1: FIX INSIGHT (CRITICAL)
+
+## ❗ Проблема:
+
+данные НЕ отображаются в Insight
+
+---
+
+## ✅ Решение:
+
+НАЙТИ рабочую практику (например `meditation.js`)
+
+---
+
+## 👉 СКОПИРОВАТЬ pipeline 1:1
+
+### После нажатия:
+
+```js
+Memory.save('practice', {
+  type: 'practice',
+  name: i18n.t('practice_support_text'),
+  result: payload.result,
+  date: Date.now()
+});
+```
+
+---
+
+### И СРАЗУ:
+
+```js
+SystemCore.dispatch('GENERATE_INSIGHT', {
+  type: 'practice',
+  result: payload.result
+});
+```
+
+---
+
+## ❗ ЗАПРЕЩЕНО:
+
+* type: 'support_text'
+* любые кастомные форматы
+
+---
+
+## ✅ ОБЯЗАТЕЛЬНО:
+
+использовать `type: 'practice'`
+(иначе Insight не работает)
+
+---
+
+# 🔴 PART 2: CENTER 3 MAIN BUTTONS
+
+Экран:
+
+👉 Практики → Тексты поддержки
+👉 3 кнопки (Спокойствие / Поддержка / Молитва)
+
+---
+
+## ❗ Проблема:
+
+прилипли к верху
+
+---
+
+## ✅ FIX CSS:
+
+Найти контейнер (например `.support-selection`)
+
+---
+
+### Добавить:
+
+```css
+.support-selection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+}
+```
+
+---
+
+# 🔴 PART 3: FIX BUTTON OVERLAP
+
+## ❗ Проблема:
+
+"Не помогло" залезает на "Помогло"
+
+---
+
+## ❗ ПРИЧИНА:
+
+неправильный layout (скорее всего position / width)
+
+---
+
+## ✅ РЕШЕНИЕ (НЕ ИЗОБРЕТАТЬ)
+
+Скопировать из другой практики:
+
+---
+
+### HTML:
+
+```html
+<div class="actions">
+  <button class="btn-secondary">Не помогло</button>
+  <button class="btn-primary">Помогло</button>
+</div>
+```
+
+---
+
+### CSS (или существующий класс):
+
+```css
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+```
+
+---
+
+## ❗ УДАЛИТЬ если есть:
+
+```css
+position: absolute;
+bottom: ...
+left: ...
+width: 100%;
+```
+
+---
+
+# 🔴 PART 4: CENTER FEEDBACK BLOCK
+
+Если кнопки всё ещё криво:
+
+---
+
+Добавить родителю:
+
+```css
+.feedback-container {
+  display: flex;
+  justify-content: center;
+}
+```
+
+---
+
+# 🎯 EXPECTED RESULT
+
+## Экран 1:
+
+✔ 3 кнопки по центру экрана
+
+## Экран 2:
+
+✔ кнопки "Помогло / Не помогло" рядом
+✔ не наезжают
+✔ одинаковые как в других практиках
+
+## Логика:
+
+✔ запись появляется в Insight
+✔ запись появляется в истории
+
+---
+
+# ❗ FAIL CONDITIONS
+
+Если есть хоть одно:
+
+* нет записи в Insight
+* кнопки не по центру
+* кнопки перекрываются
+* кастомный type
+
+→ задача НЕ выполнена
+
+---
+
+# 📩 REPORT
+
+1. Откуда скопирован pipeline
+2. Где вызывается Memory.save
+3. Где вызывается GENERATE_INSIGHT
+4. Какие CSS классы использованы
