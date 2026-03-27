@@ -417,5 +417,6 @@ export const en = {
         "Thy will be done.",
         "My spirit finds peace and strength.",
         "In the silence of my heart, I find answers."
-    ]
+    ],
+    practice_support_text: "Support texts"
 };

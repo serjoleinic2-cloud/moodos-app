@@ -130,7 +130,8 @@ export function getMicroHabit(currentState) {
       "meditation":     "медитацию",
       "visual-focus":   "зрительный якорь",
       "mind-dump":      "выгрузку мыслей",
-      "tap-calm":       "тактильную разрядку"
+      "tap-calm":       "тактильную разрядку",
+      "support_texts":  "тексты поддержки"
     };
     return `Попробуй ${toolNames[bestTool] || bestTool} — она лучше всего работает для тебя в этом состоянии`;
   }
@@ -144,6 +145,20 @@ export function getMicroHabit(currentState) {
   }
 
   return getPersonalRecommendation(currentState);
+}
+
+// ---- ПОДДЕРЖКА: ТЕКСТЫ ----
+export function getSupportTextInsight(result, category) {
+  if (result === 'positive') {
+    const categoryNames = {
+      "calm": "тексты спокойствия",
+      "affirmations": "аффирмации",
+      "prayer": "молитвы"
+    };
+    return `Тебе помогают ${categoryNames[category] || 'тексты поддержки'} — используй их, когда нужно.`;
+  } else {
+    return "Тексты помогают не всегда — в следующий раз попробуй активные практики: дыхание или медитацию.";
+  }
 }
 
 // ---- ПОЛНЫЙ ИНСАЙТ ----
@@ -162,6 +177,13 @@ export function getFullInsight(currentMood, currentState) {
 }
 
 export async function generate(currentState) {
+  if (currentState?.type === 'support_text' || currentState?.source === 'support_texts') {
+    return {
+      insight: getSupportTextInsight(currentState.result, currentState.category || currentState.source),
+      type: 'support_text'
+    };
+  }
+  
   const explanation = explainCurrentState()
   const full = getFullInsight(null, currentState)
   return { explanation, full }

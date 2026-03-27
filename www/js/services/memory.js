@@ -16,6 +16,18 @@ export function save(data) {
     if (history.length > 730) history.shift();
     saveMoodHistory(history);
   }
+  if (data.feedback !== undefined) {
+    const history = getSupportFeedbackHistory();
+    history.push(data.feedback);
+    if (history.length > 100) history.shift();
+    saveSupportFeedbackHistory(history);
+  }
+  if (data.lastSupportInsight !== undefined) {
+    localStorage.setItem("last_support_insight", JSON.stringify({
+      text: data.lastSupportInsight,
+      time: Date.now()
+    }));
+  }
 }
 
 /* ---------- MOOD HISTORY ---------- */
@@ -52,6 +64,16 @@ export function getVoiceHistory() {
 
 export function saveVoiceHistory(history) {
   localStorage.setItem("voice_history", JSON.stringify(history));
+}
+
+/* ---------- SUPPORT FEEDBACK HISTORY ---------- */
+
+export function getSupportFeedbackHistory() {
+  return JSON.parse(localStorage.getItem("support_feedback_history")) || [];
+}
+
+export function saveSupportFeedbackHistory(history) {
+  localStorage.setItem("support_feedback_history", JSON.stringify(history));
 }
 
 /* ---------- SESSION HISTORY ---------- */

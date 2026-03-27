@@ -12,7 +12,7 @@
 
 // system-core.js — Orchestrator
 
-import { update } from './state.js'
+import { update, getMood } from './state.js'
 import * as StateEngine from './services/state-engine.js'
 import * as InsightEngine from './services/insight-engine.js'
 import * as PatternEngine from './services/pattern-engine.js'
@@ -149,14 +149,6 @@ const SystemCore = {
           })
           break
 
-        case 'SUPPORT_TEXT_FEEDBACK':
-          console.log('[SUPPORT] Feedback received:', payload);
-          result = await this.saveEvent({
-            type: 'support_feedback',
-            ...payload
-          });
-          break
-
         case 'AVATAR_TEST':
           console.log('[AVATAR DEBUG] AVATAR_TEST event');
           showAvatar({
@@ -175,6 +167,28 @@ const SystemCore = {
             force: true
           });
           result = { success: true };
+          break
+
+        case 'GENERATE_INSIGHT':
+          console.log('[INSIGHT] Generating insight for:', payload);
+          const mood = getMood();
+          const analysis = await StateEngine.analyze(mood);
+          const insightResult = await InsightEngine.generate({
+            type: payload.type,
+            source: payload.source,
+            result: payload.result,
+            mood,
+            state: analysis?.state
+          });
+          if (insightResult?.insight) {
+            Memory.save({ lastInsight: insightResult.insight });
+            showAvatar({
+              text: insightResult.insight,
+              source: 'insight',
+              force: true
+            });
+          }
+          result = { success: true, insight: insightResult };
           break
 
         case 'USER_INACTIVE':
