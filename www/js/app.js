@@ -1,12 +1,4 @@
-console.log('🔥🔥🔥 NEW APP.JS 20260334 LOADED 🔥🔥🔥');
-
-document.addEventListener('touchstart', (e) => {
-  console.log('[GLOBAL TOUCH]', { target: e.target?.id, x: e.touches[0]?.clientX, y: e.touches[0]?.clientY });
-}, { passive: true });
-
-document.addEventListener('mousedown', (e) => {
-  console.log('[GLOBAL MOUSE]', { target: e.target?.id, x: e.clientX, y: e.clientY });
-}, { passive: true });
+// app.js — MoodOS boot
 
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
@@ -188,52 +180,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-const AVATAR_WIDTH = 50;
-const AVATAR_HEIGHT = 50;
 
-console.log('[AUDIT] === APP STARTING ===');
 
 function startApp() {
-  console.log('[AUDIT] startApp called');
-  console.log('[CHECK] initAvatarTap called');
-  
+  // ── Avatar ──
   try {
-    initAvatarTap();
-    console.log('[AUDIT] initAvatarTap done');
+    initAvatarTap(); // sets up drag, tap, restores position
   } catch (e) {
-    console.error('[AUDIT ERROR] initAvatarTap:', e);
+    console.error('[BOOT] initAvatarTap:', e);
   }
-  
-  setTimeout(() => {
-    try {
-      const avatarState = getAvatarState();
-      const container = document.getElementById('avatar-container');
-      
-      let x = avatarState.position?.x ?? 20;
-      let y = avatarState.position?.y ?? 100;
-      
-      if (container) {
-        container.style.transform = `translate(${x}px, ${y}px)`;
-      }
-      
-      setAvatarState({ visible: true, isIdle: true });
-      renderAvatar();
-      console.log('[AVATAR] Initial position set:', { x, y });
-    } catch (e) {
-      console.error('[AUDIT ERROR] renderAvatar:', e);
-    }
-  }, 200);
-  
-  trackUserActivity();
-  
-  document.addEventListener('click', trackUserActivity, { passive: true });
-  document.addEventListener('touchstart', trackUserActivity, { passive: true });
-  document.addEventListener('scroll', trackUserActivity, { passive: true });
-  
+
   setTimeout(() => {
     maybeShowAvatarProactive();
   }, 3000);
   
+  // ── Activity tracking ──
+  trackUserActivity();
+  document.addEventListener('click',      trackUserActivity, { passive: true });
+  document.addEventListener('touchstart', trackUserActivity, { passive: true });
+  document.addEventListener('scroll',     trackUserActivity, { passive: true });
+
   if (checkPremiumExpiry()) {
     deactivateExpiredPremium();
     showPremiumModal({
@@ -361,122 +327,8 @@ function getViewportHeight() {
   return window.visualViewport?.height || window.innerHeight;
 }
 
-let renderCounter = 0;
-const MAX_RENDERS = 100;
-let lastRenderTime = 0;
+// renderAvatar is defined in avatar.js and imported via initAvatarTap.
+// app.js does NOT re-implement it — that was the source of the x/y bug.
+// window.renderAvatarApp is set inside avatar.js itself if needed.
 
-/* ---------- AVATAR RENDERER ---------- */
-export function renderAvatar() {
-  console.log('[AVATAR] renderAvatar called');
-  renderCounter++;
-  const now = Date.now();
-  
-  if (renderCounter > MAX_RENDERS) {
-    console.error('[AUDIT ERROR] Too many renders! Possible infinite loop.');
-    return;
-  }
-  
-  if (now - lastRenderTime < 16) {
-    console.warn('[AUDIT] Rapid renders detected:', renderCounter);
-  }
-  lastRenderTime = now;
-  
-  console.log('[AVATAR RENDER] visual only update');
-  
-  const container = document.getElementById('avatar-container');
-  if (!container) {
-    console.error('[AVATAR RENDER] Container not found');
-    return;
-  }
-  
-  const avatarState = getAvatarState();
-  
-  if (avatarState.isIdle) {
-    container.classList.add('idle');
-  } else {
-    container.classList.remove('idle');
-  }
-  
-  const textEl = document.getElementById('avatar-text');
-  const actionsEl = document.getElementById('avatar-actions');
-  const bubble = document.getElementById('avatar-bubble');
-  
-  if (avatarState.visible) {
-    if (textEl) textEl.textContent = avatarState.message;
-    if (actionsEl) actionsEl.innerHTML = '';
-    
-    if (avatarState.actions && avatarState.actions.length > 0) {
-      avatarState.actions.slice(0, 2).forEach(action => {
-        const btn = document.createElement('button');
-        btn.className = 'avatar-action-btn';
-        btn.textContent = action.label;
-        btn.onclick = () => {
-          if (window.navigateTo) {
-            window.navigateTo(action.action);
-          }
-          setAvatarState({ visible: false });
-          renderAvatar();
-        };
-        if (actionsEl) actionsEl.appendChild(btn);
-      });
-    }
-    
-    container.classList.add('active');
-  } else {
-    container.classList.remove('active');
-  }
-  
-  if (bubble) {
-    const viewportWidth = getViewportWidth();
-    const isRightSide = x > (viewportWidth / 2);
-    const isNearTop = y < 80;
-    
-    bubble.classList.remove('right', 'left', 'bottom');
-    
-    if (isRightSide) {
-      bubble.classList.add('left');
-    } else {
-      bubble.classList.add('right');
-    }
-    
-    if (isNearTop) {
-      bubble.classList.add('bottom');
-    }
-  }
-}
 
-window.renderAvatarApp = renderAvatar;
-
-window.AUDIT = {
-  disableAvatar: function() {
-    const el = document.getElementById('avatar-container');
-    if (el) {
-      el.style.pointerEvents = 'none';
-      el.style.display = 'none';
-      console.log('[AUDIT] Avatar disabled');
-    }
-  },
-  enableAvatar: function() {
-    const el = document.getElementById('avatar-container');
-    if (el) {
-      el.style.pointerEvents = 'auto';
-      el.style.display = 'block';
-      console.log('[AUDIT] Avatar enabled');
-    }
-  },
-  testUI: function() {
-    console.log('=== UI TEST ===');
-    const el = document.elementFromPoint(100, 100);
-    console.log('elementAt100,100:', el?.tagName, el?.id);
-    const avatarEl = document.getElementById('avatar-container');
-    if (avatarEl) {
-      const rect = avatarEl.getBoundingClientRect();
-      console.log('Avatar rect:', rect);
-    }
-  },
-  getState: function() {
-    return window.renderAvatarApp ? 'renderAvatar available' : 'renderAvatar NOT available';
-  }
-};
-
-console.log('[AUDIT] Functions registered. Use: AUDIT.disableAvatar(), AUDIT.enableAvatar(), AUDIT.testUI()');
