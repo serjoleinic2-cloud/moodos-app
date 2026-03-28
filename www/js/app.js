@@ -17,7 +17,7 @@ import {
 import {
   initState, getUsageDays, getMood, setMood, getAvatarState, setAvatarState
 } from "./state.js";
-import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter } from "./services/user-profile.js";
+import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
@@ -156,6 +156,14 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('[BOOT] initUI done');
   } catch (e) {
     console.error('[BOOT ERROR] initUI:', e);
+  }
+
+  // Применяем тему при запуске
+  try {
+    const theme = getTheme();
+    document.body.setAttribute("data-theme", theme);
+  } catch (e) {
+    console.warn('[BOOT] theme apply failed:', e);
   }
   
   applyDomTranslations();
@@ -330,5 +338,3 @@ function getViewportHeight() {
 // renderAvatar is defined in avatar.js and imported via initAvatarTap.
 // app.js does NOT re-implement it — that was the source of the x/y bug.
 // window.renderAvatarApp is set inside avatar.js itself if needed.
-
-

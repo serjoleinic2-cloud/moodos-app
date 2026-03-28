@@ -228,3 +228,16 @@ export function deactivateExpiredPremium() {
   }
   return false;
 }
+
+// ---- ТЕМА ----
+
+export function getTheme() {
+  const profile = getProfile();
+  return profile?.colorTheme || "default";
+}
+
+export function saveTheme(theme) {
+  const profile = getProfile() || {};
+  profile.colorTheme = theme;
+  saveProfile(profile);
+}

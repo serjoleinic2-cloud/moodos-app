@@ -10,6 +10,8 @@ import {
   getMedReminder,
   getPremiumInfo,
   activateTrial,
+  getTheme,
+  saveTheme,
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
@@ -57,6 +59,13 @@ function renderSettings() {
     ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_days_left")}: ${premiumInfo.trialDaysLeft}</div>` 
     : "";
   const showTrialBtn = premiumInfo.status === "free";
+
+  const themeLabels = {
+    "default": "🌿 Зелёно-бежевая",
+    "purple-blue": "💜 Фиолетово-синяя",
+    "purple-pink": "🌸 Фиолетово-розовая",
+  };
+  const currentThemeLabel = themeLabels[getTheme()] || themeLabels["default"];
 
   const medsSection = takesMeds ? (
     '<div class="neo-row" id="settingEffect">' +
@@ -113,6 +122,11 @@ function renderSettings() {
           <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">${t("settings_baseline_label")}</span></div>
           <span class="neo-row-value">${profile?.moodBaseline??50}% ›</span>
         </div>
+        ${premiumInfo.isPremium ? `
+        <div class="neo-row" id="settingTheme">
+          <div class="neo-row-left"><span class="neo-row-icon">🎨</span><span class="neo-row-label">Цветовая схема</span></div>
+          <span class="neo-row-value">${currentThemeLabel} ›</span>
+        </div>` : ""}
         <div class="neo-row" id="settingLanguage">
           <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">${t("settings_language_label")}</span></div>
           <span class="neo-row-value">${langInfo.flag} ${langInfo.label} ›</span>
@@ -245,6 +259,7 @@ function bindEvents(el) {
       .catch(e => console.warn("pdf-report load failed:", e));
   });
 
+  el.querySelector("#settingTheme")?.addEventListener("click", () => showThemeModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
 
   // Бэкап
@@ -428,4 +443,50 @@ function showBaselineModal() {
   overlay.querySelector("#modalSave").addEventListener("click", () => { saveProfile({...profile,moodBaseline:Number(slider.value)}); overlay.remove(); refresh(); });
   overlay.querySelector("#modalCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
+}
+
+function showThemeModal() {
+  const current = getTheme();
+  const themes = [
+    { value: "default",      label: "🌿 Зелёно-бежевая (текущая)" },
+    { value: "purple-blue",  label: "💜 Фиолетово-синяя" },
+    { value: "purple-pink",  label: "🌸 Фиолетово-розовая" },
+  ];
+  const overlay = document.createElement("div");
+  overlay.className = "health-modal-overlay";
+  overlay.innerHTML = `
+    <div class="health-modal">
+      <div class="modal-title">🎨 Цветовая схема</div>
+      <div class="modal-subtitle">Выбери оформление приложения</div>
+      <div class="modal-options">${themes.map(th=>`<div class="modal-option ${th.value===current?"selected":""}" data-value="${th.value}">${th.label}</div>`).join("")}</div>
+      <button class="modal-save-btn" id="modalSave">${t("save")}</button>
+      <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  let selected = current;
+  overlay.querySelectorAll(".modal-option").forEach(opt => {
+    opt.addEventListener("click", () => {
+      overlay.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      selected = opt.dataset.value;
+      // превью темы сразу
+      document.body.setAttribute("data-theme", selected);
+    });
+  });
+  overlay.querySelector("#modalSave").addEventListener("click", () => {
+    saveTheme(selected);
+    overlay.remove();
+    refresh();
+  });
+  overlay.querySelector("#modalCancel").addEventListener("click", () => {
+    // откат превью
+    document.body.setAttribute("data-theme", current);
+    overlay.remove();
+  });
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) {
+      document.body.setAttribute("data-theme", current);
+      overlay.remove();
+    }
+  });
 }

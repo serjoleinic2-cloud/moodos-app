@@ -292,3 +292,58 @@ textarea {
 .golden-title { font-size: 14px; opacity: 0.6; }
 #todayInsight { font-size: 16px; }
 #goldenHours { font-size: 18px; margin-top: 4px; }
+
+
+/* ===== ЦВЕТОВЫЕ ТЕМЫ ===== */
+
+/* --- Фиолетово-синяя --- */
+[data-theme="purple-blue"] body {
+  background: linear-gradient(160deg, #d6d0f0 0%, #c8d8f5 100%) !important;
+}
+[data-theme="purple-blue"] .card,
+[data-theme="purple-blue"] .mo-metric,
+[data-theme="purple-blue"] .hist-card,
+[data-theme="purple-blue"] .flip-front,
+[data-theme="purple-blue"] .flip-back,
+[data-theme="purple-blue"] .stab-entry,
+[data-theme="purple-blue"] .bottom-nav {
+  background: rgba(214, 208, 240, 0.9) !important;
+  box-shadow: 6px 6px 14px #b0a8d8, -6px -6px 14px #ffffff !important;
+}
+[data-theme="purple-blue"] .mo-btn,
+[data-theme="purple-blue"] .card button,
+[data-theme="purple-blue"] .mood-ok-btn {
+  background: linear-gradient(145deg, #e8e0f8, #d8d0f0) !important;
+  box-shadow: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff !important;
+  color: #6b5ea7 !important;
+}
+[data-theme="purple-blue"] .bottom-nav button.active { color: #7b5ea7 !important; }
+[data-theme="purple-blue"] textarea {
+  box-shadow: inset 3px 3px 7px #b0a8d8, inset -3px -3px 7px #ffffff !important;
+}
+
+/* --- Фиолетово-розовая --- */
+[data-theme="purple-pink"] body {
+  background: linear-gradient(160deg, #f0d6ea 0%, #ead6f0 100%) !important;
+}
+[data-theme="purple-pink"] .card,
+[data-theme="purple-pink"] .mo-metric,
+[data-theme="purple-pink"] .hist-card,
+[data-theme="purple-pink"] .flip-front,
+[data-theme="purple-pink"] .flip-back,
+[data-theme="purple-pink"] .stab-entry,
+[data-theme="purple-pink"] .bottom-nav {
+  background: rgba(240, 214, 234, 0.9) !important;
+  box-shadow: 6px 6px 14px #d4b0cc, -6px -6px 14px #ffffff !important;
+}
+[data-theme="purple-pink"] .mo-btn,
+[data-theme="purple-pink"] .card button,
+[data-theme="purple-pink"] .mood-ok-btn {
+  background: linear-gradient(145deg, #f8e0f0, #f0d0e8) !important;
+  box-shadow: 5px 5px 10px #d4b0cc, -5px -5px 10px #ffffff !important;
+  color: #a0479a !important;
+}
+[data-theme="purple-pink"] .bottom-nav button.active { color: #b5479a !important; }
+[data-theme="purple-pink"] textarea {
+  box-shadow: inset 3px 3px 7px #d4b0cc, inset -3px -3px 7px #ffffff !important;
+}
