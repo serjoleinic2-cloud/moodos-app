@@ -1,0 +1,70 @@
+# 🚨 FIX: Avatar layers cleanup (remove debug + extra wrappers)
+
+## 📌 Goal
+
+Оставить ТОЛЬКО аватар (emoji), без квадратов и фонов
+
+---
+
+# 🔴 PART 1: REMOVE DEBUG STYLES
+
+В app.js или avatar.js найти и УДАЛИТЬ:
+
+```js
+el.style.background = 'red';
+```
+
+или
+
+```css
+background: red;
+border: 2px solid red;
+```
+
+---
+
+# 🔴 PART 2: CLEAN CONTAINER
+
+## ❗ Должно быть:
+
+ОДИН контейнер:
+
+```html
+<div id="avatar-container">
+  <div id="avatar-face">🙂</div>
+</div>
+```
+
+---
+
+## ❌ УДАЛИТЬ / ОТКЛЮЧИТЬ:
+
+* #avatar-effects
+* лишние div вокруг face
+* bubble (если сейчас ломает UI)
+
+---
+
+# 🔴 PART 3: FIX CSS
+
+```css
+#avatar-container {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  z-index: 9000;
+  background: transparent;
+}
+
+#avatar-face {
+  font-size: 28px;
+}
+```
+
+---
+
+# 🎯 RESULT
+
+* нет красного круга
+* нет синего квадрата
+* только emoji аватар
