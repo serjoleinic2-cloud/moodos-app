@@ -10,6 +10,7 @@
   cursor: grab;
   background: transparent;
   overflow: visible;
+  pointer-events: auto;
 }
 
 #avatar-container.dragging {
@@ -31,6 +32,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Idle — breathing */
 #avatar-container.idle #avatar-face {
   animation: avatar-breathe 4s ease-in-out infinite;
 }
@@ -40,10 +42,39 @@
   50%       { transform: scale(1.06); }
 }
 
-/* ─── Bubble ──────────────────────────────────────────────────────────────── */
+/* Tap — bounce */
+#avatar-container.tapped #avatar-face {
+  animation: avatar-bounce 0.4s ease;
+}
+
+@keyframes avatar-bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.2); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* Show message — scale pulse */
+#avatar-container.active #avatar-face {
+  animation: avatar-pulse 0.35s ease;
+}
+
+@keyframes avatar-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Dragging */
+#avatar-container.dragging #avatar-face {
+  transform: scale(1.1);
+  box-shadow: 6px 6px 16px rgba(0,0,0,0.2), -3px -3px 10px rgba(255,255,255,0.9);
+  animation: none;
+}
+
+/* ─── Bubble — базовое положение: СНИЗУ (аватар у верхнего края) ────────── */
 #avatar-bubble {
   position: absolute;
-  bottom: 68px;
   width: 180px;
   background: linear-gradient(145deg, #ffffff 0%, #f0f8f6 100%);
   border-radius: 16px;
@@ -56,6 +87,10 @@
   pointer-events: none;
   transform: translateY(6px) scale(0.95);
   transition: opacity 0.25s ease, transform 0.25s ease;
+
+  /* По умолчанию — сверху аватара */
+  bottom: 68px;
+  top: auto;
 }
 
 #avatar-bubble.visible {
@@ -64,9 +99,29 @@
   transform: translateY(0) scale(1);
 }
 
+/* Bubble снизу — когда аватар у верхнего края */
+#avatar-bubble.below {
+  top: 68px;
+  bottom: auto;
+  transform: translateY(-6px) scale(0.95);
+}
+
+#avatar-bubble.below.visible {
+  transform: translateY(0) scale(1);
+}
+
+/* Хвостик сверху (когда bubble снизу) */
+#avatar-bubble.below::after {
+  bottom: auto;
+  top: -7px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+/* Горизонтальное позиционирование */
 #avatar-bubble.left  { right: 0; left: auto; }
 #avatar-bubble.right { left: 0; right: auto; }
 
+/* Хвостик */
 #avatar-bubble::after {
   content: '';
   position: absolute;
