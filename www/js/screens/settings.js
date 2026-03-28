@@ -85,7 +85,7 @@ function renderSettings() {
       .neo-row-left{display:flex;align-items:center;flex:1}
       .neo-row-sub{font-size:11px;color:#bbb;margin-top:2px}
       .health-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:flex;align-items:flex-end}
-      .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px calc(32px + env(safe-area-inset-bottom));max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
+      .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px calc(90px + env(safe-area-inset-bottom));max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
       @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
       .modal-title{font-size:18px;font-weight:700;color:#3d3d3d;margin-bottom:6px}
       .modal-subtitle{font-size:13px;color:#aaa;margin-bottom:20px}
@@ -93,7 +93,7 @@ function renderSettings() {
       .modal-option{padding:13px 16px;border-radius:14px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #ffffff;font-size:15px;color:#555;cursor:pointer}
       .modal-option.selected{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;color:#7eb8d4;font-weight:600}
       .modal-save-btn{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#7eb8d4;cursor:pointer;display:block;box-sizing:border-box}
-      .modal-cancel{width:100%;padding:12px;text-align:center;font-size:14px;color:#bbb;cursor:pointer;margin-top:8px}
+      .modal-cancel{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#aaa;cursor:pointer;display:block;box-sizing:border-box;text-align:center;margin-top:8px}
     </style>
     <div class="settings-wrap">
       <div class="settings-title">${t("settings_title")}</div>
