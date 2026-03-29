@@ -4,7 +4,7 @@
 import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
-import { t } from "../i18n.js";
+import { t, getLang } from "../i18n.js";
 
 async function requestNotificationPermission() {
   try {
@@ -17,35 +17,27 @@ async function requestNotificationPermission() {
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
-
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9099)
       .map(n => ({ id: n.id }));
     if (moodosIds.length) await LocalNotifications.cancel({ notifications: moodosIds });
-
     if (!days.length || !time) return true;
 
     const [hh, mm] = time.split(":").map(Number);
     const notifications = [];
     let idCounter = 9000;
-
     days.forEach(dow => {
       const jsDow = dow === 7 ? 0 : dow;
       const now = new Date();
-
       for (let week = 0; week < 8; week++) {
         const target = new Date();
         target.setHours(hh, mm, 0, 0);
-
         const currentDow = now.getDay();
         let daysUntil = (jsDow - currentDow + 7) % 7;
-        if (daysUntil === 0 && target.getTime() <= now.getTime() + 65000) {
-          daysUntil = 7;
-        }
+        if (daysUntil === 0 && target.getTime() <= now.getTime() + 65000) daysUntil = 7;
         daysUntil += week * 7;
         target.setDate(target.getDate() + daysUntil);
-
         notifications.push({
           id: idCounter++,
           title: "MoodOS 📄",
@@ -56,41 +48,69 @@ async function scheduleNotifications(days, time, period) {
         });
       }
     });
-
     await LocalNotifications.schedule({ notifications });
     return true;
-  } catch(e) {
-    console.warn("Schedule error", e);
-    return false;
-  }
+  } catch(e) { console.warn("Schedule error", e); return false; }
 }
 
-const MED_LABELS = {
-  "нет":"Не принимает","антидепрессанты":"Антидепрессанты",
-  "седативные":"Седативные / успокоительные","другое":"Другое","не_скажу":"Не указано"
-};
-const EFFECT_LABELS = {
-  "лучше":"Стало лучше","примерно_так_же":"Примерно так же",
-  "приглушённость":"Чувствует приглушённость","побочки":"Есть побочные эффекты","адаптация":"Подбор дозировки"
-};
-const SESSION_NAMES = {
-  "breathing":"Дыхание","meditation":"Медитация",
-  "visual-focus":"Зрительный якорь","mind-dump":"Выгрузка мыслей","tap-calm":"Тактильная разрядка"
-};
+// БАГ 3 ИСПРАВЛЕН: все лейблы через t() с fallback на случай отсутствия ключа
+function getMedLabel(key) {
+  const map = {
+    "нет":             t("med_no")       || "Not taking",
+    "антидепрессанты": t("med_anti")     || "Antidepressants",
+    "седативные":      t("med_sed")      || "Sedatives",
+    "другое":          t("med_other")    || "Other",
+    "не_скажу":        t("med_not_said") || "Not specified",
+  };
+  return map[key] || t("not_specified") || "—";
+}
+
+function getEffectLabel(key) {
+  const map = {
+    "лучше":           t("effect_better") || "Better",
+    "примерно_так_же": t("effect_same")   || "About the same",
+    "приглушённость":  t("effect_numb")   || "Feeling numb",
+    "побочки":         t("effect_side")   || "Side effects",
+    "адаптация":       t("effect_adapt")  || "Still adjusting",
+  };
+  return map[key] || "—";
+}
+
+// БАГ 4 ИСПРАВЛЕН: "support_texts" и "support-texts" оба обработаны
+function getSessionName(key) {
+  const map = {
+    "breathing":     t("tools_breathing")     || "Breathing",
+    "meditation":    t("tools_meditation")    || "Meditation",
+    "visual-focus":  t("tools_visual")        || "Visual Anchor",
+    "mind-dump":     t("tools_mind")          || "Mind Dump",
+    "tap-calm":      t("tools_tap")           || "Tap Calm",
+    "support_texts": t("support_texts_title") || "Support Texts",
+    "support-texts": t("support_texts_title") || "Support Texts",
+  };
+  // Убираем эмодзи из начала
+  const label = map[key] || key;
+  return label.replace(/^[^\s]+\s/, "");
+}
+
+function getStateLabelPdf(s) {
+  const map = {
+    HIGH:     t("state_high")    || "Excellent",
+    GOOD:     t("state_good")    || "Good",
+    NEUTRAL:  t("state_neutral") || "Neutral",
+    STRESSED: t("state_stressed")|| "Stressed",
+    LOW:      t("state_low")     || "Low",
+  };
+  return map[s] || "—";
+}
 
 const STORE_KEY = "pdf_report_settings";
-function loadSettings() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
-}
+function loadSettings() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; } }
 function saveSettings(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
 
 let _reminderListenerAdded = false;
 
 function withTimeout(promise, ms) {
-  return Promise.race([
-    promise,
-    new Promise(resolve => setTimeout(() => resolve(null), ms))
-  ]);
+  return Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(null), ms))]);
 }
 
 export function checkAutoReminder() {
@@ -99,26 +119,20 @@ export function checkAutoReminder() {
       if (!window.Capacitor || !window.Capacitor.Plugins) return;
       const { LocalNotifications } = window.Capacitor.Plugins;
       if (!LocalNotifications) return;
-
       const s = loadSettings();
       if (s.autoDays && s.autoDays.length && s.autoTime) {
         const perm = await withTimeout(LocalNotifications.checkPermissions(), 4000);
-        if (perm && perm.display !== "granted") {
-          await withTimeout(LocalNotifications.requestPermissions(), 4000);
-        }
+        if (perm && perm.display !== "granted") await withTimeout(LocalNotifications.requestPermissions(), 4000);
         const pending = await withTimeout(LocalNotifications.getPending(), 4000);
         if (pending) {
           const remaining = pending.notifications.filter(n => n.id >= 9000 && n.id <= 9099).length;
           if (remaining < 4) scheduleNotifications(s.autoDays, s.autoTime, s.autoPeriod || "30");
         }
       }
-
       if (!_reminderListenerAdded) {
         _reminderListenerAdded = true;
         LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
-          if (action && action.notification && action.notification.extra && action.notification.extra.action === "openReport") {
-            showPdfReportModal();
-          }
+          if (action?.notification?.extra?.action === "openReport") showPdfReportModal();
         });
       }
     } catch(e) { console.warn("Push init error:", e); }
@@ -144,7 +158,6 @@ export function showPdfReportModal() {
     t("dow_mon"), t("dow_tue"), t("dow_wed"), t("dow_thu"),
     t("dow_fri"), t("dow_sat"), t("dow_sun")
   ];
-
   const PERIODS = [
     ["7",  t("pr_period_7")],
     ["14", t("pr_period_14")],
@@ -159,11 +172,9 @@ export function showPdfReportModal() {
   const daysHTML = DAYS.map(function(d, i) {
     return '<div class="pr-day ' + (autoDays.includes(i+1) ? 'active' : '') + '" data-day="' + (i+1) + '">' + d + '</div>';
   }).join('');
-
   const periodsHTML = PERIODS.map(function(p) {
     return '<div class="pr-period ' + (autoPeriod === p[0] ? 'active' : '') + '" data-period="' + p[0] + '">' + p[1] + '</div>';
   }).join('');
-
   const autoStatusText = autoDays.length
     ? ('🔔 ' + autoDays.map(function(d) { return DAYS[d-1]; }).join(', ') + ' ' + t("pr_status_at") + ' ' + autoTime + ' · ' + t("pr_status_for") + ' ' + autoPeriod + ' ' + t("report_days"))
     : t("pr_no_reminders");
@@ -230,79 +241,58 @@ export function showPdfReportModal() {
     '</div>';
 
   document.body.appendChild(screen);
-
   screen.querySelector("#prBack").addEventListener("click", function() { screen.remove(); });
 
   let selectedDays = autoDays.slice();
   screen.querySelectorAll(".pr-day").forEach(function(btn) {
     btn.addEventListener("click", function() {
       const d = parseInt(btn.dataset.day);
-      if (selectedDays.includes(d)) {
-        selectedDays = selectedDays.filter(function(x) { return x !== d; });
-        btn.classList.remove("active");
-      } else {
-        selectedDays.push(d);
-        btn.classList.add("active");
-      }
+      if (selectedDays.includes(d)) { selectedDays = selectedDays.filter(function(x){return x!==d;}); btn.classList.remove("active"); }
+      else { selectedDays.push(d); btn.classList.add("active"); }
     });
   });
 
   let selectedPeriod = autoPeriod;
   screen.querySelectorAll(".pr-period").forEach(function(btn) {
     btn.addEventListener("click", function() {
-      screen.querySelectorAll(".pr-period").forEach(function(b) { b.classList.remove("active"); });
-      btn.classList.add("active");
-      selectedPeriod = btn.dataset.period;
+      screen.querySelectorAll(".pr-period").forEach(function(b){b.classList.remove("active");});
+      btn.classList.add("active"); selectedPeriod = btn.dataset.period;
     });
   });
 
   screen.querySelector("#prAutoSave").addEventListener("click", async function() {
     const timeVal = screen.querySelector("#prAutoTime").value || "09:00";
     const st = loadSettings();
-    st.autoDays   = selectedDays;
-    st.autoPeriod = selectedPeriod;
-    st.autoTime   = timeVal;
+    st.autoDays = selectedDays; st.autoPeriod = selectedPeriod; st.autoTime = timeVal;
     saveSettings(st);
-
     const statusEl = screen.querySelector("#prAutoStatus");
     statusEl.textContent = t("pr_scheduling");
     await requestNotificationPermission();
     try { const Battery = window.Capacitor.Plugins.Battery; if (Battery) { const { ignoring } = await Battery.isIgnoringBatteryOptimizations(); if (!ignoring) await Battery.requestIgnoreBatteryOptimizations(); } } catch(e) {}
     const ok = await scheduleNotifications(selectedDays, timeVal, selectedPeriod);
-    const activeDayLabels = selectedDays.map(function(d) { return DAYS[d-1]; }).join(', ');
-
+    const activeDayLabels = selectedDays.map(function(d){return DAYS[d-1];}).join(', ');
     if (selectedDays.length) {
       statusEl.textContent = ok
         ? ('✅ ' + activeDayLabels + ' ' + t("pr_status_at") + ' ' + timeVal + ' · ' + t("pr_status_for") + ' ' + selectedPeriod + ' ' + t("report_days"))
         : ('🔔 ' + activeDayLabels + ' ' + t("pr_status_at") + ' ' + timeVal + ' (' + t("pr_check_permissions") + ')');
-    } else {
-      statusEl.textContent = t("pr_reminders_off");
-    }
+    } else { statusEl.textContent = t("pr_reminders_off"); }
   });
 
   screen.querySelector("#prGenBtn").addEventListener("click", async function() {
     const fromVal  = screen.querySelector("#prFrom").value;
     const toVal    = screen.querySelector("#prTo").value;
     const statusEl = screen.querySelector("#prStatus");
-
     if (!fromVal || !toVal) { statusEl.textContent = t("pr_choose_period"); return; }
     if (new Date(fromVal) > new Date(toVal)) { statusEl.textContent = t("pr_date_error"); return; }
-
-    const st = loadSettings();
-    st.lastFrom = fromVal; st.lastTo = toVal;
-    saveSettings(st);
-
+    const st = loadSettings(); st.lastFrom = fromVal; st.lastTo = toVal; saveSettings(st);
     statusEl.textContent = t("pr_generating");
     screen.querySelector("#prGenBtn").disabled = true;
-
     try {
       const pdfBlob = await generatePdf(fromVal, toVal);
       const fileName = "MoodOS_" + fromVal + "_" + toVal + ".pdf";
       statusEl.textContent = t("pr_opening_menu");
-
-      const Share      = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
-      const Filesystem = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
-
+      const Share      = window.Capacitor?.Plugins?.Share;
+      const Filesystem = window.Capacitor?.Plugins?.Filesystem;
       if (Share && Filesystem) {
         const reader = new FileReader();
         reader.onload = async function(e) {
@@ -310,49 +300,33 @@ export function showPdfReportModal() {
             const base64 = e.target.result.split(",")[1];
             await Filesystem.writeFile({ path: fileName, data: base64, directory: "CACHE" });
             const fileUri = await Filesystem.getUri({ path: fileName, directory: "CACHE" });
-            await Share.share({
-              title: "MoodOS — " + t("pr_title"),
-              text: t("pr_share_text"),
-              url: fileUri.uri,
-              dialogTitle: t("pr_title"),
-            });
+            await Share.share({ title: "MoodOS — " + t("pr_title"), text: t("pr_share_text"), url: fileUri.uri, dialogTitle: t("pr_title") });
             statusEl.textContent = t("pr_done");
-          } catch(err) {
-            if (err.name !== "AbortError") statusEl.textContent = t("pr_error");
-          }
+          } catch(err) { if (err.name !== "AbortError") statusEl.textContent = t("pr_error"); }
           screen.querySelector("#prGenBtn").disabled = false;
         };
         reader.readAsDataURL(pdfBlob);
         return;
       }
-
       const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement("a");
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
+      const a = document.createElement("a"); a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
       statusEl.textContent = t("pr_saved");
-
     } catch(e) {
-      if (e.name !== "AbortError") {
-        statusEl.textContent = t("pr_error") + ": " + e.message;
-      } else {
-        statusEl.textContent = "";
-      }
+      if (e.name !== "AbortError") statusEl.textContent = t("pr_error") + ": " + e.message;
+      else statusEl.textContent = "";
     }
-
     screen.querySelector("#prGenBtn").disabled = false;
   });
 }
 
 async function generatePdf(fromStr, toStr) {
-  if (!window.jspdf) {
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-  }
-  if (!window.html2canvas) {
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
-  }
+  if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  if (!window.html2canvas) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+
+  const lang = getLang();
+  const locale = lang === "ru" ? "ru-RU" : lang === "uk" ? "uk-UA" : lang === "es" ? "es-ES" : "en-GB";
 
   const fromDate = new Date(fromStr + "T00:00:00");
   const toDate   = new Date(toStr   + "T23:59:59");
@@ -368,66 +342,68 @@ async function generatePdf(fromStr, toStr) {
   const stability = calculateStabilityScore(moodHistory);
   const trend     = calculateTrend(allMoodHistory);
 
-  function fmtDate(d) {
-    return new Date(d).toLocaleDateString("ru-RU", { day:"2-digit", month:"long", year:"numeric" });
-  }
+  function fmtDate(d) { return new Date(d).toLocaleDateString(locale, { day:"2-digit", month:"long", year:"numeric" }); }
   function fmtDT(d) {
     const dt = new Date(d);
-    return dt.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit" }) + " " +
-           dt.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+    return dt.toLocaleDateString(locale, { day:"2-digit", month:"2-digit" }) + " " +
+           dt.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit" });
   }
   function moodColor(v) { return v >= 70 ? "#4caf87" : v >= 40 ? "#f0a500" : "#e05555"; }
-  function stateLabel(s) {
-    return { HIGH:"Отличное", GOOD:"Хорошее", NEUTRAL:"Нейтральное", STRESSED:"Напряжение", LOW:"Сниженное" }[s] || "—";
-  }
 
   const vals = moodHistory.map(function(e) { return e.value; });
   const avg  = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;}, 0) / vals.length) : null;
   const minV = vals.length ? Math.min.apply(null, vals) : null;
   const maxV = vals.length ? Math.max.apply(null, vals) : null;
-  const trendTxt = trend === "improving ↑" ? "📈 Улучшается" : trend === "declining ↓" ? "📉 Снижается" : "➡️ Стабильно";
+
+  // БАГ 3: тренд на языке приложения
+  let trendTxt;
+  if (trend === "improving ↑") trendTxt = "📈 " + t("trend_up");
+  else if (trend === "declining ↓") trendTxt = "📉 " + t("trend_down");
+  else trendTxt = "➡️ " + t("trend_stable");
 
   const practiceStats = {};
   sessions.forEach(function(s) {
-    const tp = s.type || "other";
+    // Нормализуем ключ — support-texts → support_texts
+    const tp = (s.type || "other").replace("support-texts", "support_texts");
     if (!practiceStats[tp]) practiceStats[tp] = { count:0, positive:0, lift:0 };
     practiceStats[tp].count++;
     if (s.result === "positive") practiceStats[tp].positive++;
     if (s.moodBefore != null && s.moodAfter != null) practiceStats[tp].lift += (s.moodAfter - s.moodBefore);
   });
 
+  // Рекомендации на языке приложения
   const recs = [];
   if (avg !== null) {
-    if (avg < 40) recs.push("⚠️ Среднее настроение ниже 40% (" + avg + "%). Рекомендуется детальное обследование эмоционального состояния.");
-    else if (avg < 55) recs.push("🔔 Настроение в зоне повышенного внимания (" + avg + "%). Рекомендуется наблюдение.");
-    else recs.push("✓ Настроение в стабильной зоне (" + avg + "%). Динамика положительная.");
+    if (avg < 40) recs.push("⚠️ " + t("pdf_rec_avg_low").replace("{avg}", avg));
+    else if (avg < 55) recs.push("🔔 " + t("pdf_rec_avg_mid").replace("{avg}", avg));
+    else recs.push("✓ " + t("pdf_rec_avg_ok").replace("{avg}", avg));
   }
-  if (stability !== null && stability < 50) recs.push("⚠️ Высокая волатильность настроения (стабильность " + stability + "%). Возможна эмоциональная нестабильность.");
-  if (trend === "declining ↓") recs.push("📉 Тренд: настроение снижалось в течение периода. Рекомендуется обратить внимание.");
-  else if (trend === "improving ↑") recs.push("📈 Тренд: настроение улучшалось в течение периода.");
-  if (profile && profile.medEffect === "побочки") recs.push("💊 Пациент отмечает побочные эффекты от препаратов. Рекомендуется пересмотр терапии.");
-  if (profile && profile.medEffect === "приглушённость") recs.push("💊 Пациент ощущает приглушённость от препаратов. Возможна корректировка дозы.");
-  if (profile && profile.medEffect === "адаптация") recs.push("⏳ Пациент в периоде адаптации к препаратам. Перепады настроения могут быть нормой.");
+  if (stability !== null && stability < 50) recs.push("⚠️ " + t("pdf_rec_volatility").replace("{stab}", stability));
+  if (trend === "declining ↓") recs.push("📉 " + t("pdf_rec_declining"));
+  else if (trend === "improving ↑") recs.push("📈 " + t("pdf_rec_improving"));
+  if (profile && profile.medEffect === "побочки") recs.push("💊 " + t("pdf_rec_side_effects"));
+  if (profile && profile.medEffect === "приглушённость") recs.push("💊 " + t("pdf_rec_numbness"));
+  if (profile && profile.medEffect === "адаптация") recs.push("⏳ " + t("pdf_rec_adapting"));
   if (sessions.length > 0) {
     const best = Object.entries(practiceStats).sort(function(a,b) {
       return (b[1].positive / b[1].count) - (a[1].positive / a[1].count);
     })[0];
     if (best) {
       const pct = Math.round(best[1].positive / best[1].count * 100);
-      recs.push("✓ Наиболее эффективная практика: " + (SESSION_NAMES[best[0]] || best[0]) + " (" + pct + "% положительных результатов).");
+      recs.push("✓ " + t("pdf_rec_best_practice").replace("{practice}", getSessionName(best[0])).replace("{pct}", pct));
     }
   }
-  if (recs.length === 0) recs.push("Недостаточно данных для формирования рекомендаций.");
+  if (recs.length === 0) recs.push(t("pdf_rec_no_data") || "Not enough data.");
 
   const practicesHTML = Object.entries(practiceStats).map(function(entry) {
     const type = entry[0]; const data = entry[1];
     const pct  = Math.round(data.positive / data.count * 100);
     const lift = Math.round(data.lift / data.count);
     return '<tr>' +
-      '<td style="padding:4px 8px">' + (SESSION_NAMES[type] || type) + '</td>' +
+      '<td style="padding:4px 8px">' + getSessionName(type) + '</td>' +
       '<td style="padding:4px 8px;text-align:center">' + data.count + '</td>' +
       '<td style="padding:4px 8px;text-align:center;color:' + (pct >= 60 ? "#4caf87" : "#888") + '">' + pct + '%</td>' +
-      '<td style="padding:4px 8px;text-align:center;color:' + (lift > 0 ? "#4caf87" : "#888") + '">' + (lift > 0 ? "+" : "") + lift + '%</td>' +
+      '<td style="padding:4px 8px;text-align:center;color:' + (lift > 0 ? "#4caf87" : "#888") + '">' + (lift > 0 ? "+" : "") + lift + ' ' + t("pts") + '</td>' +
       '</tr>';
   }).join("");
 
@@ -437,7 +413,7 @@ async function generatePdf(fromStr, toStr) {
     return '<tr style="background:' + (i % 2 === 0 ? "#f5faf5" : "#fff") + '">' +
       '<td style="padding:3px 8px;font-size:11px">' + fmtDT(e.time) + '</td>' +
       '<td style="padding:3px 8px;font-size:11px;font-weight:700;color:' + moodColor(e.value) + '">' + e.value + '%</td>' +
-      '<td style="padding:3px 8px;font-size:11px;color:#666">' + stateLabel(e.state) + '</td>' +
+      '<td style="padding:3px 8px;font-size:11px;color:#666">' + getStateLabelPdf(e.state) + '</td>' +
       '</tr>';
   }).join("");
 
@@ -446,11 +422,11 @@ async function generatePdf(fromStr, toStr) {
     const showEffect = profile.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
     patientBlock =
       '<div style="background:#f0f7f4;border-radius:10px;padding:14px 18px;margin-bottom:18px;">' +
-        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Информация о пациенте</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + t("pdf_patient_info") + '</div>' +
         '<div style="display:flex;gap:24px;flex-wrap:wrap;">' +
-          '<div><span style="color:#aaa;font-size:12px">Приём препаратов:</span><br><b style="font-size:13px">' + (MED_LABELS[profile.takesMeds] || "Не указано") + '</b></div>' +
-          (showEffect ? '<div><span style="color:#aaa;font-size:12px">Эффект:</span><br><b style="font-size:13px">' + (EFFECT_LABELS[profile.medEffect] || "—") + '</b></div>' : "") +
-          '<div><span style="color:#aaa;font-size:12px">Базовое состояние:</span><br><b style="font-size:13px">' + (profile.moodBaseline != null ? profile.moodBaseline : 50) + '%</b></div>' +
+          '<div><span style="color:#aaa;font-size:12px">' + t("settings_meds_label") + ':</span><br><b style="font-size:13px">' + getMedLabel(profile.takesMeds) + '</b></div>' +
+          (showEffect ? '<div><span style="color:#aaa;font-size:12px">' + t("settings_effect_label") + ':</span><br><b style="font-size:13px">' + getEffectLabel(profile.medEffect) + '</b></div>' : "") +
+          '<div><span style="color:#aaa;font-size:12px">' + t("settings_baseline_label") + ':</span><br><b style="font-size:13px">' + (profile.moodBaseline != null ? profile.moodBaseline : 50) + '%</b></div>' +
         '</div>' +
       '</div>';
   }
@@ -458,12 +434,12 @@ async function generatePdf(fromStr, toStr) {
   let statsBlock = "";
   if (avg !== null) {
     const statItems = [
-      ["Среднее настроение", avg + "%", moodColor(avg)],
-      ["Стабильность", stability !== null ? stability + "%" : "—", moodColor(stability || 0)],
-      ["Минимум", minV + "%", moodColor(minV)],
-      ["Максимум", maxV + "%", moodColor(maxV)],
-      ["Тренд", trendTxt, "#6667AB"],
-      ["Записей", moodHistory.length, "#555"],
+      [t("report_avg"),         avg + "%",                     moodColor(avg)],
+      [t("report_stab"),        stability !== null ? stability + "%" : "—", moodColor(stability || 0)],
+      [t("report_worst"),       minV + "%",                    moodColor(minV)],
+      [t("report_best"),        maxV + "%",                    moodColor(maxV)],
+      [t("trend_lbl"),          trendTxt,                      "#6667AB"],
+      [t("report_entries"),     moodHistory.length,            "#555"],
     ];
     const statCells = statItems.map(function(item) {
       return '<div style="flex:1;min-width:100px;background:#f5faf5;border-radius:8px;padding:10px 12px;">' +
@@ -473,7 +449,7 @@ async function generatePdf(fromStr, toStr) {
     }).join("");
     statsBlock =
       '<div style="margin-bottom:18px;">' +
-        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Статистика за период</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + t("pdf_stats_title") + '</div>' +
         '<div style="display:flex;gap:10px;flex-wrap:wrap;">' + statCells + '</div>' +
       '</div>';
   }
@@ -483,7 +459,7 @@ async function generatePdf(fromStr, toStr) {
   }).join("");
   const recsBlock =
     '<div style="background:#6667AB;border-radius:10px;padding:14px 18px;margin-bottom:18px;">' +
-      '<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Рекомендации для врача</div>' +
+      '<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + t("pdf_recs_title") + '</div>' +
       recsHTML +
     '</div>';
 
@@ -491,13 +467,13 @@ async function generatePdf(fromStr, toStr) {
   if (sessions.length > 0) {
     practicesBlock =
       '<div style="margin-bottom:18px;">' +
-        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Использованные практики</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + t("pdf_practices_title") + '</div>' +
         '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
           '<thead><tr style="background:#e8ede6;">' +
-            '<th style="padding:6px 8px;text-align:left;color:#888">Практика</th>' +
-            '<th style="padding:6px 8px;text-align:center;color:#888">Сессий</th>' +
-            '<th style="padding:6px 8px;text-align:center;color:#888">Эффект</th>' +
-            '<th style="padding:6px 8px;text-align:center;color:#888">Прирост</th>' +
+            '<th style="padding:6px 8px;text-align:left;color:#888">' + t("pdf_col_practice") + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + t("pdf_col_sessions") + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + t("pdf_col_effect") + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + t("pdf_col_lift") + '</th>' +
           '</tr></thead>' +
           '<tbody>' + practicesHTML + '</tbody>' +
         '</table>' +
@@ -508,12 +484,12 @@ async function generatePdf(fromStr, toStr) {
   if (moodHistory.length > 0) {
     journalBlock =
       '<div style="margin-bottom:18px;">' +
-        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Журнал настроения</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + t("pdf_journal_title") + '</div>' +
         '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
           '<thead><tr style="background:#e8ede6;">' +
-            '<th style="padding:5px 8px;text-align:left;color:#888">Дата и время</th>' +
-            '<th style="padding:5px 8px;text-align:center;color:#888">Настроение</th>' +
-            '<th style="padding:5px 8px;text-align:left;color:#888">Состояние</th>' +
+            '<th style="padding:5px 8px;text-align:left;color:#888">' + t("pdf_col_datetime") + '</th>' +
+            '<th style="padding:5px 8px;text-align:center;color:#888">' + t("hist_mood") + '</th>' +
+            '<th style="padding:5px 8px;text-align:left;color:#888">' + t("current_state") + '</th>' +
           '</tr></thead>' +
           '<tbody>' + journalRows + '</tbody>' +
         '</table>' +
@@ -524,12 +500,12 @@ async function generatePdf(fromStr, toStr) {
     '<div style="width:794px;font-family:Arial,sans-serif;color:#333;background:#fff;padding:0;">' +
       '<div style="background:#4caf87;padding:20px 24px 16px;color:#fff;">' +
         '<div style="font-size:24px;font-weight:700;margin-bottom:4px;">MoodOS</div>' +
-        '<div style="font-size:13px;opacity:0.85">Отчёт об эмоциональном состоянии</div>' +
-        '<div style="font-size:11px;opacity:0.7;margin-top:6px;">Период: ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' &nbsp;·&nbsp; Сформирован: ' + new Date().toLocaleDateString("ru-RU") + '</div>' +
+        '<div style="font-size:13px;opacity:0.85">' + t("pr_title") + '</div>' +
+        '<div style="font-size:11px;opacity:0.7;margin-top:6px;">' + t("pr_from") + ': ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' · ' + new Date().toLocaleDateString(locale) + '</div>' +
       '</div>' +
       '<div style="padding:20px 24px;">' +
         patientBlock + statsBlock + recsBlock + practicesBlock + journalBlock +
-        '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">Отчёт сформирован приложением MoodOS. Предназначен для обсуждения с врачом. Не является медицинским заключением.</div>' +
+        '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">' + t("pdf_footer") + '</div>' +
       '</div>' +
     '</div>';
 
@@ -543,13 +519,11 @@ async function generatePdf(fromStr, toStr) {
       scale: 1.5, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", width: 794,
     });
     document.body.removeChild(container);
-
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL("image/jpeg", 0.92);
     const imgW = 210;
     const imgH = canvas.height * imgW / canvas.width;
     const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-
     let posY = 0;
     const pageH = 297;
     while (posY < imgH) {
@@ -558,7 +532,6 @@ async function generatePdf(fromStr, toStr) {
       posY += pageH;
     }
     return doc.output("blob");
-
   } catch(e) {
     document.body.removeChild(container);
     throw e;

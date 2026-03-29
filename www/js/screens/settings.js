@@ -15,7 +15,6 @@ import {
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
-// Безопасная обёртка — если ключ не найден возвращает пустую строку
 function st(key, fallback = "") {
   try { const v = t(key); return v || fallback; } catch(e) { return fallback; }
 }
@@ -60,10 +59,11 @@ function renderSettings() {
     : "";
   const showTrialBtn = premiumInfo.status === "free";
 
+  // БАГ 2 ИСПРАВЛЕН: используем t() для названий тем
   const themeLabels = {
-    "default": "🌿 Зелёно-бежевая",
-    "purple-blue": "💜 Фиолетово-синяя",
-    "purple-pink": "🌸 Фиолетово-розовая",
+    "default":      "🌿 " + t("theme_default"),
+    "purple-blue":  "💜 " + t("theme_purple_blue"),
+    "purple-pink":  "🌸 " + t("theme_purple_pink"),
   };
   const currentThemeLabel = themeLabels[getTheme()] || themeLabels["default"];
 
@@ -124,7 +124,7 @@ function renderSettings() {
         </div>
         ${premiumInfo.isPremium ? `
         <div class="neo-row" id="settingTheme">
-          <div class="neo-row-left"><span class="neo-row-icon">🎨</span><span class="neo-row-label">Цветовая схема</span></div>
+          <div class="neo-row-left"><span class="neo-row-icon">🎨</span><span class="neo-row-label">${t("settings_theme_label")}</span></div>
           <span class="neo-row-value">${currentThemeLabel} ›</span>
         </div>` : ""}
         <div class="neo-row" id="settingLanguage">
@@ -191,33 +191,20 @@ function renderSettings() {
           margin-bottom: 10px;
           text-align: center;
         ">
-          <div id="premiumStatus" style="
-            font-size: 16px;
-            font-weight: 700;
-            color: ${premiumStatusColor};
-            margin-bottom: 4px;
-          ">${premiumStatusLabel}</div>
+          <div id="premiumStatus" style="font-size:16px;font-weight:700;color:${premiumStatusColor};margin-bottom:4px;">${premiumStatusLabel}</div>
           ${trialInfo}
-          <div style="font-size:12px; color:#aaa; margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "5 " + t("gemini_limit_reached").toLowerCase().split(" ").slice(-2).join(" ")}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "5 " + t("gemini_limit_reached").toLowerCase().split(" ").slice(-2).join(" ")}</div>
           ${showTrialBtn ? `<button id="startTrialBtn" style="
-            margin-top: 14px;
-            width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(145deg, #fef3c7, #fde68a);
-            box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
-            font-size: 15px;
-            font-weight: 600;
-            color: #92400e;
-            cursor: pointer;
+            margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;
+            background:linear-gradient(145deg,#fef3c7,#fde68a);
+            box-shadow:5px 5px 10px #c8bfb2,-5px -5px 10px #ffffff;
+            font-size:15px;font-weight:600;color:#92400e;cursor:pointer;
           ">${t("premium_open_access")} (7 ${t("premium_days_left").toLowerCase()})</button>` : ""}
         </div>
       </div>
     </div>
   `;
 }
-
 
 function bindEvents(el) {
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
@@ -252,7 +239,6 @@ function bindEvents(el) {
 
   el.querySelector("#settingBaseFeeling")?.addEventListener("click", showBaselineModal);
 
-  // PDF — динамический импорт чтобы не ломал загрузку settings
   el.querySelector("#settingPdfReport")?.addEventListener("click", () => {
     import("./pdf-report.js")
       .then(m => m.showPdfReportModal())
@@ -262,7 +248,6 @@ function bindEvents(el) {
   el.querySelector("#settingTheme")?.addEventListener("click", () => showThemeModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
 
-  // Бэкап
   el.querySelector("#settingBackup")?.addEventListener("click", async () => {
     const valEl = el.querySelector("#backupVal");
     if (valEl) valEl.textContent = t("settings_backup_processing");
@@ -284,7 +269,6 @@ function bindEvents(el) {
     }
   });
 
-  // Восстановление
   el.querySelector("#settingRestore")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
   el.querySelector("#restoreFileInput")?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
@@ -293,7 +277,6 @@ function bindEvents(el) {
     showRestoreConfirmModal(file);
   });
 
-  // Google Connect
   const googleBtn = el.querySelector("#connectGoogleBtn");
   if (googleBtn) {
     googleBtn.addEventListener("click", () => {
@@ -302,16 +285,11 @@ function bindEvents(el) {
       saveProfile({...profile, googleConnected: true});
       const btn = el.querySelector("#connectGoogleBtn");
       const desc = el.querySelector("#googleConnectDesc");
-      if (btn) {
-        btn.textContent = t("google_connected");
-        btn.style.color = "#4caf87";
-        btn.disabled = true;
-      }
+      if (btn) { btn.textContent = t("google_connected"); btn.style.color = "#4caf87"; btn.disabled = true; }
       if (desc) desc.textContent = t("google_connected");
     });
   }
 
-  // Start Trial
   const trialBtn = el.querySelector("#startTrialBtn");
   if (trialBtn) {
     trialBtn.addEventListener("click", () => {
@@ -324,7 +302,6 @@ function bindEvents(el) {
       setTimeout(() => msg.remove(), 2500);
     });
   }
-   
 }
 
 function refresh() {
@@ -447,17 +424,18 @@ function showBaselineModal() {
 
 function showThemeModal() {
   const current = getTheme();
+  // БАГ 2 ИСПРАВЛЕН: используем t() для всех строк
   const themes = [
-    { value: "default",      label: "🌿 Зелёно-бежевая (текущая)" },
-    { value: "purple-blue",  label: "💜 Фиолетово-синяя" },
-    { value: "purple-pink",  label: "🌸 Фиолетово-розовая" },
+    { value: "default",      label: "🌿 " + t("theme_default") },
+    { value: "purple-blue",  label: "💜 " + t("theme_purple_blue") },
+    { value: "purple-pink",  label: "🌸 " + t("theme_purple_pink") },
   ];
   const overlay = document.createElement("div");
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">🎨 Цветовая схема</div>
-      <div class="modal-subtitle">Выбери оформление приложения</div>
+      <div class="modal-title">🎨 ${t("settings_theme_label")}</div>
+      <div class="modal-subtitle">${t("settings_theme_subtitle")}</div>
       <div class="modal-options">${themes.map(th=>`<div class="modal-option ${th.value===current?"selected":""}" data-value="${th.value}">${th.label}</div>`).join("")}</div>
       <button class="modal-save-btn" id="modalSave">${t("save")}</button>
       <div class="modal-cancel" id="modalCancel">${t("cancel")}</div>
@@ -469,7 +447,6 @@ function showThemeModal() {
       overlay.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
       opt.classList.add("selected");
       selected = opt.dataset.value;
-      // превью темы сразу
       document.body.setAttribute("data-theme", selected);
     });
   });
@@ -479,7 +456,6 @@ function showThemeModal() {
     refresh();
   });
   overlay.querySelector("#modalCancel").addEventListener("click", () => {
-    // откат превью
     document.body.setAttribute("data-theme", current);
     overlay.remove();
   });

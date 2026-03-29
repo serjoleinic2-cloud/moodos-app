@@ -11,12 +11,13 @@ const STATE_RU = {
   "Low mood":"LOW","Stressed":"STRESSED","Neutral":"NEUTRAL","Good":"GOOD","Very good":"HIGH","Unknown":"—"
 };
 
+// БАГ 4 ИСПРАВЛЕН: унифицировано на "support_texts" (нижнее подчёркивание)
 const PRACTICES = [
-  { key: "breathing",    icon: "🫁", labelKey: "breathing_lbl" },
-  { key: "meditation",   icon: "🧘", labelKey: "meditation_lbl" },
-  { key: "visual-focus", icon: "👁", labelKey: "tools_visual" },
-  { key: "mind-dump",    icon: "🧠", labelKey: "tools_mind" },
-  { key: "tap-calm",     icon: "✋", labelKey: "tools_tap" },
+  { key: "breathing",     icon: "🫁", labelKey: "breathing_lbl" },
+  { key: "meditation",    icon: "🧘", labelKey: "meditation_lbl" },
+  { key: "visual-focus",  icon: "👁", labelKey: "tools_visual" },
+  { key: "mind-dump",     icon: "🧠", labelKey: "tools_mind" },
+  { key: "tap-calm",      icon: "✋", labelKey: "tools_tap" },
   { key: "support_texts", icon: "💬", labelKey: "support_texts_title" },
 ];
 
@@ -48,9 +49,7 @@ function rColor(r) { if (!r) return "#888"; return r>=70?"#4caf87":r>=40?"#f0a50
 
 function goldenShort(g) {
   if (!g) return "—";
-  if (typeof g === "object" && g.start !== undefined) {
-    return g.start + ":00–" + g.end + ":00";
-  }
+  if (typeof g === "object" && g.start !== undefined) return g.start + ":00–" + g.end + ":00";
   const m = g.match(/\d{2}:\d{2}[–\-]\d{2}:\d{2}/);
   return m ? m[0] : g;
 }
@@ -68,28 +67,31 @@ function buildDailyMood(history) {
   }));
 }
 
+// БАГ 4 ИСПРАВЛЕН: добавлен "support_texts" в маппинг
 function practiceShortLabel(key) {
   const map = {
-    "breathing":    t("tools_breathing"),
-    "meditation":   t("tools_meditation"),
-    "visual-focus": t("tools_visual"),
-    "mind-dump":    t("tools_mind"),
-    "tap-calm":     t("tools_tap"),
+    "breathing":     t("tools_breathing"),
+    "meditation":    t("tools_meditation"),
+    "visual-focus":  t("tools_visual"),
+    "mind-dump":     t("tools_mind"),
+    "tap-calm":      t("tools_tap"),
     "support_texts": t("support_texts_title"),
+    "support-texts": t("support_texts_title"),
   };
   return (map[key] || key).replace(/^[^\s]+\s/, "");
 }
 
 function pluralMonths(n) {
-  if (n % 10 === 1 && n % 100 !== 11) return "месяц";
-  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "месяца";
-  return "месяцев";
+  if (n % 10 === 1 && n % 100 !== 11) return t("months_1") || "месяц";
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return t("months_234") || "месяца";
+  return t("months_5") || "месяцев";
 }
 function pluralDays(n) {
-  if (n % 10 === 1 && n % 100 !== 11) return "день";
-  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "дня";
-  return "дней";
+  if (n % 10 === 1 && n % 100 !== 11) return t("days_1") || "день";
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return t("days_234") || "дня";
+  return t("days_5") || "дней";
 }
+
 function findEmotionalMemory(history, currentMood) {
   if (!history || history.length < 10) return null;
   const sorted = history.slice().sort((a, b) => new Date(a.time) - new Date(b.time));
@@ -112,24 +114,20 @@ function findEmotionalMemory(history, currentMood) {
   const monthsAgo = Math.round((now - best.start) / (30 * 24 * 60 * 60 * 1000));
   const weeksAgo  = Math.round((now - best.start) / (7  * 24 * 60 * 60 * 1000));
   let timeAgo;
-  if (monthsAgo >= 2) timeAgo = monthsAgo + " " + pluralMonths(monthsAgo) + " назад";
-  else if (weeksAgo >= 2) timeAgo = weeksAgo + " недели назад";
-  else timeAgo = "неделю назад";
+  if (monthsAgo >= 2) timeAgo = monthsAgo + " " + pluralMonths(monthsAgo) + " " + t("time_ago");
+  else if (weeksAgo >= 2) timeAgo = weeksAgo + " " + t("weeks_ago");
+  else timeAgo = t("week_ago");
   return { timeAgo, daysToRecover: best.days };
 }
 
 function buildYearComparisonBlock() {
   const yc = getYearComparison();
-
-  // Нет данных вообще
   if (!yc) return "";
-
-  // Есть только текущая неделя — год назад данных нет
   if (!yc.lastYear) {
     return '<div class="insight-section">' +
-      '<div class="insight-section-title">📅 Год назад</div>' +
+      '<div class="insight-section-title">📅 ' + t("year_ago") + '</div>' +
       '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
-        '📊 Данные за прошлый год ещё копятся.<br><span style="font-size:12px;">Появятся через год использования.</span>' +
+        t("year_data_collecting") +
       '</div>' +
     '</div>';
   }
@@ -141,54 +139,41 @@ function buildYearComparisonBlock() {
   const diffColor  = diff > 0 ? "#4caf87" : diff < 0 ? "#e05555" : "#888";
   const diffSign   = diff > 0 ? "+" : "";
   const diffEmoji  = diff > 3 ? "📈" : diff < -3 ? "📉" : "➡️";
-  const diffText   = diff > 3 ? "Стало лучше" : diff < -3 ? "Стало сложнее" : "Примерно так же";
+  const diffText   = diff > 3 ? t("year_better") : diff < -3 ? t("year_harder") : t("year_same");
 
   const curMoodColor  = cur  ? mColor(cur.averageMood)  : "#888";
   const prevMoodColor = prev ? mColor(prev.averageMood) : "#888";
-
   const curMood  = cur  ? cur.averageMood  + "%" : "—";
   const prevMood = prev ? prev.averageMood + "%" : "—";
-
-  const curEntries  = cur  ? cur.entries  + " замеров" : "—";
-  const prevEntries = prev ? prev.entries + " замеров" : "—";
-
-  const curSessions  = cur  ? cur.sessions  + " практик" : "—";
-  const prevSessions = prev ? prev.sessions + " практик" : "—";
+  const curEntries  = cur  ? cur.entries  + " " + t("entries_count")  : "—";
+  const prevEntries = prev ? prev.entries + " " + t("entries_count")  : "—";
+  const curSessions  = cur  ? cur.sessions  + " " + t("sessions_count") : "—";
+  const prevSessions = prev ? prev.sessions + " " + t("sessions_count") : "—";
 
   return '<div class="insight-section">' +
     '<div class="insight-section-title">' + t("week_vs_year") + '</div>' +
     '<div style="padding:18px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
-
-      // Две колонки
       '<div style="display:flex;gap:12px;margin-bottom:16px;">' +
-
-        // Год назад
         '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
           '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("year_ago") + '</div>' +
           '<div style="font-size:26px;font-weight:700;color:' + prevMoodColor + ';margin-bottom:4px;">' + prevMood + '</div>' +
           '<div style="font-size:12px;color:#888;">' + prevEntries + '</div>' +
           '<div style="font-size:12px;color:#888;">' + prevSessions + '</div>' +
         '</div>' +
-
-        // Сейчас
         '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
-          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Сейчас</div>' +
+          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("now_label") + '</div>' +
           '<div style="font-size:26px;font-weight:700;color:' + curMoodColor + ';margin-bottom:4px;">' + curMood + '</div>' +
           '<div style="font-size:12px;color:#888;">' + curEntries + '</div>' +
           '<div style="font-size:12px;color:#888;">' + curSessions + '</div>' +
         '</div>' +
-
       '</div>' +
-
-      // Итог
       '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
         '<div style="font-size:28px;">' + diffEmoji + '</div>' +
         '<div>' +
-          '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' пт — ' + diffText + '</div>' +
-          '<div style="font-size:12px;color:#888;margin-top:2px;">Изменение среднего настроения за год</div>' +
+          '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' ' + t("pts") + ' — ' + diffText + '</div>' +
+          '<div style="font-size:12px;color:#888;margin-top:2px;">' + t("year_mood_change") + '</div>' +
         '</div>' +
       '</div>' +
-
     '</div>' +
   '</div>';
 }
@@ -235,39 +220,42 @@ export async function onEnter() {
   const stateCode = STATE_RU[getStateLabel(state)] || state;
   const stateLabelTr = t("state_" + stateCode.toLowerCase()) || getStateLabel(state);
 
-  // Эмоциональная память
   let memoryBlockHTML = "";
   if (mood <= 40) {
     const memory = findEmotionalMemory(history, mood);
     if (memory) {
       memoryBlockHTML =
         '<div class="insight-section" id="emotional-memory-block">' +
-          '<div class="insight-section-title">🧠 Эмоциональная память</div>' +
+          '<div class="insight-section-title">🧠 ' + t("emotional_memory_title") + '</div>' +
           '<div style="padding:18px;border-radius:18px;background:rgba(159,122,234,0.12);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
             '<div style="font-size:15px;color:#444;line-height:1.7;">' +
-              'Вы уже переживали подобное состояние <strong style="color:#9f7aea;">' + memory.timeAgo + '</strong>.<br>' +
-              'Через <strong style="color:#4caf87;">' + memory.daysToRecover + ' ' + pluralDays(memory.daysToRecover) + '</strong> состояние улучшилось.' +
+              t("memory_had_similar") + ' <strong style="color:#9f7aea;">' + memory.timeAgo + '</strong>.<br>' +
+              t("memory_recovered_in") + ' <strong style="color:#4caf87;">' + memory.daysToRecover + ' ' + pluralDays(memory.daysToRecover) + '</strong> ' + t("memory_state_improved") + '.' +
             '</div>' +
-            '<div style="margin-top:12px;font-size:13px;color:#9f7aea;line-height:1.5;">💜 Это временно. Вы уже справлялись с этим раньше.</div>' +
+            '<div style="margin-top:12px;font-size:13px;color:#9f7aea;line-height:1.5;">💜 ' + t("memory_its_temporary") + '</div>' +
           '</div>' +
         '</div>';
     }
   }
 
-  // Year Comparison блок
   const yearComparisonHTML = buildYearComparisonBlock();
 
+  // БАГ 5 ИСПРАВЛЕН: "пт" → t("pts"), +0 скрыт если нет данных
   const practicesHTML = activePractices.length > 0 ? (
     '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("practices_eff") + '</div>' +
       activePractices.map(function(p) {
         const d = practiceData[p.key];
+        // Показываем lift только если он > 0 и данные есть
+        const liftText = (d.lift !== null && d.lift > 0)
+          ? t("avg_lift") + ': +' + d.lift + ' ' + t("pts")
+          : (d.lift !== null && d.lift === 0 ? t("no_lift_data") : t("no_data_short"));
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
               '<div class="flip-value" style="color:' + rColor(d.rate) + '">' + (d.rate !== null ? d.rate : '—') + '%</div>' +
-              '<div class="flip-sub">' + (d.lift !== null ? t("avg_lift") + ': +' + d.lift + ' пт' : t("no_data_short")) + ' · ' + d.sessions + ' ' + t("sessions_count") + '</div>' +
+              '<div class="flip-sub">' + liftText + ' · ' + d.sessions + ' ' + t("sessions_count") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
@@ -374,7 +362,6 @@ export async function onEnter() {
       '</div>' +
 
       yearComparisonHTML +
-
       practicesHTML +
 
     '</div>';
@@ -450,6 +437,7 @@ function initChartFor(id, history, stats, practiceData) {
       "visual-focus": "#4caf87",
       "mind-dump":    "#f0a500",
       "tap-calm":     "#e05555",
+      "support_texts":"#f59e0b",
     };
     drawPieChart(canvasId, rate, colors[practiceKey] || "#4caf87");
   }
@@ -462,8 +450,7 @@ function drawPieChart(canvasId, rate, color) {
     data:{datasets:[{data:[rate,100-rate],backgroundColor:[color,"#d0d5de"],borderWidth:0}]},
     options:{cutout:"70%",plugins:{legend:{display:false},tooltip:{enabled:false}}},
     plugins:[{id:"ct",afterDraw:function(chart){
-      const ctx=chart.ctx;
-      const chartArea=chart.chartArea;
+      const ctx=chart.ctx, chartArea=chart.chartArea;
       const width=chartArea.width, height=chartArea.height;
       const left=chartArea.left, top=chartArea.top;
       ctx.save(); ctx.font="bold 20px sans-serif"; ctx.fillStyle="#3a3530";
@@ -504,6 +491,4 @@ function buildStateTable(activePractices, practiceData) {
   }).join('');
 }
 
-document.addEventListener("languageChanged", () => {
-  onEnter();
-});
+document.addEventListener("languageChanged", () => { onEnter(); });
