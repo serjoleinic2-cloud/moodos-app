@@ -359,9 +359,9 @@ export async function onEnter() {
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
               '<div class="flip-value" style="color:' + valueColor + '">' + cardData.mainDisplay.value + '</div>' +
               (cardData.mainDisplay.subtitle ? '<div class="flip-sub" style="color:' + valueColor + '">' + cardData.mainDisplay.subtitle + '</div>' : '') +
-              (cardData.comparisonDisplay.text ? '<div class="flip-sub" style="color:' + subtitleColor + ';font-size:11px;">' + cardData.comparisonDisplay.text + '</div>' : '') +
-              '<div style="font-size:12px;color:#999;margin-top:4px;">' + cardData.sessionsText + '</div>' +
-              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+              (cardData.comparisonDisplay.text ? '<div class="flip-sub" style="color:' + subtitleColor + ';font-size:10px;">' + cardData.comparisonDisplay.text + '</div>' : '') +
+              '<div style="font-size:10px;color:#999;margin-top:2px;">' + cardData.sessionsText + '</div>' +
+              '<div class="flip-hint" style="font-size:10px;margin-top:4px;">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
           '</div>' +
@@ -382,16 +382,16 @@ export async function onEnter() {
     '<style>' +
     '.insight-section{margin-bottom:24px;}' +
     '.insight-section-title{font-size:13px;color:#888;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}' +
-    '.flip-wrap{perspective:1000px;margin-bottom:12px;cursor:pointer;}' +
+    '.flip-wrap{perspective:1000px;margin-bottom:8px;cursor:pointer;}' +
     '.flip-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform 0.5s ease;border-radius:18px;}' +
     '.flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}' +
-    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
+    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;padding:12px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
     '.flip-front{position:relative;}' +
     '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
-    '.flip-label{font-size:12px;color:#999;margin-bottom:4px;}' +
-    '.flip-value{font-size:28px;font-weight:700;color:#3a3530;}' +
-    '.flip-sub{font-size:13px;color:#777;margin-top:4px;}' +
-    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;margin-top:8px;}' +
+    '.flip-label{font-size:11px;color:#999;margin-bottom:2px;}' +
+    '.flip-value{font-size:20px;font-weight:700;color:#3a3530;}' +
+    '.flip-sub{font-size:11px;color:#777;margin-top:2px;}' +
+    '.flip-hint{font-size:10px;color:#4caf87;font-weight:500;text-align:right;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
