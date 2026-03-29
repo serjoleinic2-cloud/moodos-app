@@ -7,6 +7,8 @@ import { getMoodHistory, getSessionHistory } from "./memory.js";
 import { getPatternSummary, hasEveningDip } from "./pattern-engine.js";
 import { getResilienceSummary, getResilienceTrend } from "./resilience-engine.js";
 import { getBestToolForState, getPersonalRecommendation } from "./session-analytics.js";
+import { showAvatarForInsight } from "../avatar.js";
+import { generateAvatarMessage, shouldShowAvatarInsight } from "../ai/avatar-brain.js";
 
 // ---- ОБЪЯСНЕНИЕ ТЕКУЩЕГО СОСТОЯНИЯ ----
 export function explainCurrentState(currentMood) {
@@ -177,21 +179,43 @@ export function getFullInsight(currentMood, currentState) {
 }
 
 export async function generate(currentState) {
+  let result;
+  
   if (currentState?.type === 'practice' && currentState?.source === 'support_texts') {
-    return {
+    result = {
       insight: getSupportTextInsight(currentState.result, currentState.source),
-      type: 'practice'
+      type: 'practice',
+      result: currentState.result,
+      practice: currentState.source
     };
-  }
-  
-  if (currentState?.type === 'support_text' || currentState?.source === 'support_texts') {
-    return {
+  } else if (currentState?.type === 'support_text' || currentState?.source === 'support_texts') {
+    result = {
       insight: getSupportTextInsight(currentState.result, currentState.category || currentState.source),
-      type: 'support_text'
+      type: 'support_text',
+      result: currentState.result,
+      practice: currentState.source
     };
+  } else {
+    const explanation = explainCurrentState()
+    const full = getFullInsight(null, currentState)
+    result = { explanation, full }
   }
   
-  const explanation = explainCurrentState()
-  const full = getFullInsight(null, currentState)
-  return { explanation, full }
+  if (shouldShowAvatarInsight(result)) {
+    const avatarMessage = generateAvatarMessage({
+      mood: currentState?.mood,
+      insight: result.insight,
+      result: result.result,
+      practice: result.practice
+    });
+    if (avatarMessage) {
+      showAvatarForInsight();
+    }
+    
+    if (window.SystemCore) {
+      window.SystemCore.dispatch('AVATAR_UPDATE', result);
+    }
+  }
+  
+  return result;
 }

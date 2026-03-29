@@ -6,30 +6,65 @@
 import { getSessionHistory } from "./memory.js";
 import { t } from "../i18n.js";
 
+// ---- ВРЕМЕННЫЕ ГОРИЗОНТЫ ----
+export const TIME_HORIZONS = {
+  week: 7,
+  month: 30,
+  quarter: 90,
+  year: 365
+};
+
+// ---- НОРМАЛИЗАЦИЯ ТИПА ПРАКТИКИ ----
+function normalizeType(type) {
+  return type?.replace('_', '-').toLowerCase();
+}
+
+// ---- ФИЛЬТР ВАЛИДНЫХ ЗАПИСЕЙ ----
+function getValidEntries(type) {
+  const normalizedType = normalizeType(type);
+  const history = getSessionHistory()
+    .map(s => ({ ...s, type: normalizeType(s.type) }))
+    .filter(s => s.type === normalizedType);
+  return history.filter(e => e.moodBefore != null && e.moodAfter != null);
+}
+
+// ---- ПОЛУЧИТЬ ВАЛИДНЫЕ ЗАПИСИ ЗА ПЕРИОД ----
+function getValidEntriesForPeriod(type, days) {
+  const validEntries = getValidEntries(type);
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return validEntries.filter(e => (e.timestamp || e.time) >= cutoff);
+}
+
 // ---- ОБЩАЯ ЭФФЕКТИВНОСТЬ ТИПА ----
 export function getEffectivenessRate(type) {
-  const history = getSessionHistory().filter(s => s.type === type);
-  if (!history.length) return null;
-  const positive = history.filter(s => s.result === "positive").length;
-  return Math.round((positive / history.length) * 100);
+  const validEntries = getValidEntries(type);
+  if (!validEntries.length) return null;
+  const positive = validEntries.filter(s => s.result === "positive").length;
+  return Math.round((positive / validEntries.length) * 100);
 }
 
 // ---- СРЕДНИЙ ПРИРОСТ НАСТРОЕНИЯ ----
 export function getAverageMoodLift(type) {
-  const history = getSessionHistory().filter(s => s.type === type);
-  if (!history.length) return null;
-  const lifts = history.map(s => (s.moodAfter || 0) - (s.moodBefore || 0));
+  const validEntries = getValidEntries(type);
+  if (!validEntries.length) return null;
+  const lifts = validEntries.map(s => s.moodAfter - s.moodBefore);
   const avg = lifts.reduce((a, b) => a + b, 0) / lifts.length;
   return Math.round(avg * 10) / 10;
 }
 
+// ---- КОЛИЧЕСТВО ЭФФЕКТИВНЫХ СЕССИЙ ----
+export function getEffectiveSessionCount(type) {
+  const validEntries = getValidEntries(type);
+  return validEntries.length;
+}
+
 // ---- КАКИЕ СОСТОЯНИЯ ЛУЧШЕ ВСЕГО УЛУЧШАЮТСЯ ----
 export function getEffectivenessByState(type) {
-  const history = getSessionHistory().filter(s => s.type === type);
-  if (!history.length) return {};
+  const validEntries = getValidEntries(type);
+  if (!validEntries.length) return {};
 
   const stats = {};
-  history.forEach(s => {
+  validEntries.forEach(s => {
     const state = s.stateBefore || "UNKNOWN";
     if (!stats[state]) stats[state] = { total: 0, positive: 0 };
     stats[state].total++;
@@ -112,26 +147,30 @@ export function getFullSessionStats() {
   const sessions = getSessionHistory();
   if (!sessions.length) return null;
 
-  const breathing    = sessions.filter(s => s.type === "breathing");
-  const meditation   = sessions.filter(s => s.type === "meditation");
-  const visualFocus  = sessions.filter(s => s.type === "visual-focus");
-  const mindDump     = sessions.filter(s => s.type === "mind-dump");
-  const tapCalm      = sessions.filter(s => s.type === "tap-calm");
-  // ✅ ИСПРАВЛЕНИЕ: добавлен счётчик support_texts
-  const supportTexts = sessions.filter(s => s.type === "support_texts");
+  const breathing    = sessions.filter(s => normalizeType(s.type) === "breathing");
+  const meditation   = sessions.filter(s => normalizeType(s.type) === "meditation");
+  const visualFocus  = sessions.filter(s => normalizeType(s.type) === "visual-focus");
+  const mindDump     = sessions.filter(s => normalizeType(s.type) === "mind-dump");
+  const tapCalm      = sessions.filter(s => normalizeType(s.type) === "tap-calm");
+  const supportTexts = sessions.filter(s => normalizeType(s.type) === "support-texts" || normalizeType(s.type) === "support_texts");
 
   const totalDuration = sessions.reduce((a, s) => a + (s.duration || 0), 0);
   const minutes = Math.floor(totalDuration / 60);
 
   return {
     totalSessions:          sessions.length,
-    breathingSessions:      breathing.length,
-    meditationSessions:     meditation.length,
-    visualFocusSessions:    visualFocus.length,
-    mindDumpSessions:       mindDump.length,
-    tapCalmSessions:        tapCalm.length,
-    // ✅ ИСПРАВЛЕНИЕ: добавлено поле supportTextsSessions
-    supportTextsSessions:   supportTexts.length,
+    breathingSessions:       breathing.length,
+    meditationSessions:      meditation.length,
+    visualFocusSessions:     visualFocus.length,
+    mindDumpSessions:        mindDump.length,
+    tapCalmSessions:         tapCalm.length,
+    supportTextsSessions:    supportTexts.length,
+    breathingEffective:     getEffectiveSessionCount("breathing"),
+    meditationEffective:     getEffectiveSessionCount("meditation"),
+    visualFocusEffective:    getEffectiveSessionCount("visual-focus"),
+    mindDumpEffective:      getEffectiveSessionCount("mind-dump"),
+    tapCalmEffective:       getEffectiveSessionCount("tap-calm"),
+    supportTextsEffective:  getEffectiveSessionCount("support_texts"),
     totalMinutes:           minutes,
     breathingRate:          getEffectivenessRate("breathing"),
     meditationRate:         getEffectivenessRate("meditation"),
@@ -152,16 +191,17 @@ export function getFullSessionStats() {
 
 // ---- АГРЕГАЦИЯ ПО ДНЯМ ----
 export function getSessionsByDay(type = null) {
-  let sessions = getSessionHistory();
-  if (type) sessions = sessions.filter(s => s.type === type);
+  let sessions = getSessionHistory().map(s => ({ ...s, type: normalizeType(s.type) }));
+  if (type) sessions = sessions.filter(s => s.type === normalizeType(type));
+  const validSessions = sessions.filter(s => s.moodBefore != null && s.moodAfter != null);
 
   const byDay = {};
-  sessions.forEach(s => {
+  validSessions.forEach(s => {
     const d   = new Date(s.timestamp);
     const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     if (!byDay[key]) byDay[key] = { moodBefore: [], moodAfter: [], count: 0, positive: 0 };
-    byDay[key].moodBefore.push(s.moodBefore || 0);
-    byDay[key].moodAfter.push(s.moodAfter || 0);
+    byDay[key].moodBefore.push(s.moodBefore);
+    byDay[key].moodAfter.push(s.moodAfter);
     byDay[key].count++;
     if (s.result === "positive") byDay[key].positive++;
   });
@@ -186,4 +226,82 @@ function stateLabel(state) {
     HIGH:     t("state_high"),
   };
   return map[state] || state;
+}
+
+// ---- ПОЛУЧИТЬ BASELINE ДЛЯ ТИПА ПРАКТИКИ ----
+export function getUserBaseline(practiceType, days = 30) {
+  const entries = getValidEntriesForPeriod(practiceType, days);
+  
+  if (entries.length === 0) {
+    return {
+      avgLift: null,
+      avgEffectiveness: null,
+      sessionCount: 0
+    };
+  }
+  
+  const lifts = entries.map(e => e.moodAfter - e.moodBefore);
+  const avgLift = Math.round((lifts.reduce((a, b) => a + b, 0) / lifts.length) * 10) / 10;
+  
+  const positive = entries.filter(e => e.result === "positive").length;
+  const avgEffectiveness = Math.round((positive / entries.length) * 100);
+  
+  return {
+    avgLift,
+    avgEffectiveness,
+    sessionCount: entries.length
+  };
+}
+
+// ---- ПОЛУЧИТЬ BASELINE ДЛЯ ВСЕХ ПРАКТИК ----
+export function getAllBaselines(days = 30) {
+  const types = ["breathing", "meditation", "visual-focus", "mind-dump", "tap-calm", "support_texts"];
+  const baselines = {};
+  
+  types.forEach(type => {
+    baselines[type] = getUserBaseline(type, days);
+  });
+  
+  return baselines;
+}
+
+// ---- СРАВНИТЬ С BASELINE ----
+export function compareToBaseline(current, baseline) {
+  if (!baseline || baseline.sessionCount === 0) {
+    return {
+      liftDelta: null,
+      effectivenessDelta: null,
+      trend: null
+    };
+  }
+  
+  const liftDelta = current.avgLift !== null && baseline.avgLift !== null
+    ? Math.round((current.avgLift - baseline.avgLift) * 10) / 10
+    : null;
+    
+  const effectivenessDelta = current.avgEffectiveness !== null && baseline.avgEffectiveness !== null
+    ? Math.round(current.avgEffectiveness - baseline.avgEffectiveness)
+    : null;
+  
+  let trend = "stable";
+  if (liftDelta !== null && liftDelta > 2) trend = "improving";
+  else if (liftDelta !== null && liftDelta < -2) trend = "declining";
+  
+  return {
+    liftDelta,
+    effectivenessDelta,
+    trend
+  };
+}
+
+// ---- ПОЛУЧИТЬ СРАВНЕНИЕ ДЛЯ PRACTICE ----
+export function getPracticeComparison(practiceType, periodDays = 30) {
+  const baseline = getUserBaseline(practiceType, periodDays);
+  const currentWeek = getUserBaseline(practiceType, 7);
+  
+  return {
+    baseline,
+    current: currentWeek,
+    comparison: compareToBaseline(currentWeek, baseline)
+  };
 }

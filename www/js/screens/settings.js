@@ -69,12 +69,24 @@ function renderSettings() {
 
   const medsSection = takesMeds ? (
     '<div class="neo-row" id="settingEffect">' +
-      '<div class="neo-row-left"><span class="neo-row-icon">🔍</span><span class="neo-row-label">' + t("settings_effect_label") + '</span></div>' +
-      '<span class="neo-row-value">' + (effVal[profile.medEffect]||t("not_specified")) + ' ›</span>' +
+      '<div class="neo-row-content">' +
+        '<span class="neo-row-icon">🔍</span>' +
+        '<div class="neo-row-text">' +
+          '<div class="neo-row-label">' + t("settings_effect_label") + '</div>' +
+          '<div class="neo-row-sub">' + (effVal[profile.medEffect]||t("not_specified")) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="neo-row-arrow">›</span>' +
     '</div>' +
     '<div class="neo-row" id="settingReminder">' +
-      '<div class="neo-row-left"><span class="neo-row-icon">⏰</span><span class="neo-row-label">' + t("settings_reminder_label") + '</span></div>' +
-      '<span class="neo-row-value">' + (reminder?.active ? (remVal[profile?.medReminder]||t("settings_reminder_on")) : t("settings_reminder_off")) + ' ›</span>' +
+      '<div class="neo-row-content">' +
+        '<span class="neo-row-icon">⏰</span>' +
+        '<div class="neo-row-text">' +
+          '<div class="neo-row-label">' + t("settings_reminder_label") + '</div>' +
+          '<div class="neo-row-sub">' + (reminder?.active ? (remVal[profile?.medReminder]||t("settings_reminder_on")) : t("settings_reminder_off")) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="neo-row-arrow">›</span>' +
     '</div>'
   ) : "";
 
@@ -88,11 +100,13 @@ function renderSettings() {
       .settings-section-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#b0b8c4;margin-bottom:10px;padding-left:4px}
       .neo-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:rgba(232,237,230,0.9);border-radius:18px;box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
       .neo-row:active{box-shadow:inset 4px 4px 8px #b8c4b4,inset -4px -4px 8px #ffffff}
-      .neo-row-label{font-size:15px;color:#555;font-weight:500}
-      .neo-row-value{font-size:13px;color:#aaa;text-align:right;flex-shrink:0;margin-left:8px}
-      .neo-row-icon{font-size:18px;margin-right:12px;flex-shrink:0}
-      .neo-row-left{display:flex;align-items:center;flex:1}
+      .neo-row-content{display:flex;flex-direction:column;align-items:center;flex:1}
+      .neo-row-icon{font-size:20px;margin-bottom:4px}
+      .neo-row-text{text-align:center}
+      .neo-row-label{font-size:15px;color:#555;font-weight:600}
       .neo-row-sub{font-size:11px;color:#bbb;margin-top:2px}
+      .neo-row-value{font-size:11px;color:#bbb;text-align:center;flex-shrink:0;margin-top:2px}
+      .neo-row-arrow{flex-shrink:0;margin-left:8px;font-size:18px;color:#bbb}
       .health-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:flex;align-items:flex-end}
       .health-modal{width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px calc(90px + env(safe-area-inset-bottom));max-height:80vh;overflow-y:auto;box-sizing:border-box;animation:slideUp .35s ease}
       @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -110,8 +124,14 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_health")}</div>
         <div class="neo-row" id="settingMeds">
-          <div class="neo-row-left"><span class="neo-row-icon">💊</span><span class="neo-row-label">${t("settings_meds_label")}</span></div>
-          <span class="neo-row-value">${medVal[profile?.takesMeds]||t("not_specified")} ›</span>
+          <div class="neo-row-content">
+            <span class="neo-row-icon">💊</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_meds_label")}</div>
+              <div class="neo-row-sub">${medVal[profile?.takesMeds]||t("not_specified")}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
         </div>
         ${medsSection}
       </div>
@@ -119,39 +139,69 @@ function renderSettings() {
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_app")}</div>
         <div class="neo-row" id="settingBaseFeeling">
-          <div class="neo-row-left"><span class="neo-row-icon">🎯</span><span class="neo-row-label">${t("settings_baseline_label")}</span></div>
-          <span class="neo-row-value">${profile?.moodBaseline??50}% ›</span>
+          <div class="neo-row-content">
+            <span class="neo-row-icon">🎯</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_baseline_label")}</div>
+              <div class="neo-row-sub">${profile?.moodBaseline??50}%</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
         </div>
         ${premiumInfo.isPremium ? `
         <div class="neo-row" id="settingTheme">
-          <div class="neo-row-left"><span class="neo-row-icon">🎨</span><span class="neo-row-label">${t("settings_theme_label")}</span></div>
-          <span class="neo-row-value">${currentThemeLabel} ›</span>
+          <div class="neo-row-content">
+            <span class="neo-row-icon">🎨</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_theme_label")}</div>
+              <div class="neo-row-sub">${currentThemeLabel}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
         </div>` : ""}
         <div class="neo-row" id="settingLanguage">
-          <div class="neo-row-left"><span class="neo-row-icon">🌍</span><span class="neo-row-label">${t("settings_language_label")}</span></div>
-          <span class="neo-row-value">${langInfo.flag} ${langInfo.label} ›</span>
+          <div class="neo-row-content">
+            <span class="neo-row-icon">🌍</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_language_label")}</div>
+              <div class="neo-row-sub">${langInfo.flag} ${langInfo.label}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
         </div>
       </div>
 
       <div class="settings-section">
         <div class="settings-section-label">${t("settings_data")}</div>
         <div class="neo-row" id="settingPdfReport">
-          <div class="neo-row-left"><span class="neo-row-icon">📄</span><span class="neo-row-label">${t("settings_pdf_label")}</span></div>
-          <span class="neo-row-value">PDF ›</span>
+          <div class="neo-row-content">
+            <span class="neo-row-icon">📄</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_pdf_label")}</div>
+              <div class="neo-row-sub">PDF</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
         </div>
         <div class="neo-row" id="settingBackup">
-          <div class="neo-row-left">
+          <div class="neo-row-content">
             <span class="neo-row-icon">☁️</span>
-            <div><div class="neo-row-label">${t("settings_backup_save")}</div><div class="neo-row-sub">${backupSub}</div></div>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_backup_save")}</div>
+              <div class="neo-row-sub">${backupSub}</div>
+            </div>
           </div>
-          <span class="neo-row-value" id="backupVal">${t("settings_backup_save_btn")} ›</span>
+          <span class="neo-row-arrow">›</span>
         </div>
         <div class="neo-row" id="settingRestore">
-          <div class="neo-row-left">
+          <div class="neo-row-content">
             <span class="neo-row-icon">📥</span>
-            <div><div class="neo-row-label">${t("settings_restore_label")}</div><div class="neo-row-sub">${t("settings_restore_hint")}</div></div>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("settings_restore_label")}</div>
+              <div class="neo-row-sub">${t("settings_restore_hint")}</div>
+            </div>
           </div>
-          <span class="neo-row-value">›</span>
+          <span class="neo-row-arrow">›</span>
         </div>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>

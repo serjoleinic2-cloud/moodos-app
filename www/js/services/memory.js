@@ -137,3 +137,56 @@ export function saveWeeklyHistory(blocks) {
     console.warn("saveWeeklyHistory failed:", e.message);
   }
 }
+
+/* ---------- USER BASELINE CACHE ---------- */
+
+export function getUserBaselineCache() {
+  try {
+    const raw = localStorage.getItem("user_baseline_cache");
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+export function saveUserBaselineCache(cache) {
+  try {
+    localStorage.setItem("user_baseline_cache", JSON.stringify({
+      ...cache,
+      updatedAt: Date.now()
+    }));
+  } catch(e) {
+    console.warn("saveUserBaselineCache failed:", e.message);
+  }
+}
+
+export function getCachedBaseline(practiceType, days) {
+  const cache = getUserBaselineCache();
+  if (!cache) return null;
+  
+  const key = `${practiceType}_${days}`;
+  const entry = cache[key];
+  
+  if (!entry) return null;
+  
+  const hourAgo = Date.now() - 60 * 60 * 1000;
+  if (entry.updatedAt < hourAgo) return null;
+  
+  return entry;
+}
+
+export function updateCachedBaseline(practiceType, days, baseline) {
+  const cache = getUserBaselineCache() || {};
+  const key = `${practiceType}_${days}`;
+  
+  cache[key] = {
+    ...baseline,
+    updatedAt: Date.now()
+  };
+  
+  saveUserBaselineCache(cache);
+}
+
+export function invalidateBaselineCache() {
+  localStorage.removeItem("user_baseline_cache");
+}

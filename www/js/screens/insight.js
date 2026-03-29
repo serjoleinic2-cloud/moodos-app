@@ -1,11 +1,49 @@
 import { getMoodHistory } from "../services/memory.js";
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
-import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation } from "../services/session-analytics.js";
+import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
+
+function formatInsightValue(value) {
+  if (value == null) return t('no_data');
+  if (value === 'no_lift_data') return t('no_lift_data');
+  return value;
+}
+
+let selectedTimeRange = localStorage.getItem("insight_period") || 'month';
+
+function formatBaselineComparison(practiceType) {
+  const comparison = getPracticeComparison(practiceType, TIME_HORIZONS[selectedTimeRange]);
+  const { baseline, comparison: comp } = comparison;
+  
+  if (baseline.sessionCount < 3) {
+    return { text: t('baseline_learning'), type: 'learning' };
+  }
+  
+  if (comp.trend === null) {
+    return { text: t('baseline_not_enough'), type: 'insufficient' };
+  }
+  
+  let text = '';
+  let type = 'stable';
+  
+  if (comp.trend === 'improving') {
+    text = t('baseline_improving').replace('{{n}}', Math.abs(comp.liftDelta || 0));
+    type = 'improving';
+  } else if (comp.trend === 'declining') {
+    text = t('baseline_declining').replace('{{n}}', Math.abs(comp.liftDelta || 0));
+    type = 'declining';
+  } else {
+    text = t('baseline_stable');
+    type = 'stable';
+  }
+  
+  const periodText = t('baseline_vs_period').replace('{{days}}', TIME_HORIZONS[selectedTimeRange]);
+  return { text: periodText + ': ' + text, type };
+}
 
 const STATE_RU = {
   "Low mood":"LOW","Stressed":"STRESSED","Neutral":"NEUTRAL","Good":"GOOD","Very good":"HIGH","Unknown":"—"
@@ -48,7 +86,7 @@ function mText(v) {
 function rColor(r) { if (!r) return "#888"; return r>=70?"#4caf87":r>=40?"#f0a500":"#e05555"; }
 
 function goldenShort(g) {
-  if (!g) return "—";
+  if (!g) return formatInsightValue(null);
   if (typeof g === "object" && g.start !== undefined) return g.start + ":00–" + g.end + ":00";
   const m = g.match(/\d{2}:\d{2}[–\-]\d{2}:\d{2}/);
   return m ? m[0] : g;
@@ -205,15 +243,22 @@ export async function onEnter() {
       lift:    getAverageMoodLift(p.key),
       byState: getEffectivenessByState(p.key),
       sessions: 0,
+      effective: 0,
     };
   });
   if (stats) {
-    practiceData["breathing"].sessions    = stats.breathingSessions    || 0;
-    practiceData["meditation"].sessions   = stats.meditationSessions   || 0;
-    practiceData["visual-focus"].sessions = stats.visualFocusSessions  || 0;
-    practiceData["mind-dump"].sessions    = stats.mindDumpSessions     || 0;
-    practiceData["tap-calm"].sessions     = stats.tapCalmSessions      || 0;
-    practiceData["support_texts"].sessions = stats.supportTextsSessions || 0;
+    practiceData["breathing"].sessions     = stats.breathingSessions     || 0;
+    practiceData["meditation"].sessions    = stats.meditationSessions    || 0;
+    practiceData["visual-focus"].sessions   = stats.visualFocusSessions   || 0;
+    practiceData["mind-dump"].sessions      = stats.mindDumpSessions      || 0;
+    practiceData["tap-calm"].sessions       = stats.tapCalmSessions       || 0;
+    practiceData["support_texts"].sessions  = stats.supportTextsSessions  || 0;
+    practiceData["breathing"].effective     = stats.breathingEffective     || 0;
+    practiceData["meditation"].effective    = stats.meditationEffective    || 0;
+    practiceData["visual-focus"].effective  = stats.visualFocusEffective   || 0;
+    practiceData["mind-dump"].effective     = stats.mindDumpEffective      || 0;
+    practiceData["tap-calm"].effective      = stats.tapCalmEffective       || 0;
+    practiceData["support_texts"].effective = stats.supportTextsEffective  || 0;
   }
 
   const activePractices = PRACTICES.filter(p => practiceData[p.key].rate !== null);
@@ -240,22 +285,50 @@ export async function onEnter() {
 
   const yearComparisonHTML = buildYearComparisonBlock();
 
-  // БАГ 5 ИСПРАВЛЕН: "пт" → t("pts"), +0 скрыт если нет данных
+  // Period selector HTML
+  const periodSelectorHTML = 
+    '<div class="period-selector" style="display:flex;gap:8px;margin-bottom:16px;justify-content:center;">' +
+      '<button class="period-btn' + (selectedTimeRange === 'week' ? ' active' : '') + '" data-period="week" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'week' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'week' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_7d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'month' ? ' active' : '') + '" data-period="month" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'month' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'month' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_30d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'quarter' ? ' active' : '') + '" data-period="quarter" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'quarter' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'quarter' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_90d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'year' ? ' active' : '') + '" data-period="year" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'year' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'year' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_365d") + '</button>' +
+    '</div>';
+
+  // ПРАВИЛА ОТОБРАЖЕНИЯ ПРАКТИК
   const practicesHTML = activePractices.length > 0 ? (
     '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("practices_eff") + '</div>' +
+      periodSelectorHTML +
       activePractices.map(function(p) {
         const d = practiceData[p.key];
-        // Показываем lift только если он > 0 и данные есть
-        const liftText = (d.lift !== null && d.lift > 0)
-          ? t("avg_lift") + ': +' + d.lift + ' ' + t("pts")
-          : (d.lift !== null && d.lift === 0 ? t("no_lift_data") : t("no_data_short"));
+        const baselineResult = formatBaselineComparison(p.key);
+        
+        // Effectiveness display logic
+        let effectivenessDisplay;
+        if (d.rate !== null) {
+          effectivenessDisplay = d.rate + '%';
+        } else if (d.sessions > 0) {
+          effectivenessDisplay = '— ' + t("insufficient_data");
+        } else {
+          effectivenessDisplay = '—';
+        }
+        
+        // Baseline comparison color
+        let baselineColor = '#888';
+        if (baselineResult.type === 'improving') baselineColor = '#4caf87';
+        else if (baselineResult.type === 'declining') baselineColor = '#e05555';
+        else if (baselineResult.type === 'stable') baselineColor = '#7b4fa0';
+        
+        // Sessions count - простой счёт без технических деталей
+        const sessionsText = d.sessions > 0 ? d.sessions + ' ' + t("sessions_count") : t("no_data_short");
+        
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
-              '<div class="flip-value" style="color:' + rColor(d.rate) + '">' + (d.rate !== null ? d.rate : '—') + '%</div>' +
-              '<div class="flip-sub">' + liftText + ' · ' + d.sessions + ' ' + t("sessions_count") + '</div>' +
+              '<div class="flip-value" style="color:' + rColor(d.rate) + '">' + effectivenessDisplay + '</div>' +
+              '<div class="flip-sub" style="color:' + baselineColor + '">' + baselineResult.text + '</div>' +
+              '<div style="font-size:12px;color:#999;margin-top:4px;">' + sessionsText + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
@@ -314,7 +387,7 @@ export async function onEnter() {
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + t("stability_lbl") + '</div>' +
-              '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : '—') + '%</div>' +
+              '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : formatInsightValue(null)) + '%</div>' +
               '<div class="flip-sub">' + sText(stability) + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
@@ -352,7 +425,7 @@ export async function onEnter() {
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + t("golden_lbl") + '</div>' +
-              '<div class="flip-value" style="font-size:18px;">⭐ ' + goldenShort(golden) + '</div>' +
+              '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
               '<div class="flip-sub">' + t("golden_sub") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
@@ -376,6 +449,18 @@ export async function onEnter() {
         const inner = wrap.querySelector(".flip-inner");
         if (front && inner) inner.style.minHeight = front.offsetHeight + "px";
         setTimeout(function() { initChartFor(wrap.id, history, stats, practiceData); }, 320);
+      }
+    });
+  });
+
+  // Period selector handlers
+  document.querySelectorAll(".period-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      const period = btn.getAttribute("data-period");
+      if (period && TIME_HORIZONS[period]) {
+        selectedTimeRange = period;
+        localStorage.setItem("insight_period", period);
+        onEnter();
       }
     });
   });
