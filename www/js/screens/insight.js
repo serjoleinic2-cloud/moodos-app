@@ -15,34 +15,71 @@ function formatInsightValue(value) {
 
 let selectedTimeRange = localStorage.getItem("insight_period") || 'month';
 
-function formatBaselineComparison(practiceType) {
+function formatPracticeCard(practiceType, practiceData) {
+  const d = practiceData[practiceType] || { rate: null, sessions: 0, effective: 0 };
   const comparison = getPracticeComparison(practiceType, TIME_HORIZONS[selectedTimeRange]);
-  const { baseline, comparison: comp } = comparison;
+  const { baseline, comparison: comp, current } = comparison;
   
-  if (baseline.sessionCount < 3) {
-    return { text: t('baseline_learning'), type: 'learning' };
-  }
+  const MIN_SESSIONS_FOR_COMPARISON = 7;
+  const hasEnoughData = baseline.sessionCount >= MIN_SESSIONS_FOR_COMPARISON;
   
-  if (comp.trend === null) {
-    return { text: t('baseline_not_enough'), type: 'insufficient' };
-  }
+  let mainDisplay = { value: '', type: 'neutral', subtitle: '' };
+  let comparisonDisplay = { text: '', type: 'neutral' };
   
-  let text = '';
-  let type = 'stable';
-  
-  if (comp.trend === 'improving') {
-    text = t('baseline_improving').replace('{{n}}', Math.abs(comp.liftDelta || 0));
-    type = 'improving';
-  } else if (comp.trend === 'declining') {
-    text = t('baseline_declining').replace('{{n}}', Math.abs(comp.liftDelta || 0));
-    type = 'declining';
+  // Определяем тип данных для отображения
+  if (hasEnoughData && comp.trend !== null) {
+    // Есть достаточно данных для сравнения - показываем сравнение
+    if (comp.trend === 'improving') {
+      const days = TIME_HORIZONS[selectedTimeRange];
+      mainDisplay = {
+        value: '+' + Math.abs(comp.liftDelta || 0) + t('pts'),
+        type: 'improving',
+        subtitle: t('baseline_improvement').replace('{{n}}', Math.abs(comp.liftDelta || 0)).replace('{{days}}', days)
+      };
+    } else if (comp.trend === 'declining') {
+      mainDisplay = {
+        value: Math.abs(comp.liftDelta || 0) + t('pts'),
+        type: 'declining',
+        subtitle: t('baseline_declining').replace('{{n}}', Math.abs(comp.liftDelta || 0))
+      };
+    } else {
+      mainDisplay = {
+        value: t('baseline_stable'),
+        type: 'stable',
+        subtitle: t('baseline_vs_period').replace('{{days}}', TIME_HORIZONS[selectedTimeRange])
+      };
+    }
+    comparisonDisplay = { text: '', type: 'neutral' };
   } else {
-    text = t('baseline_stable');
-    type = 'stable';
+    // Недостаточно данных - показываем абсолютные значения
+    if (d.rate !== null) {
+      mainDisplay = {
+        value: d.rate + '%',
+        type: d.rate >= 70 ? 'good' : (d.rate >= 40 ? 'mid' : 'low'),
+        subtitle: ''
+      };
+    } else {
+      mainDisplay = {
+        value: '—',
+        type: 'neutral',
+        subtitle: ''
+      };
+    }
+    
+    if (baseline.sessionCount < 3) {
+      comparisonDisplay = { text: t('baseline_learning'), type: 'learning' };
+    } else {
+      comparisonDisplay = { text: t('baseline_not_enough_compare'), type: 'insufficient' };
+    }
   }
   
-  const periodText = t('baseline_vs_period').replace('{{days}}', TIME_HORIZONS[selectedTimeRange]);
-  return { text: periodText + ': ' + text, type };
+  const sessionsText = d.sessions > 0 ? d.sessions + ' ' + t("sessions_count") : t("no_data_short");
+  
+  return {
+    mainDisplay,
+    comparisonDisplay,
+    sessionsText
+  };
 }
 
 const STATE_RU = {
@@ -300,35 +337,30 @@ export async function onEnter() {
       '<div class="insight-section-title">' + t("practices_eff") + '</div>' +
       periodSelectorHTML +
       activePractices.map(function(p) {
-        const d = practiceData[p.key];
-        const baselineResult = formatBaselineComparison(p.key);
+        const cardData = formatPracticeCard(p.key, practiceData);
         
-        // Effectiveness display logic
-        let effectivenessDisplay;
-        if (d.rate !== null) {
-          effectivenessDisplay = d.rate + '%';
-        } else if (d.sessions > 0) {
-          effectivenessDisplay = '— ' + t("insufficient_data");
-        } else {
-          effectivenessDisplay = '—';
-        }
+        // Цвет для основного значения
+        let valueColor = '#888';
+        if (cardData.mainDisplay.type === 'improving') valueColor = '#4caf87';
+        else if (cardData.mainDisplay.type === 'declining') valueColor = '#e05555';
+        else if (cardData.mainDisplay.type === 'stable') valueColor = '#7b4fa0';
+        else if (cardData.mainDisplay.type === 'good') valueColor = '#4caf87';
+        else if (cardData.mainDisplay.type === 'mid') valueColor = '#7b4fa0';
+        else if (cardData.mainDisplay.type === 'low') valueColor = '#e05555';
         
-        // Baseline comparison color
-        let baselineColor = '#888';
-        if (baselineResult.type === 'improving') baselineColor = '#4caf87';
-        else if (baselineResult.type === 'declining') baselineColor = '#e05555';
-        else if (baselineResult.type === 'stable') baselineColor = '#7b4fa0';
-        
-        // Sessions count - простой счёт без технических деталей
-        const sessionsText = d.sessions > 0 ? d.sessions + ' ' + t("sessions_count") : t("no_data_short");
+        // Цвет для подзаголовка сравнения
+        let subtitleColor = '#888';
+        if (cardData.comparisonDisplay.type === 'learning') subtitleColor = '#888';
+        else if (cardData.comparisonDisplay.type === 'insufficient') subtitleColor = '#888';
         
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
-              '<div class="flip-value" style="color:' + rColor(d.rate) + '">' + effectivenessDisplay + '</div>' +
-              '<div class="flip-sub" style="color:' + baselineColor + '">' + baselineResult.text + '</div>' +
-              '<div style="font-size:12px;color:#999;margin-top:4px;">' + sessionsText + '</div>' +
+              '<div class="flip-value" style="color:' + valueColor + '">' + cardData.mainDisplay.value + '</div>' +
+              (cardData.mainDisplay.subtitle ? '<div class="flip-sub" style="color:' + valueColor + '">' + cardData.mainDisplay.subtitle + '</div>' : '') +
+              (cardData.comparisonDisplay.text ? '<div class="flip-sub" style="color:' + subtitleColor + ';font-size:11px;">' + cardData.comparisonDisplay.text + '</div>' : '') +
+              '<div style="font-size:12px;color:#999;margin-top:4px;">' + cardData.sessionsText + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
