@@ -6,6 +6,8 @@
 
 /* ---------- GENERIC SAVE ---------- */
 export function save(data) {
+  let needsSnapshotUpdate = false;
+  
   if (data.mood !== undefined) {
     const history = getMoodHistory();
     history.push({
@@ -15,6 +17,7 @@ export function save(data) {
     });
     if (history.length > 730) history.shift();
     saveMoodHistory(history);
+    needsSnapshotUpdate = true;
   }
   if (data.feedback !== undefined) {
     const history = getSupportFeedbackHistory();
@@ -27,6 +30,14 @@ export function save(data) {
       text: data.lastSupportInsight,
       time: Date.now()
     }));
+  }
+  
+  if (needsSnapshotUpdate) {
+    setTimeout(() => {
+      import("./daily-snapshots.js")
+        .then(m => m.updateTodaySnapshot())
+        .catch(() => {});
+    }, 100);
   }
 }
 
@@ -90,6 +101,12 @@ export function addSessionEntry(entry) {
   const history = getSessionHistory();
   history.push(entry);
   saveSessionHistory(history);
+  
+  setTimeout(() => {
+    import("./daily-snapshots.js")
+      .then(m => m.updateTodaySnapshot())
+      .catch(() => {});
+  }, 100);
 }
 
 /* ---------- ACTIVITY HISTORY ---------- */

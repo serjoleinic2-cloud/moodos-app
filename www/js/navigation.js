@@ -31,6 +31,13 @@ export function initNavigation() {
 
   async function loadScreen(name) {
     if (!screenModules[name]) return;
+    
+    // Проверяем готовность системы
+    if (!window.systemState?.isReady) {
+      console.log('[nav] Waiting for system to be ready...');
+      return;
+    }
+    
     try {
       if (!loadedScreens[name]) {
         loadedScreens[name] = await screenModules[name]();

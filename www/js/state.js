@@ -17,6 +17,30 @@ let state = {
   }
 };
 
+// ===== SYSTEM STATE (CENTRALIZED) =====
+window.systemState = {
+  user: {},
+  sessions: [],
+  analytics: {},
+  premium: false,
+  avatar: {},
+  insights: {},
+  dailySnapshots: [],
+  isReady: false
+};
+
+export function updateSystemState(updates) {
+  Object.keys(updates).forEach(key => {
+    if (window.systemState.hasOwnProperty(key)) {
+      window.systemState[key] = updates[key];
+    }
+  });
+}
+
+export function getSystemState() {
+  return window.systemState;
+}
+
 
 
 /* ---------- INIT ---------- */

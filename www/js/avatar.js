@@ -23,12 +23,15 @@ const COOLDOWNS = {
   support : 10000,
   insight : 15000,
   idle    : 30000,
+  practice: 45000,
+  mood    : 60000,
   default : 10000,
 };
 
 // Приоритеты (меньше = важнее)
 const PRIORITY = {
   practice: 1,
+  mood    : 1,
   insight : 2,
   idle    : 3,
   tap     : 4,

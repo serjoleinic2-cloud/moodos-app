@@ -2,10 +2,25 @@ import { getMoodHistory } from "../services/memory.js";
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";
+import { isPremium, activateTrial } from "../services/user-profile.js";
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
+
+// ---- SAFE RENDER ----
+function safe(value, fallback = "—") {
+  if (value === null || value === undefined) return fallback;
+  if (Number.isNaN(value)) return fallback;
+  if (value === "") return fallback;
+  return value;
+}
+
+function safeNumber(value, fallback = null) {
+  if (value === null || value === undefined) return fallback;
+  if (Number.isNaN(value)) return fallback;
+  return value;
+}
 
 function formatInsightValue(value) {
   if (value == null) return t('no_data');
@@ -16,68 +31,65 @@ function formatInsightValue(value) {
 let selectedTimeRange = localStorage.getItem("insight_period") || 'month';
 
 function formatPracticeCard(practiceType, practiceData) {
-  const d = practiceData[practiceType] || { rate: null, sessions: 0, effective: 0 };
+  const d = safe(practiceData[practiceType], { rate: null, sessions: 0, effective: 0 });
   const comparison = getPracticeComparison(practiceType, TIME_HORIZONS[selectedTimeRange]);
-  const { baseline, comparison: comp, current } = comparison;
+  const { baseline, comparison: comp } = comparison;
   
-  const MIN_SESSIONS_FOR_COMPARISON = 7;
-  const hasEnoughData = baseline.sessionCount >= MIN_SESSIONS_FOR_COMPARISON;
+  const MIN_SESSIONS = 7;
+  const hasEnoughData = safe(baseline?.sessionCount, 0) >= MIN_SESSIONS;
   
-  let mainDisplay = { value: '', type: 'neutral', subtitle: '' };
-  let comparisonDisplay = { text: '', type: 'neutral' };
+  let mainDisplay = { value: '—', type: 'neutral', subtitle: '' };
+  let comparisonText = '';
   
-  // Определяем тип данных для отображения
-  if (hasEnoughData && comp.trend !== null) {
-    // Есть достаточно данных для сравнения - показываем сравнение
+  if (hasEnoughData && comp?.trend !== null) {
+    const liftDelta = safeNumber(comp.liftDelta, 0);
+    const days = safe(TIME_HORIZONS[selectedTimeRange], 30);
+    
     if (comp.trend === 'improving') {
-      const days = TIME_HORIZONS[selectedTimeRange];
       mainDisplay = {
-        value: '+' + Math.abs(comp.liftDelta || 0) + t('pts'),
+        value: '+' + safe(Math.abs(liftDelta), 0) + t('pts'),
         type: 'improving',
-        subtitle: t('baseline_improvement').replace('{{n}}', Math.abs(comp.liftDelta || 0)).replace('{{days}}', days)
+        subtitle: t('baseline_improvement').replace('{{n}}', safe(Math.abs(liftDelta), 0)).replace('{{days}}', days)
       };
     } else if (comp.trend === 'declining') {
       mainDisplay = {
-        value: Math.abs(comp.liftDelta || 0) + t('pts'),
+        value: safe(Math.abs(liftDelta), 0) + t('pts'),
         type: 'declining',
-        subtitle: t('baseline_declining').replace('{{n}}', Math.abs(comp.liftDelta || 0))
+        subtitle: t('baseline_declining').replace('{{n}}', safe(Math.abs(liftDelta), 0))
       };
     } else {
       mainDisplay = {
         value: t('baseline_stable'),
         type: 'stable',
-        subtitle: t('baseline_vs_period').replace('{{days}}', TIME_HORIZONS[selectedTimeRange])
+        subtitle: t('baseline_vs_period').replace('{{days}}', days)
       };
     }
-    comparisonDisplay = { text: '', type: 'neutral' };
   } else {
-    // Недостаточно данных - показываем абсолютные значения
-    if (d.rate !== null) {
+    const rate = safeNumber(d.rate, null);
+    if (rate !== null) {
       mainDisplay = {
-        value: d.rate + '%',
-        type: d.rate >= 70 ? 'good' : (d.rate >= 40 ? 'mid' : 'low'),
-        subtitle: ''
-      };
-    } else {
-      mainDisplay = {
-        value: '—',
-        type: 'neutral',
+        value: safe(rate, 0) + '%',
+        type: rate >= 70 ? 'good' : (rate >= 40 ? 'mid' : 'low'),
         subtitle: ''
       };
     }
     
-    if (baseline.sessionCount < 3) {
-      comparisonDisplay = { text: t('baseline_learning'), type: 'learning' };
+    const sessionsCount = safe(baseline?.sessionCount, 0);
+    if (sessionsCount < 3) {
+      comparisonText = t('baseline_learning');
     } else {
-      comparisonDisplay = { text: t('baseline_not_enough_compare'), type: 'insufficient' };
+      comparisonText = t('baseline_not_enough_compare');
     }
   }
   
-  const sessionsText = d.sessions > 0 ? d.sessions + ' ' + t("sessions_count") : t("no_data_short");
+  const sessionsCount = safe(d.sessions, 0);
+  const sessionsText = sessionsCount > 0 
+    ? safe(sessionsCount, 0) + ' ' + t("sessions_count")
+    : t("no_data_short");
   
   return {
     mainDisplay,
-    comparisonDisplay,
+    comparisonText,
     sessionsText
   };
 }
@@ -302,6 +314,10 @@ export async function onEnter() {
   const stateCode = STATE_RU[getStateLabel(state)] || state;
   const stateLabelTr = t("state_" + stateCode.toLowerCase()) || getStateLabel(state);
 
+  // Premium trigger - показываем если есть данные и не premium
+  const hasInsightData = history.length >= 3 || stats?.totalSessions > 0;
+  const showPremiumTrigger = hasInsightData && !isPremium();
+
   let memoryBlockHTML = "";
   if (mood <= 40) {
     const memory = findEmotionalMemory(history, mood);
@@ -339,7 +355,6 @@ export async function onEnter() {
       activePractices.map(function(p) {
         const cardData = formatPracticeCard(p.key, practiceData);
         
-        // Цвет для основного значения
         let valueColor = '#888';
         if (cardData.mainDisplay.type === 'improving') valueColor = '#4caf87';
         else if (cardData.mainDisplay.type === 'declining') valueColor = '#e05555';
@@ -348,20 +363,15 @@ export async function onEnter() {
         else if (cardData.mainDisplay.type === 'mid') valueColor = '#7b4fa0';
         else if (cardData.mainDisplay.type === 'low') valueColor = '#e05555';
         
-        // Цвет для подзаголовка сравнения
-        let subtitleColor = '#888';
-        if (cardData.comparisonDisplay.type === 'learning') subtitleColor = '#888';
-        else if (cardData.comparisonDisplay.type === 'insufficient') subtitleColor = '#888';
-        
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
-              '<div class="flip-value" style="color:' + valueColor + '">' + cardData.mainDisplay.value + '</div>' +
-              (cardData.mainDisplay.subtitle ? '<div class="flip-sub" style="color:' + valueColor + '">' + cardData.mainDisplay.subtitle + '</div>' : '') +
-              (cardData.comparisonDisplay.text ? '<div class="flip-sub" style="color:' + subtitleColor + ';font-size:10px;">' + cardData.comparisonDisplay.text + '</div>' : '') +
-              '<div style="font-size:10px;color:#999;margin-top:2px;">' + cardData.sessionsText + '</div>' +
-              '<div class="flip-hint" style="font-size:10px;margin-top:4px;">' + t("tap_for_details") + '</div>' +
+              '<div class="flip-value" style="color:' + valueColor + '">' + safe(cardData.mainDisplay.value, '—') + '</div>' +
+              (cardData.mainDisplay.subtitle ? '<div class="flip-sub" style="color:' + valueColor + '">' + safe(cardData.mainDisplay.subtitle, '') + '</div>' : '') +
+              (cardData.comparisonText ? '<div class="flip-sub" style="color:rgba(0,0,0,0.5);font-size:12px;">' + safe(cardData.comparisonText, '') + '</div>' : '') +
+              '<div style="font-size:12px;color:rgba(0,0,0,0.55);margin-top:4px;">' + safe(cardData.sessionsText, t('no_data_short')) + '</div>' +
+              '<div class="flip-hint" style="font-size:11px;margin-top:4px;">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
           '</div>' +
@@ -382,16 +392,16 @@ export async function onEnter() {
     '<style>' +
     '.insight-section{margin-bottom:24px;}' +
     '.insight-section-title{font-size:13px;color:#888;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}' +
-    '.flip-wrap{perspective:1000px;margin-bottom:8px;cursor:pointer;}' +
+    '.flip-wrap{perspective:1000px;margin-bottom:10px;cursor:pointer;}' +
     '.flip-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform 0.5s ease;border-radius:18px;}' +
     '.flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}' +
-    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;padding:12px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
+    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:14px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
     '.flip-front{position:relative;}' +
     '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
-    '.flip-label{font-size:11px;color:#999;margin-bottom:2px;}' +
-    '.flip-value{font-size:20px;font-weight:700;color:#3a3530;}' +
-    '.flip-sub{font-size:11px;color:#777;margin-top:2px;}' +
-    '.flip-hint{font-size:10px;color:#4caf87;font-weight:500;text-align:right;}' +
+    '.flip-label{font-size:14px;font-weight:600;color:rgba(0,0,0,0.7);margin-bottom:2px;}' +
+    '.flip-value{font-size:22px;font-weight:700;color:#3a3530;}' +
+    '.flip-sub{font-size:13px;color:rgba(0,0,0,0.65);margin-top:4px;line-height:1.4;}' +
+    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
@@ -469,6 +479,33 @@ export async function onEnter() {
       yearComparisonHTML +
       practicesHTML +
 
+      // Premium trigger section
+      (showPremiumTrigger ? `
+        <div class="insight-section" style="margin-top:24px;">
+          <div style="
+            background:linear-gradient(145deg,#fef3c7,#fde68a);
+            border-radius:18px;
+            padding:20px;
+            text-align:center;
+            box-shadow:4px 4px 10px #c8bfb2,-4px -4px 10px #ffffff;
+          ">
+            <div style="font-size:14px;color:#92400e;margin-bottom:12px;line-height:1.5;">` + t("premium_trigger_text") + `</div>
+            <button id="premiumTriggerBtn" style="
+              width:100%;
+              padding:13px;
+              border:none;
+              border-radius:12px;
+              background:linear-gradient(145deg,#f59e0b,#d97706);
+              box-shadow:4px 4px 8px #b8860b,-4px -4px 8px #ffffff;
+              font-size:15px;
+              font-weight:600;
+              color:#fff;
+              cursor:pointer;
+            ">` + t("premium_try_btn") + `</button>
+          </div>
+        </div>
+      ` : '') +
+
     '</div>';
 
   document.querySelectorAll(".flip-wrap").forEach(function(wrap) {
@@ -496,6 +533,26 @@ export async function onEnter() {
       }
     });
   });
+
+  // Premium trigger handler - activate immediately
+  const premiumTriggerBtn = document.getElementById("premiumTriggerBtn");
+  if (premiumTriggerBtn) {
+    premiumTriggerBtn.addEventListener("click", function() {
+      activateTrial();
+      
+      if (window.systemState) {
+        window.systemState.premium = true;
+      }
+      
+      onEnter();
+      
+      const msg = document.createElement("div");
+      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
+      msg.innerHTML = "✅ " + t("premium_access_granted");
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 3000);
+    });
+  }
 }
 
 function destroyChart(id) {

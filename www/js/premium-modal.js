@@ -2,12 +2,16 @@
 // MoodOS Premium Modal
 // =====================================
 import { t } from "./i18n.js";
+import { activateTrial, getPremiumInfo } from "./services/user-profile.js";
 
 let isShowing = false;
 
 export function showPremiumModal({ title, desc, fromLimit = false }) {
   if (isShowing) return;
   isShowing = true;
+  
+  const premiumInfo = getPremiumInfo();
+  const isPremium = premiumInfo.isPremium;
   
   const modal = document.getElementById("premium-modal");
   const titleEl = document.getElementById("premium-modal-title");
@@ -22,7 +26,7 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   
   if (titleEl) titleEl.textContent = title || "";
   if (descEl) descEl.textContent = desc || "";
-  if (btnEl) btnEl.textContent = t("premium_open_btn");
+  if (btnEl) btnEl.textContent = isPremium ? t("premium_unlimited") : t("premium_try_btn");
   
   modal.style.display = "flex";
   
@@ -41,8 +45,24 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   
   if (btnEl) {
     btnEl.onclick = () => {
+      if (isPremium) {
+        closeModal();
+        return;
+      }
+      
+      activateTrial();
+      
+      if (window.systemState) {
+        window.systemState.premium = true;
+      }
+      
       closeModal();
-      openPremiumScreen(fromLimit);
+      
+      const msg = document.createElement("div");
+      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
+      msg.innerHTML = "✅ " + t("premium_access_granted");
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 3000);
     };
   }
 }
@@ -53,27 +73,10 @@ export function hidePremiumModal() {
   isShowing = false;
 }
 
-function openPremiumScreen(fromLimit = false) {
-  const menuPanel = document.getElementById("menuPanel");
-  const menuOverlay = document.getElementById("menuOverlay");
-  if (menuPanel) menuPanel.style.bottom = "-400px";
-  if (menuOverlay) menuOverlay.style.display = "none";
-  
-  const screens = document.querySelectorAll(".screen");
-  const buttons = document.querySelectorAll("[data-nav]");
-  
-  screens.forEach(s => s.classList.remove("active"));
-  buttons.forEach(b => b.classList.remove("active"));
-  
-  const paywallScreen = document.querySelector('[data-screen="paywall"]');
-  if (paywallScreen) paywallScreen.classList.add("active");
-  
-  import("./screens/paywall.js").then(m => {
-    if (m.onEnter) m.onEnter(fromLimit);
-  }).catch(e => console.warn("Failed to load paywall screen:", e));
-}
-
 export function showGeminiLimitModal() {
+  const premiumInfo = getPremiumInfo();
+  if (premiumInfo.isPremium) return;
+  
   const i18n = window._t || {};
   showPremiumModal({
     title: i18n["gemini_limit_reached"] || "Дневной лимит запросов исчерпан",
@@ -83,6 +86,9 @@ export function showGeminiLimitModal() {
 }
 
 export function showHistoryLimitModal() {
+  const premiumInfo = getPremiumInfo();
+  if (premiumInfo.isPremium) return;
+  
   const i18n = window._t || {};
   showPremiumModal({
     title: i18n["free_history_limit_title"] || "Доступна только последняя неделя",

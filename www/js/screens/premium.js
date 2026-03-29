@@ -1,5 +1,6 @@
 // ===============================
 // MoodOS Premium Screen
+// Status screen (not paywall)
 // ===============================
 import { getPremiumInfo, activateTrial } from "../services/user-profile.js";
 import { t } from "../i18n.js";
@@ -14,10 +15,18 @@ export function onEnter() {
 
 function renderPremium() {
   const premiumInfo = getPremiumInfo();
+  const isActive = premiumInfo.isPremium;
   const statusClass = premiumInfo.status === "premium" ? "premium-active" : 
-                       premiumInfo.status === "trial" ? "premium-trial" : "premium-free";
-  const statusLabel = premiumInfo.status === "premium" ? t("premium_status_premium") :
-                      premiumInfo.status === "trial" ? t("premium_status_trial") : t("premium_status_free");
+                     premiumInfo.status === "trial" ? "premium-trial" : "premium-free";
+  
+  let statusText = "";
+  if (premiumInfo.status === "premium") {
+    statusText = t("premium_status_active");
+  } else if (premiumInfo.status === "trial") {
+    statusText = t("premium_trial_access") + ": " + premiumInfo.trialDaysLeft + " " + t("premium_days_left").toLowerCase();
+  } else {
+    statusText = t("premium_status_free");
+  }
   
   return `
     <style>
@@ -59,7 +68,7 @@ function renderPremium() {
         margin-right: 12px;
         flex-shrink: 0;
       }
-      .premium-trial {
+      .premium-trial-badge {
         background: linear-gradient(145deg, #fef3c7, #fde68a);
         border-radius: 16px;
         padding: 16px;
@@ -86,10 +95,10 @@ function renderPremium() {
         transform: scale(0.97);
       }
       .premium-btn:disabled {
-        background: linear-gradient(145deg, #9f7aea80, #805ad580);
+        background: linear-gradient(145deg, #d1fae5, #a7f3d0);
         cursor: default;
       }
-      .premium-status {
+      .premium-status-badge {
         display: inline-block;
         padding: 6px 16px;
         border-radius: 20px;
@@ -97,15 +106,15 @@ function renderPremium() {
         font-weight: 600;
         margin-bottom: 20px;
       }
-      .premium-free .premium-status {
+      .premium-free .premium-status-badge {
         background: rgba(136,136,136,0.2);
         color: #888;
       }
-      .premium-trial .premium-status {
+      .premium-trial .premium-status-badge {
         background: rgba(245,158,11,0.2);
         color: #f59e0b;
       }
-      .premium-active .premium-status {
+      .premium-active .premium-status-badge {
         background: rgba(76,175,135,0.2);
         color: #4caf87;
       }
@@ -113,7 +122,7 @@ function renderPremium() {
     
     <div class="premium-screen ${statusClass}">
       <div class="premium-icon">👑</div>
-      <div class="premium-status">${statusLabel}${premiumInfo.status === "trial" ? " · " + premiumInfo.trialDaysLeft + " " + t("premium_days_left").toLowerCase() : ""}</div>
+      <div class="premium-status-badge">${statusText}</div>
       <h2 class="premium-title">${t("premium_title")}</h2>
       
       <div class="premium-features">
@@ -142,13 +151,16 @@ function renderPremium() {
         </div>
       </div>
       
-      ${premiumInfo.status === "free" ? '<div style="font-size:12px;color:#888;margin-bottom:16px;">💡 ' + t("premium_yearly_savings") + '</div>' : ''}
-      
-      ${premiumInfo.status === "free" ? '<div class="premium-trial">' + t("premium_trial_days") + '</div>' : ''}
-      
-      <button id="premiumBtn" class="premium-btn" ${premiumInfo.status === "premium" ? "disabled" : ""}>
-        ${premiumInfo.status === "premium" ? "✓ " + t("premium_unlimited") : t("premium_open_btn")}
-      </button>
+      ${premiumInfo.status === "free" ? `
+        <div class="premium-trial-badge">${t("premium_trial_days")}</div>
+        <button id="premiumBtn" class="premium-btn">
+          ${t("premium_try_btn")}
+        </button>
+      ` : `
+        <button id="premiumBtn" class="premium-btn" disabled>
+          ✓ ${isActive ? t("premium_unlimited") : t("premium_status_active")}
+        </button>
+      `}
     </div>
   `;
 }
@@ -159,22 +171,21 @@ function bindEvents() {
   
   const premiumInfo = getPremiumInfo();
   
-  if (premiumInfo.status === "premium") {
-    return;
-  }
-  
-  btn.addEventListener("click", () => {
-    if (premiumInfo.status === "free") {
+  if (premiumInfo.status === "free") {
+    btn.addEventListener("click", () => {
       activateTrial();
+      
+      if (window.systemState) {
+        window.systemState.premium = true;
+      }
+      
       onEnter();
       
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_status_trial") + "<br><small style='font-weight:400;opacity:0.9;'>7 " + t("premium_days_left").toLowerCase() + "</small>";
+      msg.innerHTML = "✅ " + t("premium_access_granted");
       document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 2500);
-    } else if (premiumInfo.status === "trial") {
-      alert(t("premium_payments_later"));
-    }
-  });
+      setTimeout(() => msg.remove(), 3000);
+    });
+  }
 }

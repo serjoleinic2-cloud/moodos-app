@@ -13,6 +13,7 @@ import {
   getTheme,
   saveTheme,
 } from "../services/user-profile.js";
+import { getLastBackupTime, getBackupStatus } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
 function st(key, fallback = "") {
@@ -55,7 +56,7 @@ function renderSettings() {
   const premiumStatusLabel = statusLabels[premiumInfo.status] || t("premium_status_free");
   const premiumStatusColor = statusColors[premiumInfo.status] || "#888";
   const trialInfo = premiumInfo.status === "trial" 
-    ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_days_left")}: ${premiumInfo.trialDaysLeft}</div>` 
+    ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_trial_access")}: ${premiumInfo.trialDaysLeft}</div>` 
     : "";
   const showTrialBtn = premiumInfo.status === "free";
 
@@ -90,7 +91,10 @@ function renderSettings() {
     '</div>'
   ) : "";
 
-  const backupSub = lastTime ? t("settings_backup_last") + " " + lastTime.toLocaleDateString("ru-RU") : t("settings_backup_never");
+  const backupStatus = getBackupStatus();
+  const backupSub = lastTime 
+    ? t("settings_backup_last_at") + lastTime.toLocaleDateString("ru-RU") + " " + lastTime.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"}) + " · " + backupStatus.text
+    : t("settings_backup_never");
 
   return `
     <style>
@@ -243,13 +247,14 @@ function renderSettings() {
         ">
           <div id="premiumStatus" style="font-size:16px;font-weight:700;color:${premiumStatusColor};margin-bottom:4px;">${premiumStatusLabel}</div>
           ${trialInfo}
-          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "5 " + t("gemini_limit_reached").toLowerCase().split(" ").slice(-2).join(" ")}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : t("gemini_limit_reached")}</div>
           ${showTrialBtn ? `<button id="startTrialBtn" style="
             margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;
             background:linear-gradient(145deg,#fef3c7,#fde68a);
             box-shadow:5px 5px 10px #c8bfb2,-5px -5px 10px #ffffff;
             font-size:15px;font-weight:600;color:#92400e;cursor:pointer;
-          ">${t("premium_open_access")} (7 ${t("premium_days_left").toLowerCase()})</button>` : ""}
+          ">${t("premium_try_btn")}</button>
+          <div style="font-size:11px;color:#92400e;margin-top:6px;text-align:center;">${t("premium_try_desc")}</div>` : ""}
         </div>
       </div>
     </div>
@@ -344,12 +349,18 @@ function bindEvents(el) {
   if (trialBtn) {
     trialBtn.addEventListener("click", () => {
       activateTrial();
+      
+      // Set systemState premium to true
+      if (window.systemState) {
+        window.systemState.premium = true;
+      }
+      
       refresh();
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_status_trial") + "<br><small style='font-weight:400;opacity:0.9;'>7 " + t("premium_days_left").toLowerCase() + "</small>";
+      msg.innerHTML = "✅ " + t("premium_access_granted");
       document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 2500);
+      setTimeout(() => msg.remove(), 3000);
     });
   }
 }

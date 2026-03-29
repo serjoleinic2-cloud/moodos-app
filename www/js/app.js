@@ -158,6 +158,13 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error('[BOOT ERROR] initUI:', e);
   }
 
+  // Инициализация daily snapshots
+  setTimeout(() => {
+    import("./services/daily-snapshots.js")
+      .then(m => m.initSnapshots())
+      .catch(e => console.warn("[BOOT] initSnapshots failed:", e));
+  }, 100);
+
   // Применяем тему при запуске
   try {
     const theme = getTheme();
@@ -218,6 +225,11 @@ function startApp() {
   
   initNavigation();
 
+  // Устанавливаем флаг готовности
+  if (window.systemState) {
+    window.systemState.isReady = true;
+  }
+
   // Обновляем недельные блоки тихо в фоне
   setTimeout(() => {
     import("./services/weekly-analytics.js")
@@ -233,6 +245,23 @@ function startApp() {
       console.warn("checkAutoReminder failed:", e);
     }
   }, 3000);
+
+  // Smart auto-backup for Premium users
+  setTimeout(async () => {
+    try {
+      const { smartAutoBackup } = await import("./services/drive-backup.js");
+      const result = await smartAutoBackup();
+      if (result.success) {
+        console.log("[BOOT] Smart backup completed:", result.message);
+      } else if (result.skipped) {
+        console.log("[BOOT] Smart backup skipped:", result.reason);
+      } else {
+        console.warn("[BOOT] Smart backup failed:", result.message);
+      }
+    } catch(e) {
+      console.warn("smartAutoBackup failed:", e);
+    }
+  }, 4000);
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");

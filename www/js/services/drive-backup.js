@@ -1,7 +1,5 @@
 // =====================================
-// MoodOS Drive Backup — Фаза 1
-// Экспорт данных через Android share-меню
-// Google Drive OAuth — Фаза 2 (после MVP)
+// MoodOS Drive Backup — Smart Auto-Save
 // =====================================
 
 import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
@@ -9,13 +7,118 @@ import { getProfile, isPremium } from "./user-profile.js";
 import { t } from "../i18n.js";
 
 const LS_LAST_BACKUP = "last_auto_backup";
+const LS_DATA_HASH = "data_hash";
+const LS_BACKUP_STATUS = "backup_status";
 const FREE_DAYS_LIMIT = 7;
+const AUTO_BACKUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 export function getLastBackupTime() {
   try {
     const ts = localStorage.getItem(LS_LAST_BACKUP);
     return ts ? new Date(parseInt(ts)) : null;
   } catch(e) { return null; }
+}
+
+export function getBackupStatus() {
+  try {
+    const currentHash = computeDataHash();
+    const savedHash = localStorage.getItem(LS_DATA_HASH);
+    const lastBackup = getLastBackupTime();
+    
+    if (!savedHash || !lastBackup) {
+      return { status: "none", text: "" };
+    }
+    
+    if (currentHash === savedHash) {
+      return { status: "saved", text: "✔ " + t("settings_backup_saved") };
+    } else {
+      return { status: "pending", text: "⏳ " + t("settings_backup_pending") };
+    }
+  } catch(e) { return { status: "none", text: "" }; }
+}
+
+function computeDataHash() {
+  try {
+    const moodHistory = getMoodHistory();
+    const notesHistory = getNotesHistory();
+    const sessionHistory = getSessionHistory();
+    const profile = getProfile();
+    
+    const data = JSON.stringify({
+      moodCount: moodHistory.length,
+      notesCount: notesHistory.length,
+      sessionCount: sessionHistory.length,
+      profileUpdated: profile?.updatedAt || 0,
+      lastMoodTime: moodHistory.length > 0 ? (moodHistory[moodHistory.length - 1].time || 0) : 0,
+      lastSessionTime: sessionHistory.length > 0 ? (sessionHistory[sessionHistory.length - 1].timestamp || 0) : 0,
+    });
+    
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+      const char = data.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash.toString();
+  } catch(e) {
+    return "0";
+  }
+}
+
+export function hasDataChangedSinceBackup() {
+  try {
+    const currentHash = computeDataHash();
+    const savedHash = localStorage.getItem(LS_DATA_HASH);
+    return currentHash !== savedHash;
+  } catch(e) { return true; }
+}
+
+function saveDataHash() {
+  try {
+    localStorage.setItem(LS_DATA_HASH, computeDataHash());
+  } catch(e) {}
+}
+
+export async function smartAutoBackup() {
+  try {
+    const premium = isPremium();
+    if (!premium) return { skipped: true, reason: "not_premium" };
+    
+    const now = Date.now();
+    const lastBackup = getLastBackupTime();
+    const timeSinceLastBackup = lastBackup ? (now - lastBackup.getTime()) : Infinity;
+    
+    if (timeSinceLastBackup < AUTO_BACKUP_INTERVAL) {
+      return { skipped: true, reason: "too_soon", nextCheck: AUTO_BACKUP_INTERVAL - timeSinceLastBackup };
+    }
+    
+    if (!hasDataChangedSinceBackup()) {
+      return { skipped: true, reason: "no_changes", status: "saved" };
+    }
+    
+    localStorage.setItem(LS_BACKUP_STATUS, "pending");
+    
+    const result = await backupAndShare();
+    
+    if (result.success) {
+      localStorage.setItem(LS_BACKUP_STATUS, "saved");
+      return { success: true, message: result.message };
+    } else {
+      return { success: false, message: result.message };
+    }
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+export function resetBackupStatus() {
+  try {
+    if (hasDataChangedSinceBackup()) {
+      localStorage.setItem(LS_BACKUP_STATUS, "pending");
+    } else {
+      localStorage.setItem(LS_BACKUP_STATUS, "saved");
+    }
+  } catch(e) {}
 }
 
 function filterLast7Days(arr, timestampField) {
@@ -96,6 +199,8 @@ export async function backupAndShare() {
         dialogTitle: "Сохранить резервную копию",
       });
       localStorage.setItem(LS_LAST_BACKUP, Date.now().toString());
+      saveDataHash();
+      localStorage.setItem(LS_BACKUP_STATUS, "saved");
       return { success: true, message: "shared" };
     }
 
@@ -108,6 +213,8 @@ export async function backupAndShare() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     localStorage.setItem(LS_LAST_BACKUP, Date.now().toString());
+    saveDataHash();
+    localStorage.setItem(LS_BACKUP_STATUS, "saved");
     return { success: true, message: "downloaded" };
 
   } catch(e) {
