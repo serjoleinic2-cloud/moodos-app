@@ -305,7 +305,9 @@ function showMoodCalendarOverlay() {
     const hasVoice = dayHasVoice[key] || false;
     
     const date = new Date(key + "T12:00:00");
-    const dateFormatted = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+    const lang = localStorage.getItem('app_language') || 'ru';
+    const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
+    const dateFormatted = date.toLocaleDateString(localeMap[lang] || 'ru-RU', { day: "numeric", month: "long" });
     
     const popup = document.createElement("div");
     popup.id = "dayPopup";
