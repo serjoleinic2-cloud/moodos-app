@@ -259,6 +259,15 @@ function renderSettings() {
           ">${t("premium_try_btn")}</button>
           <div style="font-size:11px;color:#92400e;margin-top:6px;text-align:center;">${t("premium_try_desc")}</div>` : ""}
         </div>
+        <div class="neo-row" id="settingHowItWorks">
+          <div class="neo-row-content">
+            <span class="neo-row-icon">📘</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("how_it_works_title")}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
+        </div>
       </div>
     </div>
   `;
@@ -361,6 +370,10 @@ function bindEvents(el) {
       setTimeout(() => msg.remove(), 3000);
     });
   }
+
+  el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
+    openScreen("howItWorks");
+  });
 }
 
 function refresh() {

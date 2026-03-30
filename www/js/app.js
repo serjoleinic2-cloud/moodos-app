@@ -256,6 +256,15 @@ function startApp() {
     }
   }, 4500);
 
+  setTimeout(async () => {
+    try {
+      const { initBilling } = await import("./services/billing-service.js");
+      initBilling();
+    } catch(e) {
+      console.warn("initBilling failed:", e);
+    }
+  }, 500);
+
 
 
   const btn         = document.getElementById("analyzeNoteBtn");

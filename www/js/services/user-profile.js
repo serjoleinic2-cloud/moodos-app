@@ -117,6 +117,7 @@ const FREE_GEMINI_LIMIT = 5;
 export function getPremiumStatus() {
   const profile = getProfile();
   if (!profile) return "free";
+  if (profile.premium_type === "paid") return "paid";
   if (profile.isPremium) return "premium";
   if (profile.premiumTrial?.active) {
     const startDate = new Date(profile.premiumTrial.startDate);
@@ -150,6 +151,8 @@ export function getPremiumInfo() {
     if (expiresAt && Date.now() > expiresAt.getTime()) {
       isExpired = true;
     }
+  } else if (status === "paid") {
+    plan = profile.premiumPlan || "monthly";
   }
   
   return {
@@ -159,7 +162,7 @@ export function getPremiumInfo() {
     plan,
     expiresAt,
     isExpired,
-    isPremium: status === "premium" || status === "trial"
+    isPremium: status === "premium" || status === "trial" || status === "paid"
   };
 }
 
@@ -169,6 +172,7 @@ export function isPremium() {
 
 export function activateTrial() {
   const profile = getProfile() || {};
+  if (profile.premium_type === "paid") return;
   profile.premiumTrial = {
     active: true,
     startDate: new Date().toISOString()
@@ -178,6 +182,24 @@ export function activateTrial() {
     window.systemState.premium = true;
   }
   document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'trial' } }));
+}
+
+export function activatePremiumPaid() {
+  try {
+    const profile = getProfile() || {};
+
+    profile.premium = true;
+    profile.premium_type = "paid";
+    profile.premium_since = Date.now();
+
+    saveProfile(profile);
+
+    window.systemState.premium = true;
+
+    document.dispatchEvent(new Event("premiumChanged"));
+  } catch (e) {
+    console.error('[premium] activation failed', e);
+  }
 }
 
 export function activatePremium(plan = "monthly") {

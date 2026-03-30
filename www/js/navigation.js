@@ -27,6 +27,7 @@ export function initNavigation() {
     premium:   () => import("./screens/premium.js"),
     history:   () => import("./screens/history.js"),
     paywall:   () => import("./screens/paywall.js"),
+    howItWorks: () => import("./screens/how-it-works.js"),
   };
 
   async function loadScreen(name) {
@@ -106,6 +107,7 @@ export function initNavigation() {
     currentScreen = name;
     loadScreen(name);
   }
+  window.openScreen = openScreen;
 
   hamburgerBtn.addEventListener("click", () => {
     closeAllOverlays();

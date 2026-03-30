@@ -516,5 +516,18 @@ export const en = {
     period_90d: "90d",
     period_365d: "365d",
     your_average: "your average",
-    compared_to_baseline: "compared to average"
+    compared_to_baseline: "compared to average",
+    how_it_works_title: "How It Works",
+    how_block_1_title: "What is it",
+    how_block_1_text: "Moodos helps track your state and understand what affects it.",
+    how_block_2_title: "How to use",
+    how_block_2_text: "Track your mood, do practices and see how your state changes.",
+    how_block_3_title: "Insights",
+    how_block_3_text: "The app shows patterns and changes over time.",
+    how_block_4_title: "Avatar",
+    how_block_4_text: "This is your helper. It reacts to your state and helps you notice changes.",
+    how_block_5_title: "Why it matters",
+    how_block_5_text: "To better understand yourself and make more conscious decisions.",
+    how_footer: "Start simple — track your state today",
+    restore_purchases: "Restore purchases"
 };

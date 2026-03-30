@@ -17,7 +17,8 @@ function SESSION_META() {
     "visual-focus": { icon:"👁",  label: t("tools_visual").replace(/^👁\s*/,"") },
     "mind-dump":    { icon:"🧠", label: t("tools_mind").replace(/^🧠\s*/,"") },
     "tap-calm":     { icon:"✋", label: t("tools_tap").replace(/^✋\s*/,"") },
-    "support-texts": { icon:"💌", label: t("practice_support_text") },
+    "support-texts": { icon:"💬", label: t("support_texts_title") },
+    "support_texts": { icon:"💬", label: t("support_texts_title") },
   };
 }
 

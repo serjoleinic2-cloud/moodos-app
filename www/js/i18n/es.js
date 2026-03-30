@@ -517,5 +517,18 @@ export const es = {
     period_90d: "90d",
     period_365d: "365d",
     your_average: "tu promedio",
-    compared_to_baseline: "comparado con el promedio"
+    compared_to_baseline: "comparado con el promedio",
+    how_it_works_title: "Cómo funciona",
+    how_block_1_title: "Qué es",
+    how_block_1_text: "Moodos ayuda a rastrear tu estado y entender qué lo afecta.",
+    how_block_2_title: "Cómo usar",
+    how_block_2_text: "Registra tu ánimo, haz prácticas y observa cómo cambia tu estado.",
+    how_block_3_title: "Insights",
+    how_block_3_text: "La app muestra patrones y cambios con el tiempo.",
+    how_block_4_title: "Avatar",
+    how_block_4_text: "Este es tu помощник. Reacciona a tu estado y te ayuda a notar cambios.",
+    how_block_5_title: "Por qué importa",
+    how_block_5_text: "Para entenderte mejor y tomar decisiones más conscientes.",
+    how_footer: "Empieza simple — registra tu estado hoy",
+    restore_purchases: "Restaurar compras"
 };

@@ -16,12 +16,12 @@ export function onEnter() {
 function renderPremium() {
   const premiumInfo = getPremiumInfo();
   const isActive = premiumInfo.isPremium;
-  const statusClass = premiumInfo.status === "premium" ? "premium-active" : 
+  const statusClass = premiumInfo.status === "premium" || premiumInfo.status === "paid" ? "premium-active" : 
                      premiumInfo.status === "trial" ? "premium-trial" : "premium-free";
   
   let statusText = "";
-  if (premiumInfo.status === "premium") {
-    statusText = t("premium_status_active");
+  if (premiumInfo.status === "premium" || premiumInfo.status === "paid") {
+    statusText = "👑 " + t("premium_status_active");
   } else if (premiumInfo.status === "trial") {
     statusText = t("premium_trial_access") + ": " + premiumInfo.trialDaysLeft + " " + t("premium_days_left").toLowerCase();
   } else {
@@ -156,6 +156,11 @@ function renderPremium() {
         <button id="premiumBtn" class="premium-btn">
           ${t("premium_try_btn")}
         </button>
+        ${window.store ? `
+          <button id="restoreBtn" style="margin-top:12px;background:none;border:none;color:#888;font-size:13px;cursor:pointer;text-decoration:underline;">
+            ${t("restore_purchases") || "Restore purchases"}
+          </button>
+        ` : ""}
       ` : `
         <button id="premiumBtn" class="premium-btn" disabled>
           ✓ ${isActive ? t("premium_unlimited") : t("premium_status_active")}
@@ -167,11 +172,11 @@ function renderPremium() {
 
 function bindEvents() {
   const btn = document.getElementById("premiumBtn");
-  if (!btn) return;
+  const restoreBtn = document.getElementById("restoreBtn");
   
   const premiumInfo = getPremiumInfo();
   
-  if (premiumInfo.status === "free") {
+  if (premiumInfo.status === "free" && btn) {
     btn.addEventListener("click", () => {
       activateTrial();
       
@@ -186,6 +191,17 @@ function bindEvents() {
       msg.innerHTML = "✅ " + t("premium_access_granted");
       document.body.appendChild(msg);
       setTimeout(() => msg.remove(), 3000);
+    });
+  }
+  
+  if (restoreBtn) {
+    restoreBtn.addEventListener("click", async () => {
+      try {
+        const { restorePurchases } = await import("../services/billing-service.js");
+        restorePurchases();
+      } catch(e) {
+        console.warn("restorePurchases not available:", e);
+      }
     });
   }
 }

@@ -20,7 +20,11 @@ const TRANSLATIONS = { ru, en, es, uk };
 
 export function t(key) {
   const lang = getLang();
-  return TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key] ?? "";
+  const result = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key] ?? "";
+  if (result === "" && typeof console !== "undefined") {
+    console.warn('[i18n missing key]', key, '| lang:', lang);
+  }
+  return result;
 }
 
 export function tSafe(key, fallback = "") {
