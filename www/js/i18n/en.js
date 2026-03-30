@@ -193,6 +193,8 @@ export const en = {
     theme_default: "Green-Beige",
     theme_purple_blue: "Purple-Blue",
     theme_purple_pink: "Purple-Pink",
+    theme_ocean_blue: "🌊 Ocean (Premium)",
+    theme_warm_sunset: "🌅 Warm Sunset (Premium)",
 
     terms_title: "Before We Start",
     terms_sub: "Please review the terms",
@@ -376,6 +378,7 @@ export const en = {
     settings_backup_pending: "waiting to save",
     settings_backup_last_at: "Last: ",
     cloud_section: "Cloud Backup",
+    btn_create_backup: "Create local backup",
     settings_restore_label: "Restore Data",
     settings_restore_hint: "Upload backup file",
     settings_restore_title: "Restore",

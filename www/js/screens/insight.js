@@ -5,7 +5,7 @@ import { getStateLabel } from "../services/state-engine.js";
 import { isPremium, activateTrial } from "../services/user-profile.js";
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
-import { t } from "../i18n.js";
+import { t, getLang } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
 
 // ---- SAFE RENDER ----
@@ -120,12 +120,24 @@ function trendLabel(tr) {
 
 function getPeriodLabel(period) {
   const labels = {
-    week: '7 ' + (t('days_1') || 'день'),
-    month: '30 ' + (t('days_5') || 'дней'),
-    quarter: '90 ' + (t('days_5') || 'дней'),
-    year: '365 ' + (t('days_5') || 'дней')
+    week: '7 ' + getDaysShort(7),
+    month: '30 ' + getDaysShort(30),
+    quarter: '90 ' + getDaysShort(90),
+    year: '365 ' + getDaysShort(365)
   };
-  return labels[period] || '30 ' + (t('days_5') || 'дней');
+  return labels[period] || '30 ' + getDaysShort(30);
+}
+
+function getDaysShort(days) {
+  const lang = getLang();
+  if (lang === "ru" || lang === "uk") {
+    const lastDigit = days % 10;
+    const lastTwoDigits = days % 100;
+    if (lastDigit === 1 && lastTwoDigits !== 11) return days === 1 ? "день" : "день";
+    if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) return "дня";
+    return "дней";
+  }
+  return "days";
 }
 
 function trendExplain(tr) {

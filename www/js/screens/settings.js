@@ -491,11 +491,19 @@ function showBaselineModal() {
 
 function showThemeModal() {
   const current = getTheme();
+  const premium = isPremium();
   const themes = [
     { value: "default",      label: "🌿 " + t("theme_default") },
     { value: "purple-blue",  label: "💜 " + t("theme_purple_blue") },
     { value: "purple-pink",  label: "🌸 " + t("theme_purple_pink") },
   ];
+  
+  if (premium) {
+    themes.push(
+      { value: "ocean-blue",  label: "🌊 " + t("theme_ocean_blue") },
+      { value: "warm-sunset", label: "🌅 " + t("theme_warm_sunset") }
+    );
+  }
   const overlay = document.createElement("div");
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `

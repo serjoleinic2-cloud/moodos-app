@@ -339,3 +339,55 @@ body[data-theme="purple-pink"] .bottom-nav button.active { color: #b5479a !impor
 body[data-theme="purple-pink"] textarea {
   box-shadow: inset 3px 3px 7px #d4b0cc, inset -3px -3px 7px #ffffff !important;
 }
+
+/* --- Premium: Ocean Blue --- */
+body[data-theme="ocean-blue"] {
+  background: linear-gradient(160deg, #d0e8f0 0%, #d8e8e0 100%) !important;
+}
+body[data-theme="ocean-blue"] .card,
+body[data-theme="ocean-blue"] .mo-metric,
+body[data-theme="ocean-blue"] .hist-card,
+body[data-theme="ocean-blue"] .flip-front,
+body[data-theme="ocean-blue"] .flip-back,
+body[data-theme="ocean-blue"] .stab-entry,
+body[data-theme="ocean-blue"] .bottom-nav {
+  background: rgba(208, 232, 240, 0.9) !important;
+  box-shadow: 6px 6px 14px #a0c0d0, -6px -6px 14px #ffffff !important;
+}
+body[data-theme="ocean-blue"] .mo-btn,
+body[data-theme="ocean-blue"] .card button,
+body[data-theme="ocean-blue"] .mood-ok-btn {
+  background: linear-gradient(145deg, #e0f0f8, #d0e8f0) !important;
+  box-shadow: 5px 5px 10px #a0c0d0, -5px -5px 10px #ffffff !important;
+  color: #4a8090 !important;
+}
+body[data-theme="ocean-blue"] .bottom-nav button.active { color: #4a90a0 !important; }
+body[data-theme="ocean-blue"] textarea {
+  box-shadow: inset 3px 3px 7px #a0c0d0, inset -3px -3px 7px #ffffff !important;
+}
+
+/* --- Premium: Warm Sunset --- */
+body[data-theme="warm-sunset"] {
+  background: linear-gradient(160deg, #f8e8d8 0%, #f8d8d0 100%) !important;
+}
+body[data-theme="warm-sunset"] .card,
+body[data-theme="warm-sunset"] .mo-metric,
+body[data-theme="warm-sunset"] .hist-card,
+body[data-theme="warm-sunset"] .flip-front,
+body[data-theme="warm-sunset"] .flip-back,
+body[data-theme="warm-sunset"] .stab-entry,
+body[data-theme="warm-sunset"] .bottom-nav {
+  background: rgba(248, 232, 216, 0.9) !important;
+  box-shadow: 6px 6px 14px #d0b8a0, -6px -6px 14px #ffffff !important;
+}
+body[data-theme="warm-sunset"] .mo-btn,
+body[data-theme="warm-sunset"] .card button,
+body[data-theme="warm-sunset"] .mood-ok-btn {
+  background: linear-gradient(145deg, #faf0e8, #f0e0d0) !important;
+  box-shadow: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff !important;
+  color: #906050 !important;
+}
+body[data-theme="warm-sunset"] .bottom-nav button.active { color: #a07050 !important; }
+body[data-theme="warm-sunset"] textarea {
+  box-shadow: inset 3px 3px 7px #d0b8a0, inset -3px -3px 7px #ffffff !important;
+}
