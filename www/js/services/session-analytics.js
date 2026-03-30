@@ -14,6 +14,13 @@ export const TIME_HORIZONS = {
   year: 365
 };
 
+// ---- ПЕРИОД ФИЛЬТР ----
+function _filterByDays(data, days) {
+  if (!days) return data;
+  const cutoff = Date.now() - days * 86400000;
+  return data.filter(s => (s.timestamp || s.time || 0) >= cutoff);
+}
+
 // ---- НОРМАЛИЗАЦИЯ ТИПА ПРАКТИКИ ----
 function normalizeType(type) {
   return type?.replace('_', '-').toLowerCase();
@@ -36,16 +43,26 @@ function getValidEntriesForPeriod(type, days) {
 }
 
 // ---- ОБЩАЯ ЭФФЕКТИВНОСТЬ ТИПА ----
-export function getEffectivenessRate(type) {
-  const validEntries = getValidEntries(type);
+export function getEffectivenessRate(type, days = null) {
+  const sessions = _filterByDays(getSessionHistory(), days);
+  const normalizedType = normalizeType(type);
+  const validEntries = sessions
+    .map(s => ({ ...s, type: normalizeType(s.type) }))
+    .filter(s => s.type === normalizedType)
+    .filter(e => e.moodBefore != null && e.moodAfter != null);
   if (!validEntries.length) return null;
   const positive = validEntries.filter(s => s.result === "positive").length;
   return Math.round((positive / validEntries.length) * 100);
 }
 
 // ---- СРЕДНИЙ ПРИРОСТ НАСТРОЕНИЯ ----
-export function getAverageMoodLift(type) {
-  const validEntries = getValidEntries(type);
+export function getAverageMoodLift(type, days = null) {
+  const sessions = _filterByDays(getSessionHistory(), days);
+  const normalizedType = normalizeType(type);
+  const validEntries = sessions
+    .map(s => ({ ...s, type: normalizeType(s.type) }))
+    .filter(s => s.type === normalizedType)
+    .filter(e => e.moodBefore != null && e.moodAfter != null);
   if (!validEntries.length) return null;
   const lifts = validEntries.map(s => s.moodAfter - s.moodBefore);
   const avg = lifts.reduce((a, b) => a + b, 0) / lifts.length;
@@ -59,8 +76,13 @@ export function getEffectiveSessionCount(type) {
 }
 
 // ---- КАКИЕ СОСТОЯНИЯ ЛУЧШЕ ВСЕГО УЛУЧШАЮТСЯ ----
-export function getEffectivenessByState(type) {
-  const validEntries = getValidEntries(type);
+export function getEffectivenessByState(type, days = null) {
+  const sessions = _filterByDays(getSessionHistory(), days);
+  const normalizedType = normalizeType(type);
+  const validEntries = sessions
+    .map(s => ({ ...s, type: normalizeType(s.type) }))
+    .filter(s => s.type === normalizedType)
+    .filter(e => e.moodBefore != null && e.moodAfter != null);
   if (!validEntries.length) return {};
 
   const stats = {};

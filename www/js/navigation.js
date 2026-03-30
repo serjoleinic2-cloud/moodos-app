@@ -47,9 +47,14 @@ export function initNavigation() {
     } catch (err) {
       console.error(`[nav] loadScreen error for "${name}":`, err);
       delete loadedScreens[name];
-      if (!err._retried) {
-        err._retried = true;
+      if (!loadScreen._retried) loadScreen._retried = new Set();
+      if (!loadScreen._retried.has(name)) {
+        loadScreen._retried.add(name);
         setTimeout(() => loadScreen(name), 500);
+      } else {
+        loadScreen._retried.delete(name);
+        const s = document.querySelector(`[data-screen="${name}"]`);
+        if (s) s.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa;">Ошибка загрузки экрана</div>';
       }
     }
   }

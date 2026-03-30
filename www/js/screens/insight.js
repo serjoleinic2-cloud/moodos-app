@@ -366,9 +366,9 @@ export async function onEnter() {
   const practiceData = {};
   PRACTICES.forEach(p => {
     practiceData[p.key] = {
-      rate:    getEffectivenessRate(p.key),
-      lift:    getAverageMoodLift(p.key),
-      byState: getEffectivenessByState(p.key),
+      rate:    getEffectivenessRate(p.key, periodDays),
+      lift:    getAverageMoodLift(p.key, periodDays),
+      byState: getEffectivenessByState(p.key, periodDays),
       sessions: 0,
       effective: 0,
     };
@@ -625,8 +625,6 @@ export async function onEnter() {
     premiumTriggerBtn.addEventListener("click", function() {
       activateTrial();
       
-      onEnter();
-      
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
       msg.innerHTML = "✅ " + t("premium_access_granted");
@@ -698,6 +696,11 @@ function initChartFor(id, history, stats, practiceData) {
   if (practiceData[practiceKey]) {
     const canvasId = "chart-" + practiceKey;
     destroyChart(canvasId);
+    const c = document.getElementById(canvasId);
+    if (!c || !window.Chart) {
+      if (c) c.style.display = 'none';
+      return;
+    }
     const rate = practiceData[practiceKey].rate !== null ? practiceData[practiceKey].rate : 0;
     const colors = {
       "breathing":    "#4db8ff",

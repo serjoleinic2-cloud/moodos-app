@@ -97,17 +97,26 @@ export function saveNotesHistory(history) {
   } catch(e) {
     console.error('[memory] saveNotesHistory failed:', e);
   }
-}
+  }
 }
 
 /* ---------- VOICE HISTORY ---------- */
 
 export function getVoiceHistory() {
-  return JSON.parse(localStorage.getItem("voice_history")) || [];
+  try {
+    return JSON.parse(localStorage.getItem("voice_history")) || [];
+  } catch(e) {
+    localStorage.removeItem("voice_history");
+    return [];
+  }
 }
 
 export function saveVoiceHistory(history) {
-  localStorage.setItem("voice_history", JSON.stringify(history));
+  try {
+    localStorage.setItem("voice_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveVoiceHistory failed:', e);
+  }
 }
 
 /* ---------- SUPPORT FEEDBACK HISTORY ---------- */

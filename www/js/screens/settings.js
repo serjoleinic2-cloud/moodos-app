@@ -354,7 +354,6 @@ function bindEvents(el) {
     trialBtn.addEventListener("click", () => {
       activateTrial();
       
-      refresh();
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
       msg.innerHTML = "✅ " + t("premium_access_granted");

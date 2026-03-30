@@ -45,7 +45,7 @@ export function onEnter() {
         return;
       }
 
-      const savedMood = result.state?.mood ?? moodValue;
+      const savedMood = moodValue;
       newSlider.value = savedMood;
       valueLabel.textContent = savedMood + '%';
 

@@ -472,7 +472,14 @@ function bindTooltips(container) {
 
 function drawChart(filtered) {
   const canvas = document.getElementById("reportChart");
-  if (!canvas || !window.Chart) return;
+  if (!canvas) return;
+  if (!window.Chart) {
+    const parent = canvas.parentElement;
+    if (parent) parent.innerHTML =
+      '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' +
+      (t('chart_unavailable') || 'График недоступен') + '</div>';
+    return;
+  }
   const ex = window.Chart.getChart(canvas);
   if (ex) ex.destroy();
 
