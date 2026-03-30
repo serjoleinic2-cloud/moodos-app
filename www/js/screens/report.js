@@ -312,7 +312,7 @@ function showMoodCalendarOverlay() {
     const moodColor = v >= 70 ? "#4caf87" : v >= 40 ? "#f0a500" : "#e05555";
     
     const practiceMap = dayPracticeCounts[key] || {};
-    const practiceEntries = Object.entries(practiceMap).sort((a, b) => b[1] - a[1]);
+    const practiceEntries = Object.entries(practiceMap || {}).sort((a, b) => b[1] - a[1]);
     const displayPractices = practiceEntries.slice(0, 3);
     const remainingCount = practiceEntries.length - 3;
     

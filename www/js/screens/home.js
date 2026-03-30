@@ -13,11 +13,13 @@ export function onEnter() {
 
   // Синхронизируем слайдер с реальным текущим настроением
   const currentMood = getMood();
-valueLabel.textContent = currentMood + "%";
+  valueLabel.textContent = currentMood + "%";
 
   const newSlider = slider.cloneNode(true);
   slider.parentNode.replaceChild(newSlider, slider);
   newSlider.id = "moodSlider";
+  newSlider.value = currentMood;
+  showAvatarHint(Number(currentMood));
 
   newSlider.addEventListener("input", () => {
     valueLabel.textContent = newSlider.value + "%";

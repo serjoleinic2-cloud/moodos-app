@@ -27,7 +27,7 @@ function renderPaywall() {
   return `
     <style>
       .paywall-screen {
-        padding: 20px 16px 100px;
+        padding: 20px 16px 80px;
         text-align: center;
       }
       .paywall-icon {

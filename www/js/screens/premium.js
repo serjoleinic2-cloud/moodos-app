@@ -31,7 +31,7 @@ function renderPremium() {
   return `
     <style>
       .premium-screen {
-        padding: 20px 16px 100px;
+        padding: 20px 16px 80px;
         text-align: center;
       }
       .premium-icon {

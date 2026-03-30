@@ -23,6 +23,13 @@ export function t(key) {
   return TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key] ?? "";
 }
 
+export function tSafe(key, fallback = "") {
+  const lang = getLang();
+  const result = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key];
+  if (result === undefined || result === "") return fallback;
+  return result;
+}
+
 export function getDaysLabel(days) {
   const lang = getLang();
   if (lang === "ru" || lang === "uk") {
