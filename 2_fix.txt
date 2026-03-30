@@ -1,136 +1,133 @@
-PROMPT ДЛЯ НОВОГО ЧАТА CLAUDE
+TASK: Controlled Stabilization — Patch Implementation
+🎯 Goal
 
-Скопируй и отправь ему:
+Apply targeted stability fixes without changing architecture or UI.
 
-🧠 CONTEXT
+🔴 PRIORITY 1 — CRITICAL FIX
+FILE: memory.js
 
-Я работаю над приложением moodos-app (web/mobile hybrid).
+Fix syntax error:
 
-Мы уже провели аудит и выполнили первый этап stability hardening (без рефакторинга архитектуры).
+Remove extra closing } after saveNotesHistory
+🟡 PRIORITY 2 — DATA SAFETY
+FILE: memory.js
 
-✅ Уже исправлено:
+Add try/catch:
 
-1. Memory safety
+export function getVoiceHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("voice_history")) || [];
+  } catch(e) {
+    localStorage.removeItem("voice_history");
+    return [];
+  }
+}
 
-try/catch добавлен в 6 функций в memory.js
-добавлен KNOWN_SAVE_FIELDS (+3 поля)
-предотвращена silent потеря данных
+export function saveVoiceHistory(history) {
+  try {
+    localStorage.setItem("voice_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveVoiceHistory failed:', e);
+  }
+}
+🟡 PRIORITY 3 — ANALYTICS CONSISTENCY (IMPORTANT)
+FILE: insight.js
 
-2. Backup
+Pass selected period to practice analytics:
 
-Premium теперь сохраняет полный backup (без slice)
-добавлен resolveTimestamp для merge
+rate: getEffectivenessRate(p.key, periodDays),
+lift: getAverageMoodLift(p.key, periodDays),
+byState: getEffectivenessByState(p.key, periodDays),
+FILE: session-analytics.js
 
-3. Premium logic
+Update functions to support days filter:
 
-systemState синхронизируется с user_profile
-добавлены события (events)
+function filterByDays(data, days) {
+  if (!days) return data;
+  const now = Date.now();
+  return data.filter(s => (s.timestamp || s.time || 0) >= now - days * 86400000);
+}
 
-4. Duplicate logic cleanup
+Apply inside:
 
-убраны дубли активации premium
-добавлен listener в navigation.js
+getEffectivenessRate
+getAverageMoodLift
+getEffectivenessByState
+🟡 PRIORITY 4 — NAVIGATION LOOP FIX
+FILE: navigation.js
 
-5. user-profile safety
+Prevent infinite retry:
 
-try/catch в getProfile/saveProfile
+if (!loadScreen._retried) {
+  loadScreen._retried = new Set();
+}
 
-6. i18n minor fix
+if (!loadScreen._retried.has(name)) {
+  loadScreen._retried.add(name);
+  setTimeout(() => loadScreen(name), 500);
+} else {
+  loadScreen._retried.delete(name);
+  const s = document.querySelector(`[data-screen="${name}"]`);
+  if (s) {
+    s.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa;">Ошибка загрузки экрана</div>';
+  }
+}
+🟢 PRIORITY 5 — CHART FALLBACK
+FILE: report.js
 
-исправлены текстовые мелочи
-🎯 ТЕКУЩАЯ ЗАДАЧА
+Replace silent fail:
 
-Теперь нужен второй этап — controlled stabilization, без архитектурного рефакторинга.
+if (!window.Chart) {
+  const parent = canvas.parentElement;
+  if (parent) {
+    parent.innerHTML =
+      '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">График недоступен</div>';
+  }
+  return;
+}
+FILE: insight.js
 
-🚫 ВАЖНЫЕ ОГРАНИЧЕНИЯ
+Do NOT modify flip container:
 
-НЕ ДЕЛАТЬ:
+if (!c || !window.Chart) {
+  if (c) c.style.display = 'none';
+  return;
+}
+🟢 PRIORITY 6 — PREMIUM RERENDER
+FILE: settings.js
 
-переписывание архитектуры
-переход на новые паттерны (Redux, reactive frameworks и т.д.)
-глобальный рефакторинг
-изменение UI/UX
-🧩 ЧТО НУЖНО СДЕЛАТЬ
+Remove:
 
-Проведи анализ текущего кода и предложи ТОЛЬКО точечные патчи для следующих зон:
+refresh();
+FILE: insight.js
 
-🔴 1. UI / STATE DESYNC
+Remove:
 
-Проверить и исправить:
+onEnter();
 
-home slider ↔ state синхронизация
-render() не должен сбрасывать UI state
-onEnter() не должен ломать текущий UI
+after activateTrial()
 
-👉 цель: UI всегда отражает актуальный state без зависимости от навигации
+🟢 PRIORITY 7 — HOME FIX
+FILE: home.js
 
-🔴 2. INSIGHT STABILITY
+Replace:
 
-Проверить:
+const savedMood = result.state?.mood ?? moodValue;
 
-null-safe обработка analyzeMoodOnly
-отсутствие white screen при ошибках
-корректная работа при пустых/частичных данных
-🔴 3. ANALYTICS CONSISTENCY
+with:
 
-Проверить:
+const savedMood = moodValue;
+🚫 IMPORTANT
+Do NOT refactor architecture
+Do NOT rename files
+Do NOT change UI
+Do NOT introduce new abstractions
+🧠 RESULT
 
-все метрики (avgMood, stability, trend)
-должны считаться ТОЛЬКО по selectedTimeRange
+After this:
 
-👉 сейчас часть считается по всей истории
-
-🔴 4. DATA MODEL CONSISTENCY
-
-Проверить:
-
-time vs timestamp vs date
-единый способ получения времени
-
-👉 предложить lightweight resolver (без миграции данных)
-
-🔴 5. NAVIGATION RELIABILITY
-
-Проверить:
-
-systemState.isReady race condition
-гарантировать что onEnter всегда вызывается
-исключить “пустые экраны”
-🔴 6. CHART / DEPENDENCY SAFETY
-
-Проверить:
-
-поведение если Chart.js не загружен
-fallback UI вместо silent fail
-🔴 7. PREMIUM STATE SYNC
-
-Проверить:
-
-все экраны корректно реагируют на premiumChanged event
-нет stale UI после активации
-🔍 ОСОБАЯ ЗАДАЧА
-
-Найти:
-
-❗ точки где данные:
-есть, но UI считает их пустыми
-меняются, но UI не обновляется
-считаются, но не соответствуют выбранному периоду
-📦 ФОРМАТ ОТВЕТА
-
-Для каждого найденного issue:
-
-1. FILE
-2. PROBLEM (коротко)
-3. PATCH (конкретный код, минимальный)
-4. RISK LEVEL (low/medium/high)
-⚠️ ГЛАВНОЕ
-
-Работай как maintainer:
-
-минимальные изменения
-без побочных эффектов
-без переписывания системы
-💬 GOAL
-
-Сделать текущую систему стабильной при росте до 10–15 экранов, без архитектурных изменений.
+✔ нет крашей
+✔ нет ложной аналитики
+✔ нет бесконечных retry
+✔ нет silent fail графиков
+✔ стабильный premium UX
