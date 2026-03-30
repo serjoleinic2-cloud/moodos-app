@@ -97,7 +97,6 @@ export function saveNotesHistory(history) {
   } catch(e) {
     console.error('[memory] saveNotesHistory failed:', e);
   }
-  }
 }
 
 /* ---------- VOICE HISTORY ---------- */
