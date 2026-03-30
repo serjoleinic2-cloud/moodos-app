@@ -210,7 +210,9 @@ function showMoodCalendarOverlay() {
   const daySessions = {};
   const dayPracticeCounts = {};
   sessionHistory.forEach(e => {
-    const d = new Date(e.timestamp);
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    const d = new Date(ts);
     const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
     daySessions[key] = (daySessions[key] || 0) + 1;
     const type = normalizePracticeType(e.type || e.practiceType || '');
@@ -219,12 +221,12 @@ function showMoodCalendarOverlay() {
   });
   
   const PRACTICE_NAMES = {
-    breathing: (t('tools_breathing') || 'Дыхание').replace(/^[^\s]+\s/, ''),
-    meditation: (t('tools_meditation') || 'Медитация').replace(/^[^\s]+\s/, ''),
-    'visual-focus': (t('tools_visual') || 'Зрительный якорь').replace(/^[^\s]+\s/, ''),
-    'mind-dump': (t('tools_mind') || 'Выгрузка мыслей').replace(/^[^\s]+\s/, ''),
-    'tap-calm': (t('tools_tap') || 'Тактильная разрядка').replace(/^[^\s]+\s/, ''),
-    'support_texts': (t('support_texts_title') || 'Тексты поддержки').replace(/^[^\s]+\s/, '')
+    breathing:      '🫁 ' + (t('tools_breathing') || 'Дыхание').replace(/^\S+\s/, ''),
+    meditation:     '🧘 ' + (t('tools_meditation') || 'Медитация').replace(/^\S+\s/, ''),
+    'visual-focus': '👁 ' + (t('tools_visual') || 'Зрительный якорь').replace(/^\S+\s/, ''),
+    'mind-dump':    '🧠 ' + (t('tools_mind') || 'Выгрузка мыслей').replace(/^\S+\s/, ''),
+    'tap-calm':     '✋ ' + (t('tools_tap') || 'Тактильная разрядка').replace(/^\S+\s/, ''),
+    'support_texts':'💬 ' + (t('support_texts_title') || 'Тексты поддержки').replace(/^\S+\s/, '')
   };
   
   function normalizePracticeType(type) {
