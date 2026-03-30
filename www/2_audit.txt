@@ -1,0 +1,114 @@
+ГОТОВОЕ ЗАДАНИЕ ДЛЯ CLAUDE → OPENCODE PATCH MODE
+
+Скопируй и отправь ему как есть:
+
+🧠 TASK: FULL STABILITY PATCH FOR MOODOS APP (NO REWRITE)
+
+Ты уже провёл аудит и выявил критические проблемы. Теперь задача:
+
+🎯 ЦЕЛЬ
+
+Исправить ВСЕ найденные проблемы без архитектурного рефакторинга и без переписывания системы.
+
+Только точечные безопасные патчи.
+
+🚫 ЖЁСТКИЕ ОГРАНИЧЕНИЯ
+НЕ менять архитектуру проекта
+НЕ вводить новые фреймворки
+НЕ переписывать state system
+НЕ заменять navigation system
+НЕ трогать UI дизайн
+НЕ делать “refactor for improvement”
+🧨 ЗАДАЧА
+
+Исправить следующие классы проблем:
+
+🔴 1. HOME SCREEN — render/onEnter slider reset bug
+проблема:
+
+render() вызывает onEnter() → slider сбрасывается
+
+задача:
+убрать повторный сброс UI state при render()
+разделить UI render и lifecycle enter
+сохранить текущее значение slider при rerender
+🔴 2. INSIGHT SCREEN — null crash
+проблема:
+
+analyzeMoodOnly может вернуть null → crash
+
+задача:
+добавить safe handling
+fallback UI state вместо crash
+no blank screen allowed
+🔴 3. SYSTEM CORE — double submit UX issue
+проблема:
+
+processingEvents защищает backend, но UX ломается (alerts)
+
+задача:
+убрать alert при rapid click duplicate
+сделать silent ignore или disable button pattern
+🔴 4. NAVIGATION — language change stale module issue
+проблема:
+
+если модуль не загружен, languageChanged не применяется
+
+задача:
+обеспечить global language sync
+гарантировать обновление UI при первом входе
+🔴 5. MEMORY — silent data loss
+проблема:
+
+Memory.save игнорирует неизвестные поля
+
+задача:
+добавить warning/log при unknown fields
+НЕ ломать backward compatibility
+🔴 6. INSIGHT + ANALYTICS — wrong period filtering
+проблема:
+
+метрики считают ВСЮ историю вместо selectedTimeRange
+
+задача:
+привести расчёты к выбранному периоду
+убедиться что UI period == data period
+🔴 7. DATA CONSISTENCY — timestamp field mismatch
+проблема:
+
+time / timestamp / mixed formats
+
+задача:
+унифицировать обработку без миграции данных
+добавить safe resolver function
+🔴 8. CHART / DEPENDENCY FAIL SAFETY
+проблема:
+
+Chart.js failure silently breaks UI
+
+задача:
+safe fallback UI if chart missing
+no silent failure
+🔴 9. NAVIGATION RACE CONDITION
+проблема:
+
+systemState.isReady early return breaks onEnter
+
+задача:
+add retry or deferred onEnter execution
+no dead screen allowed
+🧠 OUTPUT FORMAT REQUIRED
+
+Для каждого фикса:
+
+1. FILE
+2. PROBLEM
+3. PATCH (code diff style)
+4. RISK LEVEL (low/medium)
+⚠️ IMPORTANT
+Keep changes minimal
+Prefer defensive programming over refactor
+Ensure no regressions in existing flows
+💬 END
+
+Goal: make app stable without changing architecture.
