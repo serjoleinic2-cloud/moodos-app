@@ -1,0 +1,136 @@
+PROMPT ДЛЯ НОВОГО ЧАТА CLAUDE
+
+Скопируй и отправь ему:
+
+🧠 CONTEXT
+
+Я работаю над приложением moodos-app (web/mobile hybrid).
+
+Мы уже провели аудит и выполнили первый этап stability hardening (без рефакторинга архитектуры).
+
+✅ Уже исправлено:
+
+1. Memory safety
+
+try/catch добавлен в 6 функций в memory.js
+добавлен KNOWN_SAVE_FIELDS (+3 поля)
+предотвращена silent потеря данных
+
+2. Backup
+
+Premium теперь сохраняет полный backup (без slice)
+добавлен resolveTimestamp для merge
+
+3. Premium logic
+
+systemState синхронизируется с user_profile
+добавлены события (events)
+
+4. Duplicate logic cleanup
+
+убраны дубли активации premium
+добавлен listener в navigation.js
+
+5. user-profile safety
+
+try/catch в getProfile/saveProfile
+
+6. i18n minor fix
+
+исправлены текстовые мелочи
+🎯 ТЕКУЩАЯ ЗАДАЧА
+
+Теперь нужен второй этап — controlled stabilization, без архитектурного рефакторинга.
+
+🚫 ВАЖНЫЕ ОГРАНИЧЕНИЯ
+
+НЕ ДЕЛАТЬ:
+
+переписывание архитектуры
+переход на новые паттерны (Redux, reactive frameworks и т.д.)
+глобальный рефакторинг
+изменение UI/UX
+🧩 ЧТО НУЖНО СДЕЛАТЬ
+
+Проведи анализ текущего кода и предложи ТОЛЬКО точечные патчи для следующих зон:
+
+🔴 1. UI / STATE DESYNC
+
+Проверить и исправить:
+
+home slider ↔ state синхронизация
+render() не должен сбрасывать UI state
+onEnter() не должен ломать текущий UI
+
+👉 цель: UI всегда отражает актуальный state без зависимости от навигации
+
+🔴 2. INSIGHT STABILITY
+
+Проверить:
+
+null-safe обработка analyzeMoodOnly
+отсутствие white screen при ошибках
+корректная работа при пустых/частичных данных
+🔴 3. ANALYTICS CONSISTENCY
+
+Проверить:
+
+все метрики (avgMood, stability, trend)
+должны считаться ТОЛЬКО по selectedTimeRange
+
+👉 сейчас часть считается по всей истории
+
+🔴 4. DATA MODEL CONSISTENCY
+
+Проверить:
+
+time vs timestamp vs date
+единый способ получения времени
+
+👉 предложить lightweight resolver (без миграции данных)
+
+🔴 5. NAVIGATION RELIABILITY
+
+Проверить:
+
+systemState.isReady race condition
+гарантировать что onEnter всегда вызывается
+исключить “пустые экраны”
+🔴 6. CHART / DEPENDENCY SAFETY
+
+Проверить:
+
+поведение если Chart.js не загружен
+fallback UI вместо silent fail
+🔴 7. PREMIUM STATE SYNC
+
+Проверить:
+
+все экраны корректно реагируют на premiumChanged event
+нет stale UI после активации
+🔍 ОСОБАЯ ЗАДАЧА
+
+Найти:
+
+❗ точки где данные:
+есть, но UI считает их пустыми
+меняются, но UI не обновляется
+считаются, но не соответствуют выбранному периоду
+📦 ФОРМАТ ОТВЕТА
+
+Для каждого найденного issue:
+
+1. FILE
+2. PROBLEM (коротко)
+3. PATCH (конкретный код, минимальный)
+4. RISK LEVEL (low/medium/high)
+⚠️ ГЛАВНОЕ
+
+Работай как maintainer:
+
+минимальные изменения
+без побочных эффектов
+без переписывания системы
+💬 GOAL
+
+Сделать текущую систему стабильной при росте до 10–15 экранов, без архитектурных изменений.
