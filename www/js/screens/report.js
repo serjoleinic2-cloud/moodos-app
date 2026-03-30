@@ -501,7 +501,9 @@ function countActiveDays(history) {
 }
 
 function formatDate(ts) {
-  return new Date(ts).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  const lang = localStorage.getItem('app_language') || 'ru';
+  const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
+  return new Date(ts).toLocaleString(localeMap[lang] || 'ru-RU', {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
 }
 
 function filterByDays(history, days) {
