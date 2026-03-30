@@ -11,12 +11,21 @@ const MED_CHECK_KEY    = "med_monthly_check";
 // ---- ПРОФИЛЬ ----
 
 export function getProfile() {
-  return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null;
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null;
+  } catch(e) {
+    console.warn('[user-profile] getProfile parse error:', e);
+    return null;
+  }
 }
 
 export function saveProfile(profile) {
   profile.updatedAt = Date.now();
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch(e) {
+    console.error('[user-profile] saveProfile failed (quota?):', e);
+  }
 }
 
 export function isOnboardingDone() {
@@ -165,6 +174,10 @@ export function activateTrial() {
     startDate: new Date().toISOString()
   };
   saveProfile(profile);
+  if (window.systemState) {
+    window.systemState.premium = true;
+  }
+  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'trial' } }));
 }
 
 export function activatePremium(plan = "monthly") {
@@ -177,6 +190,10 @@ export function activatePremium(plan = "monthly") {
   profile.premiumPlan = plan;
   profile.premiumExpiresAt = expiresAt.getTime();
   saveProfile(profile);
+  if (window.systemState) {
+    window.systemState.premium = true;
+  }
+  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'premium', plan } }));
 }
 
 export function getGeminiCounter() {

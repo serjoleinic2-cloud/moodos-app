@@ -8,7 +8,7 @@
 export function save(data) {
   let needsSnapshotUpdate = false;
   
-  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight'];
+  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience'];
   const unknownFields = Object.keys(data).filter(k => !KNOWN_SAVE_FIELDS.includes(k));
   if (unknownFields.length > 0) {
     console.warn('[memory.save] Unknown fields (data may be lost):', unknownFields);
@@ -57,11 +57,21 @@ export function save(data) {
 /* ---------- MOOD HISTORY ---------- */
 
 export function getMoodHistory() {
-  return JSON.parse(localStorage.getItem("mood_history")) || [];
+  try {
+    return JSON.parse(localStorage.getItem("mood_history")) || [];
+  } catch(e) {
+    console.warn('[memory] getMoodHistory parse error, resetting:', e);
+    localStorage.removeItem("mood_history");
+    return [];
+  }
 }
 
 export function saveMoodHistory(history) {
-  localStorage.setItem("mood_history", JSON.stringify(history));
+  try {
+    localStorage.setItem("mood_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveMoodHistory failed (quota?):', e);
+  }
 }
 
 export function addMoodEntry(entry) {
@@ -73,11 +83,21 @@ export function addMoodEntry(entry) {
 /* ---------- NOTES HISTORY ---------- */
 
 export function getNotesHistory() {
-  return JSON.parse(localStorage.getItem("notes_history")) || [];
+  try {
+    return JSON.parse(localStorage.getItem("notes_history")) || [];
+  } catch(e) {
+    localStorage.removeItem("notes_history");
+    return [];
+  }
 }
 
 export function saveNotesHistory(history) {
-  localStorage.setItem("notes_history", JSON.stringify(history));
+  try {
+    localStorage.setItem("notes_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveNotesHistory failed:', e);
+  }
+}
 }
 
 /* ---------- VOICE HISTORY ---------- */
@@ -103,11 +123,21 @@ export function saveSupportFeedbackHistory(history) {
 /* ---------- SESSION HISTORY ---------- */
 
 export function getSessionHistory() {
-  return JSON.parse(localStorage.getItem("session_history")) || [];
+  try {
+    return JSON.parse(localStorage.getItem("session_history")) || [];
+  } catch(e) {
+    console.warn('[memory] getSessionHistory parse error, resetting:', e);
+    localStorage.removeItem("session_history");
+    return [];
+  }
 }
 
 export function saveSessionHistory(history) {
-  localStorage.setItem("session_history", JSON.stringify(history));
+  try {
+    localStorage.setItem("session_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveSessionHistory failed (quota?):', e);
+  }
 }
 
 export function addSessionEntry(entry) {

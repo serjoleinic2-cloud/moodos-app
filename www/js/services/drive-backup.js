@@ -3,7 +3,7 @@
 // Без авто popup, с разделением Free/Premium
 // =====================================
 
-import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
+import { getMoodHistory, getNotesHistory, getSessionHistory, resolveTimestamp } from "./memory.js";
 import { getProfile, isPremium } from "./user-profile.js";
 import { t } from "../i18n.js";
 
@@ -135,13 +135,18 @@ function buildBackupData() {
   const notesHistory = getNotesHistory();
   const sessionHistory = getSessionHistory();
 
+  const limit = premium ? Infinity : 500;
+  const slicedMood    = limit === Infinity ? moodHistory    : moodHistory.slice(-limit);
+  const slicedNotes   = limit === Infinity ? notesHistory   : notesHistory.slice(-limit);
+  const slicedSession = limit === Infinity ? sessionHistory : sessionHistory.slice(-limit);
+
   return {
     version: 2,
     exportedAt: new Date().toISOString(),
     isLimitedBackup: !premium,
-    mood_history: moodHistory.slice(-500),
-    notes_history: notesHistory.slice(-500),
-    session_history: sessionHistory.slice(-500),
+    mood_history: slicedMood,
+    notes_history: slicedNotes,
+    session_history: slicedSession,
     user_profile: profile,
   };
 }
@@ -297,14 +302,14 @@ export async function restoreFromBackup(file) {
             const merged = [...local, ...backupArr];
             const seen = new Set();
             const deduped = merged.filter(item => {
-              const key = item[timestampField] || item.time || item.timestamp;
+              const key = resolveTimestamp(item);
               if (!key || seen.has(key)) return false;
               seen.add(key);
               return true;
             });
             deduped.sort((a, b) => {
-              const ta = a[timestampField] || a.time || a.timestamp || 0;
-              const tb = b[timestampField] || b.time || b.timestamp || 0;
+              const ta = resolveTimestamp(a) || 0;
+              const tb = resolveTimestamp(b) || 0;
               return ta - tb;
             });
             localStorage.setItem(localKey, JSON.stringify(deduped));

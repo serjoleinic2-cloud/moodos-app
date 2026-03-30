@@ -242,4 +242,8 @@ export function initNavigation() {
       loadScreen(currentScreen);
     }
   });
+
+  document.addEventListener('premiumChanged', () => {
+    if (currentScreen) loadScreen(currentScreen);
+  });
 }

@@ -625,10 +625,6 @@ export async function onEnter() {
     premiumTriggerBtn.addEventListener("click", function() {
       activateTrial();
       
-      if (window.systemState) {
-        window.systemState.premium = true;
-      }
-      
       onEnter();
       
       const msg = document.createElement("div");
