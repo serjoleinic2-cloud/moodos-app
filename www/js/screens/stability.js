@@ -101,7 +101,7 @@ export function onEnter() {
   }
 
   container.innerHTML = `
-    <div style="padding:4px 0 100px;">
+    <div style="padding:4px 0 60px;">
       <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("stab_screen_sub")}</div>
 
       <div class="mo-section-title">${t("stab_metrics")}</div>

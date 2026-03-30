@@ -1,4 +1,4 @@
-import { getMoodHistory } from "../services/memory.js";
+import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";
@@ -47,19 +47,22 @@ function formatPracticeCard(practiceType, practiceData) {
     
     if (comp.trend === 'improving') {
       mainDisplay = {
-        value: '+' + safe(Math.abs(liftDelta), 0) + t('pts'),
+        value: '+' + safe(Math.abs(liftDelta), 0),
+        unit: t('pts'),
         type: 'improving',
         subtitle: t('baseline_improvement').replace('{{n}}', safe(Math.abs(liftDelta), 0)).replace('{{days}}', days)
       };
     } else if (comp.trend === 'declining') {
       mainDisplay = {
-        value: safe(Math.abs(liftDelta), 0) + t('pts'),
+        value: safe(Math.abs(liftDelta), 0),
+        unit: t('pts'),
         type: 'declining',
         subtitle: t('baseline_declining').replace('{{n}}', safe(Math.abs(liftDelta), 0))
       };
     } else {
       mainDisplay = {
         value: t('baseline_stable'),
+        unit: '',
         type: 'stable',
         subtitle: t('baseline_vs_period').replace('{{days}}', days)
       };
@@ -114,6 +117,17 @@ function trendLabel(tr) {
   if (tr.includes("declining")) return t("trend_down");
   return t("trend_stable");
 }
+
+function getPeriodLabel(period) {
+  const labels = {
+    week: '7 ' + (t('days_1') || 'день'),
+    month: '30 ' + (t('days_5') || 'дней'),
+    quarter: '90 ' + (t('days_5') || 'дней'),
+    year: '365 ' + (t('days_5') || 'дней')
+  };
+  return labels[period] || '30 ' + (t('days_5') || 'дней');
+}
+
 function trendExplain(tr) {
   if (!tr || tr.includes("изучаю")) return t("trend_exp_no_data");
   if (tr.includes("improving")) return t("trend_exp_up");
@@ -207,13 +221,53 @@ function findEmotionalMemory(history, currentMood) {
   return { timeAgo, daysToRecover: best.days };
 }
 
-function buildYearComparisonBlock() {
+function getSessionsCountForPeriod(days) {
+  const sessions = getSessionHistory();
+  const now = Date.now();
+  const cutoff = now - (days * 24 * 60 * 60 * 1000);
+  return sessions.filter(s => (s.timestamp || s.time) > cutoff).length;
+}
+
+function buildYearComparisonBlock(history) {
   const yc = getYearComparison();
   if (!yc) return "";
-  if (!yc.lastYear) {
+  
+  const days = TIME_HORIZONS[selectedTimeRange] || 30;
+  const sessions = getSessionsCountForPeriod(days);
+  
+  console.log('period', days, 'sessions', sessions);
+  
+  if (sessions === 0) {
     return '<div class="insight-section">' +
-      '<div class="insight-section-title">📅 ' + t("year_ago") + '</div>' +
+      '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
       '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
+        t("year_no_data") +
+      '</div>' +
+    '</div>';
+  }
+  
+  if (sessions < 3) {
+    return '<div class="insight-section">' +
+      '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
+      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
+        t("year_still_learning") +
+      '</div>' +
+    '</div>';
+  }
+  
+  if (sessions < 7) {
+    return '<div class="insight-section">' +
+      '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
+      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#888;font-size:14px;text-align:center;">' +
+        t("year_not_enough_data") +
+      '</div>' +
+    '</div>';
+  }
+  
+  if (!yc.lastYear || !yc.current) {
+    return '<div class="insight-section">' +
+      '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
+      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#888;font-size:14px;text-align:center;">' +
         t("year_data_collecting") +
       '</div>' +
     '</div>';
@@ -222,7 +276,7 @@ function buildYearComparisonBlock() {
   const cur  = yc.current;
   const prev = yc.lastYear;
   const diff = yc.improvement;
-
+  
   const diffColor  = diff > 0 ? "#4caf87" : diff < 0 ? "#e05555" : "#888";
   const diffSign   = diff > 0 ? "+" : "";
   const diffEmoji  = diff > 3 ? "📈" : diff < -3 ? "📉" : "➡️";
@@ -363,14 +417,19 @@ export async function onEnter() {
         else if (cardData.mainDisplay.type === 'mid') valueColor = '#7b4fa0';
         else if (cardData.mainDisplay.type === 'low') valueColor = '#e05555';
         
+        const displayUnit = cardData.mainDisplay.unit || '';
+        const displayValue = cardData.mainDisplay.unit 
+          ? safe(cardData.mainDisplay.value, '—') + ' ' + displayUnit
+          : safe(cardData.mainDisplay.value, '—');
+        
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
             '<div class="flip-front">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
-              '<div class="flip-value" style="color:' + valueColor + '">' + safe(cardData.mainDisplay.value, '—') + '</div>' +
-              (cardData.mainDisplay.subtitle ? '<div class="flip-sub" style="color:' + valueColor + '">' + safe(cardData.mainDisplay.subtitle, '') + '</div>' : '') +
-              (cardData.comparisonText ? '<div class="flip-sub" style="color:rgba(0,0,0,0.5);font-size:12px;">' + safe(cardData.comparisonText, '') + '</div>' : '') +
-              '<div style="font-size:12px;color:rgba(0,0,0,0.55);margin-top:4px;">' + safe(cardData.sessionsText, t('no_data_short')) + '</div>' +
+              '<div class="practice-main-value" style="color:' + valueColor + '">' + displayValue + '</div>' +
+              (cardData.mainDisplay.subtitle ? '<div class="practice-subtext">' + safe(cardData.mainDisplay.subtitle, '') + '</div>' : '') +
+              (cardData.comparisonText ? '<div class="practice-subtext">' + safe(cardData.comparisonText, '') + '</div>' : '') +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.5);margin-top:6px;">' + safe(cardData.sessionsText, t('no_data_short')) + '</div>' +
               '<div class="flip-hint" style="font-size:11px;margin-top:4px;">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chart-' + p.key + '" width="150" height="150"></canvas></div>' +
@@ -399,8 +458,9 @@ export async function onEnter() {
     '.flip-front{position:relative;}' +
     '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
     '.flip-label{font-size:14px;font-weight:600;color:rgba(0,0,0,0.7);margin-bottom:2px;}' +
-    '.flip-value{font-size:22px;font-weight:700;color:#3a3530;}' +
-    '.flip-sub{font-size:13px;color:rgba(0,0,0,0.65);margin-top:4px;line-height:1.4;}' +
+    '.practice-main-value{font-size:20px;font-weight:600;color:#3a3530;}' +
+    '.practice-subtext{font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;line-height:1.4;opacity:0.8;}' +
+    '.flip-sub{font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;line-height:1.4;}' +
     '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
@@ -411,8 +471,9 @@ export async function onEnter() {
     '.state-header-cell{flex:1;text-align:center;}' +
     '</style>' +
 
-    '<div style="padding:4px 0 100px 0;">' +
-      '<h2 style="margin-bottom:6px;">' + t("insight_title") + '</h2>' +
+    '<div style="padding:4px 0 60px 0;">' +
+      '<h2 style="margin-bottom:4px;">' + t("insight_title") + '</h2>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:16px;">' + (t("insight_period_label") || "Период анализа") + ': <strong style="color:#555;">' + getPeriodLabel(selectedTimeRange) + '</strong></div>' +
       '<div style="font-size:13px;color:#888;margin-bottom:20px;">' + t("current_state") + ': <strong style="color:#3a3530;">' + stateLabelTr + '</strong></div>' +
 
       memoryBlockHTML +

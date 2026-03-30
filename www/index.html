@@ -34,13 +34,14 @@
   <div class="card">
     <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_daily_reflection">Дневная рефлексия</div>
     <textarea id="dailyNote" data-i18n-placeholder="home_note_placeholder" placeholder="Напиши несколько слов о своём дне..."></textarea>
-    <button id="analyzeNoteBtn" data-i18n="home_get_insight">Получить инсайт</button>
-    <div id="aiResponse" style="margin-top:10px; font-size:15px; color:#888;" data-i18n="home_ai_listening">ИИ слушает...</div>
+    <button id="analyzeNoteBtn" data-i18n="home_get_insight">Быстрый инсайт</button>
+    <div style="font-size:11px; color:#aaa; text-align:center; margin-top:4px;" data-i18n="home_insight_hint">Анализ на основе твоих данных</div>
+    <div id="aiResponse" style="margin-top:10px; font-size:15px; color:#888;" data-i18n="home_ai_listening">Анализирую...</div>
   </div>
 
   <!-- VOICE REFLECTION -->
   <div class="card">
-    <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_voice_reflection">Голосовая рефлексия (10 сек)</div>
+    <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_voice_reflection">Голосовые заметки дня (10 сек)</div>
     <div style="display:flex; align-items:center; gap:12px; margin-top:0;">
   <button id="recordVoiceBtn" data-i18n="home_start_recording">Начать запись</button>
   <span id="voiceTimer" style="font-size:22px; font-weight:700; color:#4a90d9; min-width:24px;"></span>
@@ -73,7 +74,7 @@
 <div class="screen" data-screen="voice"></div>
 
 <!-- ================= OTHER SCREENS ================= -->
-<div class="screen" data-screen="insight" style="overflow-y:auto; padding-bottom:100px;">
+<div class="screen" data-screen="insight" style="overflow-y:auto; padding-bottom:60px;">
   <h1 data-i18n="screen_insight">Инсайт</h1>
   <div id="insight-content"></div>
 </div>

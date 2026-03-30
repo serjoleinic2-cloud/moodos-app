@@ -1,4 +1,4 @@
-import { getMoodHistory } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
@@ -65,7 +65,7 @@ function renderReport() {
     </div>`;
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div style="padding:4px 0 100px;">${periodBtns}
+    container.innerHTML = `<div style="padding:4px 0 60px;">${periodBtns}
       <div style="text-align:center;margin-top:40px;color:#888;"><div style="font-size:48px;">📭</div><div style="margin-top:12px;">${t("report_no_period")}</div></div></div>`;
     bindPeriodBtns(container);
     return;
@@ -127,7 +127,7 @@ function renderReport() {
   }
 
   container.innerHTML = `
-    <div style="padding:4px 0 100px;">
+    <div style="padding:4px 0 60px;">
       <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("report_period_label")} ${periodLabel}</div>
 
       ${periodBtns}
@@ -189,6 +189,10 @@ function showMoodCalendarOverlay() {
   if (existing) existing.remove();
 
   const history = getMoodHistory();
+  const notesHistory = getNotesHistory();
+  const sessionHistory = getSessionHistory();
+  const voiceHistory = getVoiceHistory();
+  
   const byDay = {};
   history.forEach(e => {
     const d = new Date(e.time);
@@ -201,6 +205,45 @@ function showMoodCalendarOverlay() {
   const dayAvg = {};
   Object.keys(byDay).forEach(k => {
     dayAvg[k] = Math.round(byDay[k].reduce((a,b)=>a+b,0)/byDay[k].length);
+  });
+  
+  const daySessions = {};
+  const dayPracticeCounts = {};
+  sessionHistory.forEach(e => {
+    const d = new Date(e.timestamp);
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    daySessions[key] = (daySessions[key] || 0) + 1;
+    const type = normalizePracticeType(e.type || e.practiceType || '');
+    if (!dayPracticeCounts[key]) dayPracticeCounts[key] = {};
+    dayPracticeCounts[key][type] = (dayPracticeCounts[key][type] || 0) + 1;
+  });
+  
+  const PRACTICE_NAMES = {
+    breathing: (t('tools_breathing') || 'Дыхание').replace(/^[^\s]+\s/, ''),
+    meditation: (t('tools_meditation') || 'Медитация').replace(/^[^\s]+\s/, ''),
+    'visual-focus': (t('tools_visual') || 'Зрительный якорь').replace(/^[^\s]+\s/, ''),
+    'mind-dump': (t('tools_mind') || 'Выгрузка мыслей').replace(/^[^\s]+\s/, ''),
+    'tap-calm': (t('tools_tap') || 'Тактильная разрядка').replace(/^[^\s]+\s/, ''),
+    'support_texts': (t('support_texts_title') || 'Тексты поддержки').replace(/^[^\s]+\s/, '')
+  };
+  
+  function normalizePracticeType(type) {
+    if (!type) return 'other';
+    const normalized = type.toLowerCase().replace(/[-_]/g, '-');
+    if (normalized.includes('breath')) return 'breathing';
+    if (normalized.includes('meditat')) return 'meditation';
+    if (normalized.includes('visual') || normalized.includes('focus')) return 'visual-focus';
+    if (normalized.includes('mind') || normalized.includes('dump')) return 'mind-dump';
+    if (normalized.includes('tap')) return 'tap-calm';
+    if (normalized.includes('support') || normalized.includes('text')) return 'support_texts';
+    return type;
+  }
+  
+  const dayHasVoice = {};
+  voiceHistory.forEach(e => {
+    const d = new Date(e.timestamp || e.time);
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    dayHasVoice[key] = true;
   });
 
   function moodBg(v) {
@@ -241,15 +284,85 @@ function showMoodCalendarOverlay() {
       const key = year + "-" + String(month+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
       const v = dayAvg[key];
       const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
-      html += `<div style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:${moodBg(v)};border:${isToday?"2px solid #6667AB":"1px solid rgba(0,0,0,0.06)"};box-sizing:border-box;">
+      const hasData = v !== undefined;
+      html += `<div class="cal-day ${hasData ? 'cal-day-clickable' : ''}" data-key="${key}" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:${moodBg(v)};border:${isToday?"2px solid #6667AB":"1px solid rgba(0,0,0,0.06)"};box-sizing:border-box;cursor:${hasData ? 'pointer' : 'default'};">
         <span style="font-size:9px;color:#bbb;">${day}</span>
         ${v !== undefined ? `<span style="font-size:10px;font-weight:700;color:${moodFg(v)};line-height:1.1;">${v}%</span>` : ""}
       </div>`;
     }
     html += `</div>`;
 
-    // Возвращаем html вместе с заголовком месяца — используем MONTH_NAMES
     return { gridHtml: html, monthLabel: `${MONTH_NAMES[month]} ${year}` };
+  }
+  
+  function showDayPopup(key) {
+    const v = dayAvg[key];
+    if (v === undefined) return;
+    
+    const sessions = daySessions[key] || 0;
+    const hasVoice = dayHasVoice[key] || false;
+    
+    const date = new Date(key + "T12:00:00");
+    const dateFormatted = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+    
+    const popup = document.createElement("div");
+    popup.id = "dayPopup";
+    popup.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:300;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:20px;padding:24px;width:280px;box-shadow:0 10px 40px rgba(0,0,0,0.3);";
+    
+    const moodColor = v >= 70 ? "#4caf87" : v >= 40 ? "#f0a500" : "#e05555";
+    
+    const practiceMap = dayPracticeCounts[key] || {};
+    const practiceEntries = Object.entries(practiceMap).sort((a, b) => b[1] - a[1]);
+    const displayPractices = practiceEntries.slice(0, 3);
+    const remainingCount = practiceEntries.length - 3;
+    
+    let practicesHTML = '';
+    if (displayPractices.length > 0) {
+      practicesHTML = displayPractices.map(([type, count]) => {
+        const name = PRACTICE_NAMES[type] || type;
+        return `<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px;color:#555;">
+          <span>${name}</span>
+          <span style="font-weight:600;color:#666;">×${count}</span>
+        </div>`;
+      }).join('');
+      if (remainingCount > 0) {
+        practicesHTML += `<div style="font-size:11px;color:#888;text-align:center;padding:6px;">+ ${remainingCount} ещё</div>`;
+      }
+    }
+    
+    popup.innerHTML = `
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:14px;color:#888;margin-bottom:4px;">${dateFormatted}</div>
+        <div style="font-size:36px;font-weight:700;color:${moodColor};">${v}%</div>
+        <div style="font-size:12px;color:#aaa;">${t("hist_mood") || "Настроение"}</div>
+      </div>
+      ${practicesHTML ? `<div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("practices_eff") || "Практики"}</div>
+        ${practicesHTML}
+      </div>` : ''}
+      ${hasVoice ? `<div style="display:flex;align-items:center;gap:8px;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:12px;">
+        <span style="font-size:18px;">🎤</span>
+        <span style="font-size:13px;color:#555;">${t("hist_voice_diary") || "Голосовая заметка"}</span>
+      </div>` : ''}
+      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:#aaa;margin-bottom:12px;">${t("no_data_short") || "—"}</div>` : ''}
+      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:#888;">${t("close") || "Закрыть"}</div>
+    `;
+    
+    const overlay = document.createElement("div");
+    overlay.id = "dayPopupOverlay";
+    overlay.style.cssText = "position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.3);";
+    overlay.onclick = () => {
+      popup.remove();
+      overlay.remove();
+    };
+    
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+    
+    popup.querySelector("#dayPopupClose").onclick = () => {
+      popup.remove();
+      overlay.remove();
+    };
   }
 
   const overlay = document.createElement("div");
@@ -297,7 +410,14 @@ function showMoodCalendarOverlay() {
       viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
       overlay.innerHTML = build(); rebind();
     };
-    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+    
+    overlay.querySelectorAll(".cal-day-clickable").forEach(el => {
+      el.onclick = () => showDayPopup(el.dataset.key);
+    });
+    
+    overlay.addEventListener("click", e => { 
+      if (e.target === overlay) overlay.remove(); 
+    });
   }
   rebind();
 }

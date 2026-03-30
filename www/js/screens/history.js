@@ -168,7 +168,7 @@ function renderHistory(filterDate=null) {
   }
 
   container.innerHTML = `
-    <div style="padding:4px 0 100px 0;">
+    <div style="padding:4px 0 60px 0;">
       <h2 style="margin-bottom:16px;">${t("hist_title")}</h2>
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
         <input type="date" id="histDateFilter" class="hist-date-input" value="${filterDate||''}">

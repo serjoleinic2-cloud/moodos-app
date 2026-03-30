@@ -13,7 +13,7 @@ import {
   getTheme,
   saveTheme,
 } from "../services/user-profile.js";
-import { getLastBackupTime, getBackupStatus } from "../services/drive-backup.js";
+import { getLastBackupTime, getBackupStatus, getSystemBackupState, createBackup, shareBackup } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
 function st(key, fallback = "") {
@@ -28,6 +28,7 @@ export function onEnter() {
 }
 
 function fmtTime(d) {
+  if (!d) return t("settings_backup_never") || "никогда";
   return d.toLocaleDateString("ru-RU") + " " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 }
 
@@ -35,8 +36,8 @@ function renderSettings() {
   const profile   = getProfile();
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
-  const lastTime  = null;
   const premiumInfo = getPremiumInfo();
+  const backupState = getSystemBackupState();
 
   const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
   const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
@@ -60,7 +61,6 @@ function renderSettings() {
     : "";
   const showTrialBtn = premiumInfo.status === "free";
 
-  // БАГ 2 ИСПРАВЛЕН: используем t() для названий тем
   const themeLabels = {
     "default":      "🌿 " + t("theme_default"),
     "purple-blue":  "💜 " + t("theme_purple_blue"),
@@ -92,13 +92,18 @@ function renderSettings() {
   ) : "";
 
   const backupStatus = getBackupStatus();
-  const backupSub = lastTime 
-    ? t("settings_backup_last_at") + lastTime.toLocaleDateString("ru-RU") + " " + lastTime.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"}) + " · " + backupStatus.text
-    : t("settings_backup_never");
+  const lastBackupDate = backupState.lastBackupAt ? new Date(backupState.lastBackupAt) : null;
+  const lastBackupText = lastBackupDate ? fmtTime(lastBackupDate) : (t("settings_backup_never") || "никогда");
+  const statusIcon = backupState.pendingChanges ? '⏳' : '✔';
+  const statusColor = backupState.pendingChanges ? '#f59e0b' : '#4caf87';
+
+  const autoBackupNote = premiumInfo.isPremium 
+    ? `<div style="font-size:11px; color:#888; margin-top:6px;">${t("auto_backup_enabled") || "Автобэкап включён"}</div>`
+    : `<div style="font-size:11px; color:#aaa; margin-top:6px;">${t("auto_backup_premium") || "Автобэкап в Premium"}</div>`;
 
   return `
     <style>
-      .settings-wrap{padding:20px 16px 100px;font-family:-apple-system,'SF Pro Display',sans-serif}
+      .settings-wrap{padding:20px 16px 80px;font-family:-apple-system,'SF Pro Display',sans-serif}
       .settings-title{font-size:22px;font-weight:700;color:#3d3d3d;margin-bottom:24px}
       .settings-section{margin-bottom:28px}
       .settings-section-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#b0b8c4;margin-bottom:10px;padding-left:4px}
@@ -121,6 +126,16 @@ function renderSettings() {
       .modal-option.selected{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;color:#7eb8d4;font-weight:600}
       .modal-save-btn{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#7eb8d4;cursor:pointer;display:block;box-sizing:border-box}
       .modal-cancel{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#aaa;cursor:pointer;display:block;box-sizing:border-box;text-align:center;margin-top:8px}
+      .backup-card{background:rgba(232,237,230,0.9);border-radius:18px;padding:18px;box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;margin-bottom:10px}
+      .backup-status{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+      .backup-status-icon{font-size:18px}
+      .backup-status-text{font-size:13px;color:#555}
+      .backup-last{font-size:12px;color:#888;margin-bottom:14px}
+      .backup-btn{width:100%;padding:12px;border:none;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;box-sizing:border-box;text-align:center}
+      .backup-btn:active{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff}
+      .backup-btn-primary{background:linear-gradient(145deg,#4caf87,#45a070);color:#fff;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff}
+      .backup-btn-secondary{background:linear-gradient(145deg,#7eb8d4,#6aa8c4);color:#fff;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff}
+      .backup-limit{font-size:11px;color:#aaa;text-align:center;margin-top:10px}
     </style>
     <div class="settings-wrap">
       <div class="settings-title">${t("settings_title")}</div>
@@ -187,16 +202,6 @@ function renderSettings() {
           </div>
           <span class="neo-row-arrow">›</span>
         </div>
-        <div class="neo-row" id="settingBackup">
-          <div class="neo-row-content">
-            <span class="neo-row-icon">☁️</span>
-            <div class="neo-row-text">
-              <div class="neo-row-label">${t("settings_backup_save")}</div>
-              <div class="neo-row-sub">${backupSub}</div>
-            </div>
-          </div>
-          <span class="neo-row-arrow">›</span>
-        </div>
         <div class="neo-row" id="settingRestore">
           <div class="neo-row-content">
             <span class="neo-row-icon">📥</span>
@@ -211,27 +216,25 @@ function renderSettings() {
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-label">${t("cloud_section")}</div>
-        <div id="google-connect" style="
-          background: rgba(232,237,230,0.9);
-          border-radius: 18px;
-          padding: 18px;
-          box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
-          margin-bottom: 10px;
-        ">
-          <div style="display:flex; align-items:center; margin-bottom:10px;">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMy4yOTNBMTAuNjUgMTAuNjUgMCAwIDAgNy41IDE1Ljc1bDMuNSAzLjUgMy41LTMuNUExMC42NSAxMC42NSAwIDAgMCAxMiAzLjI5M3ptMCAxMi4xMzNWNi40NjRBMTAuNjUgMTAuNjUgMCAwIDAgNy41IDE1Ljc1bDMuNSAzLjUgMy41LTMuNUExMC42NSAxMC42NSAwIDAgMCAxMiA1Ljc1eiIgZmlsbD0iIzNBOUUzMyIvPjxwYXRoIGQ9Ik0xMiA1Ljc1bC0zLjUgMy41IDMuNSAzLjUgMy41LTMuNSAtMy41LTMuNXptMCAxMi4xMzNWMTcuNWwzLjUgMy41IDMuNS0zLjUgMy41LTMuNSAtMy41LTMuNSAtMy41IDMuNXoiIGZpbGw9IiNGQ0Y0RjQiLz48cGF0aCBkPSJNMTIgMTcuNWwtMy41IDMuNSAzLjUgMy41IDMuNS0zLjUgLTMuNS0zLjV6bTAtMTIuMTI1TDMuNSA3LjUgNyA0IDEwLjUgNyA3IDEwLjVsNS01LjI1WiIgZmlsbD0iIzNBOUUzMyIvPjxwYXRoIGQ9Ik0xMiA1Ljc1bC0zLjUgMy41IDMuNSAzLjUgMy41LTMuNSAtMy41LTMuNXptMCAxMi4xMzNWMTcuNWwzLjUgMy41IDMuNS0zLjUgMy41LTMuNSAtMy41LTMuNSAtMy41IDMuNXoiIGZpbGw9IiNGQ0Y0RjQiLz48cGF0aCBkPSJNMTIgMTcuNWwtMy41IDMuNSAzLjUgMy41IDMuNS0zLjUgLTMuNS0zLjV6bTAtMTIuMTI1TDMuNSA3LjUgNyA0IDEwLjUgNyA3IDEwLjVsNS01LjI1WiIgZmlsbD0iI0ZGRkZGRiIvPjwvc3ZnPg==" style="width:24px; height:24px; margin-right:10px;">
-            <span style="font-size:15px; font-weight:600; color:#555;">${t("google_connect_title")}</span>
+        <div class="settings-section-label">📦 ${t("backup_section") || "Резервное копирование"}</div>
+        <div class="backup-card" id="backupCard">
+          <div class="backup-status">
+            <span class="backup-status-icon" style="color:${statusColor};">${statusIcon}</span>
+            <span class="backup-status-text">${statusIcon === '⏳' ? (t("settings_backup_pending") || "есть изменения") : (t("settings_backup_saved") || "сохранено")}</span>
           </div>
-          <div id="googleConnectDesc" style="font-size:13px; color:#888; margin-bottom:14px; line-height:1.4;">
-            ${t("google_connect_desc")}
-          </div>
-          <button id="connectGoogleBtn" style="
-            width:100%; padding:13px; border:none; border-radius:14px;
-            background: linear-gradient(145deg, #f5efe6, #ede5d8);
-            box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
-            font-size:15px; font-weight:600; color:#7a6a58; cursor:pointer;
-          ">${t("google_connect_btn")}</button>
+          <div class="backup-last">${t("backup_last") || "Последний backup"}: ${lastBackupText}</div>
+          
+          <button class="backup-btn" id="btnCreateBackup">
+            📋 ${t("btn_create_backup") || "Создать backup"}
+          </button>
+          
+          <button class="backup-btn backup-btn-secondary" id="btnShareBackup">
+            ☁️ ${t("btn_share_backup") || "Сохранить в облако"}
+          </button>
+          
+          ${autoBackupNote}
+          
+          <div class="backup-limit">${t("backup_limit_info") || "Хранится"}: ${backupState.totalBackups}/${backupState.maxBackups}</div>
         </div>
       </div>
 
@@ -303,27 +306,6 @@ function bindEvents(el) {
   el.querySelector("#settingTheme")?.addEventListener("click", () => showThemeModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
 
-  el.querySelector("#settingBackup")?.addEventListener("click", async () => {
-    const valEl = el.querySelector("#backupVal");
-    if (valEl) valEl.textContent = t("settings_backup_processing");
-    try {
-      const m = await import("../services/drive-backup.js");
-      const result = await m.backupAndShare();
-      if (!valEl) return;
-      if (result.message === "cancelled") { valEl.textContent = t("settings_backup_save_btn") + " ›"; return; }
-      if (result.success) {
-        valEl.textContent = result.message === "shared" ? "✅ " + t("settings_backup_sent") : "✅ " + t("settings_backup_downloaded");
-        setTimeout(() => refresh(), 2000);
-      } else {
-        valEl.textContent = "❌ " + t("settings_backup_error");
-        setTimeout(() => { if(valEl) valEl.textContent = t("settings_backup_save_btn") + " ›"; }, 3000);
-      }
-    } catch(e) {
-      console.warn("drive-backup not available:", e);
-      if (valEl) valEl.textContent = t("settings_backup_unavailable");
-    }
-  });
-
   el.querySelector("#settingRestore")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
   el.querySelector("#restoreFileInput")?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
@@ -332,25 +314,46 @@ function bindEvents(el) {
     showRestoreConfirmModal(file);
   });
 
-  const googleBtn = el.querySelector("#connectGoogleBtn");
-  if (googleBtn) {
-    googleBtn.addEventListener("click", () => {
-      const profile = getProfile();
-      if (profile?.googleConnected) return;
-      saveProfile({...profile, googleConnected: true});
-      const btn = el.querySelector("#connectGoogleBtn");
-      const desc = el.querySelector("#googleConnectDesc");
-      if (btn) { btn.textContent = t("google_connected"); btn.style.color = "#4caf87"; btn.disabled = true; }
-      if (desc) desc.textContent = t("google_connected");
-    });
-  }
+  el.querySelector("#btnCreateBackup")?.addEventListener("click", async () => {
+    const btn = el.querySelector("#btnCreateBackup");
+    if (btn) { btn.textContent = "⏳..."; btn.disabled = true; }
+    try {
+      const result = createBackup();
+      if (result.success) {
+        showToast("✅ " + (t("backup_created") || "Backup создан"));
+        setTimeout(() => refresh(), 1000);
+      } else {
+        showToast("❌ " + (t("backup_error") || "Ошибка"));
+      }
+    } catch(e) {
+      showToast("❌ " + (t("backup_error") || "Ошибка"));
+    }
+    if (btn) { btn.textContent = "📋 " + (t("btn_create_backup") || "Создать backup"); btn.disabled = false; }
+  });
+
+  el.querySelector("#btnShareBackup")?.addEventListener("click", async () => {
+    const btn = el.querySelector("#btnShareBackup");
+    if (btn) { btn.textContent = "⏳..."; btn.disabled = true; }
+    try {
+      const result = await shareBackup();
+      if (result.message === "cancelled") {
+        showToast(t("backup_cancelled") || "Отменено");
+      } else if (result.success) {
+        showToast("✅ " + (result.message === "shared" ? (t("backup_shared") || "Отправлено") : (t("backup_downloaded") || "Скачано")));
+      } else {
+        showToast("❌ " + (t("backup_error") || "Ошибка"));
+      }
+    } catch(e) {
+      showToast("❌ " + (t("backup_error") || "Ошибка"));
+    }
+    if (btn) { btn.textContent = "☁️ " + (t("btn_share_backup") || "Сохранить в облако"); btn.disabled = false; }
+  });
 
   const trialBtn = el.querySelector("#startTrialBtn");
   if (trialBtn) {
     trialBtn.addEventListener("click", () => {
       activateTrial();
       
-      // Set systemState premium to true
       if (window.systemState) {
         window.systemState.premium = true;
       }
@@ -368,6 +371,18 @@ function bindEvents(el) {
 function refresh() {
   const el = document.querySelector('[data-screen="settings"]');
   if (el) { el.innerHTML = renderSettings(); bindEvents(el); }
+}
+
+function showToast(message) {
+  const existing = document.querySelector(".backup-toast");
+  if (existing) existing.remove();
+  
+  const toast = document.createElement("div");
+  toast.className = "backup-toast";
+  toast.style.cssText = "position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;white-space:nowrap;";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
 }
 
 function showRestoreConfirmModal(file) {
@@ -389,20 +404,11 @@ function showRestoreConfirmModal(file) {
     const result = await restoreFromBackup(file);
     overlay.remove();
     if (result.success) {
-      if (result.limitWarning) {
-        const warn = document.createElement("div");
-        warn.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#f59e0b;color:#fff;padding:20px 28px;border-radius:18px;font-size:15px;font-weight:600;z-index:9999;text-align:center;max-width:280px;";
-        warn.innerHTML = "⚠️ " + result.limitWarning.title + "<br><small style='font-weight:400;opacity:0.9;'>" + result.limitWarning.desc + "</small>";
-        document.body.appendChild(warn);
-        setTimeout(() => { window.location.href = window.location.href; }, 3000);
-      } else {
-        const msg = document.createElement("div");
-        msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;";
-        msg.textContent = "✅ " + t("settings_restore_success");
-        document.body.appendChild(msg);
-        setTimeout(() => { window.location.href = window.location.href; }, 1500);
-      }
-    } else { alert(t("settings_backup_error") + ": " + result.message); }
+      showToast("✅ " + t("settings_restore_success"));
+      setTimeout(() => { window.location.href = window.location.href; }, 1500);
+    } else { 
+      showToast("❌ " + t("settings_backup_error") + ": " + result.message); 
+    }
   });
   overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
@@ -485,7 +491,6 @@ function showBaselineModal() {
 
 function showThemeModal() {
   const current = getTheme();
-  // БАГ 2 ИСПРАВЛЕН: используем t() для всех строк
   const themes = [
     { value: "default",      label: "🌿 " + t("theme_default") },
     { value: "purple-blue",  label: "💜 " + t("theme_purple_blue") },

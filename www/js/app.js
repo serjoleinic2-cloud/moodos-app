@@ -246,22 +246,17 @@ function startApp() {
     }
   }, 3000);
 
-  // Smart auto-backup for Premium users
   setTimeout(async () => {
     try {
-      const { smartAutoBackup } = await import("./services/drive-backup.js");
-      const result = await smartAutoBackup();
-      if (result.success) {
-        console.log("[BOOT] Smart backup completed:", result.message);
-      } else if (result.skipped) {
-        console.log("[BOOT] Smart backup skipped:", result.reason);
-      } else {
-        console.warn("[BOOT] Smart backup failed:", result.message);
-      }
+      const { initBackupSystem, autoBackup } = await import("./services/drive-backup.js");
+      initBackupSystem();
+      await autoBackup();
     } catch(e) {
-      console.warn("smartAutoBackup failed:", e);
+      console.warn("autoBackup failed:", e);
     }
-  }, 4000);
+  }, 4500);
+
+
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");

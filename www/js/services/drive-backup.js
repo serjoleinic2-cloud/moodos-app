@@ -1,16 +1,62 @@
 // =====================================
-// MoodOS Drive Backup — Smart Auto-Save
+// MoodOS Drive Backup — Pure Backup System
+// Без авто popup, с разделением Free/Premium
 // =====================================
 
 import { getMoodHistory, getNotesHistory, getSessionHistory } from "./memory.js";
 import { getProfile, isPremium } from "./user-profile.js";
 import { t } from "../i18n.js";
 
+const LS_BACKUPS = "moodos_backups";
 const LS_LAST_BACKUP = "last_auto_backup";
 const LS_DATA_HASH = "data_hash";
 const LS_BACKUP_STATUS = "backup_status";
-const FREE_DAYS_LIMIT = 7;
-const AUTO_BACKUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+
+const FREE_BACKUP_LIMIT = 1;
+const PREMIUM_BACKUP_LIMIT = 30;
+const AUTO_BACKUP_INTERVAL = 24 * 60 * 60 * 1000;
+
+function getBackupLimit() {
+  return isPremium() ? PREMIUM_BACKUP_LIMIT : FREE_BACKUP_LIMIT;
+}
+
+export function getSystemBackupState() {
+  const backups = loadBackups();
+  const lastBackup = backups.backups.length > 0 ? backups.backups[backups.backups.length - 1] : null;
+  const pendingChanges = hasDataChangedSinceBackup();
+  
+  return {
+    lastBackupAt: lastBackup ? lastBackup.date : null,
+    pendingChanges,
+    totalBackups: backups.backups.length,
+    maxBackups: getBackupLimit(),
+    isPremium: isPremium()
+  };
+}
+
+function loadBackups() {
+  try {
+    const raw = localStorage.getItem(LS_BACKUPS);
+    return raw ? JSON.parse(raw) : { backups: [] };
+  } catch(e) {
+    return { backups: [] };
+  }
+}
+
+function saveBackups(data) {
+  try {
+    localStorage.setItem(LS_BACKUPS, JSON.stringify(data));
+    updateSystemStateBackup();
+  } catch(e) {
+    console.warn("saveBackups failed:", e);
+  }
+}
+
+function updateSystemStateBackup() {
+  if (window.systemState) {
+    window.systemState.backup = getSystemBackupState();
+  }
+}
 
 export function getLastBackupTime() {
   try {
@@ -21,18 +67,20 @@ export function getLastBackupTime() {
 
 export function getBackupStatus() {
   try {
-    const currentHash = computeDataHash();
-    const savedHash = localStorage.getItem(LS_DATA_HASH);
-    const lastBackup = getLastBackupTime();
+    const backups = loadBackups();
+    const hasBackup = backups.backups.length > 0;
     
-    if (!savedHash || !lastBackup) {
-      return { status: "none", text: "" };
+    if (!hasBackup) {
+      return { status: "none", text: t("settings_backup_never") || "никогда" };
     }
     
-    if (currentHash === savedHash) {
-      return { status: "saved", text: "✔ " + t("settings_backup_saved") };
+    const lastBackup = backups.backups[backups.backups.length - 1];
+    const pendingChanges = hasDataChangedSinceBackup();
+    
+    if (pendingChanges) {
+      return { status: "pending", text: t("settings_backup_pending") || "есть изменения", lastBackup };
     } else {
-      return { status: "pending", text: "⏳ " + t("settings_backup_pending") };
+      return { status: "saved", text: t("settings_backup_saved") || "сохранено", lastBackup };
     }
   } catch(e) { return { status: "none", text: "" }; }
 }
@@ -79,57 +127,6 @@ function saveDataHash() {
   } catch(e) {}
 }
 
-export async function smartAutoBackup() {
-  try {
-    const premium = isPremium();
-    if (!premium) return { skipped: true, reason: "not_premium" };
-    
-    const now = Date.now();
-    const lastBackup = getLastBackupTime();
-    const timeSinceLastBackup = lastBackup ? (now - lastBackup.getTime()) : Infinity;
-    
-    if (timeSinceLastBackup < AUTO_BACKUP_INTERVAL) {
-      return { skipped: true, reason: "too_soon", nextCheck: AUTO_BACKUP_INTERVAL - timeSinceLastBackup };
-    }
-    
-    if (!hasDataChangedSinceBackup()) {
-      return { skipped: true, reason: "no_changes", status: "saved" };
-    }
-    
-    localStorage.setItem(LS_BACKUP_STATUS, "pending");
-    
-    const result = await backupAndShare();
-    
-    if (result.success) {
-      localStorage.setItem(LS_BACKUP_STATUS, "saved");
-      return { success: true, message: result.message };
-    } else {
-      return { success: false, message: result.message };
-    }
-  } catch(e) {
-    return { success: false, message: e.message };
-  }
-}
-
-export function resetBackupStatus() {
-  try {
-    if (hasDataChangedSinceBackup()) {
-      localStorage.setItem(LS_BACKUP_STATUS, "pending");
-    } else {
-      localStorage.setItem(LS_BACKUP_STATUS, "saved");
-    }
-  } catch(e) {}
-}
-
-function filterLast7Days(arr, timestampField) {
-  const now = Date.now();
-  const sevenDaysAgo = now - (FREE_DAYS_LIMIT * 24 * 60 * 60 * 1000);
-  return arr.filter(item => {
-    const ts = item[timestampField] || item.time || item.timestamp;
-    return ts && parseInt(ts) >= sevenDaysAgo;
-  });
-}
-
 function buildBackupData() {
   const profile = getProfile() || {};
   const premium = isPremium();
@@ -138,47 +135,68 @@ function buildBackupData() {
   const notesHistory = getNotesHistory();
   const sessionHistory = getSessionHistory();
 
-  let moodData, notesData, sessionData;
-  
-  if (premium) {
-    moodData = moodHistory.slice(-500);
-    notesData = notesHistory.slice(-500);
-    sessionData = sessionHistory.slice(-500);
-  } else {
-    const filteredMood = filterLast7Days(moodHistory, "time");
-    const filteredNotes = filterLast7Days(notesHistory, "timestamp");
-    const filteredSessions = filterLast7Days(sessionHistory, "timestamp");
-    moodData = filteredMood.slice(-500);
-    notesData = filteredNotes.slice(-500);
-    sessionData = filteredSessions.slice(-500);
-  }
-
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     isLimitedBackup: !premium,
-    mood_history:    moodData,
-    notes_history:   notesData,
-    session_history: sessionData,
-    user_profile:    profile,
+    mood_history: moodHistory.slice(-500),
+    notes_history: notesHistory.slice(-500),
+    session_history: sessionHistory.slice(-500),
+    user_profile: profile,
   };
 }
 
-export function getHistoryLimitInfo() {
-  return {
-    isLimited: !isPremium(),
-    message: t("free_history_limit_title"),
-    description: t("free_history_limit_desc"),
-  };
+function generateBackupId() {
+  return "bkp_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
 }
 
-export async function backupAndShare() {
+export function createBackup() {
   try {
-    const data     = buildBackupData();
-    const json     = JSON.stringify(data, null, 2);
-    const fileName = "MoodOS_backup_" + new Date().toISOString().slice(0,10) + ".json";
+    const backups = loadBackups();
+    const backupData = buildBackupData();
+    const backupEntry = {
+      id: generateBackupId(),
+      date: Date.now(),
+      data: backupData
+    };
+    
+    backups.backups.push(backupEntry);
+    
+    const limit = getBackupLimit();
+    if (backups.backups.length > limit) {
+      backups.backups = backups.backups.slice(-limit);
+    }
+    
+    saveBackups(backups);
+    localStorage.setItem(LS_LAST_BACKUP, Date.now().toString());
+    saveDataHash();
+    localStorage.setItem(LS_BACKUP_STATUS, "saved");
+    
+    console.log("[BACKUP] Created backup, total:", backups.backups.length);
+    return { success: true, id: backupEntry.id };
+  } catch(e) {
+    console.warn("createBackup failed:", e);
+    return { success: false, message: e.message };
+  }
+}
 
-    const Share      = window.Capacitor?.Plugins?.Share;
+export function getLatestBackup() {
+  const backups = loadBackups();
+  if (backups.backups.length === 0) return null;
+  return backups.backups[backups.backups.length - 1];
+}
+
+export async function shareBackup() {
+  try {
+    const latest = getLatestBackup();
+    if (!latest) {
+      return { success: false, message: "no_backup" };
+    }
+    
+    const json = JSON.stringify(latest.data, null, 2);
+    const fileName = "MoodOS_backup_" + new Date(latest.date).toISOString().slice(0,10) + ".json";
+
+    const Share = window.Capacitor?.Plugins?.Share;
     const Filesystem = window.Capacitor?.Plugins?.Filesystem;
 
     if (Share && Filesystem) {
@@ -198,30 +216,67 @@ export async function backupAndShare() {
         url: uri,
         dialogTitle: "Сохранить резервную копию",
       });
-      localStorage.setItem(LS_LAST_BACKUP, Date.now().toString());
-      saveDataHash();
-      localStorage.setItem(LS_BACKUP_STATUS, "saved");
       return { success: true, message: "shared" };
     }
 
-    // Fallback — скачивание через blob
     const blob = new Blob([json], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     a.href = url; a.download = fileName;
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    localStorage.setItem(LS_LAST_BACKUP, Date.now().toString());
-    saveDataHash();
-    localStorage.setItem(LS_BACKUP_STATUS, "saved");
     return { success: true, message: "downloaded" };
 
   } catch(e) {
     if (e.name === "AbortError") return { success: false, message: "cancelled" };
-    console.warn("backupAndShare error:", e);
+    console.warn("shareBackup error:", e);
     return { success: false, message: e.message };
   }
+}
+
+export async function autoBackup() {
+  if (!isPremium()) return { skipped: true, reason: "not_premium" };
+  
+  try {
+    const now = Date.now();
+    const lastBackup = getLastBackupTime();
+    const timeSinceLastBackup = lastBackup ? (now - lastBackup.getTime()) : Infinity;
+    
+    if (timeSinceLastBackup < AUTO_BACKUP_INTERVAL) {
+      return { skipped: true, reason: "too_soon" };
+    }
+    
+    if (!hasDataChangedSinceBackup()) {
+      return { skipped: true, reason: "no_changes" };
+    }
+    
+    createBackup();
+    return { success: true, message: "auto_backup_created" };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+export function resetBackupStatus() {
+  try {
+    if (hasDataChangedSinceBackup()) {
+      localStorage.setItem(LS_BACKUP_STATUS, "pending");
+    } else {
+      localStorage.setItem(LS_BACKUP_STATUS, "saved");
+    }
+    updateSystemStateBackup();
+  } catch(e) {}
+}
+
+export function clearAllBackups() {
+  try {
+    localStorage.removeItem(LS_BACKUPS);
+    localStorage.removeItem(LS_LAST_BACKUP);
+    localStorage.removeItem(LS_DATA_HASH);
+    localStorage.removeItem(LS_BACKUP_STATUS);
+    updateSystemStateBackup();
+  } catch(e) {}
 }
 
 export async function restoreFromBackup(file) {
@@ -235,31 +290,10 @@ export async function restoreFromBackup(file) {
           return;
         }
 
-        const premium = isPremium();
-        const isLimitedBackup = data.isLimitedBackup && !premium;
-        let limitWarning = null;
-
         function mergeByTimestamp(localKey, backupArr, timestampField) {
           try {
-            let arrToMerge = backupArr;
-            
-            if (!premium) {
-              const now = Date.now();
-              const sevenDaysAgo = now - (FREE_DAYS_LIMIT * 24 * 60 * 60 * 1000);
-              arrToMerge = backupArr.filter(item => {
-                const ts = item[timestampField] || item.time || item.timestamp;
-                return ts && parseInt(ts) >= sevenDaysAgo;
-              });
-              if (arrToMerge.length < backupArr.length) {
-                limitWarning = {
-                  title: t("free_history_limit_title"),
-                  desc: t("free_history_limit_desc")
-                };
-              }
-            }
-
             const local = JSON.parse(localStorage.getItem(localKey) || "[]");
-            const merged = [...local, ...arrToMerge];
+            const merged = [...local, ...backupArr];
             const seen = new Set();
             const deduped = merged.filter(item => {
               const key = item[timestampField] || item.time || item.timestamp;
@@ -278,13 +312,12 @@ export async function restoreFromBackup(file) {
           }
         }
 
-        if (data.mood_history)    mergeByTimestamp("mood_history",    data.mood_history,    "time");
-        if (data.notes_history)   mergeByTimestamp("notes_history",   data.notes_history,   "timestamp");
+        if (data.mood_history) mergeByTimestamp("mood_history", data.mood_history, "time");
+        if (data.notes_history) mergeByTimestamp("notes_history", data.notes_history, "timestamp");
         if (data.session_history) mergeByTimestamp("session_history", data.session_history, "timestamp");
-
         if (data.user_profile) localStorage.setItem("user_profile", JSON.stringify(data.user_profile));
 
-        resolve({ success: true, limitWarning });
+        resolve({ success: true });
       } catch(err) {
         resolve({ success: false, message: "Ошибка чтения: " + err.message });
       }
@@ -292,4 +325,8 @@ export async function restoreFromBackup(file) {
     reader.onerror = () => resolve({ success: false, message: "Не удалось прочитать файл" });
     reader.readAsText(file);
   });
+}
+
+export function initBackupSystem() {
+  updateSystemStateBackup();
 }
