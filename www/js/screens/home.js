@@ -11,7 +11,6 @@ export function onEnter() {
 
   if (!slider) return;
 
-  // Синхронизируем слайдер с реальным текущим настроением
   const currentMood = getMood();
   valueLabel.textContent = currentMood + "%";
 
@@ -26,7 +25,6 @@ export function onEnter() {
     showAvatarHint(Number(newSlider.value));
   });
 
-  // Клонируем кнопку — убиваем старые слушатели
   const confirmBtn = document.getElementById("moodConfirmBtn");
   if (!confirmBtn) return;
   const newBtn = confirmBtn.cloneNode(true);
@@ -34,26 +32,33 @@ export function onEnter() {
 
   newBtn.addEventListener("click", async () => {
     console.log('MOOD_SUBMIT clicked');
+    if (newBtn.disabled) return;
+    newBtn.disabled = true;
+
     const moodValue = Number(newSlider.value);
-    console.log('moodValue:', moodValue);
-    const result = await SystemCore.dispatch('MOOD_SUBMIT', moodValue);
-    console.log('dispatch result:', result);
+    try {
+      const result = await SystemCore.dispatch('MOOD_SUBMIT', moodValue);
 
-    if (!result || result.error) {
-      console.warn('UI received error:', result);
-      alert('Ошибка обработки. Попробуйте ещё раз.');
-      return;
+      if (!result || result.error) {
+        console.warn('UI received error or duplicate:', result);
+        newBtn.disabled = false;
+        return;
+      }
+
+      const savedMood = result.state?.mood ?? moodValue;
+      newSlider.value = savedMood;
+      valueLabel.textContent = savedMood + '%';
+
+      const lang = localStorage.getItem('app_language') || 'ru';
+      const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
+      const locale = localeMap[lang] || 'ru-RU';
+      const now  = new Date();
+      const time = now.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit" });
+      const date = now.toLocaleDateString(locale, { day:"2-digit", month:"2-digit", year:"numeric" });
+      if (savedLabel) savedLabel.textContent = `${time} (${date})`;
+
+    } finally {
+      newBtn.disabled = false;
     }
-
-    const mood = result.state?.mood || moodValue;
-    newSlider.value = mood;
-    valueLabel.textContent = mood + '%';
-
-    render();
-
-    const now  = new Date();
-    const time = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
-    const date = now.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"numeric" });
-    if (savedLabel) savedLabel.textContent = `${time} (${date})`;
   });
 }

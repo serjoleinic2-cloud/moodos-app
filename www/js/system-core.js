@@ -125,7 +125,7 @@ const SystemCore = {
 
     if (this.processingEvents.has(event)) {
       console.warn('[SYSTEM] Blocked duplicate event:', event)
-      return null
+      return { duplicate: true }
     }
 
     this.processingEvents.add(event)

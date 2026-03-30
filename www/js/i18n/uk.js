@@ -39,6 +39,7 @@ export const uk = {
     home_studying: "вивчаю...",
     home_ok: "ОК",
     screen_insight: "Інсайт",
+    chart_unavailable: "Графік недоступний",
     screen_report: "Звіт",
     screen_stability: "Стійкість",
     screen_settings: "Налаштування",

@@ -40,6 +40,7 @@ export const ru = {
     home_studying: "изучаю...",
     home_ok: "ОК",
     screen_insight: "Инсайт",
+    chart_unavailable: "График недоступен",
     screen_report: "Отчёт",
     screen_stability: "Устойчивость",
     screen_settings: "Настройки",

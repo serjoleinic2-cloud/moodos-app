@@ -39,6 +39,7 @@ export const es = {
     home_studying: "estudiando...",
     home_ok: "OK",
     screen_insight: "Insight",
+    chart_unavailable: "Gráfico no disponible",
     screen_report: "Informe",
     screen_stability: "Estabilidad",
     screen_settings: "Ajustes",

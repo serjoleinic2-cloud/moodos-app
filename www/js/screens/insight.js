@@ -334,7 +334,15 @@ export async function onEnter() {
 
   const history = getMoodHistory();
   const mood    = getMood();
-  const state   = (await SystemCore.analyzeMoodOnly(mood)).state;
+  
+  let state = 'NEUTRAL';
+  try {
+    const analysis = await SystemCore.analyzeMoodOnly(mood);
+    state = analysis?.state ?? 'NEUTRAL';
+  } catch(e) {
+    console.warn('[insight] analyzeMoodOnly failed, using fallback:', e);
+  }
+  
   const stats   = getFullSessionStats();
 
   if (!history || history.length === 0) {
@@ -342,10 +350,17 @@ export async function onEnter() {
     return;
   }
 
-  const stability  = calculateStabilityScore(history);
-  const trend      = calculateTrend(history);
-  const golden     = calculateGoldenHour(history);
-  const avgMood    = Math.round(history.reduce((s,h)=>s+h.value,0)/history.length);
+  const periodDays = TIME_HORIZONS[selectedTimeRange] || 30;
+  const periodCutoff = Date.now() - periodDays * 24 * 60 * 60 * 1000;
+  const filteredHistory = history.filter(e => (e.time || 0) >= periodCutoff);
+  const calcHistory = filteredHistory.length >= 3 ? filteredHistory : history;
+  
+  const stability  = calculateStabilityScore(calcHistory);
+  const trend      = calculateTrend(calcHistory);
+  const golden     = calculateGoldenHour(calcHistory);
+  const avgMood    = calcHistory.length > 0
+    ? Math.round(calcHistory.reduce((s,h)=>s+h.value,0)/calcHistory.length)
+    : 0;
   const recommendation = getPersonalRecommendation(state);
 
   const practiceData = {};
@@ -632,7 +647,20 @@ function destroyChart(id) {
 
 function initChartFor(id, history, stats, practiceData) {
   const Chart = window.Chart;
-  if (!Chart) return;
+  if (!Chart) {
+    const canvasMap = {
+      'flip-stability': 'chartStability',
+      'flip-mood':      'chartMood',
+      'flip-golden':    'chartHours',
+    };
+    const canvasId = canvasMap[id] || ('chart-' + id.replace('flip-', ''));
+    const c = document.getElementById(canvasId);
+    if (c) {
+      const parent = c.parentElement;
+      if (parent) parent.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' + (t('chart_unavailable') || 'График недоступен') + '</div>';
+    }
+    return;
+  }
   const lineOpts = {
     plugins: { legend: { display: false } },
     scales: { y:{min:0,max:100,ticks:{font:{size:10}}}, x:{ticks:{font:{size:9},maxRotation:45}} }

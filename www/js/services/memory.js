@@ -8,6 +8,19 @@
 export function save(data) {
   let needsSnapshotUpdate = false;
   
+  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight'];
+  const unknownFields = Object.keys(data).filter(k => !KNOWN_SAVE_FIELDS.includes(k));
+  if (unknownFields.length > 0) {
+    console.warn('[memory.save] Unknown fields (data may be lost):', unknownFields);
+  }
+  
+  if (data.lastInsight !== undefined) {
+    localStorage.setItem("last_insight", JSON.stringify({
+      text: data.lastInsight,
+      time: Date.now()
+    }));
+  }
+  
   if (data.mood !== undefined) {
     const history = getMoodHistory();
     history.push({
@@ -206,4 +219,11 @@ export function updateCachedBaseline(practiceType, days, baseline) {
 
 export function invalidateBaselineCache() {
   localStorage.removeItem("user_baseline_cache");
+}
+
+export function resolveTimestamp(entry) {
+  const ts = entry?.time ?? entry?.timestamp ?? entry?.date ?? null;
+  if (ts === null) return null;
+  if (typeof ts === 'string') return new Date(ts).getTime() || null;
+  return Number(ts) || null;
 }

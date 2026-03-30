@@ -1,4 +1,4 @@
-import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory, resolveTimestamp } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
@@ -504,5 +504,8 @@ function filterByDays(history, days) {
   if (days>3650) return history;
   const now = Date.now();
   const limit = days*24*60*60*1000;
-  return history.filter(e => now - new Date(e.time).getTime() <= limit);
+  return history.filter(e => {
+    const ts = resolveTimestamp(e);
+    return ts !== null && (now - ts) <= limit;
+  });
 }

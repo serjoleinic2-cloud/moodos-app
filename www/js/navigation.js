@@ -32,9 +32,9 @@ export function initNavigation() {
   async function loadScreen(name) {
     if (!screenModules[name]) return;
     
-    // Проверяем готовность системы
     if (!window.systemState?.isReady) {
       console.log('[nav] Waiting for system to be ready...');
+      setTimeout(() => loadScreen(name), 300);
       return;
     }
     
@@ -47,6 +47,10 @@ export function initNavigation() {
     } catch (err) {
       console.error(`[nav] loadScreen error for "${name}":`, err);
       delete loadedScreens[name];
+      if (!err._retried) {
+        err._retried = true;
+        setTimeout(() => loadScreen(name), 500);
+      }
     }
   }
 
@@ -231,4 +235,11 @@ export function initNavigation() {
   }, 3000);
 
   openScreen("home");
+
+  document.addEventListener("languageChanged", () => {
+    Object.keys(loadedScreens).forEach(k => delete loadedScreens[k]);
+    if (currentScreen) {
+      loadScreen(currentScreen);
+    }
+  });
 }
