@@ -164,7 +164,8 @@ export function createBackup() {
     
     const limit = getBackupLimit();
     if (backups.backups.length > limit) {
-      backups.backups = backups.backups.slice(-limit);
+      backups.backups.sort((a, b) => b.date - a.date);
+      backups.backups = backups.backups.slice(0, limit);
     }
     
     saveBackups(backups);

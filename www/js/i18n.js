@@ -20,7 +20,7 @@ const TRANSLATIONS = { ru, en, es, uk };
 
 export function t(key) {
   const lang = getLang();
-  return TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key] ?? key;
+  return TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key] ?? "";
 }
 
 export function getDaysLabel(days) {

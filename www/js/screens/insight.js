@@ -310,10 +310,7 @@ function buildYearComparisonBlock(history) {
       '</div>' +
       '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
         '<div style="font-size:28px;">' + diffEmoji + '</div>' +
-        '<div>' +
-          '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' ' + t("pts") + ' — ' + diffText + '</div>' +
-          '<div style="font-size:12px;color:#888;margin-top:2px;">' + t("year_mood_change") + '</div>' +
-        '</div>' +
+        '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' ' + t("pts") + '</div>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -390,7 +387,7 @@ export async function onEnter() {
     }
   }
 
-  const yearComparisonHTML = buildYearComparisonBlock();
+  const yearComparisonHTML = selectedTimeRange === 'year' ? buildYearComparisonBlock() : '';
 
   // Period selector HTML
   const periodSelectorHTML = 
