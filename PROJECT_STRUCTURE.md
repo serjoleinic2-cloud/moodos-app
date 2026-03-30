@@ -1,10 +1,7 @@
 # MoodOS — Project Overview
 
 ## Описание проекта
-MoodOS — мобильное приложение для эмоционального трекинга и самопознания. Приложение позволяет отслеживать настроение, вести дневник, практиковать mindfulness-практики и получать персонализированные инсайты.
-
-**Платформа:** Capacitor (Android/iOS)
-**Стек:** Vanilla JS (ES modules), HTML, CSS
+MoodOS — мобильное приложение для эмоционального трекинга и самопознания. Capacitor-based (Android/iOS), Vanilla JS (ES modules).
 
 ---
 
@@ -12,156 +9,140 @@ MoodOS — мобильное приложение для эмоциональн
 
 ```
 moodos-app/
-├── www/                    # Исходный код приложения
-│   ├── index.html         # Главная HTML страница
-│   ├── manifest.json       # Web App Manifest
-│   ├── sw.js              # Service Worker
+├── www/                          # Исходный код приложения
+│   ├── index.html               # Главная HTML страница
+│   ├── manifest.json            # Web App Manifest
+│   ├── sw.js                    # Service Worker
 │   │
 │   ├── css/
-│   │   ├── style.css      # Основные стили приложения
-│   │   └── avatar.css     # Стили аватара-компаньона
+│   │   ├── style.css           # Основные стили + 5 тем (default/purple-blue/purple-pink/ocean-blue/warm-sunset)
+│   │   └── avatar.css          # Стили аватара-компаньона
 │   │
 │   └── js/
-│       ├── app.js          # Точка входа, инициализация приложения
-│       ├── app.js
-│       ├── state.js        # Глобальный state приложения
-│       ├── navigation.js   # Навигация между экранами
-│       ├── ui-controller.js # Управление UI
-│       ├── avatar.js      # Аватар-компаньон (drag, tap)
-│       ├── system-core.js  # Центральный оркестратор
-│       ├── onboarding.js   # Онбординг новых пользователей
-│       ├── premium-modal.js # Модальное окно Premium
+│       ├── app.js               # Точка входа, инициализация
+│       ├── state.js             # Глобальный state приложения
+│       ├── navigation.js        # Навигация, экраны, languageChanged/premiumChanged listeners
+│       ├── ui-controller.js     # Управление UI
+│       ├── avatar.js           # Аватар-компаньон
+│       ├── system-core.js       # Центральный оркестратор (dispatch, events)
+│       ├── onboarding.js        # Онбординг
+│       ├── premium-modal.js     # Модальное окно Premium
+│       ├── monthly-check.js     # Месячные проверки
 │       │
-│       ├── i18n.js        # Система интернационализации
+│       ├── i18n.js              # Система интернационализации (t, tSafe, getLang, setLang)
 │       └── i18n/
-│           ├── ru.js       # Русский язык
-│           ├── en.js       # Английский язык
-│           ├── es.js       # Испанский язык
-│           └── uk.js       # Украинский язык
+│           ├── ru.js            # Русский
+│           ├── en.js            # Английский
+│           ├── es.js            # Испанский
+│           └── uk.js            # Украинский
 │       │
-│       ├── ai/            # AI модули
-│       │   ├── offline-ai.js     # Офлайн AI анализ текста
-│       │   ├── voice-analysis.js  # Анализ голосовых записей
-│       │   ├── voice.js          # Запись голоса
-│       │   └── avatar-brain.js   # Мозг аватара
+│       ├── ai/
+│       │   ├── offline-ai.js         # Офлайн AI анализ текста
+│       │   ├── voice-analysis.js       # Анализ голоса
+│       │   ├── voice.js                # Запись голоса
+│       │   └── avatar-brain.js        # Мозг аватара
 │       │
-│       ├── screens/       # Экраны приложения
-│       │   ├── home.js         # Главный экран (слайдер настроения)
-│       │   ├── insight.js       # Экран инсайтов и аналитики
-│       │   ├── report.js        # Отчёты и календарь настроений
+│       ├── screens/             # Экраны приложения
+│       │   ├── home.js         # Главный (слайдер настроения, locale-aware)
+│       │   ├── insight.js      # Инсайты (period filter, Chart.js fallback, safe null guards)
+│       │   ├── report.js       # Отчёты, календарь (resolveTimestamp, locale-aware dates)
 │       │   ├── stability.js    # Анализ устойчивости
-│       │   ├── history.js       # История записей
-│       │   ├── settings.js      # Настройки приложения
-│       │   ├── premium.js       # Premium подписка
-│       │   ├── paywall.js       # Экран ограничений Free
-│       │   ├── tools.js         # Меню практик
-│       │   ├── breathing.js     # Практика дыхания
-│       │   ├── meditation.js    # Медитация
-│       │   ├── visual-focus.js  # Зрительный якорь
-│       │   ├── mind-dump.js     # Выгрузка мыслей
-│       │   ├── tap-calm.js      # Тактильная разрядка
+│       │   ├── history.js      # История записей
+│       │   ├── settings.js     # Настройки (backup UI, Premium темы)
+│       │   ├── premium.js      # Premium подписка
+│       │   ├── paywall.js      # Ограничения Free
+│       │   ├── tools.js        # Меню практик
+│       │   ├── breathing.js    # Дыхание
+│       │   ├── meditation.js   # Медитация
+│       │   ├── visual-focus.js # Зрительный якорь
+│       │   ├── mind-dump.js   # Выгрузка мыслей
+│       │   ├── tap-calm.js     # Тактильная разрядка
 │       │   ├── support-texts.js # Тексты поддержки
-│       │   ├── voice.js        # Голосовые заметки
-│       │   └── pdf-report.js   # Генерация PDF отчётов
+│       │   ├── voice.js       # Голосовые заметки
+│       │   └── pdf-report.js  # PDF отчёты
 │       │
-│       └── services/      # Бизнес-логика и сервисы
-│           ├── memory.js           # Управление историей (localStorage)
-│           ├── analytics.js       # Базовые аналитические функции
-│           ├── session-analytics.js # Аналитика практик
-│           ├── insight-engine.js   # Движок инсайтов
-│           ├── pattern-engine.js   # Поиск паттернов
-│           ├── resilience-engine.js # Устойчивость
-│           ├── state-engine.js     # Определение состояния
-│           ├── weekly-analytics.js # Недельная аналитика
-│           ├── year-comparison.js  # Сравнение с прошлым годом
-│           ├── daily-snapshots.js # Ежедневные снапшоты
-│           ├── drive-backup.js     # Система резервного копирования
-│           ├── user-profile.js     # Профиль пользователя
-│           └── voice-service.js    # Сервис голосовых записей
+│       └── services/           # Бизнес-логика
+│           ├── memory.js               # localStorage (try/catch, resolveTimestamp, KNOWN_SAVE_FIELDS)
+│           ├── analytics.js           # Базовые метрики
+│           ├── session-analytics.js   # Аналитика практик (TIME_HORIZONS)
+│           ├── insight-engine.js      # Генерация инсайтов
+│           ├── pattern-engine.js      # Поиск паттернов
+│           ├── resilience-engine.js    # Устойчивость
+│           ├── state-engine.js        # Определение состояния
+│           ├── weekly-analytics.js    # Недельная аналитика
+│           ├── year-comparison.js     # Сравнение с прошлым годом
+│           ├── daily-snapshots.js     # Ежедневные снапшоты
+│           ├── drive-backup.js        # Backup (Premium full backup, resolveTimestamp)
+│           ├── user-profile.js        # Профиль (systemState sync, try/catch)
+│           └── voice-service.js        # Голосовые записи
 │
-├── android/               # Android проект (Capacitor)
-│   └── app/
-│       └── src/main/assets/  # Скомпилированные assets
-│
-├── capacitor.config.json # Конфигурация Capacitor
-└── package.json         # Зависимости npm
+├── android/                     # Capacitor Android
+├── capacitor.config.json
+├── package.json
+└── PROJECT_STRUCTURE.md        # Этот файл
 ```
 
 ---
 
-## Архитектура
+## Ключевые архитектурные решения
 
-### Модель данных (localStorage)
-
+### i18n система
 ```javascript
-// Основные коллекции
-mood_history      // Записи настроения { value, time }
-notes_history     // Текстовые заметки { text, timestamp }
-voice_history     // Голосовые записи { audioUrl, timestamp }
-session_history   // Сессии практик { type, moodBefore, moodAfter, timestamp }
+t(key)           // fallback: "" (не показывает raw key)
+tSafe(key, fallback)  // безопасная версия
+```
+Все пользовательские строки через `t()`. Raw ключи НЕ отображаются в UI.
 
-// Профиль
-user_profile      // { moodBaseline, premium, theme, language, ... }
+### Timestamp унификация
+```javascript
+resolveTimestamp(entry)  // time → timestamp → date, возвращает Number или null
+```
+Используется во всех местах где нужен timestamp записи.
 
-// Системные данные
-systemState      // { mood, isReady, premium, ... }
-daily_insights    // Ежедневные инсайты
-daily_snapshots  // Снапшоты состояния
-moodos_backups    // Локальные backup'ы
+### Memory Service (memory.js)
+- try/catch на всех операциях чтения/записи
+- KNOWN_SAVE_FIELDS включает: `mood, state, feedback, lastSupportInsight, lastInsight, insights, patterns, resilience`
+- Логирование неизвестных полей (dev warning)
+
+### User Profile (user-profile.js)
+- try/catch на getProfile/saveProfile
+- activateTrial() / activatePremium() синхронизируют window.systemState
+- Диспатчится событие `premiumChanged` → navigation.js обновляет текущий экран
+
+### Premium синхронизация
+```javascript
+// user-profile.js (единая точка)
+activateTrial() {
+  saveProfile(...);
+  window.systemState.premium = true;
+  document.dispatchEvent(new CustomEvent('premiumChanged', ...));
+}
+
+// navigation.js (глобальный listener)
+document.addEventListener('premiumChanged', () => {
+  if (currentScreen) loadScreen(currentScreen);
+});
 ```
 
-### Ключевые модули
+### Period Filter в Insight
+```javascript
+const periodDays = TIME_HORIZONS[selectedTimeRange] || 30;
+const filteredHistory = history.filter(e => (e.time || 0) >= periodCutoff);
+const calcHistory = filteredHistory.length >= 3 ? filteredHistory : history;
+// Все метрики (stability, trend, golden, avgMood) считаются по calcHistory
+```
 
-#### `system-core.js`
-Центральный оркестратор, управляющий потоком данных между сервисами.
-
-#### `state.js`
-Глобальный state приложения. Содержит текущее настроение, статус premium, и другие глобальные данные.
-
-#### `memory.js`
-Абстракция над localStorage. Предоставляет функции для чтения/записи истории.
-
-#### `services/` — Аналитические движки
-
-| Файл | Назначение |
-|------|------------|
-| `analytics.js` | Базовые метрики (стабильность, тренд, золотые часы) |
-| `session-analytics.js` | Анализ эффективности практик по типам |
-| `insight-engine.js` | Генерация персональных инсайтов |
-| `pattern-engine.js` | Поиск паттернов в данных |
-| `resilience-engine.js` | Оценка эмоциональной устойчивости |
-| `state-engine.js` | Определение текущего состояния (LOW/NEUTRAL/GOOD) |
-| `weekly-analytics.js` | Недельная аналитика и блоки |
-| `year-comparison.js` | Сравнение с аналогичным периодом прошлого года |
-| `daily-snapshots.js` | Ежедневные снапшоты состояния |
-
-#### `ai/`
-- `offline-ai.js` — Офлайн анализ текста (keyword-based, 4 языка)
-- `voice-analysis.js` — Анализ голосовых записей
-- `avatar-brain.js` — Логика аватара-компаньона
-
-### UI архитектура
-
-Приложение использует **SPA подход** с экранами, переключаемыми через CSS классы `.active`.
-
-**Навигация:** нижняя панель + hamburger меню
-
-**Экраны:**
-- `home` — Главный экран с записью настроения
-- `insight` — Аналитика и инсайты
-- `report` — Отчёты, календарь
-- `stability` — Анализ устойчивости
-- `history` — История записей
-- `settings` — Настройки
+### Backup система (drive-backup.js)
+- Free: лимит 1 backup, хранится последние 500 записей
+- Premium: лимит 30 backup'ов, полный бэкап (Infinity)
+- mergeByTimestamp использует resolveTimestamp
 
 ---
 
-## Цветовые темы
+## Цветовые темы (5 тем)
 
-Поддерживаются в `style.css` через `body[data-theme="..."]`:
-
-| Тема | Описание | Доступность |
-|------|---------|-------------|
+| Ключ | Описание | Доступность |
+|-------|---------|-------------|
 | `default` | Зелёно-бежевая | Все |
 | `purple-blue` | Фиолетово-синяя | Все |
 | `purple-pink` | Фиолетово-розовая | Все |
@@ -172,95 +153,74 @@ moodos_backups    // Локальные backup'ы
 
 ## Premium функционал
 
-- Автобэкап данных (24h интервал)
-- До 30 локальных backup'ов
-- Все цветовые темы
-- Сравнение с прошлым годом
-- Безлимит AI запросов
-- Расширенная аналитика
+- Автобэкап (Premium: Infinity записей, Free: 500)
+- До 30 локальных backup'ов (Free: 1)
+- Все 5 цветовых тем
+- Дополнительные инсайты и аналитика
 
 ---
 
-## i18n система
-
-```javascript
-// Использование
-import { t, getLang, setLang } from "./i18n.js";
-t("key_name");  // Получить перевод
-
-// Fallback: если ключ не найден, возвращает ""
-// tSafe(key, fallback) — безопасная версия с fallback
-```
-
-**Поддерживаемые языки:** RU, EN, ES, UK
-
----
-
-## Запуск и сборка
-
-```bash
-# Установка зависимостей
-npm install
-
-# Локальная разработка (веб-сервер)
-npm run dev
-
-# Сборка веб-приложения
-npm run build
-
-# Синхронизация с Android
-npx cap sync android
-
-# Запуск на Android устройстве/эмуляторе
-npx cap run android
-```
-
----
-
-## Конфигурация Capacitor
-
-```json
-// capacitor.config.json
-{
-  "appId": "com.moodos.app",
-  "appName": "MoodOS",
-  "webDir": "www",
-  "server": { "androidScheme": "https" },
-  "plugins": {
-    "Share": {},
-    "Filesystem": {}
-  }
-}
-```
-
----
-
-## Важные константы
+## Константы
 
 ```javascript
 // services/session-analytics.js
-TIME_HORIZONS = {
-  week: 7,
-  month: 30,
-  quarter: 90,
-  year: 365
-};
+TIME_HORIZONS = { week: 7, month: 30, quarter: 90, year: 365 }
 
 // services/user-profile.js
-FREE_BACKUP_LIMIT = 1;
-PREMIUM_BACKUP_LIMIT = 30;
-AUTO_BACKUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+FREE_BACKUP_LIMIT = 1
+PREMIUM_BACKUP_LIMIT = 30
 
 // services/drive-backup.js
-LS_BACKUPS = "moodos_backups";  // Ключ для хранения backup'ов
+LS_BACKUPS = "moodos_backups"
 ```
 
 ---
 
-## Стандарты кода
+## Важные паттерны
 
-- **ES Modules** — все файлы используют `import/export`
-- **i18n** — все пользовательские строки через `t()` функцию
-- **Fallback** — безопасная работа с отсутствующими переводами
-- **Data normalization** —的统一 времstamp формат (`Date.now()`)
-- **No raw keys** — i18n ключи никогда не отображаются в UI
+### Safe null guard
+```javascript
+// analyzeMoodOnly может вернуть null
+const analysis = await SystemCore.analyzeMoodOnly(mood);
+state = analysis?.state ?? 'NEUTRAL';
+```
+
+### Duplicate event handling
+```javascript
+// system-core.js
+if (this.processingEvents.has(event)) {
+  return { duplicate: true };  // UI различает дубликат и ошибку
+}
+
+// home.js
+const result = await SystemCore.dispatch('MOOD_SUBMIT', moodValue);
+if (!result || result.error) return;  // silent fail для дубликатов
+```
+
+### Retry при race conditions
+```javascript
+// navigation.js
+if (!window.systemState?.isReady) {
+  setTimeout(() => loadScreen(name), 300);
+  return;
+}
+```
+
+### Locale-aware dates
+```javascript
+const lang = localStorage.getItem('app_language') || 'ru';
+const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
+date.toLocaleDateString(localeMap[lang] || 'ru-RU', {...});
+```
+
+---
+
+## Запуск
+
+```bash
+npm install
+npm run dev      # Локальная разработка
+npm run build    # Сборка
+npx cap sync     # Синхронизация с Android
+npx cap run     # Запуск на устройстве
+```
