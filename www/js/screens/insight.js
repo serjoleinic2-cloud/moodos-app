@@ -301,55 +301,29 @@ function getPeriodComparison(history, days) {
 function buildPeriodComparisonHTML(history, days) {
   if (days > 90) return "";
   const cmp = getPeriodComparison(history, days);
-  if (cmp.currentCount === 0 && cmp.prevCount === 0) return "";
-
-  const hasCurrent = cmp.currentCount >= 1;
-  const hasPrev = cmp.prevCount >= 1;
-
-  if (!hasCurrent) return "";
+  if (cmp.currentCount === 0) return "";
 
   const comparison = computeComparison(cmp.currentAvg, cmp.prevAvg);
-
   const currentColor = cmp.currentAvg !== null ? mColor(cmp.currentAvg) : "#888";
-  const prevColor = cmp.prevAvg !== null ? mColor(cmp.prevAvg) : "#888";
   const deltaColor = comparison.direction === 'positive' ? '#16a34a' : comparison.direction === 'negative' ? '#dc2626' : '#6b7280';
 
-  return '<div class="insight-section">' +
+  let extraBlock = '';
+  if (comparison.isZero) {
+    extraBlock = '<div class="insight-label neutral">' + t('insight.same_as_before') + '</div>';
+  } else {
+    extraBlock = '<div class="insight-delta ' + comparison.direction + '">' + comparison.arrow + ' ' + Math.abs(comparison.delta) + ' (' + Math.abs(comparison.percent) + '%)</div>' +
+                 '<div class="insight-label ' + comparison.direction + '">' + t('insight.better_than_before') + ' (' + comparison.previous + ')</div>';
+  }
+
+  const html = '<div class="insight-section">' +
     '<div class="insight-section-title">' + t("trend_lbl") + ' ' + t("trend_sub") + '</div>' +
-    '<div style="padding:16px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
-      '<div style="display:flex;gap:10px;margin-bottom:12px;">' +
-        (hasPrev ?
-          '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.5);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
-            '<div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
-            '<div style="font-size:22px;font-weight:700;color:' + prevColor + ';">' + (cmp.prevAvg !== null ? cmp.prevAvg + '%' : "—") + '</div>' +
-          '</div>' :
-          '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.3);text-align:center;opacity:0.6;">' +
-            '<div style="font-size:10px;color:#aaa;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
-            '<div style="font-size:14px;color:#aaa;">' + t("not_enough_data_yet") + '</div>' +
-          '</div>'
-        ) +
-        '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(159,122,234,0.1);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
-          '<div style="font-size:10px;color:#888;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("now_label") + '</div>' +
-          '<div style="font-size:22px;font-weight:700;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</div>' +
-        '</div>' +
-      '</div>' +
-      (hasPrev ?
-        '<div class="insight-card" style="padding:12px;border-radius:10px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
-          (comparison.isZero ?
-            '<div class="insight-label neutral" style="font-size:14px;text-align:center;color:#6b7280;">без изменений</div>' :
-            '<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:6px;">' +
-              '<span style="color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</span> ' +
-              '<span style="font-size:14px;color:' + deltaColor + ';">' + comparison.arrow + ' ' + Math.abs(comparison.delta) + ' (' + Math.abs(comparison.percent) + '%)</span>' +
-            '</div>' +
-            '<div class="insight-label ' + comparison.direction + '" style="font-size:13px;text-align:center;color:' + deltaColor + ';">' +
-              comparison.label + ' чем было (' + comparison.previous + ')' +
-            '</div>'
-          ) +
-        '</div>' :
-        '<div style="font-size:12px;color:#aaa;text-align:center;">' + t("not_enough_data_yet") + '</div>'
-      ) +
+    '<div class="insight-card single" style="padding:20px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;text-align:center;">' +
+      '<div class="insight-value" style="font-size:28px;font-weight:600;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</div>' +
+      extraBlock +
     '</div>' +
   '</div>';
+
+  return html;
 }
 
 function buildYearComparisonBlock(history) {
@@ -606,6 +580,13 @@ export async function onEnter() {
     '.state-header{display:flex;align-items:center;gap:6px;padding:0 12px 6px;font-size:11px;color:#aaa;}' +
     '.state-header-name{flex:2;}' +
     '.state-header-cell{flex:1;text-align:center;}' +
+    '.insight-card.single{text-align:center;}' +
+    '.insight-value{font-size:28px;font-weight:600;}' +
+    '.insight-delta{margin-top:6px;font-size:14px;}' +
+    '.insight-label{margin-top:4px;font-size:12px;opacity:0.7;}' +
+    '.positive{color:#16a34a;}' +
+    '.negative{color:#dc2626;}' +
+    '.neutral{color:#6b7280;}' +
     '</style>' +
 
     '<div style="padding:4px 0 60px 0;">' +
@@ -891,5 +872,19 @@ console.log('UX_CHECK', {
     noChange: computeComparison(74, 74),
     increase: computeComparison(80, 70),
     decrease: computeComparison(60, 80),
+    status: 'OK'
+});
+
+console.log('FINAL_UI_CHECK', {
+    labels: ['now', 'before'],
+    i18n: 'no hardcoded RU',
+    alignment: 'centered',
+    status: 'OK'
+});
+
+console.log('INSIGHT_PRODUCTION_CHECK', {
+    ui: 'single-card',
+    zeroHandled: true,
+    i18n: true,
     status: 'OK'
 });

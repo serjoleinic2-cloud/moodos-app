@@ -393,14 +393,18 @@ body[data-theme="warm-sunset"] textarea {
 }
 
 /* ===== MEDITATION TRACK LIST ===== */
-#trackList {
+#trackList,
+.track-list {
   max-height: 180px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(159,122,234,0.3) transparent;
+  margin-bottom: 10px;
 }
-#trackList::-webkit-scrollbar { width: 4px; }
-#trackList::-webkit-scrollbar-thumb { background: rgba(159,122,234,0.3); border-radius: 4px; }
+#trackList::-webkit-scrollbar,
+.track-list::-webkit-scrollbar { width: 4px; }
+#trackList::-webkit-scrollbar-thumb,
+.track-list::-webkit-scrollbar-thumb { background: rgba(159,122,234,0.3); border-radius: 4px; }
 
 .track {
   display: flex;

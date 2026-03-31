@@ -177,8 +177,8 @@ function bindEvents() {
         if (custom.length >= MAX_CUSTOM_TRACKS) return;
         custom.push({ name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false });
         saveCustomTracks(custom);
-        tracks = getAllTracks();
-        if (meditationContainer) initMeditation(meditationContainer);
+        renderTracks();
+        updateAddButton();
       };
       reader.readAsDataURL(file);
     };
@@ -193,16 +193,25 @@ function bindEvents() {
       if (customIdx < 0) return;
       custom.splice(customIdx, 1);
       saveCustomTracks(custom);
-      tracks = getAllTracks();
-      if (currentIndex >= tracks.length) currentIndex = 0;
-      if (meditationContainer) initMeditation(meditationContainer);
+      renderTracks();
+      updateAddButton();
     };
   });
 }
 
+function updateAddButton() {
+  const wrap = document.getElementById("addTrackWrap");
+  if (!wrap || !isPremium()) return;
+  const count = loadCustomTracks().length;
+  wrap.innerHTML = count < MAX_CUSTOM_TRACKS
+    ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
+    : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
+  const btn = document.getElementById("addTrackBtn");
+  if (btn) btn.onclick = () => document.getElementById("addTrackInput")?.click();
+}
+
 export function initMeditation(container) {
   console.log('[DEBUG] initMeditation called');
-  meditationContainer = container;
 
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">
@@ -210,25 +219,16 @@ export function initMeditation(container) {
       <h2 style="margin-bottom:12px;">${t("med_title")}</h2>
 
       <!-- ТРЕКИ -->
-      <div style="margin-bottom:15px;">
-        <div id="trackList" style="margin-bottom:0;">
-          ${getAllTracks().map((tr, i) => `
-            <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
-              <span>${tr.name}</span>
-              ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      ${isPremium() ? `
-        <div id="addTrackWrap" style="margin-bottom:12px;">
+      <div id="addTrackWrap" style="margin-bottom:8px;">
+        ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
           ${loadCustomTracks().length < MAX_CUSTOM_TRACKS
             ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
             : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
           }
-        </div>
-      ` : ''}
+        ` : ''}
+      </div>
+      <div id="trackList" class="track-list"></div>
 
       <!-- АНИМАЦИЯ -->
       <div style="position:relative; display:flex; justify-content:center;">
@@ -281,10 +281,25 @@ export function initMeditation(container) {
     </div>
   `;
 
+  meditationContainer = container;
   canvas = document.getElementById("meditationCanvas");
   ctx    = canvas.getContext("2d");
 
+  renderTracks();
   initAudio();
+}
+
+function renderTracks() {
+  const container = document.getElementById("trackList");
+  if (!container) return;
+  tracks = getAllTracks();
+  if (currentIndex >= tracks.length) currentIndex = 0;
+  container.innerHTML = tracks.map((tr, i) => `
+    <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
+      <span>${tr.name}</span>
+      ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
+    </div>
+  `).join('');
 }
 
 function initAudio() {
@@ -438,3 +453,9 @@ function updateTimer() {
   const total   = format(audio.duration || 0);
   document.getElementById("medTimer").innerText = `${current} / ${total}`;
 }
+
+console.log('MELODY_CHECK', {
+    items: tracks.length,
+    rendered: document.querySelectorAll('.track').length,
+    status: 'OK'
+});

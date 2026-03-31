@@ -343,6 +343,13 @@ export const en = {
 
     // Year comparison
     insight_period_label: "Analysis period",
+    "insight.before": "before",
+    "insight.now": "now",
+    "insight.no_change": "no change",
+    "insight.better": "better",
+    "insight.worse": "worse",
+    "insight.same_as_before": "same as before",
+    "insight.better_than_before": "better than before",
     week_vs_year: "📅 This week vs year ago",
     year_ago: "Year ago",
     year_data_collecting: "📊 We're still collecting data for this period",
