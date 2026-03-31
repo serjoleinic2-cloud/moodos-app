@@ -1,0 +1,94 @@
+## TASK: Structural and logic audit of insight.js (NO refactor)
+
+### CONTEXT
+
+File: `/www/js/screens/insight.js`
+
+The project is already evolving. We must avoid unnecessary refactoring and preserve working logic.
+
+---
+
+## GOAL
+
+Identify ONLY real problems:
+
+* structural risks
+* logic inconsistencies
+* hidden bugs
+
+WITHOUT suggesting large rewrites.
+
+---
+
+## STRICT RULES
+
+1. DO NOT propose full refactoring
+2. DO NOT suggest rewriting architecture
+3. DO NOT suggest new frameworks
+4. DO NOT expand scope
+5. FOCUS only on real issues
+6. Be concise and critical
+
+---
+
+## ANALYZE
+
+### 1. Structure
+
+* separation of logic vs rendering
+* function responsibilities
+* duplication
+
+### 2. Logic
+
+* incorrect calculations
+* unsafe operations (null, undefined, division)
+* hidden edge cases
+
+### 3. State handling
+
+* where data comes from
+* mutation risks
+* async issues (if any)
+
+### 4. UI consistency
+
+* repeated patterns
+* inconsistent rendering logic
+
+---
+
+## OUTPUT FORMAT (STRICT)
+
+### 🔴 Critical issues (max 5)
+
+(real bugs or break risks)
+
+### 🟡 Medium issues (max 5)
+
+(can cause confusion or instability)
+
+### 🔵 Minor issues (max 5)
+
+(cleanliness / readability)
+
+### ⚠️ What NOT to touch
+
+(list parts that are OK and should stay as is)
+
+---
+
+## IMPORTANT
+
+If something works — DO NOT suggest changing it.
+
+Avoid “best practices” unless they solve a real problem.
+
+---
+
+## FINAL LINE
+
+Return:
+"Audit complete. No refactor required."
+OR
+"Audit complete. Targeted fixes recommended."

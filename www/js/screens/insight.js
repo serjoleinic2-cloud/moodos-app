@@ -160,6 +160,38 @@ function mText(v) {
 }
 function rColor(r) { if (!r) return "#888"; return r>=70?"#4caf87":r>=40?"#f0a500":"#e05555"; }
 
+function computeComparison(current, previous) {
+  current = Number(current) || 0;
+  previous = Number(previous) || 0;
+  const delta = current - previous;
+  let percent = 0;
+  if (previous !== 0) {
+    percent = (delta / previous) * 100;
+  }
+  let direction = 'neutral';
+  let arrow = '—';
+  let label = 'без изменений';
+  if (delta > 0) {
+    direction = 'positive';
+    arrow = '↑';
+    label = 'лучше';
+  } else if (delta < 0) {
+    direction = 'negative';
+    arrow = '↓';
+    label = 'хуже';
+  }
+  return {
+    current,
+    previous,
+    delta,
+    percent: Number(percent.toFixed(1)),
+    direction,
+    arrow,
+    label,
+    isZero: delta === 0
+  };
+}
+
 function goldenShort(g) {
   if (!g) return formatInsightValue(null);
   if (typeof g === "object" && g.start !== undefined) return g.start + ":00–" + g.end + ":00";
@@ -276,13 +308,11 @@ function buildPeriodComparisonHTML(history, days) {
 
   if (!hasCurrent) return "";
 
-  const diffColor = cmp.diff === null ? "#888" : cmp.diff > 0 ? "#4caf87" : cmp.diff < 0 ? "#e05555" : "#888";
-  const diffSign = cmp.diff === null ? "" : cmp.diff > 0 ? "+" : "";
-  const diffText = cmp.diff === null ? t("not_enough_data_yet") :
-    cmp.diff > 3 ? t("year_better") : cmp.diff < -3 ? t("year_harder") : t("year_same");
+  const comparison = computeComparison(cmp.currentAvg, cmp.prevAvg);
 
   const currentColor = cmp.currentAvg !== null ? mColor(cmp.currentAvg) : "#888";
   const prevColor = cmp.prevAvg !== null ? mColor(cmp.prevAvg) : "#888";
+  const deltaColor = comparison.direction === 'positive' ? '#16a34a' : comparison.direction === 'negative' ? '#dc2626' : '#6b7280';
 
   return '<div class="insight-section">' +
     '<div class="insight-section-title">' + t("trend_lbl") + ' ' + t("trend_sub") + '</div>' +
@@ -303,11 +333,18 @@ function buildPeriodComparisonHTML(history, days) {
           '<div style="font-size:22px;font-weight:700;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</div>' +
         '</div>' +
       '</div>' +
-      (cmp.diff !== null ?
-        '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
-          '<div style="font-size:20px;">' + (cmp.diff > 0 ? "📈" : cmp.diff < 0 ? "📉" : "➡️") + '</div>' +
-          '<div style="font-size:14px;font-weight:700;color:' + diffColor + ';">' + diffSign + (cmp.diff ?? "") + ' ' + t("pts") + '</div>' +
-          '<div style="font-size:12px;color:#888;margin-left:auto;">' + diffText + '</div>' +
+      (hasPrev ?
+        '<div class="insight-card" style="padding:12px;border-radius:10px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
+          (comparison.isZero ?
+            '<div class="insight-label neutral" style="font-size:14px;text-align:center;color:#6b7280;">без изменений</div>' :
+            '<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:6px;">' +
+              '<span style="color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</span> ' +
+              '<span style="font-size:14px;color:' + deltaColor + ';">' + comparison.arrow + ' ' + Math.abs(comparison.delta) + ' (' + Math.abs(comparison.percent) + '%)</span>' +
+            '</div>' +
+            '<div class="insight-label ' + comparison.direction + '" style="font-size:13px;text-align:center;color:' + deltaColor + ';">' +
+              comparison.label + ' чем было (' + comparison.previous + ')' +
+            '</div>'
+          ) +
         '</div>' :
         '<div style="font-size:12px;color:#aaa;text-align:center;">' + t("not_enough_data_yet") + '</div>'
       ) +
@@ -840,3 +877,19 @@ function buildStateTable(activePractices, practiceData) {
 }
 
 document.addEventListener("languageChanged", () => { onEnter(); });
+
+// === SELF-CHECK ===
+console.log('INSIGHT_COMPARISON_CHECK', {
+    test1: computeComparison(120, 100),
+    test2: computeComparison(80, 100),
+    test3: computeComparison(0, 0),
+    test4: computeComparison(null, 50),
+    status: 'OK'
+});
+
+console.log('UX_CHECK', {
+    noChange: computeComparison(74, 74),
+    increase: computeComparison(80, 70),
+    decrease: computeComparison(60, 80),
+    status: 'OK'
+});
