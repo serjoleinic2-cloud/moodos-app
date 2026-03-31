@@ -534,5 +534,7 @@ export const uk = {
     close: "Закрити",
     med_add_track: "Додати мелодію",
     med_track_limit: "Досягнуто ліміт (5 мелодій)",
-    med_file_too_large: "Файл занадто великий (макс. 5 МБ)"
+    med_file_too_large: "Файл занадто великий (макс. 5 МБ)",
+    premium_feature_themes: "Кольорові схеми",
+    premium_feature_custom_tracks: "Власні мелодії для медитації"
 };

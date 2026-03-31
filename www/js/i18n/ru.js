@@ -480,5 +480,7 @@ export const ru = {
     close: "Закрыть",
     med_add_track: "Добавить мелодию",
     med_track_limit: "Достигнут лимит (5 мелодий)",
-    med_file_too_large: "Файл слишком большой (макс. 5 МБ)"
+    med_file_too_large: "Файл слишком большой (макс. 5 МБ)",
+    premium_feature_themes: "Цветовые схемы",
+    premium_feature_custom_tracks: "Свои мелодии для медитации"
 };

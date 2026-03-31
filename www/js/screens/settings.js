@@ -12,6 +12,8 @@ import {
   activateTrial,
   getTheme,
   saveTheme,
+  setTheme,
+  applyTheme,
 } from "../services/user-profile.js";
 import { getLastBackupTime, getBackupStatus, getSystemBackupState, createBackup, shareBackup } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
@@ -533,7 +535,7 @@ function showThemeModal() {
     });
   });
   overlay.querySelector("#modalSave").addEventListener("click", () => {
-    saveTheme(selected);
+    setTheme(selected);
     overlay.remove();
     refresh();
   });

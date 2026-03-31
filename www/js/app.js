@@ -17,7 +17,7 @@ import {
 import {
   initState, getUsageDays, getMood, setMood, getAvatarState, setAvatarState
 } from "./state.js";
-import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme } from "./services/user-profile.js";
+import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme, applyTheme } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
@@ -168,10 +168,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Применяем тему при запуске
   try {
     const theme = getTheme();
-    document.body.setAttribute("data-theme", theme);
+    applyTheme(theme);
   } catch (e) {
     console.warn('[BOOT] theme apply failed:', e);
   }
+
+  // Слушаем изменение темы
+  document.addEventListener("themeChanged", (e) => {
+    applyTheme(e.detail.theme);
+  });
   
   applyDomTranslations();
 

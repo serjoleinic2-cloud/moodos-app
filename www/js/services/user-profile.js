@@ -280,3 +280,15 @@ export function saveTheme(theme) {
   profile.colorTheme = theme;
   saveProfile(profile);
 }
+
+export function setTheme(theme) {
+  const profile = getProfile() || {};
+  profile.colorTheme = theme;
+  saveProfile(profile);
+  applyTheme(theme);
+  document.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
+}
+
+export function applyTheme(theme) {
+  document.body.setAttribute("data-theme", theme);
+}

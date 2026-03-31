@@ -391,3 +391,45 @@ body[data-theme="warm-sunset"] .bottom-nav button.active { color: #a07050 !impor
 body[data-theme="warm-sunset"] textarea {
   box-shadow: inset 3px 3px 7px #d0b8a0, inset -3px -3px 7px #ffffff !important;
 }
+
+/* ===== MEDITATION TRACK LIST ===== */
+#trackList {
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(159,122,234,0.3) transparent;
+}
+#trackList::-webkit-scrollbar { width: 4px; }
+#trackList::-webkit-scrollbar-thumb { background: rgba(159,122,234,0.3); border-radius: 4px; }
+
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(232, 237, 230, 0.9);
+  box-shadow: 4px 4px 8px #b8c4b4, -4px -4px 8px #ffffff;
+  margin-bottom: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.15s;
+}
+.track:active {
+  box-shadow: inset 3px 3px 6px #b8c4b4, inset -3px -3px 6px #ffffff;
+}
+.track.active {
+  background: rgba(159, 122, 234, 0.12);
+  box-shadow: 0 0 0 2px rgba(159,122,234,0.3), 4px 4px 8px #b8c4b4, -4px -4px 8px #ffffff;
+}
+.track > span:first-child {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+.track.active > span:first-child {
+  color: #7b4fa0;
+  font-weight: 600;
+}

@@ -534,5 +534,7 @@ export const es = {
     close: "Cerrar",
     med_add_track: "Añadir melodía",
     med_track_limit: "Límite alcanzado (5 melodías)",
-    med_file_too_large: "Archivo demasiado grande (máx. 5 MB)"
+    med_file_too_large: "Archivo demasiado grande (máx. 5 MB)",
+    premium_feature_themes: "Esquemas de color",
+    premium_feature_custom_tracks: "Melodías personalizadas de meditación"
 };

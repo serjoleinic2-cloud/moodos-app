@@ -127,6 +127,14 @@ function renderPremium() {
       
       <div class="premium-features">
         <div class="premium-feature">
+          <span class="premium-feature-icon">🎨</span>
+          <span>${t("premium_feature_themes")}</span>
+        </div>
+        <div class="premium-feature">
+          <span class="premium-feature-icon">🎵</span>
+          <span>${t("premium_feature_custom_tracks")}</span>
+        </div>
+        <div class="premium-feature">
           <span class="premium-feature-icon">📊</span>
           <span>${t("premium_feature_history")}</span>
         </div>

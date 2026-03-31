@@ -15,6 +15,9 @@ let moodBeforeSession = null;
 let stateBeforeSession = null;
 
 let audio;
+let isPlaying = false;
+let meditationContainer = null;
+
 const BUILTIN_TRACKS = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
   { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
@@ -57,6 +60,12 @@ function render(container) {
 
 function bindEvents() {
   console.log('[DEBUG] meditation bindEvents called');
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && isPlaying && audio) {
+      audio.play().catch(() => {});
+    }
+  });
 
   const centerButton = document.getElementById("centerButton");
   if (centerButton) {
@@ -169,8 +178,7 @@ function bindEvents() {
         custom.push({ name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false });
         saveCustomTracks(custom);
         tracks = getAllTracks();
-        const c = document.getElementById("meditationCanvas")?.closest('[style*="text-align:center"]');
-        if (c) initMeditation(c.parentElement);
+        if (meditationContainer) initMeditation(meditationContainer);
       };
       reader.readAsDataURL(file);
     };
@@ -187,14 +195,14 @@ function bindEvents() {
       saveCustomTracks(custom);
       tracks = getAllTracks();
       if (currentIndex >= tracks.length) currentIndex = 0;
-      const c = document.getElementById("meditationCanvas")?.closest('[style*="text-align:center"]');
-      if (c) initMeditation(c.parentElement);
+      if (meditationContainer) initMeditation(meditationContainer);
     };
   });
 }
 
 export function initMeditation(container) {
   console.log('[DEBUG] initMeditation called');
+  meditationContainer = container;
 
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">
@@ -202,13 +210,15 @@ export function initMeditation(container) {
       <h2 style="margin-bottom:12px;">${t("med_title")}</h2>
 
       <!-- ТРЕКИ -->
-      <div id="trackList" style="margin-bottom:15px;">
-        ${getAllTracks().map((tr, i) => `
-          <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;">
-            <span>${tr.name}</span>
-            ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
-          </div>
-        `).join('')}
+      <div style="margin-bottom:15px;">
+        <div id="trackList" style="margin-bottom:0;">
+          ${getAllTracks().map((tr, i) => `
+            <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
+              <span>${tr.name}</span>
+              ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
       </div>
       ${isPremium() ? `
         <div id="addTrackWrap" style="margin-bottom:12px;">
@@ -312,6 +322,7 @@ function showFeedback() {
 async function toggleMeditation() {
   if (!running) {
     running = true;
+    isPlaying = true;
     sessionStartTime   = Date.now();
     moodBeforeSession  = getMood();
     stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
@@ -321,6 +332,7 @@ async function toggleMeditation() {
     document.getElementById("meditationFeedback").style.display = "none";
   } else {
     running = false;
+    isPlaying = false;
     audio.pause();
     cancelAnimationFrame(animationId);
     showFeedback();
@@ -339,6 +351,7 @@ function handleTrackEnd() {
     return;
   }
   running = false;
+  isPlaying = false;
   cancelAnimationFrame(animationId);
   showFeedback();
 }
@@ -347,6 +360,7 @@ function switchTrack(autoPlay = false) {
   const wasRunning = running;
   if (running) {
     running = false;
+    isPlaying = false;
     audio.pause();
     cancelAnimationFrame(animationId);
   }

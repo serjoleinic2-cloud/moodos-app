@@ -240,6 +240,81 @@ function getSessionsCountForPeriod(days) {
   return sessions.filter(s => (s.timestamp || s.time) > cutoff).length;
 }
 
+function getPeriodComparison(history, days) {
+  const now = Date.now();
+  const ms = days * 24 * 60 * 60 * 1000;
+  const currentCutoff = now - ms;
+  const prevCutoff = now - ms * 2;
+
+  const current = history.filter(e => {
+    const t = e.time || 0;
+    return t >= currentCutoff;
+  });
+  const prev = history.filter(e => {
+    const t = e.time || 0;
+    return t >= prevCutoff && t < currentCutoff;
+  });
+
+  const avg = arr => arr.length ? Math.round(arr.reduce((s, h) => s + h.value, 0) / arr.length) : null;
+
+  return {
+    currentAvg: avg(current),
+    prevAvg: avg(prev),
+    currentCount: current.length,
+    prevCount: prev.length,
+    diff: (avg(current) !== null && avg(prev) !== null) ? avg(current) - avg(prev) : null,
+  };
+}
+
+function buildPeriodComparisonHTML(history, days) {
+  if (days > 90) return "";
+  const cmp = getPeriodComparison(history, days);
+  if (cmp.currentCount === 0 && cmp.prevCount === 0) return "";
+
+  const hasCurrent = cmp.currentCount >= 1;
+  const hasPrev = cmp.prevCount >= 1;
+
+  if (!hasCurrent) return "";
+
+  const diffColor = cmp.diff === null ? "#888" : cmp.diff > 0 ? "#4caf87" : cmp.diff < 0 ? "#e05555" : "#888";
+  const diffSign = cmp.diff === null ? "" : cmp.diff > 0 ? "+" : "";
+  const diffText = cmp.diff === null ? t("not_enough_data_yet") :
+    cmp.diff > 3 ? t("year_better") : cmp.diff < -3 ? t("year_harder") : t("year_same");
+
+  const currentColor = cmp.currentAvg !== null ? mColor(cmp.currentAvg) : "#888";
+  const prevColor = cmp.prevAvg !== null ? mColor(cmp.prevAvg) : "#888";
+
+  return '<div class="insight-section">' +
+    '<div class="insight-section-title">' + t("trend_lbl") + ' ' + t("trend_sub") + '</div>' +
+    '<div style="padding:16px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+      '<div style="display:flex;gap:10px;margin-bottom:12px;">' +
+        (hasPrev ?
+          '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.5);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
+            '<div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
+            '<div style="font-size:22px;font-weight:700;color:' + prevColor + ';">' + (cmp.prevAvg !== null ? cmp.prevAvg + '%" : "—") + '</div>' +
+          '</div>' :
+          '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.3);text-align:center;opacity:0.6;">' +
+            '<div style="font-size:10px;color:#aaa;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
+            '<div style="font-size:14px;color:#aaa;">' + t("not_enough_data_yet") + '</div>' +
+          '</div>'
+        ) +
+        '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(159,122,234,0.1);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
+          '<div style="font-size:10px;color:#888;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("now_label") + '</div>' +
+          '<div style="font-size:22px;font-weight:700;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%" : "—") + '</div>' +
+        '</div>' +
+      '</div>' +
+      (cmp.diff !== null ?
+        '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
+          '<div style="font-size:20px;">' + (cmp.diff > 0 ? "📈" : cmp.diff < 0 ? "📉" : "➡️") + '</div>' +
+          '<div style="font-size:14px;font-weight:700;color:' + diffColor + ';">' + diffSign + (cmp.diff ?? "") + ' ' + t("pts") + '</div>' +
+          '<div style="font-size:12px;color:#888;margin-left:auto;">' + diffText + '</div>' +
+        '</div>' :
+        '<div style="font-size:12px;color:#aaa;text-align:center;">' + t("not_enough_data_yet") + '</div>'
+      ) +
+    '</div>' +
+  '</div>';
+}
+
 function buildYearComparisonBlock(history) {
   const yc = getYearComparison();
   if (!yc) return "";
@@ -415,6 +490,8 @@ export async function onEnter() {
   }
 
   const yearComparisonHTML = selectedTimeRange === 'year' ? buildYearComparisonBlock() : '';
+  const periodDays = TIME_HORIZONS[selectedTimeRange] || 30;
+  const periodComparisonHTML = selectedTimeRange !== 'year' ? buildPeriodComparisonHTML(history, periodDays) : '';
 
   // Period selector HTML
   const periodSelectorHTML = 
@@ -562,6 +639,7 @@ export async function onEnter() {
       '</div>' +
 
       yearComparisonHTML +
+      periodComparisonHTML +
       practicesHTML +
 
       // Premium trigger section
