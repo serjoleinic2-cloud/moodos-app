@@ -291,7 +291,7 @@ function buildPeriodComparisonHTML(history, days) {
         (hasPrev ?
           '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.5);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
             '<div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
-            '<div style="font-size:22px;font-weight:700;color:' + prevColor + ';">' + (cmp.prevAvg !== null ? cmp.prevAvg + '%" : "—") + '</div>' +
+            '<div style="font-size:22px;font-weight:700;color:' + prevColor + ';">' + (cmp.prevAvg !== null ? cmp.prevAvg + '%' : "—") + '</div>' +
           '</div>' :
           '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(220,228,218,0.3);text-align:center;opacity:0.6;">' +
             '<div style="font-size:10px;color:#aaa;margin-bottom:6px;">' + t("baseline_vs_period").replace("{{days}}", days) + '</div>' +
@@ -300,7 +300,7 @@ function buildPeriodComparisonHTML(history, days) {
         ) +
         '<div style="flex:1;padding:12px;border-radius:12px;background:rgba(159,122,234,0.1);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;text-align:center;">' +
           '<div style="font-size:10px;color:#888;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">' + t("now_label") + '</div>' +
-          '<div style="font-size:22px;font-weight:700;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%" : "—") + '</div>' +
+          '<div style="font-size:22px;font-weight:700;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</div>' +
         '</div>' +
       '</div>' +
       (cmp.diff !== null ?
@@ -490,7 +490,6 @@ export async function onEnter() {
   }
 
   const yearComparisonHTML = selectedTimeRange === 'year' ? buildYearComparisonBlock() : '';
-  const periodDays = TIME_HORIZONS[selectedTimeRange] || 30;
   const periodComparisonHTML = selectedTimeRange !== 'year' ? buildPeriodComparisonHTML(history, periodDays) : '';
 
   // Period selector HTML
