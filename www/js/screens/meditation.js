@@ -7,6 +7,11 @@ import { addSessionEntry } from "../services/memory.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
 import { AppRuntime } from "../core/appRuntime.js";
+import { 
+  play, stop, pause, resume, 
+  destroy, getState, subscribe, syncState,
+  getCurrentTime, getDuration, setCurrentTime
+} from "../core/audioController.js";
 
 let canvas, ctx;
 let animationId;
@@ -15,9 +20,9 @@ let sessionStartTime = null;
 let moodBeforeSession = null;
 let stateBeforeSession = null;
 
-let audio;
-let isPlaying = false;
 let meditationContainer = null;
+let audioUnsubscribe = null;
+let stateUnsubscribe = null;
 
 const standardTracks = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
@@ -58,6 +63,16 @@ let radiusBase = 105;
 
 export function onEnter(container) {
   console.log('[DEBUG] meditation onEnter called');
+  
+  // Cleanup previous subscriptions
+  if (audioUnsubscribe) {
+    audioUnsubscribe();
+    audioUnsubscribe = null;
+  }
+  if (stateUnsubscribe) {
+    stateUnsubscribe();
+    stateUnsubscribe = null;
+  }
 
   AppRuntime.initModule(MODULE_NAME, {
     customTracks: loadCustomTracks(),
@@ -65,16 +80,24 @@ export function onEnter(container) {
     maxTracks: MAX_CUSTOM_TRACKS
   });
 
-  AppRuntime.subscribe(MODULE_NAME, (state) => {
+  stateUnsubscribe = AppRuntime.subscribe(MODULE_NAME, (state) => {
     if (meditationContainer) {
       renderTracks();
       updateAddButton();
-      initAudio();
     }
   });
 
   render(container);
   bindEvents();
+  
+  // Subscribe to audio state changes
+  audioUnsubscribe = subscribe((audioState) => {
+    updatePlayButton(audioState);
+    updateProgress(audioState);
+  });
+  
+  syncState();
+  updatePlayButton();
 }
 
 function render(container) {
@@ -84,12 +107,6 @@ function render(container) {
 function bindEvents() {
   console.log('[DEBUG] meditation bindEvents called');
 
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && isPlaying && audio) {
-      audio.play().catch(() => {});
-    }
-  });
-
   document.getElementById("trackList")?.addEventListener("click", (e) => {
     const track = e.target.closest(".track");
     if (!track) return;
@@ -98,6 +115,16 @@ function bindEvents() {
       const idx = parseInt(track.dataset.index);
       const customIdx = idx - standardTracks.length;
       if (customIdx < 0) return;
+      
+      const trackState = getState();
+      if (idx === currentIndex && trackState.hasAudio) {
+        stop();
+        running = false;
+        cancelAnimationFrame(animationId);
+        showFeedback();
+        updatePlayButton({ isPlaying: false });
+      }
+      
       const state = AppRuntime.getState(MODULE_NAME);
       const updated = [...(state.customTracks || [])];
       updated.splice(customIdx, 1);
@@ -107,7 +134,7 @@ function bindEvents() {
       return;
     }
     currentIndex = parseInt(track.dataset.index);
-    switchTrack();
+    handleTrackSwitch();
   });
 
   const centerButton = document.getElementById("centerButton");
@@ -142,7 +169,7 @@ function bindEvents() {
     const newMedProgress = medProgress.cloneNode(true);
     medProgress.replaceWith(newMedProgress);
     newMedProgress.oninput = (e) => {
-      if (audio) audio.currentTime = e.target.value;
+      setCurrentTime(parseFloat(e.target.value));
     };
   }
 
@@ -194,40 +221,52 @@ function bindEvents() {
     };
   }
 
-  const addTrackBtn = document.getElementById("addTrackBtn");
-  if (addTrackBtn) {
-    addTrackBtn.onclick = () => document.getElementById("addTrackInput")?.click();
-  }
-  const addTrackInput = document.getElementById("addTrackInput");
-  if (addTrackInput) {
-    addTrackInput.onchange = (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        alert(t("med_file_too_large") || "Файл слишком большой (макс. 5 МБ)");
+  // Event delegation for file input (persists after HTML replacement)
+  document.addEventListener("change", (e) => {
+    if (!e.target || e.target.id !== "addTrackInput") return;
+    
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      alert(t("med_file_too_large") || "Файл слишком большой (макс. 5 МБ)");
+      e.target.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const state = AppRuntime.getState(MODULE_NAME);
+      const currentCustom = state.customTracks || [];
+      if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
+        console.log('[MELODY_DEBUG] Limit reached!');
+        e.target.value = '';
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const state = AppRuntime.getState(MODULE_NAME);
-        const currentCustom = state.customTracks || [];
-        if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
-          console.log('[MELODY_DEBUG] Limit reached!');
-          return;
-        }
-        const newMelody = { name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false };
-        if (!newMelody || !newMelody.name) {
-          console.log('[MELODY_DEBUG] Invalid melody!');
-          return;
-        }
-        const updated = [...currentCustom, newMelody];
-        saveCustomTracks(updated);
-        AppRuntime.setState(MODULE_NAME, { customTracks: updated });
-        console.log('MELODY_ADD', { total: updated.length, last: newMelody });
-      };
-      reader.readAsDataURL(file);
+      const fileNameBase = file.name.replace(/\.[^.]+$/, '');
+      
+      const isDuplicate = currentCustom.some(t => 
+        t.name.toLowerCase() === fileNameBase.toLowerCase()
+      );
+      if (isDuplicate) {
+        alert(t("med_track_duplicate") || "Трек уже существует");
+        e.target.value = '';
+        return;
+      }
+      
+      const newMelody = { name: fileNameBase, src: ev.target.result, builtin: false };
+      if (!newMelody || !newMelody.name) {
+        console.log('[MELODY_DEBUG] Invalid melody!');
+        e.target.value = '';
+        return;
+      }
+      const updated = [...currentCustom, newMelody];
+      saveCustomTracks(updated);
+      AppRuntime.setState(MODULE_NAME, { customTracks: updated });
+      console.log('MELODY_ADD', { total: updated.length, last: newMelody });
+      e.target.value = '';
     };
-  }
+    reader.readAsDataURL(file);
+  });
 }
 
 function updateAddButton() {
@@ -240,13 +279,10 @@ function updateAddButton() {
     wrap.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
     return;
   }
-  const btn = document.createElement("button");
-  btn.id = "addTrackBtn";
-  btn.textContent = `+ ${t("med_add_track") || "Добавить мелодию"} (${count}/${MAX_CUSTOM_TRACKS})`;
-  btn.style.cssText = "padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;";
-  btn.onclick = () => document.getElementById("addTrackInput")?.click();
-  wrap.innerHTML = '';
-  wrap.appendChild(btn);
+  wrap.innerHTML = `
+    <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
+    <button id="addTrackBtn" onclick="document.getElementById('addTrackInput').click()" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${count}/${MAX_CUSTOM_TRACKS})</button>
+  `;
 }
 
 export function initMeditation(container) {
@@ -256,70 +292,55 @@ export function initMeditation(container) {
   const customCount = (state.customTracks || []).length;
 
   container.innerHTML = `
-    <div style="text-align:center; padding-top:20px;">
-
-      <h2 style="margin-bottom:12px;">${t("med_title")}</h2>
+    <!-- ОСНОВНОЙ КОНТЕНТ (скроллится) -->
+    <div class="meditation-content">
+      <h2 class="meditation-title">${t("med_title")}</h2>
 
       <!-- ТРЕКИ -->
-      <div id="addTrackWrap" style="margin-bottom:8px;">
+      <div id="addTrackWrap">
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
           ${customCount < MAX_CUSTOM_TRACKS
-            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
-            : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
+            ? `<button id="addTrackBtn" class="add-track-btn">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
+            : `<div class="track-limit-msg">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
           }
         ` : ''}
       </div>
       <div id="trackList" class="track-list"></div>
 
       <!-- АНИМАЦИЯ -->
-      <div style="position:relative; display:flex; justify-content:center;">
+      <div class="meditation-canvas-wrap">
         <canvas id="meditationCanvas" width="320" height="320"></canvas>
+      </div>
+    </div>
+
+    <!-- КАРТОЧКА ПЛЕЙЕРА (фиксирована внизу) -->
+    <div id="playerCard" class="meditation-player-card">
+      <!-- ПОЛЗУНОК -->
+      <div id="progressWrap" class="progress-wrap">
+        <input type="range" id="medProgress" value="0" min="0" step="1" class="progress-range">
+        <div id="medTimer" class="progress-timer">00:00 / 00:00</div>
       </div>
 
       <!-- КНОПКИ УПРАВЛЕНИЯ -->
-      <div id="playerControls" style="
-        display:flex; justify-content:center;
-        align-items:center; gap:25px; margin-top:15px;">
+      <div id="playerControls" class="player-controls">
         <div id="loopBtn" class="smallBtn">🔁</div>
         <div id="centerButton" class="mainBtn">▶</div>
         <div id="chainBtn" class="smallBtn">⏭</div>
       </div>
 
-      <!-- ФИДБЕК -->
-      <div id="meditationFeedback" style="
-        display:none; margin-top:30px;
-        flex-direction:column; gap:14px; align-items:center;">
-
-        <div style="font-size:16px; color:#666; margin-bottom:6px;">${t("med_how_feel")}</div>
-
-        <div id="medHelped" style="
-          width:75%; padding:16px; border-radius:18px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#4a7c59; font-size:18px; text-align:center;">
-          👍 ${t("hist_helped")}
+      <!-- ФИДБЕК (скрыт) -->
+      <div id="meditationFeedback" class="meditation-feedback">
+        <div class="feedback-question">${t("med_how_feel")}</div>
+        <div class="feedback-buttons">
+          <div id="medHelped" class="feedback-btn feedback-btn--positive">
+            👍 ${t("hist_helped")}
+          </div>
+          <div id="medNotHelped" class="feedback-btn feedback-btn--neutral">
+            👎 ${t("hist_not_helped")}
+          </div>
         </div>
-
-        <div id="medNotHelped" style="
-          width:75%; padding:16px; border-radius:18px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#888; font-size:18px; text-align:center;">
-          👎 ${t("hist_not_helped")}
-        </div>
-
       </div>
-
-    </div>
-
-    <!-- ПОЛЗУНОК -->
-    <div id="progressWrap" style="
-      position:fixed;
-      bottom:calc(160px + env(safe-area-inset-bottom));
-      left:0; width:100%; text-align:center;">
-      <input type="range" id="medProgress" value="0" min="0" step="1" style="width:85%;">
-      <div id="medTimer" style="font-size:13px;color:#888;margin-top:6px;">00:00 / 00:00</div>
     </div>
   `;
 
@@ -328,7 +349,8 @@ export function initMeditation(container) {
   ctx    = canvas.getContext("2d");
 
   renderTracks();
-  initAudio();
+  updatePlayButton();
+  updateProgress(getState());
 }
 
 function renderTracks() {
@@ -348,97 +370,114 @@ function renderTracks() {
   `).join('');
 }
 
-function initAudio() {
-  const track = getTrackByIndex(currentIndex);
-  if (!track) return;
-  audio = new Audio(track.src);
-  audio.preload = "metadata";
-
-  audio.onloadedmetadata = () => {
-    const progress = document.getElementById("medProgress");
-    if (progress) progress.max = Math.floor(audio.duration);
-    updateTimer();
-  };
-
-  audio.ontimeupdate = () => {
-    const progress = document.getElementById("medProgress");
-    if (progress) progress.value = Math.floor(audio.currentTime);
-    updateTimer();
-  };
-
-  audio.onended = handleTrackEnd;
-
-  setTimeout(() => {
-    if (audio && audio.readyState < 1) {
-      const progress = document.getElementById("medProgress");
-      if (progress && progress.max === 0) progress.max = 300;
-    }
-  }, 2000);
+function updateProgress(audioState) {
+  if (!audioState) return;
+  const current = Math.floor(getCurrentTime());
+  const total = Math.floor(getDuration());
+  
+  const progress = document.getElementById("medProgress");
+  if (progress) {
+    progress.max = total || 300;
+    progress.value = current;
+  }
+  
+  const timer = document.getElementById("medTimer");
+  if (timer) {
+    const format = (sec) => {
+      sec = Math.floor(sec);
+      const m = Math.floor(sec / 60).toString().padStart(2, "0");
+      const s = (sec % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    };
+    timer.innerText = `${format(current)} / ${format(total || 0)}`;
+  }
 }
 
 function showPlayer() {
-  document.getElementById("playerControls").style.display     = "flex";
-  document.getElementById("trackList").style.display          = "block";
-  document.getElementById("progressWrap").style.display       = "block";
+  document.getElementById("playerControls").style.display = "flex";
+  document.getElementById("progressWrap").style.display = "block";
   document.getElementById("meditationFeedback").style.display = "none";
-  document.getElementById("centerButton").innerText = "▶";
+  updatePlayButton({ isPlaying: false });
 }
 
 function showFeedback() {
-  document.getElementById("playerControls").style.display     = "none";
-  document.getElementById("trackList").style.display          = "none";
-  document.getElementById("progressWrap").style.display       = "none";
+  document.getElementById("playerControls").style.display = "none";
+  document.getElementById("progressWrap").style.display = "block";
   document.getElementById("meditationFeedback").style.display = "flex";
 }
 
-async function toggleMeditation() {
+function toggleMeditation() {
   if (!running) {
     running = true;
-    isPlaying = true;
-    sessionStartTime   = Date.now();
-    moodBeforeSession  = getMood();
-    stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
-    audio.play();
+    sessionStartTime = Date.now();
+    moodBeforeSession = getMood();
+    
+    const track = getTrackByIndex(currentIndex);
+    if (track) {
+      play(track);
+    }
     animate();
-    document.getElementById("centerButton").innerText = "❚❚";
+    
+    document.getElementById("playerControls").style.display = "flex";
+    document.getElementById("progressWrap").style.display = "block";
     document.getElementById("meditationFeedback").style.display = "none";
+    updatePlayButton({ isPlaying: true });
+    
+    SystemCore.analyzeMoodOnly(moodBeforeSession).then(result => {
+      stateBeforeSession = result?.state || 'NEUTRAL';
+    });
   } else {
     running = false;
-    isPlaying = false;
-    audio.pause();
+    pause();
     cancelAnimationFrame(animationId);
     showFeedback();
+    updatePlayButton({ isPlaying: false });
+  }
+}
+
+function updatePlayButton(audioState) {
+  const btn = document.getElementById("centerButton");
+  if (btn) {
+    const state = audioState || getState();
+    btn.innerText = state.isPlaying ? "❚❚" : "▶";
   }
 }
 
 function handleTrackEnd() {
   if (loopMode) {
-    audio.currentTime = 0;
-    audio.play();
+    setCurrentTime(0);
+    resume();
     return;
   }
   if (chainMode) {
-    currentIndex = (currentIndex + 1) % tracks.length;
-    switchTrack(true);
+    const allTracks = getAllTracks();
+    currentIndex = (currentIndex + 1) % allTracks.length;
+    handleTrackSwitch(true);
     return;
   }
   running = false;
-  isPlaying = false;
   cancelAnimationFrame(animationId);
   showFeedback();
+  updatePlayButton();
 }
 
-function switchTrack(autoPlay = false) {
+function handleTrackSwitch(autoPlay = false) {
   const wasRunning = running;
-  if (running) {
-    running = false;
-    isPlaying = false;
-    audio.pause();
-    cancelAnimationFrame(animationId);
-  }
-  initAudio();
+  
+  const track = getTrackByIndex(currentIndex);
   updateTrackHighlight();
-  if (autoPlay || wasRunning) toggleMeditation();
+  
+  if (autoPlay || wasRunning) {
+    if (track) {
+      play(track);
+      updatePlayButton({ isPlaying: true });
+    }
+    if (!wasRunning) {
+      running = true;
+      animate();
+      document.getElementById("meditationFeedback").style.display = "none";
+    }
+  }
 }
 
 function updateTrackHighlight() {
@@ -499,30 +538,22 @@ function drawWave() {
   ctx.fill();
 }
 
-function updateTimer() {
-  const format = (sec) => {
-    sec = Math.floor(sec);
-    const m = Math.floor(sec / 60).toString().padStart(2, "0");
-    const s = (sec % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  };
-  const current = format(audio.currentTime);
-  const total   = format(audio.duration || 0);
-  document.getElementById("medTimer").innerText = `${current} / ${total}`;
-}
-
 export function onExit() {
-  if (audio) {
-    audio.pause();
-    audio = null;
+  if (audioUnsubscribe) {
+    audioUnsubscribe();
+    audioUnsubscribe = null;
   }
+  if (stateUnsubscribe) {
+    stateUnsubscribe();
+    stateUnsubscribe = null;
+  }
+  destroy();
+  running = false;
+  meditationContainer = null;
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
-  running = false;
-  isPlaying = false;
-  meditationContainer = null;
 }
 
 console.log('ANTI_BUG_LAYER_OK', {

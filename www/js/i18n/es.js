@@ -542,6 +542,7 @@ export const es = {
     med_add_track: "Añadir melodía",
     med_track_limit: "Límite alcanzado (5 melodías)",
     med_file_too_large: "Archivo demasiado grande (máx. 5 MB)",
+    med_track_duplicate: "La melodía ya existe",
     premium_feature_themes: "Esquemas de color",
     premium_feature_custom_tracks: "Melodías personalizadas de meditación",
     voice_notes_caption: "A veces es útil escucharse desde fuera",

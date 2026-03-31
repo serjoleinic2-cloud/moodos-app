@@ -447,5 +447,107 @@ body[data-theme="warm-sunset"] textarea {
 .fixed-controls {
   position: sticky;
   bottom: 0;
+}
+
+/* ===== MEDITATION PLAYER CARD ===== */
+.meditation-player-card {
+  position: fixed;
+  bottom: 100px;
+  left: 0;
+  right: 0;
+  background: #f8f9fa;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  padding: 12px 16px 20px 16px;
+  z-index: 999;
+}
+
+.meditation-content {
+  text-align: center;
+  padding: 20px 16px 160px 16px;
+}
+
+.meditation-title {
+  margin-bottom: 12px;
+}
+
+.add-track-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(159,122,234,0.15);
+  color: #7b4fa0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.track-limit-msg {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.meditation-canvas-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.progress-wrap {
+  margin-bottom: 8px;
+}
+
+.progress-range {
+  width: 100%;
+}
+
+.progress-timer {
+  font-size: 13px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.player-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+.meditation-feedback {
+  display: none;
+  margin-top: 16px;
+}
+
+.feedback-question {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.feedback-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 18px;
+  cursor: pointer;
+  background: #e0e5ec;
+  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+  font-size: 16px;
+  text-align: center;
+}
+
+.feedback-btn--positive {
+  color: #4a7c59;
+}
+
+.feedback-btn--neutral {
+  color: #888;
+}
   background: inherit;
 }

@@ -541,6 +541,7 @@ export const en = {
     med_add_track: "Add melody",
     med_track_limit: "Limit reached (5 melodies)",
     med_file_too_large: "File too large (max. 5 MB)",
+    med_track_duplicate: "Track already exists",
     premium_feature_themes: "Color Themes",
     premium_feature_custom_tracks: "Custom Meditation Tracks",
     voice_notes_caption: "Sometimes it's useful to hear yourself from the outside",

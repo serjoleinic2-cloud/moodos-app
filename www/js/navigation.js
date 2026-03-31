@@ -94,6 +94,23 @@ export function initNavigation() {
   }
 
   function openScreen(name) {
+    // Call onExit for current screen BEFORE switching
+    if (currentScreen && loadedScreens[currentScreen]) {
+      const prevModule = loadedScreens[currentScreen];
+      if (prevModule && typeof prevModule.onExit === 'function') {
+        console.log('[nav] onExit:', currentScreen);
+        prevModule.onExit();
+      }
+    }
+    // Also stop meditation if it's loaded in tools
+    if (window._activeMeditationModule) {
+      if (typeof window._activeMeditationModule.onExit === 'function') {
+        console.log('[nav] onExit: meditation (tools)');
+        window._activeMeditationModule.onExit();
+      }
+      window._activeMeditationModule = null;
+    }
+    
     closeMenu();
     closeToolsMenu();
     closeAllOverlays();
@@ -141,15 +158,27 @@ export function initNavigation() {
 
   document.getElementById("toolsMeditation").onclick = async () => {
     console.log("[DEBUG] meditation clicked");
+    
+    // Call onExit if meditation is currently active
+    if (window._activeMeditationModule) {
+      const mod = window._activeMeditationModule;
+      if (mod && typeof mod.onExit === 'function') {
+        console.log('[nav] Calling onExit for meditation');
+        mod.onExit();
+      }
+      window._activeMeditationModule = null;
+    }
+    
     closeToolsMenu(); openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     console.log("[DEBUG] importing meditation");
     try {
-      const { onEnter } = await import("./screens/meditation.js");
-      console.log("[DEBUG] meditation imported, onEnter:", typeof onEnter);
+      const mod = await import("./screens/meditation.js");
+      console.log("[DEBUG] meditation imported, onEnter:", typeof mod.onEnter);
+      window._activeMeditationModule = mod;
       const c = document.getElementById("tools-content");
       console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; onEnter(c); }
+      if (c) { c.innerHTML = ""; mod.onEnter(c); }
       console.log("[DEBUG] meditation init done");
     } catch(e) {
       console.error("[DEBUG] meditation error:", e.message, e.stack);

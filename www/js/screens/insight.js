@@ -7,6 +7,11 @@ import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t, getLang } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
+import { AppRuntime } from "../core/appRuntime.js";
+
+const INSIGHT_MODULE = 'insight';
+const LS_PERIOD_KEY = "insight_period";
+const DEFAULT_PERIOD = 'month';
 
 // ---- SAFE RENDER ----
 function safe(value, fallback = "—") {
@@ -28,7 +33,18 @@ function formatInsightValue(value) {
   return value;
 }
 
-let selectedTimeRange = localStorage.getItem("insight_period") || 'month';
+function getSelectedPeriod() {
+  const state = AppRuntime.getState(INSIGHT_MODULE);
+  return state?.selectedPeriod || localStorage.getItem(LS_PERIOD_KEY) || DEFAULT_PERIOD;
+}
+
+function setSelectedPeriod(period) {
+  if (!TIME_HORIZONS[period]) return;
+  localStorage.setItem(LS_PERIOD_KEY, period);
+  AppRuntime.setState(INSIGHT_MODULE, { selectedPeriod: period });
+}
+
+let selectedTimeRange = localStorage.getItem("insight_period") || DEFAULT_PERIOD;
 
 function formatPracticeCard(practiceType, practiceData) {
   if (!practiceData || !practiceData[practiceType]) {
@@ -420,11 +436,19 @@ function buildYearComparisonBlock(history) {
 }
 
 export async function onEnter() {
-  if (window.__insightListenersAttached) return;
-  window.__insightListenersAttached = true;
+  // Sync selected period from AppRuntime/localStorage
+  selectedTimeRange = getSelectedPeriod();
+  
+  // Initialize AppRuntime state if needed
+  if (!AppRuntime.getState(INSIGHT_MODULE)) {
+    AppRuntime.initModule(INSIGHT_MODULE, { selectedPeriod: selectedTimeRange });
+  }
 
   const container = document.getElementById("insight-content");
   if (!container) return;
+  
+  // Clear previous listener flag to allow re-render
+  window.__insightListenersAttached = false;
 
   const history = getMoodHistory();
   const mood    = getMood();
@@ -715,8 +739,7 @@ export async function onEnter() {
     btn.addEventListener("click", function() {
       const period = btn.getAttribute("data-period");
       if (period && TIME_HORIZONS[period]) {
-        selectedTimeRange = period;
-        localStorage.setItem("insight_period", period);
+        setSelectedPeriod(period);
         onEnter();
       }
     });

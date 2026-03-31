@@ -542,6 +542,7 @@ export const uk = {
     med_add_track: "Додати мелодію",
     med_track_limit: "Досягнуто ліміт (5 мелодій)",
     med_file_too_large: "Файл занадто великий (макс. 5 МБ)",
+    med_track_duplicate: "Мелодія вже існує",
     premium_feature_themes: "Кольорові схеми",
     premium_feature_custom_tracks: "Власні мелодії для медитації",
     voice_notes_caption: "Іноді корисно почути себе з боку",

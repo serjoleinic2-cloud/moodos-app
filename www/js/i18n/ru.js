@@ -488,6 +488,7 @@ export const ru = {
     med_add_track: "Добавить мелодию",
     med_track_limit: "Достигнут лимит (5 мелодий)",
     med_file_too_large: "Файл слишком большой (макс. 5 МБ)",
+    med_track_duplicate: "Трек уже существует",
     premium_feature_themes: "Цветовые схемы",
     premium_feature_custom_tracks: "Свои мелодии для медитации",
     voice_notes_caption: "Иногда полезно услышать себя со стороны",
