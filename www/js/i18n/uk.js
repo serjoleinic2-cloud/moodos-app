@@ -530,5 +530,9 @@ export const uk = {
     how_block_5_title: "Навіщо це",
     how_block_5_text: "Щоб краще розуміти себе і приймати більш усвідомлені рішення.",
     how_footer: "Почни з простого — відзнач свій стан сьогодні",
-    restore_purchases: "Відновити покупки"
+    restore_purchases: "Відновити покупки",
+    close: "Закрити",
+    med_add_track: "Додати мелодію",
+    med_track_limit: "Досягнуто ліміт (5 мелодій)",
+    med_file_too_large: "Файл занадто великий (макс. 5 МБ)"
 };

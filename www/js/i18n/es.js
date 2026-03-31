@@ -530,5 +530,9 @@ export const es = {
     how_block_5_title: "Por qué importa",
     how_block_5_text: "Para entenderte mejor y tomar decisiones más conscientes.",
     how_footer: "Empieza simple — registra tu estado hoy",
-    restore_purchases: "Restaurar compras"
+    restore_purchases: "Restaurar compras",
+    close: "Cerrar",
+    med_add_track: "Añadir melodía",
+    med_track_limit: "Límite alcanzado (5 melodías)",
+    med_file_too_large: "Archivo demasiado grande (máx. 5 MB)"
 };

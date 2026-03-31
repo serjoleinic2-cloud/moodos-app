@@ -529,5 +529,9 @@ export const en = {
     how_block_5_title: "Why it matters",
     how_block_5_text: "To better understand yourself and make more conscious decisions.",
     how_footer: "Start simple — track your state today",
-    restore_purchases: "Restore purchases"
+    restore_purchases: "Restore purchases",
+    close: "Close",
+    med_add_track: "Add melody",
+    med_track_limit: "Limit reached (5 melodies)",
+    med_file_too_large: "File too large (max. 5 MB)"
 };

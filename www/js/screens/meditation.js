@@ -5,6 +5,7 @@ import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
 import { t } from "../i18n.js";
+import { isPremium } from "../services/user-profile.js";
 
 let canvas, ctx;
 let animationId;
@@ -14,7 +15,30 @@ let moodBeforeSession = null;
 let stateBeforeSession = null;
 
 let audio;
-let tracks = ["Celestial Tranquility.mp3", "Tibetan Serenity.mp3"];
+const BUILTIN_TRACKS = [
+  { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
+  { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
+];
+const MAX_CUSTOM_TRACKS = 5;
+const LS_CUSTOM_TRACKS = "med_custom_tracks";
+
+function loadCustomTracks() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_CUSTOM_TRACKS)) || [];
+  } catch(e) { return []; }
+}
+
+function saveCustomTracks(custom) {
+  try {
+    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(custom));
+  } catch(e) {}
+}
+
+function getAllTracks() {
+  return [...BUILTIN_TRACKS, ...loadCustomTracks()];
+}
+
+let tracks = getAllTracks();
 let currentIndex = 0;
 
 let loopMode  = false;
@@ -124,6 +148,49 @@ function bindEvents() {
       showPlayer();
     };
   }
+
+  const addTrackBtn = document.getElementById("addTrackBtn");
+  if (addTrackBtn) {
+    addTrackBtn.onclick = () => document.getElementById("addTrackInput")?.click();
+  }
+  const addTrackInput = document.getElementById("addTrackInput");
+  if (addTrackInput) {
+    addTrackInput.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert(t("med_file_too_large") || "Файл слишком большой (макс. 5 МБ)");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const custom = loadCustomTracks();
+        if (custom.length >= MAX_CUSTOM_TRACKS) return;
+        custom.push({ name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false });
+        saveCustomTracks(custom);
+        tracks = getAllTracks();
+        const c = document.getElementById("meditationCanvas")?.closest('[style*="text-align:center"]');
+        if (c) initMeditation(c.parentElement);
+      };
+      reader.readAsDataURL(file);
+    };
+  }
+
+  document.querySelectorAll(".del-track").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.index);
+      const custom = loadCustomTracks();
+      const customIdx = idx - BUILTIN_TRACKS.length;
+      if (customIdx < 0) return;
+      custom.splice(customIdx, 1);
+      saveCustomTracks(custom);
+      tracks = getAllTracks();
+      if (currentIndex >= tracks.length) currentIndex = 0;
+      const c = document.getElementById("meditationCanvas")?.closest('[style*="text-align:center"]');
+      if (c) initMeditation(c.parentElement);
+    };
+  });
 }
 
 export function initMeditation(container) {
@@ -136,9 +203,22 @@ export function initMeditation(container) {
 
       <!-- ТРЕКИ -->
       <div id="trackList" style="margin-bottom:15px;">
-        <div class="track active" data-index="0">Celestial Tranquility</div>
-        <div class="track" data-index="1">Tibetan Serenity</div>
+        ${getAllTracks().map((tr, i) => `
+          <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;">
+            <span>${tr.name}</span>
+            ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
+          </div>
+        `).join('')}
       </div>
+      ${isPremium() ? `
+        <div id="addTrackWrap" style="margin-bottom:12px;">
+          <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
+          ${loadCustomTracks().length < MAX_CUSTOM_TRACKS
+            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
+            : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
+          }
+        </div>
+      ` : ''}
 
       <!-- АНИМАЦИЯ -->
       <div style="position:relative; display:flex; justify-content:center;">
@@ -198,7 +278,7 @@ export function initMeditation(container) {
 }
 
 function initAudio() {
-  audio = new Audio(`assets/audio/meditation/${tracks[currentIndex]}`);
+  audio = new Audio(tracks[currentIndex].src);
   audio.preload = "metadata";
 
   audio.onloadedmetadata = () => {
@@ -277,7 +357,8 @@ function switchTrack(autoPlay = false) {
 
 function updateTrackHighlight() {
   document.querySelectorAll(".track").forEach(t => t.classList.remove("active"));
-  document.querySelector(`.track[data-index="${currentIndex}"]`).classList.add("active");
+  const el = document.querySelector(`.track[data-index="${currentIndex}"]`);
+  if (el) el.classList.add("active");
 }
 
 function updateButtonState(id, active) {
