@@ -14,7 +14,7 @@ let moodBeforeSession = null;
 let stateBeforeSession = null;
 
 let audio;
-let tracks = ["aura-light.mp3", "deep-balance.mp3"];
+let tracks = ["Celestial Tranquility.mp3", "Tibetan Serenity.mp3"];
 let currentIndex = 0;
 
 let loopMode  = false;
@@ -136,8 +136,8 @@ export function initMeditation(container) {
 
       <!-- ТРЕКИ -->
       <div id="trackList" style="margin-bottom:15px;">
-        <div class="track active" data-index="0">Aura Light</div>
-        <div class="track" data-index="1">Deep Balance</div>
+        <div class="track active" data-index="0">Celestial Tranquility</div>
+        <div class="track" data-index="1">Tibetan Serenity</div>
       </div>
 
       <!-- АНИМАЦИЯ -->
