@@ -437,3 +437,15 @@ body[data-theme="warm-sunset"] textarea {
   color: #7b4fa0;
   font-weight: 600;
 }
+
+/* ===== ARL: Dynamic List Constraints ===== */
+.dynamic-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.fixed-controls {
+  position: sticky;
+  bottom: 0;
+  background: inherit;
+}

@@ -31,6 +31,9 @@ www/
 │   ├── premium-modal.js # Premium upgrade modal
 │   ├── monthly-check.js # Monthly medication check reminder
 │   │
+│   ├── core/              # Architectural layer (ARL)
+│   │   └── appRuntime.js # Global state management, event delegation helpers
+│   │
 │   ├── i18n/            # Translations (4 languages)
 │   │   ├── en.js, es.js, ru.js, uk.js
 │   │
@@ -105,3 +108,36 @@ Voice recordings stored in session history with `audio` field (data:url). Day po
 - Screen re-render: use `container.innerHTML = ...` then re-bind events
 - Premium gating: always use `isPremium()` check before showing premium features
 - Theme changes: dispatch `themeChanged` custom event for listeners
+
+## AppRuntime Layer (ARL)
+Anti-bug architecture layer for preventing UI/state desync.
+
+### Core API
+```js
+import { AppRuntime } from "./core/appRuntime.js";
+
+AppRuntime.initModule('moduleName', { /* initial state */ });
+AppRuntime.setState('moduleName', { key: value }); // updates state and emits change
+AppRuntime.getState('moduleName'); // returns module state
+AppRuntime.subscribe('moduleName', (state) => { /* re-render */ });
+```
+
+### Event Delegation Standard
+All dynamic lists use delegation instead of per-element listeners:
+```js
+container.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+        // handle delete
+    }
+    if (e.target.closest('.track')) {
+        // handle track click
+    }
+});
+```
+
+### CSS Constraints
+Dynamic lists MUST have height constraints:
+```css
+.dynamic-list { max-height: 200px; overflow-y: auto; }
+.fixed-controls { position: sticky; bottom: 0; }
+```

@@ -6,7 +6,6 @@ import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
-import { AppRuntime } from "../core/appRuntime.js";
 
 let canvas, ctx;
 let animationId;
@@ -26,23 +25,23 @@ const standardTracks = [
 const MAX_CUSTOM_TRACKS = 5;
 const MAX_FILE_SIZE_MB = 5;
 const LS_CUSTOM_TRACKS = "med_custom_tracks";
-const MODULE_NAME = 'meditation';
+
+let customTracks = [];
 
 function loadCustomTracks() {
   try {
-    return JSON.parse(localStorage.getItem(LS_CUSTOM_TRACKS)) || [];
-  } catch(e) { return []; }
+    customTracks = JSON.parse(localStorage.getItem(LS_CUSTOM_TRACKS)) || [];
+  } catch(e) { customTracks = []; }
 }
 
-function saveCustomTracks(tracks) {
+function saveCustomTracks() {
   try {
-    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(tracks));
+    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(customTracks));
   } catch(e) {}
 }
 
 function getAllTracks() {
-  const state = AppRuntime.getState(MODULE_NAME);
-  return [...standardTracks, ...(state.customTracks || [])];
+  return [...standardTracks, ...customTracks];
 }
 
 let currentIndex = 0;
@@ -53,21 +52,6 @@ let radiusBase = 105;
 
 export function onEnter(container) {
   console.log('[DEBUG] meditation onEnter called');
-
-  AppRuntime.initModule(MODULE_NAME, {
-    customTracks: loadCustomTracks(),
-    activeTrackId: null,
-    maxTracks: MAX_CUSTOM_TRACKS
-  });
-
-  AppRuntime.subscribe(MODULE_NAME, (state) => {
-    if (meditationContainer) {
-      renderTracks();
-      updateAddButton();
-      initAudio();
-    }
-  });
-
   render(container);
   bindEvents();
 }
@@ -93,12 +77,12 @@ function bindEvents() {
       const idx = parseInt(track.dataset.index);
       const customIdx = idx - standardTracks.length;
       if (customIdx < 0) return;
-      const state = AppRuntime.getState(MODULE_NAME);
-      const updated = [...(state.customTracks || [])];
-      updated.splice(customIdx, 1);
-      saveCustomTracks(updated);
-      AppRuntime.setState(MODULE_NAME, { customTracks: updated });
+      customTracks.splice(customIdx, 1);
+      saveCustomTracks();
       if (currentIndex >= getAllTracks().length) currentIndex = 0;
+      renderTracks();
+      updateAddButton();
+      initAudio();
       return;
     }
     currentIndex = parseInt(track.dataset.index);
@@ -204,21 +188,25 @@ function bindEvents() {
       }
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const state = AppRuntime.getState(MODULE_NAME);
-        const currentCustom = state.customTracks || [];
-        if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
+        console.log('[MELODY_DEBUG] FileReader loaded, result length:', ev.target.result?.length);
+        console.log('[MELODY_DEBUG] Before add, custom count:', customTracks.length);
+        if (customTracks.length >= MAX_CUSTOM_TRACKS) {
           console.log('[MELODY_DEBUG] Limit reached!');
           return;
         }
         const newMelody = { name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false };
+        console.log('[MELODY_DEBUG] New melody:', newMelody);
         if (!newMelody || !newMelody.name) {
           console.log('[MELODY_DEBUG] Invalid melody!');
           return;
         }
-        const updated = [...currentCustom, newMelody];
-        saveCustomTracks(updated);
-        AppRuntime.setState(MODULE_NAME, { customTracks: updated });
-        console.log('MELODY_ADD', { total: updated.length, last: newMelody });
+        customTracks.push(newMelody);
+        saveCustomTracks();
+        console.log('[MELODY_DEBUG] Saved, now reloading...');
+        renderTracks();
+        updateAddButton();
+        initAudio();
+        console.log('MELODY_ADD', { total: customTracks.length, last: newMelody });
       };
       reader.readAsDataURL(file);
     };
@@ -228,8 +216,7 @@ function bindEvents() {
 function updateAddButton() {
   const wrap = document.getElementById("addTrackWrap");
   if (!wrap || !isPremium()) return;
-  const state = AppRuntime.getState(MODULE_NAME);
-  const count = (state.customTracks || []).length;
+  const count = customTracks.length;
   const isDisabled = count >= MAX_CUSTOM_TRACKS;
   if (isDisabled) {
     wrap.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
@@ -247,9 +234,7 @@ function updateAddButton() {
 export function initMeditation(container) {
   console.log('[DEBUG] initMeditation called');
 
-  const state = AppRuntime.getState(MODULE_NAME);
-  const customCount = (state.customTracks || []).length;
-
+  loadCustomTracks();
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">
 
@@ -259,8 +244,8 @@ export function initMeditation(container) {
       <div id="addTrackWrap" style="margin-bottom:8px;">
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
-          ${customCount < MAX_CUSTOM_TRACKS
-            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
+          ${customTracks.length < MAX_CUSTOM_TRACKS
+            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
             : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
           }
         ` : ''}
@@ -332,8 +317,7 @@ function renderTracks() {
     console.log('[MELODY_DEBUG] trackList container not found!');
     return;
   }
-  const state = AppRuntime.getState(MODULE_NAME);
-  const allTracks = [...standardTracks, ...(state.customTracks || [])];
+  const allTracks = getAllTracks();
   if (currentIndex >= allTracks.length) currentIndex = 0;
   container.innerHTML = allTracks.map((tr, i) => `
     <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
@@ -341,6 +325,13 @@ function renderTracks() {
       ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
     </div>
   `).join('');
+  console.log('[MELODY_DEBUG]', {
+    allTracks: getAllTracks().map(t => t.name),
+    standard: standardTracks.length,
+    custom: customTracks.length,
+    totalRendered: document.querySelectorAll('.track').length,
+    isPremiumUser: isPremium()
+  });
 }
 
 function initAudio() {
@@ -518,7 +509,8 @@ export function onExit() {
   meditationContainer = null;
 }
 
-console.log('ANTI_BUG_LAYER_OK', {
-    meditation: AppRuntime.getState(MODULE_NAME),
-    runtimeActive: true
+console.log('MEDITATION_PLAYER_FIX_OK', {
+    standard: standardTracks.length,
+    custom: customTracks.length,
+    total: standardTracks.length + customTracks.length
 });

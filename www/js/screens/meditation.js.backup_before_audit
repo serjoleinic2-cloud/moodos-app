@@ -6,7 +6,6 @@ import { getMood } from "../state.js";
 import { addSessionEntry } from "../services/memory.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
-import { AppRuntime } from "../core/appRuntime.js";
 
 let canvas, ctx;
 let animationId;
@@ -19,14 +18,12 @@ let audio;
 let isPlaying = false;
 let meditationContainer = null;
 
-const standardTracks = [
+const BUILTIN_TRACKS = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
   { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
 ];
 const MAX_CUSTOM_TRACKS = 5;
-const MAX_FILE_SIZE_MB = 5;
 const LS_CUSTOM_TRACKS = "med_custom_tracks";
-const MODULE_NAME = 'meditation';
 
 function loadCustomTracks() {
   try {
@@ -34,17 +31,17 @@ function loadCustomTracks() {
   } catch(e) { return []; }
 }
 
-function saveCustomTracks(tracks) {
+function saveCustomTracks(custom) {
   try {
-    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(tracks));
+    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(custom));
   } catch(e) {}
 }
 
 function getAllTracks() {
-  const state = AppRuntime.getState(MODULE_NAME);
-  return [...standardTracks, ...(state.customTracks || [])];
+  return [...BUILTIN_TRACKS, ...loadCustomTracks()];
 }
 
+let tracks = getAllTracks();
 let currentIndex = 0;
 
 let loopMode  = false;
@@ -53,21 +50,6 @@ let radiusBase = 105;
 
 export function onEnter(container) {
   console.log('[DEBUG] meditation onEnter called');
-
-  AppRuntime.initModule(MODULE_NAME, {
-    customTracks: loadCustomTracks(),
-    activeTrackId: null,
-    maxTracks: MAX_CUSTOM_TRACKS
-  });
-
-  AppRuntime.subscribe(MODULE_NAME, (state) => {
-    if (meditationContainer) {
-      renderTracks();
-      updateAddButton();
-      initAudio();
-    }
-  });
-
   render(container);
   bindEvents();
 }
@@ -83,26 +65,6 @@ function bindEvents() {
     if (!document.hidden && isPlaying && audio) {
       audio.play().catch(() => {});
     }
-  });
-
-  document.getElementById("trackList")?.addEventListener("click", (e) => {
-    const track = e.target.closest(".track");
-    if (!track) return;
-    if (e.target.classList.contains("del-track")) {
-      e.stopPropagation();
-      const idx = parseInt(track.dataset.index);
-      const customIdx = idx - standardTracks.length;
-      if (customIdx < 0) return;
-      const state = AppRuntime.getState(MODULE_NAME);
-      const updated = [...(state.customTracks || [])];
-      updated.splice(customIdx, 1);
-      saveCustomTracks(updated);
-      AppRuntime.setState(MODULE_NAME, { customTracks: updated });
-      if (currentIndex >= getAllTracks().length) currentIndex = 0;
-      return;
-    }
-    currentIndex = parseInt(track.dataset.index);
-    switchTrack();
   });
 
   const centerButton = document.getElementById("centerButton");
@@ -140,6 +102,13 @@ function bindEvents() {
       if (audio) audio.currentTime = e.target.value;
     };
   }
+
+  document.querySelectorAll(".track").forEach(track => {
+    track.onclick = () => {
+      currentIndex = parseInt(track.dataset.index);
+      switchTrack();
+    };
+  });
 
   const medHelped = document.getElementById("medHelped");
   if (medHelped) {
@@ -198,57 +167,64 @@ function bindEvents() {
     addTrackInput.onchange = (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      if (file.size > 5 * 1024 * 1024) {
         alert(t("med_file_too_large") || "Файл слишком большой (макс. 5 МБ)");
         return;
       }
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const state = AppRuntime.getState(MODULE_NAME);
-        const currentCustom = state.customTracks || [];
-        if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
+        console.log('[MELODY_DEBUG] FileReader loaded, result length:', ev.target.result?.length);
+        const custom = loadCustomTracks();
+        console.log('[MELODY_DEBUG] Before add, custom count:', custom.length);
+        if (custom.length >= MAX_CUSTOM_TRACKS) {
           console.log('[MELODY_DEBUG] Limit reached!');
           return;
         }
         const newMelody = { name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false };
+        console.log('[MELODY_DEBUG] New melody:', newMelody);
         if (!newMelody || !newMelody.name) {
           console.log('[MELODY_DEBUG] Invalid melody!');
           return;
         }
-        const updated = [...currentCustom, newMelody];
-        saveCustomTracks(updated);
-        AppRuntime.setState(MODULE_NAME, { customTracks: updated });
-        console.log('MELODY_ADD', { total: updated.length, last: newMelody });
+        custom.push(newMelody);
+        saveCustomTracks(custom);
+        console.log('[MELODY_DEBUG] Saved, now reloading...');
+        renderTracks();
+        updateAddButton();
+        console.log('MELODY_ADD', { total: custom.length, last: newMelody });
       };
       reader.readAsDataURL(file);
     };
   }
+
+  document.querySelectorAll(".del-track").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.index);
+      const custom = loadCustomTracks();
+      const customIdx = idx - BUILTIN_TRACKS.length;
+      if (customIdx < 0) return;
+      custom.splice(customIdx, 1);
+      saveCustomTracks(custom);
+      renderTracks();
+      updateAddButton();
+    };
+  });
 }
 
 function updateAddButton() {
   const wrap = document.getElementById("addTrackWrap");
   if (!wrap || !isPremium()) return;
-  const state = AppRuntime.getState(MODULE_NAME);
-  const count = (state.customTracks || []).length;
-  const isDisabled = count >= MAX_CUSTOM_TRACKS;
-  if (isDisabled) {
-    wrap.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
-    return;
-  }
-  const btn = document.createElement("button");
-  btn.id = "addTrackBtn";
-  btn.textContent = `+ ${t("med_add_track") || "Добавить мелодию"} (${count}/${MAX_CUSTOM_TRACKS})`;
-  btn.style.cssText = "padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;";
-  btn.onclick = () => document.getElementById("addTrackInput")?.click();
-  wrap.innerHTML = '';
-  wrap.appendChild(btn);
+  const count = loadCustomTracks().length;
+  wrap.innerHTML = count < MAX_CUSTOM_TRACKS
+    ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
+    : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
+  const btn = document.getElementById("addTrackBtn");
+  if (btn) btn.onclick = () => document.getElementById("addTrackInput")?.click();
 }
 
 export function initMeditation(container) {
   console.log('[DEBUG] initMeditation called');
-
-  const state = AppRuntime.getState(MODULE_NAME);
-  const customCount = (state.customTracks || []).length;
 
   container.innerHTML = `
     <div style="text-align:center; padding-top:20px;">
@@ -259,8 +235,8 @@ export function initMeditation(container) {
       <div id="addTrackWrap" style="margin-bottom:8px;">
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
-          ${customCount < MAX_CUSTOM_TRACKS
-            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
+          ${loadCustomTracks().length < MAX_CUSTOM_TRACKS
+            ? `<button id="addTrackBtn" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"}</button>`
             : `<div style="font-size:12px;color:#aaa;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
           }
         ` : ''}
@@ -332,41 +308,38 @@ function renderTracks() {
     console.log('[MELODY_DEBUG] trackList container not found!');
     return;
   }
-  const state = AppRuntime.getState(MODULE_NAME);
-  const allTracks = [...standardTracks, ...(state.customTracks || [])];
-  if (currentIndex >= allTracks.length) currentIndex = 0;
-  container.innerHTML = allTracks.map((tr, i) => `
+  tracks = getAllTracks();
+  if (currentIndex >= tracks.length) currentIndex = 0;
+  container.innerHTML = tracks.map((tr, i) => `
     <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
       <span>${tr.name}</span>
       ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
     </div>
   `).join('');
+  console.log('[MELODY_DEBUG]', {
+    allTracks: tracks.map(t => t.name),
+    standard: BUILTIN_TRACKS.length,
+    custom: loadCustomTracks().length,
+    totalRendered: document.querySelectorAll('.track').length,
+    isPremiumUser: isPremium()
+  });
 }
 
 function initAudio() {
-  audio = new Audio(getAllTracks()[currentIndex].src);
+  audio = new Audio(tracks[currentIndex].src);
   audio.preload = "metadata";
 
   audio.onloadedmetadata = () => {
-    const progress = document.getElementById("medProgress");
-    if (progress) progress.max = Math.floor(audio.duration);
+    document.getElementById("medProgress").max = Math.floor(audio.duration);
     updateTimer();
   };
 
   audio.ontimeupdate = () => {
-    const progress = document.getElementById("medProgress");
-    if (progress) progress.value = Math.floor(audio.currentTime);
+    document.getElementById("medProgress").value = Math.floor(audio.currentTime);
     updateTimer();
   };
 
   audio.onended = handleTrackEnd;
-
-  setTimeout(() => {
-    if (audio && audio.readyState < 1) {
-      const progress = document.getElementById("medProgress");
-      if (progress && progress.max === 0) progress.max = 300;
-    }
-  }, 2000);
 }
 
 function showPlayer() {
@@ -504,21 +477,8 @@ function updateTimer() {
   document.getElementById("medTimer").innerText = `${current} / ${total}`;
 }
 
-export function onExit() {
-  if (audio) {
-    audio.pause();
-    audio = null;
-  }
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-  }
-  running = false;
-  isPlaying = false;
-  meditationContainer = null;
-}
-
-console.log('ANTI_BUG_LAYER_OK', {
-    meditation: AppRuntime.getState(MODULE_NAME),
-    runtimeActive: true
+console.log('MELODY_SYSTEM_OK', {
+    standard: BUILTIN_TRACKS.length,
+    custom: loadCustomTracks().length,
+    status: 'OK'
 });
