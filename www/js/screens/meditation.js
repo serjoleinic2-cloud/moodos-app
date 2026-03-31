@@ -303,6 +303,11 @@ function renderTracks() {
       ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
     </div>
   `).join('');
+  console.log('MELODIES_STATE', {
+    standard: BUILTIN_TRACKS.length,
+    custom: loadCustomTracks().length,
+    totalRendered: document.querySelectorAll('.track').length
+  });
 }
 
 function initAudio() {
@@ -458,7 +463,7 @@ function updateTimer() {
 }
 
 console.log('MELODY_SYSTEM_OK', {
-    items: tracks.length,
-    rendered: document.querySelectorAll('.track').length,
+    standard: BUILTIN_TRACKS.length,
+    custom: loadCustomTracks().length,
     status: 'OK'
 });

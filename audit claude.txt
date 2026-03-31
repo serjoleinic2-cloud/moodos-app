@@ -92,3 +92,202 @@ Return:
 "Audit complete. No refactor required."
 OR
 "Audit complete. Targeted fixes recommended."
+
+## TASK: Full audit + fix meditation custom melodies system
+
+### FILE
+
+`www/js/screens/meditation.js`
+
+---
+
+## CONTEXT
+
+User reports:
+
+* Default melodies work correctly
+* Tap / switching works correctly
+* Custom melodies are added but NOT visible in UI
+* Possibly data is not saved or not rendered
+
+---
+
+## OBJECTIVE
+
+You must perform a FULL SYSTEM AUDIT:
+
+1. Data flow (add → store → load → render)
+2. State consistency
+3. Rendering pipeline
+4. Persistence (localStorage or memory)
+5. Initialization lifecycle
+6. UI update logic
+
+Then apply minimal safe fixes.
+
+---
+
+## CRITICAL RULE
+
+⚠️ DO NOT refactor architecture
+⚠️ ONLY fix broken data flow
+⚠️ KEEP existing UI logic intact
+
+---
+
+# STEP 1 — DATA FLOW AUDIT (MANDATORY)
+
+Trace:
+
+### A. Where melodies are defined
+
+* standard melodies array
+* custom melodies array (if exists)
+
+### B. Where new melody is added
+
+* function handling add action
+
+### C. Where melodies are stored
+
+Check:
+
+* memory only OR
+* localStorage OR
+* overwritten on init
+
+### D. Where melodies are loaded on screen open
+
+---
+
+## STEP 2 — FIND ROOT CAUSE
+
+You MUST explicitly identify ONE or more:
+
+* ❌ custom melodies not persisted
+* ❌ custom melodies overwritten on init
+* ❌ render uses only standard array
+* ❌ add function updates wrong state
+* ❌ UI not re-rendered after update
+* ❌ storage key mismatch
+
+---
+
+## STEP 3 — REQUIRED FIXES
+
+### FIX A — unify dataset used for rendering
+
+Ensure render ALWAYS uses:
+
+```js
+const allMelodies = [
+  ...standardMelodies,
+  ...customMelodies
+]
+```
+
+---
+
+### FIX B — ensure addMelody updates correct state
+
+```js
+customMelodies.push(newMelody)
+renderMelodies()
+```
+
+---
+
+### FIX C — ensure persistence (IF MISSING)
+
+If localStorage is used:
+
+```js
+localStorage.setItem('meditation_custom_melodies', JSON.stringify(customMelodies))
+```
+
+and on load:
+
+```js
+customMelodies = JSON.parse(localStorage.getItem('meditation_custom_melodies') || '[]')
+```
+
+---
+
+### FIX D — prevent overwrite bug on init
+
+Search for:
+
+* `customMelodies = []`
+* screen re-init logic
+
+If reset exists → fix:
+
+```js
+if (!window.__meditationLoaded) {
+    customMelodies = load()
+    window.__meditationLoaded = true
+}
+```
+
+---
+
+### FIX E — force render after ANY state change
+
+After:
+
+* add
+* load
+* delete
+
+MUST call:
+
+```js
+renderMelodies()
+```
+
+---
+
+## STEP 4 — DEBUG OUTPUT (MANDATORY)
+
+Add temporary logs:
+
+```js
+console.log('MEDITATION AUDIT', {
+  standard: standardMelodies?.length,
+  custom: customMelodies?.length,
+  totalRendered: document.querySelectorAll('.melody-item').length
+})
+```
+
+---
+
+## STEP 5 — VERIFY
+
+You MUST confirm:
+
+* custom melodies persist after reload
+* custom melodies appear immediately after add
+* no duplication
+* no overwrite on re-open
+* UI matches state exactly
+
+---
+
+## FINAL REPORT (MANDATORY OUTPUT)
+
+Return:
+
+1. Root cause (exact reason)
+2. Files/sections modified
+3. Data flow diagram (short text)
+4. Fix summary
+5. Risk level: LOW / MEDIUM / HIGH
+
+---
+
+## SUCCESS CONDITION
+
+* Custom melodies fully visible
+* No silent data loss
+* UI always matches state
+
