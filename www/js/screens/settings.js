@@ -14,6 +14,7 @@ import {
   saveTheme,
   setTheme,
   applyTheme,
+  isPremium,
 } from "../services/user-profile.js";
 import { getLastBackupTime, getBackupStatus, getSystemBackupState, createBackup, shareBackup } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
