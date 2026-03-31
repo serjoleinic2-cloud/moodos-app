@@ -175,10 +175,13 @@ function bindEvents() {
       reader.onload = (ev) => {
         const custom = loadCustomTracks();
         if (custom.length >= MAX_CUSTOM_TRACKS) return;
-        custom.push({ name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false });
+        const newMelody = { name: file.name.replace(/\.[^.]+$/, ''), src: ev.target.result, builtin: false };
+        if (!newMelody || !newMelody.name) return;
+        custom.push(newMelody);
         saveCustomTracks(custom);
         renderTracks();
         updateAddButton();
+        console.log('MELODY_ADD', { total: custom.length, last: newMelody });
       };
       reader.readAsDataURL(file);
     };
@@ -454,7 +457,7 @@ function updateTimer() {
   document.getElementById("medTimer").innerText = `${current} / ${total}`;
 }
 
-console.log('MELODY_CHECK', {
+console.log('MELODY_SYSTEM_OK', {
     items: tracks.length,
     rendered: document.querySelectorAll('.track').length,
     status: 'OK'
