@@ -1,5 +1,5 @@
 // ===============================
-// MoodOS Premium Screen (Status - not paywall)
+// Neyra Premium Screen (Status - not paywall)
 // ===============================
 import { getPremiumInfo, activateTrial } from "../services/user-profile.js";
 import { t } from "../i18n.js";

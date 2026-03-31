@@ -1,10 +1,9 @@
-// app.js — MoodOS boot
+// app.js — Neyra boot
 
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
-import { analyzeLatestVoice } from "./ai/voice-analysis.js";
 import SystemCore from "./system-core.js";
 
 window.SystemCore = SystemCore;
@@ -275,7 +274,6 @@ function startApp() {
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");
   const output      = document.getElementById("aiResponse");
-  const voiceOutput = document.getElementById("voiceAIResponse");
 
   if (btn && note) {
     btn.addEventListener("click", () => {
@@ -349,11 +347,6 @@ function startApp() {
 
       startVoiceRecording(voiceStatus, () => {
         cleanup();
-        const result = analyzeLatestVoice();
-        if (result && voiceOutput) {
-          voiceOutput.textContent = result.insight;
-          voiceOutput.classList.add("ai-message");
-        }
       }).catch(() => {
         cleanup();
         voiceStatus.textContent = "❌";

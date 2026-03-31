@@ -45,6 +45,11 @@ function getAllTracks() {
   return [...standardTracks, ...(state.customTracks || [])];
 }
 
+function getTrackByIndex(index) {
+  const all = getAllTracks();
+  return all[index] || null;
+}
+
 let currentIndex = 0;
 
 let loopMode  = false;
@@ -344,7 +349,9 @@ function renderTracks() {
 }
 
 function initAudio() {
-  audio = new Audio(getAllTracks()[currentIndex].src);
+  const track = getTrackByIndex(currentIndex);
+  if (!track) return;
+  audio = new Audio(track.src);
   audio.preload = "metadata";
 
   audio.onloadedmetadata = () => {
@@ -521,4 +528,8 @@ export function onExit() {
 console.log('ANTI_BUG_LAYER_OK', {
     meditation: AppRuntime.getState(MODULE_NAME),
     runtimeActive: true
+});
+
+console.log('ARL_SYNC_CHECK', {
+    meditation: AppRuntime.getState(MODULE_NAME)
 });

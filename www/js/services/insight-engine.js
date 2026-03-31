@@ -1,6 +1,6 @@
 // ⚠️ Использовать только через SystemCore
 // ===============================
-// MoodOS Insight Engine
+// Neyra Insight Engine
 // Объяснения состояния, прогнозы, микро-привычки
 // ===============================
 import { getMoodHistory, getSessionHistory } from "./memory.js";

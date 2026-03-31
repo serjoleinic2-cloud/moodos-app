@@ -1,7 +1,7 @@
-# MoodOS — Project Overview
+# Neyra — Project Overview
 
 ## Overview
-MoodOS is a mobile mood tracking & self-discovery app built with Vanilla JS + Capacitor (Android/iOS). It features mood tracking, AI-powered text/voice analysis, guided breathing/meditation practices, an avatar companion, insights/analytics, and PDF reports.
+Neyra is a mobile mood tracking & self-discovery app built with Vanilla JS + Capacitor (Android/iOS). It features mood tracking, AI-powered text/voice analysis, guided breathing/meditation practices, an avatar companion, insights/analytics, and PDF reports.
 
 ## Tech Stack
 - **Frontend**: Vanilla JS (ES modules), no framework
@@ -141,3 +141,75 @@ Dynamic lists MUST have height constraints:
 .dynamic-list { max-height: 200px; overflow-y: auto; }
 .fixed-controls { position: sticky; bottom: 0; }
 ```
+
+## Architecture Layers
+
+### LAYER 1 — SYSTEM CORE
+Handles: Event bus, mood state management, persistence, AI dispatch
+Files: `system-core.js`, `state.js`, `memory.js`
+
+### LAYER 2 — SERVICES / ENGINES
+Business logic: Analytics, insights, pattern detection, resilience tracking
+Files: `services/*.js`
+
+### LAYER 3 — EXPERIENCE SYSTEM (UI/UX LAYER)
+
+#### PURPOSE:
+All user-facing interaction modules of the application.
+
+---
+
+## MODULE GROUPS:
+
+### 1. PRACTICES SYSTEM
+* Meditation
+* Breathing exercises
+* Focus sessions
+* Sleep / relaxation sessions
+* Any future practice types
+
+---
+
+### 2. INSIGHT SYSTEM
+* analytics
+* progress visualization
+* comparisons
+* trends
+
+---
+
+### 3. VOICE SYSTEM (UI ONLY)
+* voice notes list
+* playback UI
+* history display
+* NO AI processing
+
+---
+
+### 4. HISTORY SYSTEM
+* unified history view
+* filtering
+* grouping by type
+
+---
+
+### 5. SETTINGS SYSTEM
+* app settings
+* preferences
+* localization
+
+---
+
+### 6. SHARED UI SYSTEM
+* audio player
+* reusable UI components
+* shared controls
+
+---
+
+# RULES FOR LAYER 3
+* Must be extensible (new modules can be added without architecture change)
+* Must NOT contain business logic
+* Must NOT interact directly with AI layer
+* Must use AppRuntime (ARL) as state source when needed
+* Must remain UI-only layer

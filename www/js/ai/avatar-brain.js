@@ -1,5 +1,5 @@
 /**
- * avatar-brain.js — MoodOS Avatar Brain
+ * avatar-brain.js — Neyra Avatar Brain
  * Реактивный слой для Avatar
  * Генерирует сообщения на основе состояния системы
  * 

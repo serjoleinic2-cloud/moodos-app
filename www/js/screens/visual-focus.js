@@ -1,5 +1,5 @@
 // ===============================
-// MoodOS Visual Focus (EMDR-style)
+// Neyra Visual Focus (EMDR-style)
 // Зрительный якорь — 2 минуты
 // ===============================
 import { getMood } from "../state.js";

@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Settings Screen
+// Neyra Settings Screen
 // =====================================
 
 import {

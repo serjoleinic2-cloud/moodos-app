@@ -1,7 +1,7 @@
 {
   "name": "moodos-app",
   "version": "1.0.0",
-  "description": "MoodOS Emotional AI App",
+  "description": "Neyra Emotional AI App",
   "scripts": {
     "start": "npx cap serve",
     "build": "echo build complete"

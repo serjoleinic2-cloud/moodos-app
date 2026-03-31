@@ -1,6 +1,6 @@
 // ⚠️ Использовать только через SystemCore
 // ===============================
-// MoodOS Resilience Engine
+// Neyra Resilience Engine
 // Индекс эмоциональной устойчивости
 // ===============================
 import { getMoodHistory, getSessionHistory } from "./memory.js";

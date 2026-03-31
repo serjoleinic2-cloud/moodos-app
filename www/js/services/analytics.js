@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Analytics Service
+// Neyra Analytics Service
 // =====================================
 
 export function calculateStabilityScore(history) {

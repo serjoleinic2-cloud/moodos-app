@@ -1,0 +1,734 @@
+/* =============================================
+   NEYRA Design System
+   Unified visual language across all UI modules
+   ============================================= */
+
+/* =============================================
+   1. CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+   ============================================= */
+:root {
+  /* === COLORS === */
+  --neyra-color-primary: #4caf87;
+  --neyra-color-primary-hover: #3d9170;
+  --neyra-color-primary-light: rgba(76, 175, 135, 0.15);
+  
+  --neyra-color-background: #f5f3ef;
+  --neyra-color-surface: #e8e0d5;
+  --neyra-color-surface-elevated: #ffffff;
+  
+  --neyra-color-text-primary: #3a3530;
+  --neyra-color-text-secondary: #666666;
+  --neyra-color-text-muted: #999999;
+  --neyra-color-text-inverse: #ffffff;
+  
+  --neyra-color-accent: #4a90d9;
+  --neyra-color-accent-light: rgba(74, 144, 217, 0.15);
+  
+  --neyra-color-purple: #9f7aea;
+  --neyra-color-purple-light: rgba(159, 122, 234, 0.15);
+  
+  --neyra-color-danger: #e05555;
+  --neyra-color-danger-light: rgba(224, 85, 85, 0.12);
+  --neyra-color-warning: #f0a500;
+  
+  --neyra-color-success: #4caf87;
+  --neyra-color-mood-high: #4caf87;
+  --neyra-color-mood-mid: #f0a500;
+  --neyra-color-mood-low: #e05555;
+
+  /* === SPACING === */
+  --neyra-space-xs: 4px;
+  --neyra-space-sm: 8px;
+  --neyra-space-md: 12px;
+  --neyra-space-lg: 16px;
+  --neyra-space-xl: 24px;
+  --neyra-space-2xl: 32px;
+  --neyra-space-3xl: 48px;
+
+  /* === TYPOGRAPHY === */
+  --neyra-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --neyra-font-size-xs: 11px;
+  --neyra-font-size-sm: 13px;
+  --neyra-font-size-base: 15px;
+  --neyra-font-size-md: 17px;
+  --neyra-font-size-lg: 18px;
+  --neyra-font-size-xl: 20px;
+  --neyra-font-size-2xl: 22px;
+  --neyra-font-size-3xl: 24px;
+  
+  --neyra-font-weight-normal: 400;
+  --neyra-font-weight-medium: 500;
+  --neyra-font-weight-semibold: 600;
+  --neyra-font-weight-bold: 700;
+
+  /* === BORDER RADIUS === */
+  --neyra-radius-sm: 6px;
+  --neyra-radius-md: 12px;
+  --neyra-radius-lg: 16px;
+  --neyra-radius-xl: 20px;
+  --neyra-radius-full: 9999px;
+
+  /* === SHADOWS === */
+  --neyra-shadow-sm: 2px 2px 4px rgba(0, 0, 0, 0.06);
+  --neyra-shadow-md: 4px 4px 8px rgba(0, 0, 0, 0.08);
+  --neyra-shadow-lg: 6px 6px 12px rgba(0, 0, 0, 0.1);
+  --neyra-shadow-card: 4px 4px 8px #b8c4b4, -4px -4px 8px #ffffff;
+  --neyra-shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --neyra-shadow-inset: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.5);
+
+  /* === TRANSITIONS === */
+  --neyra-transition-fast: 150ms ease;
+  --neyra-transition-base: 250ms ease;
+  --neyra-transition-slow: 350ms ease;
+
+  /* === Z-INDEX === */
+  --neyra-z-base: 1;
+  --neyra-z-dropdown: 50;
+  --neyra-z-sticky: 100;
+  --neyra-z-overlay: 200;
+  --neyra-z-modal: 9999;
+}
+
+/* =============================================
+   2. BASE STYLES
+   ============================================= */
+.neyra-text-title {
+  font-size: var(--neyra-font-size-2xl);
+  font-weight: var(--neyra-font-weight-bold);
+  color: var(--neyra-color-text-primary);
+  line-height: 1.3;
+}
+
+.neyra-text-subtitle {
+  font-size: var(--neyra-font-size-lg);
+  font-weight: var(--neyra-font-weight-semibold);
+  color: var(--neyra-color-text-primary);
+  line-height: 1.4;
+}
+
+.neyra-text-body {
+  font-size: var(--neyra-font-size-base);
+  font-weight: var(--neyra-font-weight-normal);
+  color: var(--neyra-color-text-secondary);
+  line-height: 1.6;
+}
+
+.neyra-text-caption {
+  font-size: var(--neyra-font-size-xs);
+  color: var(--neyra-color-text-muted);
+  line-height: 1.4;
+}
+
+.neyra-text-label {
+  font-size: var(--neyra-font-size-sm);
+  font-weight: var(--neyra-font-weight-medium);
+  color: var(--neyra-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =============================================
+   3. BUTTONS
+   ============================================= */
+.neyra-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--neyra-space-sm);
+  padding: var(--neyra-space-md) var(--neyra-space-lg);
+  font-family: var(--neyra-font-family);
+  font-size: var(--neyra-font-size-base);
+  font-weight: var(--neyra-font-weight-semibold);
+  border: none;
+  border-radius: var(--neyra-radius-md);
+  cursor: pointer;
+  transition: all var(--neyra-transition-fast);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.neyra-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary Button */
+.neyra-btn-primary {
+  background: var(--neyra-color-primary);
+  color: var(--neyra-color-text-inverse);
+  box-shadow: var(--neyra-shadow-sm);
+}
+
+.neyra-btn-primary:hover:not(:disabled) {
+  background: var(--neyra-color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.neyra-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary Button */
+.neyra-btn-secondary {
+  background: var(--neyra-color-surface);
+  color: var(--neyra-color-text-secondary);
+  box-shadow: var(--neyra-shadow-card);
+}
+
+.neyra-btn-secondary:hover:not(:disabled) {
+  background: var(--neyra-color-surface-elevated);
+  color: var(--neyra-color-text-primary);
+}
+
+/* Accent Button */
+.neyra-btn-accent {
+  background: var(--neyra-color-accent);
+  color: var(--neyra-color-text-inverse);
+  box-shadow: var(--neyra-shadow-sm);
+}
+
+/* Purple Button */
+.neyra-btn-purple {
+  background: linear-gradient(145deg, var(--neyra-color-purple), #805ad5);
+  color: var(--neyra-color-text-inverse);
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Danger Button */
+.neyra-btn-danger {
+  background: var(--neyra-color-danger-light);
+  color: var(--neyra-color-danger);
+  box-shadow: var(--neyra-shadow-sm);
+}
+
+.neyra-btn-danger:hover:not(:disabled) {
+  background: var(--neyra-color-danger);
+  color: var(--neyra-color-text-inverse);
+}
+
+/* Ghost Button */
+.neyra-btn-ghost {
+  background: transparent;
+  color: var(--neyra-color-text-muted);
+  box-shadow: none;
+}
+
+.neyra-btn-ghost:hover:not(:disabled) {
+  background: var(--neyra-color-surface);
+  color: var(--neyra-color-text-secondary);
+}
+
+/* Button Sizes */
+.neyra-btn-sm {
+  padding: var(--neyra-space-sm) var(--neyra-space-md);
+  font-size: var(--neyra-font-size-sm);
+  border-radius: var(--neyra-radius-sm);
+}
+
+.neyra-btn-lg {
+  padding: var(--neyra-space-lg) var(--neyra-space-xl);
+  font-size: var(--neyra-font-size-md);
+  border-radius: var(--neyra-radius-lg);
+}
+
+/* =============================================
+   4. CARDS
+   ============================================= */
+.neyra-card {
+  background: rgba(232, 237, 230, 0.9);
+  border-radius: var(--neyra-radius-lg);
+  padding: var(--neyra-space-lg);
+  box-shadow: var(--neyra-shadow-card);
+  transition: all var(--neyra-transition-base);
+}
+
+.neyra-card:hover {
+  box-shadow: var(--neyra-shadow-lg);
+}
+
+.neyra-card-elevated {
+  background: var(--neyra-color-surface-elevated);
+  box-shadow: var(--neyra-shadow-md);
+}
+
+.neyra-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--neyra-space-md);
+}
+
+.neyra-card-title {
+  font-size: var(--neyra-font-size-md);
+  font-weight: var(--neyra-font-weight-semibold);
+  color: var(--neyra-color-text-primary);
+}
+
+.neyra-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.neyra-card-subtitle {
+  font-size: var(--neyra-font-size-sm);
+  color: var(--neyra-color-text-muted);
+  margin-top: var(--neyra-space-xs);
+}
+
+.neyra-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--neyra-space-sm);
+  margin-top: var(--neyra-space-md);
+  padding-top: var(--neyra-space-md);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Card Variants for Modules */
+.neyra-card-voice {
+  border-left: 3px solid var(--neyra-color-purple);
+}
+
+.neyra-card-insight {
+  border-left: 3px solid var(--neyra-color-accent);
+}
+
+.neyra-card-session {
+  border-left: 3px solid var(--neyra-color-primary);
+}
+
+/* =============================================
+   5. LIST ITEMS
+   ============================================= */
+.neyra-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neyra-space-sm);
+}
+
+.neyra-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--neyra-space-md);
+  padding: var(--neyra-space-md);
+  background: rgba(232, 237, 230, 0.9);
+  border-radius: var(--neyra-radius-md);
+  box-shadow: var(--neyra-shadow-sm);
+  cursor: pointer;
+  transition: all var(--neyra-transition-fast);
+  min-height: 52px;
+}
+
+.neyra-list-item:hover {
+  background: var(--neyra-color-surface-elevated);
+  box-shadow: var(--neyra-shadow-md);
+}
+
+.neyra-list-item:active {
+  transform: scale(0.99);
+}
+
+.neyra-list-item-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--neyra-radius-md);
+  flex-shrink: 0;
+  font-size: var(--neyra-font-size-xl);
+}
+
+.neyra-list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.neyra-list-item-title {
+  font-size: var(--neyra-font-size-base);
+  font-weight: var(--neyra-font-weight-medium);
+  color: var(--neyra-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.neyra-list-item-subtitle {
+  font-size: var(--neyra-font-size-sm);
+  color: var(--neyra-color-text-muted);
+  margin-top: 2px;
+}
+
+.neyra-list-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--neyra-space-sm);
+  flex-shrink: 0;
+}
+
+.neyra-list-item-delete {
+  padding: var(--neyra-space-sm) var(--neyra-space-md);
+  border-radius: var(--neyra-radius-sm);
+  background: var(--neyra-color-danger-light);
+  color: var(--neyra-color-danger);
+  font-size: var(--neyra-font-size-sm);
+  cursor: pointer;
+  transition: all var(--neyra-transition-fast);
+  border: none;
+}
+
+.neyra-list-item-delete:hover {
+  background: var(--neyra-color-danger);
+  color: var(--neyra-color-text-inverse);
+}
+
+.neyra-list-item-time {
+  font-size: var(--neyra-font-size-xs);
+  color: var(--neyra-color-text-muted);
+}
+
+/* =============================================
+   6. FORM ELEMENTS
+   ============================================= */
+.neyra-input {
+  width: 100%;
+  padding: var(--neyra-space-md);
+  font-family: var(--neyra-font-family);
+  font-size: var(--neyra-font-size-base);
+  color: var(--neyra-color-text-primary);
+  background: var(--neyra-color-surface-elevated);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--neyra-radius-md);
+  box-shadow: var(--neyra-shadow-inset);
+  transition: all var(--neyra-transition-fast);
+  outline: none;
+}
+
+.neyra-input:focus {
+  border-color: var(--neyra-color-primary);
+  box-shadow: var(--neyra-shadow-inset), 0 0 0 2px var(--neyra-color-primary-light);
+}
+
+.neyra-input::placeholder {
+  color: var(--neyra-color-text-muted);
+}
+
+.neyra-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.neyra-range {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--neyra-color-surface);
+  border-radius: var(--neyra-radius-full);
+  outline: none;
+}
+
+.neyra-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--neyra-color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--neyra-shadow-md);
+}
+
+.neyra-checkbox,
+.neyra-radio {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--neyra-color-primary);
+}
+
+/* =============================================
+   7. LAYOUT COMPONENTS
+   ============================================= */
+.neyra-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--neyra-space-lg);
+}
+
+.neyra-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--neyra-color-surface) transparent;
+}
+
+.neyra-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.neyra-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.neyra-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--neyra-color-surface);
+  border-radius: var(--neyra-radius-full);
+}
+
+.neyra-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--neyra-z-sticky);
+}
+
+.neyra-sticky-controls {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  padding: var(--neyra-space-md) var(--neyra-space-lg);
+  background: linear-gradient(to top, var(--neyra-color-background) 80%, transparent);
+}
+
+/* =============================================
+   8. AUDIO PLAYER COMPONENTS
+   ============================================= */
+.neyra-audio-player {
+  display: flex;
+  align-items: center;
+  gap: var(--neyra-space-md);
+  padding: var(--neyra-space-md);
+  background: var(--neyra-color-purple-light);
+  border-radius: var(--neyra-radius-md);
+}
+
+.neyra-play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--neyra-color-purple-light);
+  box-shadow: var(--neyra-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--neyra-font-size-base);
+  cursor: pointer;
+  transition: all var(--neyra-transition-fast);
+  border: none;
+  flex-shrink: 0;
+}
+
+.neyra-play-btn:hover {
+  background: var(--neyra-color-purple);
+  color: var(--neyra-color-text-inverse);
+}
+
+.neyra-play-btn.playing {
+  background: var(--neyra-color-purple);
+  color: var(--neyra-color-text-inverse);
+}
+
+.neyra-audio-controls {
+  flex: 1;
+  min-width: 0;
+}
+
+.neyra-audio-seek {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  background: rgba(159, 122, 234, 0.2);
+  border-radius: var(--neyra-radius-full);
+  outline: none;
+  cursor: pointer;
+}
+
+.neyra-audio-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--neyra-color-purple);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.neyra-audio-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--neyra-font-size-xs);
+  color: var(--neyra-color-text-muted);
+  margin-top: var(--neyra-space-xs);
+}
+
+/* =============================================
+   9. BADGES & TAGS
+   ============================================= */
+.neyra-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--neyra-space-xs) var(--neyra-space-sm);
+  font-size: var(--neyra-font-size-xs);
+  font-weight: var(--neyra-font-weight-medium);
+  border-radius: var(--neyra-radius-full);
+  background: var(--neyra-color-surface);
+  color: var(--neyra-color-text-secondary);
+}
+
+.neyra-badge-primary {
+  background: var(--neyra-color-primary-light);
+  color: var(--neyra-color-primary);
+}
+
+.neyra-badge-accent {
+  background: var(--neyra-color-accent-light);
+  color: var(--neyra-color-accent);
+}
+
+.neyra-badge-purple {
+  background: var(--neyra-color-purple-light);
+  color: var(--neyra-color-purple);
+}
+
+.neyra-badge-danger {
+  background: var(--neyra-color-danger-light);
+  color: var(--neyra-color-danger);
+}
+
+/* =============================================
+   10. EMPTY STATES
+   ============================================= */
+.neyra-empty {
+  text-align: center;
+  padding: var(--neyra-space-3xl) var(--neyra-space-lg);
+}
+
+.neyra-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--neyra-space-md);
+  opacity: 0.6;
+}
+
+.neyra-empty-title {
+  font-size: var(--neyra-font-size-md);
+  font-weight: var(--neyra-font-weight-medium);
+  color: var(--neyra-color-text-secondary);
+  margin-bottom: var(--neyra-space-sm);
+}
+
+.neyra-empty-text {
+  font-size: var(--neyra-font-size-sm);
+  color: var(--neyra-color-text-muted);
+}
+
+/* =============================================
+   11. DIVIDERS
+   ============================================= */
+.neyra-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: var(--neyra-space-lg) 0;
+}
+
+.neyra-divider-vertical {
+  width: 1px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 0 var(--neyra-space-md);
+}
+
+/* =============================================
+   12. LOADING STATES
+   ============================================= */
+.neyra-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--neyra-color-surface) 25%,
+    rgba(232, 237, 230, 0.5) 50%,
+    var(--neyra-color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: neyra-skeleton-loading 1.5s infinite;
+  border-radius: var(--neyra-radius-sm);
+}
+
+@keyframes neyra-skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.neyra-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--neyra-color-surface);
+  border-top-color: var(--neyra-color-primary);
+  border-radius: 50%;
+  animation: neyra-spin 0.8s linear infinite;
+}
+
+@keyframes neyra-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================
+   13. UTILITIES
+   ============================================= */
+.neyra-flex { display: flex; }
+.neyra-flex-col { flex-direction: column; }
+.neyra-items-center { align-items: center; }
+.neyra-items-start { align-items: flex-start; }
+.neyra-justify-between { justify-content: space-between; }
+.neyra-justify-center { justify-content: center; }
+.neyra-gap-xs { gap: var(--neyra-space-xs); }
+.neyra-gap-sm { gap: var(--neyra-space-sm); }
+.neyra-gap-md { gap: var(--neyra-space-md); }
+.neyra-gap-lg { gap: var(--neyra-space-lg); }
+.neyra-gap-xl { gap: var(--neyra-space-xl); }
+
+.neyra-mt-sm { margin-top: var(--neyra-space-sm); }
+.neyra-mt-md { margin-top: var(--neyra-space-md); }
+.neyra-mt-lg { margin-top: var(--neyra-space-lg); }
+.neyra-mt-xl { margin-top: var(--neyra-space-xl); }
+
+.neyra-mb-sm { margin-bottom: var(--neyra-space-sm); }
+.neyra-mb-md { margin-bottom: var(--neyra-space-md); }
+.neyra-mb-lg { margin-bottom: var(--neyra-space-lg); }
+.neyra-mb-xl { margin-bottom: var(--neyra-space-xl); }
+
+.neyra-p-sm { padding: var(--neyra-space-sm); }
+.neyra-p-md { padding: var(--neyra-space-md); }
+.neyra-p-lg { padding: var(--neyra-space-lg); }
+.neyra-p-xl { padding: var(--neyra-space-xl); }
+
+.neyra-text-center { text-align: center; }
+.neyra-text-left { text-align: left; }
+.neyra-text-right { text-align: right; }
+
+.neyra-w-full { width: 100%; }
+.neyra-h-full { height: 100%; }
+
+.neyra-overflow-hidden { overflow: hidden; }
+.neyra-overflow-auto { overflow: auto; }
+
+.neyra-hidden { display: none; }
+.neyra-visible { visibility: visible; }
+.neyra-invisible { visibility: hidden; }
+
+.neyra-opacity-50 { opacity: 0.5; }
+.neyra-opacity-75 { opacity: 0.75; }
+
+.neyra-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.neyra-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

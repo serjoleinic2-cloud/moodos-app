@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Drive Backup — Pure Backup System
+// Neyra Drive Backup — Pure Backup System
 // Без авто popup, с разделением Free/Premium
 // =====================================
 
@@ -200,7 +200,7 @@ export async function shareBackup() {
     }
     
     const json = JSON.stringify(latest.data, null, 2);
-    const fileName = "MoodOS_backup_" + new Date(latest.date).toISOString().slice(0,10) + ".json";
+    const fileName = "Neyra_backup_" + new Date(latest.date).toISOString().slice(0,10) + ".json";
 
     const Share = window.Capacitor?.Plugins?.Share;
     const Filesystem = window.Capacitor?.Plugins?.Filesystem;
@@ -217,8 +217,8 @@ export async function shareBackup() {
         directory: "CACHE",
       });
       await Share.share({
-        title: "MoodOS Backup",
-        text: "Резервная копия данных MoodOS",
+        title: "Neyra Backup",
+        text: "Резервная копия данных Neyra",
         url: uri,
         dialogTitle: "Сохранить резервную копию",
       });

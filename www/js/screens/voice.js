@@ -1,8 +1,9 @@
 // ===============================
-// MoodOS Voice Screen
+// Neyra Voice Screen
 // ===============================
 
 import { getVoiceHistory } from "../services/memory.js";
+import { t } from "../i18n.js";
 
 export function onEnter() {
 
@@ -14,32 +15,41 @@ export function onEnter() {
   const history = getVoiceHistory();
 
   if (!history || history.length === 0) {
-    container.innerHTML =
-      "<p>No reflections yet</p>";
+    container.innerHTML = `
+      <div class="neyra-empty">
+        <div class="neyra-empty-icon">🎙️</div>
+        <div class="neyra-empty-title">${t("hist_no_data")}</div>
+      </div>`;
     return;
   }
 
-  container.innerHTML = "";
-
-  history
-    .slice()
-    .reverse()
-    .forEach(item => {
-
-      const date =
-        new Date(item.time)
-          .toLocaleString();
-
-      const el =
-        document.createElement("div");
-
-      el.className = "voice-card";
-
-      el.innerHTML = `
-        <p>${date}</p>
-        <audio controls src="${item.audio}"></audio>
-      `;
-
-      container.appendChild(el);
-    });
+  container.innerHTML = `
+    <div class="neyra-list neyra-scroll-container" style="max-height: 400px;">
+      ${history.slice().reverse().map((item, index) => {
+        const date = new Date(item.date || item.time).toLocaleString();
+        const duration = item.duration || 0;
+        const mins = Math.floor(duration / 60);
+        const secs = duration % 60;
+        const durationStr = mins > 0 
+          ? `${mins}:${String(secs).padStart(2, "0")}` 
+          : `${secs} сек`;
+        
+        return `
+          <div class="neyra-card neyra-card-voice">
+            <div class="neyra-card-header">
+              <div class="neyra-flex neyra-items-center neyra-gap-sm">
+                <span>🎙️</span>
+                <span class="neyra-text-caption">${date}</span>
+              </div>
+              <span class="neyra-badge neyra-badge-purple">${durationStr}</span>
+            </div>
+            <audio controls src="${item.audio}" class="neyra-audio-player" style="margin-top: var(--neyra-space-sm);"></audio>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="neyra-empty" style="margin-top: var(--neyra-space-xl);">
+      <div class="neyra-empty-text">${t("voice_notes_caption")}</div>
+    </div>
+  `;
 }

@@ -1,5 +1,5 @@
 /**
- * avatar.js — MoodOS Avatar Module v3
+ * avatar.js — Neyra Avatar Module v3
  * Personalized + Context-aware + Priority system
  */
 

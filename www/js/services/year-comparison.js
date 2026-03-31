@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Year Comparison
+// Neyra Year Comparison
 // =====================================
 import { getMoodHistory } from "./memory.js";
 import { isPremium } from "./user-profile.js";

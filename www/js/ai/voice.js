@@ -1,3 +1,5 @@
+import { getMood } from "../state.js";
+
 let mediaRecorder;
 let chunks = [];
 let recordingStartTime = null;
@@ -22,11 +24,11 @@ export async function startVoiceRecording(statusEl, onFinish) {
       reader.onloadend = () => {
         let history = JSON.parse(localStorage.getItem("voice_history")) || [];
         history.push({
+          type: 'voice_note',
           audio: reader.result,
-          audioUrl: reader.result,
-          time: Date.now(),
-          timestamp: Date.now(),
-          duration: duration
+          duration: duration,
+          mood: getMood(),
+          date: Date.now()
         });
         localStorage.setItem("voice_history", JSON.stringify(history));
         if (onFinish) onFinish(reader.result);

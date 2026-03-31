@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS i18n — index
+// Neyra i18n — index
 // =====================================
 import { ru } from "./i18n/ru.js";
 import { en } from "./i18n/en.js";

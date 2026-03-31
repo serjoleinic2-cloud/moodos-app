@@ -1,6 +1,6 @@
 // ⚠️ Использовать только через SystemCore
 // ===============================
-// MoodOS Pattern Engine
+// Neyra Pattern Engine
 // Поиск закономерностей и триггеров
 // ===============================
 import { getMoodHistory, getSessionHistory, getNotesHistory } from "./memory.js";

@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS PDF Report — Share API + Push
+// Neyra PDF Report — Share API + Push
 // =====================================
 import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
@@ -40,7 +40,7 @@ async function scheduleNotifications(days, time, period) {
         target.setDate(target.getDate() + daysUntil);
         notifications.push({
           id: idCounter++,
-          title: "MoodOS 📄",
+          title: "Neyra 📄",
           body: t("pr_notif_body").replace("{period}", period),
           schedule: { at: target, allowWhileIdle: true, exact: true },
           actionTypeId: "OPEN_REPORT",
@@ -289,7 +289,7 @@ export function showPdfReportModal() {
     screen.querySelector("#prGenBtn").disabled = true;
     try {
       const pdfBlob = await generatePdf(fromVal, toVal);
-      const fileName = "MoodOS_" + fromVal + "_" + toVal + ".pdf";
+      const fileName = "Neyra_" + fromVal + "_" + toVal + ".pdf";
       statusEl.textContent = t("pr_opening_menu");
       const Share      = window.Capacitor?.Plugins?.Share;
       const Filesystem = window.Capacitor?.Plugins?.Filesystem;
@@ -300,7 +300,7 @@ export function showPdfReportModal() {
             const base64 = e.target.result.split(",")[1];
             await Filesystem.writeFile({ path: fileName, data: base64, directory: "CACHE" });
             const fileUri = await Filesystem.getUri({ path: fileName, directory: "CACHE" });
-            await Share.share({ title: "MoodOS — " + t("pr_title"), text: t("pr_share_text"), url: fileUri.uri, dialogTitle: t("pr_title") });
+            await Share.share({ title: "Neyra — " + t("pr_title"), text: t("pr_share_text"), url: fileUri.uri, dialogTitle: t("pr_title") });
             statusEl.textContent = t("pr_done");
           } catch(err) { if (err.name !== "AbortError") statusEl.textContent = t("pr_error"); }
           screen.querySelector("#prGenBtn").disabled = false;
@@ -499,7 +499,7 @@ async function generatePdf(fromStr, toStr) {
   const html =
     '<div style="width:794px;font-family:Arial,sans-serif;color:#333;background:#fff;padding:0;">' +
       '<div style="background:#4caf87;padding:20px 24px 16px;color:#fff;">' +
-        '<div style="font-size:24px;font-weight:700;margin-bottom:4px;">MoodOS</div>' +
+        '<div style="font-size:24px;font-weight:700;margin-bottom:4px;">Neyra</div>' +
         '<div style="font-size:13px;opacity:0.85">' + t("pr_title") + '</div>' +
         '<div style="font-size:11px;opacity:0.7;margin-top:6px;">' + t("pr_from") + ': ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' · ' + new Date().toLocaleDateString(locale) + '</div>' +
       '</div>' +

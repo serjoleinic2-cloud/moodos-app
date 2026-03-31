@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Premium Modal
+// Neyra Premium Modal
 // =====================================
 import { t } from "./i18n.js";
 import { activateTrial, getPremiumInfo } from "./services/user-profile.js";

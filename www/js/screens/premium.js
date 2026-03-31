@@ -1,5 +1,5 @@
 // ===============================
-// MoodOS Premium Screen
+// Neyra Premium Screen
 // Status screen (not paywall)
 // ===============================
 import { getPremiumInfo, activateTrial } from "../services/user-profile.js";
@@ -31,65 +31,65 @@ function renderPremium() {
   return `
     <style>
       .premium-screen {
-        padding: 20px 16px 80px;
+        padding: var(--neyra-space-lg) var(--neyra-space-lg) 80px;
         text-align: center;
       }
       .premium-icon {
         font-size: 64px;
-        margin-bottom: 20px;
+        margin-bottom: var(--neyra-space-xl);
       }
       .premium-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #3a3530;
-        margin-bottom: 24px;
+        font-size: var(--neyra-font-size-2xl);
+        font-weight: var(--neyra-font-weight-bold);
+        color: var(--neyra-color-text-primary);
+        margin-bottom: var(--neyra-space-xl);
       }
       .premium-features {
         text-align: left;
         background: rgba(232,237,230,0.9);
-        border-radius: 18px;
-        padding: 20px;
-        margin-bottom: 24px;
-        box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
+        border-radius: var(--neyra-radius-xl);
+        padding: var(--neyra-space-lg);
+        margin-bottom: var(--neyra-space-xl);
+        box-shadow: var(--neyra-shadow-card);
       }
       .premium-feature {
         display: flex;
         align-items: center;
-        padding: 12px 0;
+        padding: var(--neyra-space-md) 0;
         border-bottom: 1px solid rgba(0,0,0,0.05);
-        font-size: 15px;
-        color: #555;
+        font-size: var(--neyra-font-size-base);
+        color: var(--neyra-color-text-secondary);
       }
       .premium-feature:last-child {
         border-bottom: none;
       }
       .premium-feature-icon {
-        font-size: 20px;
-        margin-right: 12px;
+        font-size: var(--neyra-font-size-xl);
+        margin-right: var(--neyra-space-md);
         flex-shrink: 0;
       }
       .premium-trial-badge {
         background: linear-gradient(145deg, #fef3c7, #fde68a);
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 20px;
-        font-size: 18px;
-        font-weight: 700;
+        border-radius: var(--neyra-radius-lg);
+        padding: var(--neyra-space-lg);
+        margin-bottom: var(--neyra-space-xl);
+        font-size: var(--neyra-font-size-lg);
+        font-weight: var(--neyra-font-weight-bold);
         color: #92400e;
-        box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+        box-shadow: var(--neyra-shadow-sm);
       }
       .premium-btn {
         width: 100%;
-        padding: 16px;
+        padding: var(--neyra-space-lg);
         border: none;
-        border-radius: 16px;
-        background: linear-gradient(145deg, #9f7aea, #805ad5);
-        color: white;
-        font-size: 17px;
-        font-weight: 700;
+        border-radius: var(--neyra-radius-lg);
+        background: linear-gradient(145deg, var(--neyra-color-purple), #805ad5);
+        color: var(--neyra-color-text-inverse);
+        font-size: var(--neyra-font-size-md);
+        font-weight: var(--neyra-font-weight-bold);
         cursor: pointer;
-        box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
-        transition: transform 0.15s;
+        box-shadow: var(--neyra-shadow-card);
+        transition: transform var(--neyra-transition-fast);
       }
       .premium-btn:active {
         transform: scale(0.97);
@@ -100,11 +100,11 @@ function renderPremium() {
       }
       .premium-status-badge {
         display: inline-block;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 20px;
+        padding: var(--neyra-space-sm) var(--neyra-space-lg);
+        border-radius: var(--neyra-radius-full);
+        font-size: var(--neyra-font-size-sm);
+        font-weight: var(--neyra-font-weight-semibold);
+        margin-bottom: var(--neyra-space-xl);
       }
       .premium-free .premium-status-badge {
         background: rgba(136,136,136,0.2);
@@ -112,11 +112,16 @@ function renderPremium() {
       }
       .premium-trial .premium-status-badge {
         background: rgba(245,158,11,0.2);
-        color: #f59e0b;
+        color: var(--neyra-color-warning);
       }
       .premium-active .premium-status-badge {
-        background: rgba(76,175,135,0.2);
-        color: #4caf87;
+        background: var(--neyra-color-primary-light);
+        color: var(--neyra-color-primary);
+      }
+      .premium-desc {
+        font-size: var(--neyra-font-size-xs);
+        color: var(--neyra-color-text-muted);
+        margin-top: var(--neyra-space-xs);
       }
     </style>
     
@@ -154,7 +159,7 @@ function renderPremium() {
           <span class="premium-feature-icon">📅</span>
           <div>
             <span>${t("premium_feature_yearly")}</span>
-            <div style="font-size:11px;color:#888;margin-top:2px;">${t("premium_feature_yearly_desc")}</div>
+            <div class="premium-desc">${t("premium_feature_yearly_desc")}</div>
           </div>
         </div>
       </div>
@@ -165,8 +170,8 @@ function renderPremium() {
           ${t("premium_try_btn")}
         </button>
         ${window.store ? `
-          <button id="restoreBtn" style="margin-top:12px;background:none;border:none;color:#888;font-size:13px;cursor:pointer;text-decoration:underline;">
-            ${t("restore_purchases") || "Restore purchases"}
+          <button id="restoreBtn" class="neyra-btn neyra-btn-ghost" style="margin-top: var(--neyra-space-sm);">
+            ${t("restore_purchases")}
           </button>
         ` : ""}
       ` : `
@@ -195,7 +200,7 @@ function bindEvents() {
       onEnter();
       
       const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
+      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--neyra-color-primary);color:var(--neyra-color-text-inverse);padding:20px 28px;border-radius:18px;font-size:var(--neyra-font-size-base);font-weight:var(--neyra-font-weight-bold);z-index:9999;text-align:center;";
       msg.innerHTML = "✅ " + t("premium_access_granted");
       document.body.appendChild(msg);
       setTimeout(() => msg.remove(), 3000);

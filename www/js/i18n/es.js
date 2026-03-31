@@ -1,6 +1,6 @@
-// MoodOS i18n — es
+// Neyra i18n — es
 export const es = {
-    app_name: "MoodOS",
+    app_name: "Neyra",
     days_together_1: "día",
     days_together_2: "días",
     days_together_5: "días",
@@ -191,9 +191,9 @@ export const es = {
     terms_btn: "Aceptar y continuar",
     terms_read_terms: "Términos de uso",
     terms_read_privacy: "Política de privacidad",
-    terms_text: `Términos de uso de MoodOS\n\nMoodOS es una app para registrar el estado emocional. No es un dispositivo médico y no reemplaza la ayuda psicológica o psiquiátrica profesional.\n\nTodos los datos se almacenan solo en tu dispositivo. No compartimos datos personales con terceros.\n\nLa app está destinada a usuarios mayores de 16 años.`,
-    privacy_text: `Política de privacidad de MoodOS\n\nNos tomamos en serio tu privacidad.\n\nTodos los datos se almacenan exclusivamente en tu dispositivo en localStorage.\n\nNo recopilamos análisis, no usamos rastreadores publicitarios ni compartimos datos con terceros.`,
-    ob_welcome_title: "Hola, soy MoodOS",
+    terms_text: `Términos de uso de Neyra\n\nNeyra es una app para registrar el estado emocional. No es un dispositivo médico y no reemplaza la ayuda psicológica o psiquiátrica profesional.\n\nTodos los datos se almacenan solo en tu dispositivo. No compartimos datos personales con terceros.\n\nLa app está destinada a usuarios mayores de 16 años.`,
+    privacy_text: `Política de privacidad de Neyra\n\nNos tomamos en serio tu privacidad.\n\nTodos los datos se almacenan exclusivamente en tu dispositivo en localStorage.\n\nNo recopilamos análisis, no usamos rastreadores publicitarios ni compartimos datos con terceros.`,
+    ob_welcome_title: "Hola, soy Neyra",
     ob_welcome_text: "No daré consejos que no pediste.\n\nSolo estaré aquí — ayudándote a notar lo que pasa y encontrar lo que realmente te funciona.",
     ob_feeling_title: "¿Cómo te has sentido\núltimamente?",
     ob_feeling_sub: "Esto me ayuda a entender mejor tus valoraciones",
@@ -333,7 +333,7 @@ export const es = {
     pdf_datetime_col: "Fecha y hora",
     pdf_mood_col: "Humor",
     pdf_state_col: "Estado",
-    pdf_footer: "Informe generado por MoodOS. Para discusión con el médico. No es un informe médico.",
+    pdf_footer: "Informe generado por Neyra. Para discusión con el médico. No es un informe médico.",
     pdf_med_no: "Sin medicación",
     pdf_med_anti: "Antidepresivos",
     pdf_med_sed: "Sedantes",
@@ -527,7 +527,7 @@ export const es = {
     compared_to_baseline: "comparado con el promedio",
     how_it_works_title: "Cómo funciona",
     how_block_1_title: "Qué es",
-    how_block_1_text: "Moodos ayuda a rastrear tu estado y entender qué lo afecta.",
+    how_block_1_text: "Neyra ayuda a rastrear tu estado y entender qué lo afecta.",
     how_block_2_title: "Cómo usar",
     how_block_2_text: "Registra tu ánimo, haz prácticas y observa cómo cambia tu estado.",
     how_block_3_title: "Insights",
@@ -543,5 +543,7 @@ export const es = {
     med_track_limit: "Límite alcanzado (5 melodías)",
     med_file_too_large: "Archivo demasiado grande (máx. 5 MB)",
     premium_feature_themes: "Esquemas de color",
-    premium_feature_custom_tracks: "Melodías personalizadas de meditación"
+    premium_feature_custom_tracks: "Melodías personalizadas de meditación",
+    voice_notes_caption: "A veces es útil escucharse desde fuera",
+    voice_notes_duration: "Nota de voz"
 };

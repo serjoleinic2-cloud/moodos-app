@@ -1,5 +1,5 @@
 // =====================================
-// MoodOS Onboarding v5 — i18n + Terms + default EN
+// Neyra Onboarding v5 — i18n + Terms + default EN
 // =====================================
 import { saveProfile, markOnboardingDone, saveMedReminder } from "./services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "./i18n.js";

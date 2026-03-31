@@ -1,4 +1,4 @@
-// ===== MoodOS GLOBAL STATE =====
+// ===== Neyra GLOBAL STATE =====
 
 let state = {
   mood: 50,

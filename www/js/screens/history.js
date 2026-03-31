@@ -31,16 +31,16 @@ function buildShareText(item) {
   const time = formatTime(item.ts);
 
   if (item.type === "mood") {
-    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}\n\n— MoodOS`;
+    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}\n\n— Neyra`;
   }
   if (item.type === "note") {
-    return `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— MoodOS`;
+    return `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— Neyra`;
   }
   if (item.type === "session") {
     const meta = SESSION_META();
     const m = meta[item.sessionType] || { icon:"🛠", label: item.sessionType };
     const result = item.result === "positive" ? t("hist_helped") : t("hist_not_helped");
-    return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}\n\n— MoodOS`;
+    return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}\n\n— Neyra`;
   }
   return null;
 }
@@ -53,14 +53,14 @@ function shareItem(item) {
   try {
     const Share = window.Capacitor?.Plugins?.Share;
     if (Share) {
-      Share.share({ title: "MoodOS", text, dialogTitle: "Поделиться" });
+      Share.share({ title: "Neyra", text, dialogTitle: "Поделиться" });
       return;
     }
   } catch(e) {}
 
   // Fallback — navigator.share
   if (navigator.share) {
-    navigator.share({ title: "MoodOS", text }).catch(() => {});
+    navigator.share({ title: "Neyra", text }).catch(() => {});
     return;
   }
 
@@ -87,10 +87,10 @@ function buildTimeline() {
     items.push({ type:"note", ts:e.timestamp||new Date(e.time).getTime(), text:e.text||e.note||"" });
   });
   getVoiceHistory().forEach(e => items.push({
-    type:"voice", ts:e.timestamp||e.time||Date.now(),
-    text:e.text||e.transcript||"",
-    audioUrl:e.audioUrl||e.audio||null,
-    audioDuration:e.duration||0
+    type:"voice_note", ts:e.date||e.timestamp||e.time||Date.now(),
+    audioUrl:e.audio||null,
+    audioDuration:e.duration||0,
+    mood:e.mood||50
   }));
   try {
     const photos = JSON.parse(localStorage.getItem("photo_history")||"[]");
@@ -119,8 +119,8 @@ function deleteItem(item) {
     } else if (item.type==="note") {
       const arr = getNotesHistory().filter(e => (e.timestamp||new Date(e.time).getTime()) !== item.ts);
       localStorage.setItem("notes_history", JSON.stringify(arr));
-    } else if (item.type==="voice") {
-      const arr = getVoiceHistory().filter(e => (e.timestamp||e.time) !== item.ts);
+    } else if (item.type==="voice_note") {
+      const arr = getVoiceHistory().filter(e => (e.date||e.timestamp||e.time) !== item.ts);
       localStorage.setItem("voice_history", JSON.stringify(arr));
     } else if (item.type==="photo") {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]").filter(e => (e.timestamp||e.time) !== item.ts);
@@ -334,14 +334,17 @@ function renderCard(item) {
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
   }
-  if (item.type==="voice") {
-    const prev=item.text&&item.text.length>50?item.text.slice(0,50)+"...":item.text||"";
+  if (item.type==="voice_note") {
     const hasAudio=!!item.audioUrl, ts=item.ts;
-    return `<div class="hist-card" style="flex-direction:column;align-items:stretch;cursor:default;" data-ts="${ts}" data-type="voice">
+    const duration = item.audioDuration || 0;
+    const mins = Math.floor(duration / 60);
+    const secs = duration % 60;
+    const durationStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs} сек`;
+    return `<div class="hist-card" style="flex-direction:column;align-items:stretch;cursor:default;" data-ts="${ts}" data-type="voice_note">
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
-        <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${prev||t("hist_voice_diary")}</div></div>
-        <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice")}<div class="hist-card-time">${time}</div></div>
+        <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${t("voice_notes_duration") || "Длительность: " + durationStr}</div></div>
+        <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice_note")}<div class="hist-card-time">${time}</div></div>
       </div>
       ${hasAudio?`
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
