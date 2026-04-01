@@ -389,7 +389,7 @@ export function initMeditation(container) {
 
       <!-- АНИМАЦИЯ -->
       <div class="meditation-canvas-wrap">
-        <canvas id="meditationCanvas" width="320" height="320"></canvas>
+        <canvas id="meditationCanvas" width="280" height="280"></canvas>
       </div>
     </div>
 
@@ -434,17 +434,14 @@ export function initMeditation(container) {
 
 function renderTracks() {
   const container = document.getElementById("trackList");
-  if (!container) {
-    console.log('[MELODY_DEBUG] trackList container not found!');
-    return;
-  }
+  if (!container) return;
   const state = AppRuntime.getState(MODULE_NAME);
   const allTracks = [...standardTracks, ...(state.customTracks || [])];
   if (currentIndex >= allTracks.length) currentIndex = 0;
   container.innerHTML = allTracks.map((tr, i) => `
     <div class="track${i === currentIndex ? ' active' : ''}" data-index="${i}">
       <span>${tr.name}</span>
-      ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}" style="color:#e05555;font-size:18px;cursor:pointer;padding:0 4px;">✕</span>` : ''}
+      ${(!tr.builtin && isPremium()) ? `<span class="del-track" data-index="${i}">✕</span>` : ''}
     </div>
   `).join('');
 }
@@ -481,7 +478,7 @@ function showPlayer() {
 
 function showFeedback() {
   document.getElementById("playerControls").style.display = "none";
-  document.getElementById("progressWrap").style.display = "block";
+  document.getElementById("progressWrap").style.display = "none";
   document.getElementById("meditationFeedback").style.display = "flex";
 }
 
@@ -547,7 +544,7 @@ function handleTrackSwitch(autoPlay = false) {
   const wasRunning = running;
   
   const track = getTrackByIndex(currentIndex);
-  updateTrackHighlight();
+  renderTracks();
   
   if (autoPlay || wasRunning) {
     if (track) {

@@ -85,3 +85,32 @@ Fixed meditation player card hidden behind bottom nav
 - .meditation-player-card: bottom 70px → 100px (aligned with bottom-nav height)
 
 Files: www/css/style.css
+
+## TASK 41
+Feedback replaces full player UI on track end
+- showFeedback(): progressWrap display "none" (was "block")
+- Updated .meditation-feedback styles (flex-direction, gap, padding)
+- Updated .feedback-question (smaller font, color #888, font-weight 500)
+- Updated .feedback-buttons (gap 16px)
+- Updated .feedback-btn (gradient background, new shadow, smaller padding)
+- Added .feedback-btn:active (inset shadow effect)
+
+Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 42
+Theme color propagation to meditation player card
+- .meditation-player-card: background #f8f9fa → rgba(232, 237, 230, 0.97)
+- Added .meditation-player-card to all 4 theme blocks (purple-blue, purple-pink, ocean-blue, warm-sunset)
+- Each theme uses appropriate color with 0.97 opacity and softer shadow
+
+Files: www/css/style.css
+
+## TASK 43
+Reverted wheel picker, restored button-style track list
+- Removed wheel, restored trackList with button-style tracks
+- renderWheel() → renderTracks(), bindEvents updated
+- All tracks visible without scroll
+- Canvas resized 320x320 → 280x280, moved 10px down (margin-top: 10px)
+- Track items styled as buttons: background, border-radius, hover states
+
+Files: www/js/screens/meditation.js, www/css/style.css

@@ -298,9 +298,10 @@ body[data-theme="purple-blue"] .hist-card,
 body[data-theme="purple-blue"] .flip-front,
 body[data-theme="purple-blue"] .flip-back,
 body[data-theme="purple-blue"] .stab-entry,
-body[data-theme="purple-blue"] .bottom-nav {
-  background: rgba(214, 208, 240, 0.9) !important;
-  box-shadow: 6px 6px 14px #b0a8d8, -6px -6px 14px #ffffff !important;
+body[data-theme="purple-blue"] .bottom-nav,
+body[data-theme="purple-blue"] .meditation-player-card {
+  background: rgba(214, 208, 240, 0.97) !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08) !important;
 }
 body[data-theme="purple-blue"] .mo-btn,
 body[data-theme="purple-blue"] .card button,
@@ -324,9 +325,10 @@ body[data-theme="purple-pink"] .hist-card,
 body[data-theme="purple-pink"] .flip-front,
 body[data-theme="purple-pink"] .flip-back,
 body[data-theme="purple-pink"] .stab-entry,
-body[data-theme="purple-pink"] .bottom-nav {
-  background: rgba(240, 214, 234, 0.9) !important;
-  box-shadow: 6px 6px 14px #d4b0cc, -6px -6px 14px #ffffff !important;
+body[data-theme="purple-pink"] .bottom-nav,
+body[data-theme="purple-pink"] .meditation-player-card {
+  background: rgba(240, 214, 234, 0.97) !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08) !important;
 }
 body[data-theme="purple-pink"] .mo-btn,
 body[data-theme="purple-pink"] .card button,
@@ -350,9 +352,10 @@ body[data-theme="ocean-blue"] .hist-card,
 body[data-theme="ocean-blue"] .flip-front,
 body[data-theme="ocean-blue"] .flip-back,
 body[data-theme="ocean-blue"] .stab-entry,
-body[data-theme="ocean-blue"] .bottom-nav {
-  background: rgba(208, 232, 240, 0.9) !important;
-  box-shadow: 6px 6px 14px #a0c0d0, -6px -6px 14px #ffffff !important;
+body[data-theme="ocean-blue"] .bottom-nav,
+body[data-theme="ocean-blue"] .meditation-player-card {
+  background: rgba(208, 232, 240, 0.97) !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08) !important;
 }
 body[data-theme="ocean-blue"] .mo-btn,
 body[data-theme="ocean-blue"] .card button,
@@ -376,9 +379,10 @@ body[data-theme="warm-sunset"] .hist-card,
 body[data-theme="warm-sunset"] .flip-front,
 body[data-theme="warm-sunset"] .flip-back,
 body[data-theme="warm-sunset"] .stab-entry,
-body[data-theme="warm-sunset"] .bottom-nav {
-  background: rgba(248, 232, 216, 0.9) !important;
-  box-shadow: 6px 6px 14px #d0b8a0, -6px -6px 14px #ffffff !important;
+body[data-theme="warm-sunset"] .bottom-nav,
+body[data-theme="warm-sunset"] .meditation-player-card {
+  background: rgba(248, 232, 216, 0.97) !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08) !important;
 }
 body[data-theme="warm-sunset"] .mo-btn,
 body[data-theme="warm-sunset"] .card button,
@@ -455,7 +459,7 @@ body[data-theme="warm-sunset"] textarea {
   bottom: 100px;
   left: 0;
   right: 0;
-  background: #f8f9fa;
+  background: rgba(232, 237, 230, 0.97);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
   padding: 8px 16px 20px 16px;
@@ -471,9 +475,33 @@ body[data-theme="warm-sunset"] textarea {
 }
 
 .track-list {
-  max-height: 150px;
-  overflow-y: auto;
   margin-bottom: 16px;
+}
+
+.track {
+  padding: 10px 16px;
+  margin: 4px 0;
+  background: rgba(232, 237, 230, 0.8);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+  transition: background 0.2s, color 0.2s;
+}
+
+.track.active {
+  background: rgba(159, 122, 234, 0.2);
+  color: #7b4fa0;
+  font-weight: 600;
+}
+
+.track .del-track {
+  margin-left: 8px;
+  color: #e05555;
+  font-size: 14px;
 }
 
 .meditation-title {
@@ -500,6 +528,7 @@ body[data-theme="warm-sunset"] textarea {
   position: relative;
   display: flex;
   justify-content: center;
+  margin-top: 10px;
 }
 
 .progress-wrap {
@@ -532,30 +561,41 @@ body[data-theme="warm-sunset"] textarea {
 
 .meditation-feedback {
   display: none;
-  margin-top: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
 }
 
 .feedback-question {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 12px;
+  font-size: 15px;
+  color: #888;
+  font-weight: 500;
   text-align: center;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .feedback-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .feedback-btn {
-  padding: 16px 24px;
-  border-radius: 18px;
+  padding: 10px 28px;
+  border-radius: 14px;
   cursor: pointer;
-  background: #e0e5ec;
-  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-  font-size: 16px;
+  background: linear-gradient(145deg, #f5efe6, #ede5d8);
+  box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+  font-size: 15px;
+  font-weight: 600;
   text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.feedback-btn:active {
+  box-shadow: inset 3px 3px 7px #c8bfb2, inset -3px -3px 7px #ffffff;
 }
 
 .feedback-btn--positive {
