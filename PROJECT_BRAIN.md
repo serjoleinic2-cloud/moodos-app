@@ -11,45 +11,55 @@ Audio = optional subsystem (NOT core)
 ## 2. ARCHITECTURE LAYERS
 
 ### L1 — CORE ENGINE
-- AppRuntime (state)
+- AppRuntime (state management)
 - Navigation
 - Storage
 - Module registry
 
-### L2 — AI LAYER
+### L2 — AI LAYER (TEXT INTELLIGENCE)
 - text input → response pipeline
-- no audio dependency
+- No audio dependency
+- No access to UI or audio
+- No side effects outside response generation
 
-### L3 — UI MODULES
-- Meditation
-- Insight
-- Settings
-- History
-- Player UI
+### L3 — EXPERIENCE SYSTEM (UI/UX LAYER)
+
+All user-facing modules:
+- Practices (Meditation, Breathing, Focus, Sleep, etc.)
+- Insight (analytics & visualization)
+- Voice UI (display only)
+- History system
+- Settings system
+- Shared UI components (player, controls)
 
 ### L4 — MEDIA ENGINE
 AudioController (singleton)
 
-RULES:
-- ONLY ONE audio instance
-- UI never controls audio directly
-- AudioController = source of truth
+---
+
+## 3. STATE ARCHITECTURE (ARL)
+
+- AppRuntime = single source of truth
+- No duplicate state in modules
+- All updates go through setState()
+- UI = render(state)
 
 ---
 
-## 3. GLOBAL RULES
+## 4. GLOBAL RULES
 
 - No inline styles (use design system)
-- Screens MUST have:
-  - onEnter()
-  - onExit()
+- Screens MUST have: onEnter(), onExit()
 - No logic duplication across screens
 - AppRuntime = single state source
 
 ---
 
-## 4. AUDIO RULES (CRITICAL)
+## 5. AUDIO RULES (CRITICAL)
 
+- ONLY ONE audio instance
+- UI never controls audio directly
+- AudioController = source of truth
 - stop on exit
 - stop on tab hidden
 - destroy clears everything
@@ -58,7 +68,59 @@ RULES:
 
 ---
 
-## 5. DESIGN PHILOSOPHY
+## 6. EVENT SYSTEM RULE
+
+- Only event delegation allowed
+- No per-element listeners in dynamic lists
+
+---
+
+## 7. DATA CONTRACT RULE
+
+Every entity MUST define:
+- type
+- schema
+- lifecycle owner module
+
+---
+
+## 8. MODULE ISOLATION RULE
+
+- AI cannot access Voice
+- Voice cannot trigger AI
+- UI cannot own state
+- Modules cannot cross-modify each other
+
+---
+
+## 9. ANTI-PATTERNS (STRICTLY FORBIDDEN)
+
+- mixed state sources
+- DOM as state
+- hidden side effects in render
+- cross-layer direct calls
+- duplicate arrays (standard/custom split without schema)
+
+---
+
+## 10. EXTENSIBILITY RULE
+
+New features MUST:
+1. define module ownership
+2. define data schema
+3. define layer placement
+4. integrate via AppRuntime
+
+---
+
+## 11. VERSIONING RULE
+
+This architecture evolves incrementally.
+No full rewrites allowed without migration plan.
+
+---
+
+## 12. DESIGN PHILOSOPHY
 
 UI = thin layer  
 Core = truth  
@@ -89,7 +151,7 @@ All OpenCode tasks MUST include:
 
 ## RULE 3 — NO SILENT CHANGES
 
-- No hidden refactors
+- No hidden refractors
 - No renaming without logging
 - No architecture changes without updating PROJECT_BRAIN.md
 

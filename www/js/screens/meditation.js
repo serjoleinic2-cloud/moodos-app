@@ -221,6 +221,13 @@ function bindEvents() {
     };
   }
 
+  document.addEventListener("click", (e) => {
+    if (e.target.closest('[data-action="add-track"]')) {
+      const input = document.getElementById("addTrackInput");
+      if (input) input.click();
+    }
+  });
+
   // Event delegation for file input (persists after HTML replacement)
   document.addEventListener("change", (e) => {
     if (!e.target || e.target.id !== "addTrackInput") return;
@@ -301,7 +308,7 @@ export function initMeditation(container) {
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
           ${customCount < MAX_CUSTOM_TRACKS
-            ? `<button id="addTrackBtn" class="add-track-btn">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
+            ? `<button id="addTrackBtn" class="add-track-btn" data-action="add-track">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
             : `<div class="track-limit-msg">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
           }
         ` : ''}

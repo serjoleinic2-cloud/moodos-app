@@ -495,6 +495,7 @@ body[data-theme="warm-sunset"] textarea {
 
 .progress-wrap {
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .progress-range {
@@ -504,7 +505,7 @@ body[data-theme="warm-sunset"] textarea {
 .progress-timer {
   font-size: 13px;
   color: #888;
-  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
 .player-controls {
@@ -528,12 +529,12 @@ body[data-theme="warm-sunset"] textarea {
 
 .feedback-buttons {
   display: flex;
+  justify-content: center;
   gap: 20px;
 }
 
 .feedback-btn {
-  flex: 1;
-  padding: 16px;
+  padding: 16px 24px;
   border-radius: 18px;
   cursor: pointer;
   background: #e0e5ec;
@@ -549,5 +550,4 @@ body[data-theme="warm-sunset"] textarea {
 .feedback-btn--neutral {
   color: #888;
 }
-  background: inherit;
 }
