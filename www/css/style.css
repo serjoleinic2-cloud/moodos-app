@@ -140,7 +140,7 @@ h2 { font-size: 20px; color: #3a3530; }
 
 /* ===== MOOD СЛАЙДЕР ===== */
 input[type="range"] { width: 100%; margin: 12px 0; }
-#medProgress { position: relative; z-index: 1; transform: translateY(20px); }
+#medProgress { position: relative; z-index: 1; }
 #centerButton { position: relative; z-index: 5; }
 #moodValue { font-size: 22px; font-weight: bold; color: #3a3530; }
 .mood-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
@@ -514,13 +514,13 @@ body[data-theme="warm-sunset"] textarea {
 .progress-timer {
   font-size: 13px;
   color: #888;
-  margin-bottom: -5px;
+  margin-bottom: 2px;
   line-height: 1;
 }
 
 .progress-range {
   width: 100%;
-  margin: 0;
+  margin: 0 0 4px 0;
 }
 
 .player-controls {

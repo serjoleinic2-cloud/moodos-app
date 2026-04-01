@@ -71,3 +71,11 @@ Meditation player small UI fixes + audio-reactive animation
 - AudioContext cleanup on screen exit
 
 Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 39
+Fixed meditation player slider vertical offset
+- #medProgress: removed transform: translateY(20px) (global style was shifting slider)
+- .progress-timer: margin-bottom -5px → 2px
+- .progress-range: margin 0 → margin 0 0 4px 0
+
+Files: www/css/style.css
