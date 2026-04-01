@@ -546,5 +546,8 @@ export const es = {
     premium_feature_themes: "Esquemas de color",
     premium_feature_custom_tracks: "Melodías personalizadas de meditación",
     voice_notes_caption: "A veces es útil escucharse desde fuera",
-    voice_notes_duration: "Nota de voz"
+    voice_notes_duration: "Nota de voz",
+    insight_no_change: "Sin cambios",
+    insight_better: "mejor que antes",
+    insight_worse: "peor que antes"
 };

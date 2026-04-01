@@ -545,5 +545,8 @@ export const en = {
     premium_feature_themes: "Color Themes",
     premium_feature_custom_tracks: "Custom Meditation Tracks",
     voice_notes_caption: "Sometimes it's useful to hear yourself from the outside",
-    voice_notes_duration: "Voice Note"
+    voice_notes_duration: "Voice Note",
+    insight_no_change: "No change",
+    insight_better: "better than before",
+    insight_worse: "worse than before"
 };

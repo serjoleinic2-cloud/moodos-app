@@ -546,5 +546,8 @@ export const uk = {
     premium_feature_themes: "Кольорові схеми",
     premium_feature_custom_tracks: "Власні мелодії для медитації",
     voice_notes_caption: "Іноді корисно почути себе з боку",
-    voice_notes_duration: "Голосовий запис"
+    voice_notes_duration: "Голосовий запис",
+    insight_no_change: "Без змін",
+    insight_better: "краще ніж раніше",
+    insight_worse: "гірше ніж раніше"
 };

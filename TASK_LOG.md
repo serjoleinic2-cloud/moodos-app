@@ -124,3 +124,40 @@ Track list moved outside .screen scroll container
 - Canvas 560x560 on background (z-index: -1)
 
 Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 45
+Fixed audio storage using IndexedDB instead of localStorage
+- Added IndexedDB functions: openDB, saveAudioToDB, loadAudioFromDB, deleteAudioFromDB
+- Custom tracks audio stored separately in IndexedDB (metadata in localStorage)
+- Fixed await in non-async functions causing SyntaxError
+
+Files: www/js/screens/meditation.js
+
+## TASK 46
+Fixed play button state and audio error handling
+- AudioController: clear old handlers before creating new audio
+- Added check in error handler: only update state if src matches current
+- Prevents old audio error from affecting new track playback
+- Fixed button state updates after track switch
+
+Files: www/js/core/audioController.js, www/js/screens/meditation.js
+
+## TASK 47
+Fixed loop and chain modes interaction
+- Added subscription to audio state changes to detect track end
+- handleTrackEnd now called when track finishes playing
+- Both loop + chain = chain mode (switch to next track)
+- Loop only = loop current track
+- Chain only = switch to next track
+
+Files: www/js/screens/meditation.js
+
+## TASK 48
+Fixed Insight trend calculation and display
+- computeComparison(): added "stable" trend state, fixed percent calculation
+- When values equal: show "Без изменений" instead of arrow and percent
+- When up/down: show arrow + percent + localized text
+- Removed raw delta (0) display
+- Added i18n keys: insight_no_change, insight_better, insight_worse for all 4 languages
+
+Files: www/js/screens/insight.js, www/js/i18n/ru.js, www/js/i18n/en.js, www/js/i18n/es.js, www/js/i18n/uk.js

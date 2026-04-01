@@ -492,5 +492,8 @@ export const ru = {
     premium_feature_themes: "Цветовые схемы",
     premium_feature_custom_tracks: "Свои мелодии для медитации",
     voice_notes_caption: "Иногда полезно услышать себя со стороны",
-    voice_notes_duration: "Голосовая заметка"
+    voice_notes_duration: "Голосовая заметка",
+    insight_no_change: "Без изменений",
+    insight_better: "лучше чем раньше",
+    insight_worse: "хуже чем раньше"
 };

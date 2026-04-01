@@ -52,19 +52,26 @@ export const play = (track) => {
     return;
   }
 
+  const newSrc = track.src;
+
   if (currentAudio) {
-    if (currentSrc === track.src && !currentAudio.paused) {
-      console.log('[AudioController] Same track already playing');
+    currentAudio.onerror = null;
+    currentAudio.onended = null;
+    currentAudio.onpause = null;
+    currentAudio.ontimeupdate = null;
+    
+    if (currentSrc === newSrc && !currentAudio.paused) {
       return;
     }
     currentAudio.pause();
     currentAudio.src = '';
+    currentAudio.load();
     currentAudio = null;
   }
 
-  currentAudio = new Audio(track.src);
-  currentSrc = track.src;
-  currentTrackId = track.id || track.name || track.src;
+  currentAudio = new Audio(newSrc);
+  currentSrc = newSrc;
+  currentTrackId = track.id || track.name || newSrc;
   
   state.isPlaying = true;
   state.trackId = currentTrackId;
@@ -78,9 +85,10 @@ export const play = (track) => {
   };
 
   currentAudio.play().catch(err => {
-    console.warn('[AudioController] Play error:', err);
-    state.isPlaying = false;
-    notify();
+    if (currentSrc === newSrc) {
+      state.isPlaying = false;
+      notify();
+    }
   });
 
   notify();
@@ -96,7 +104,7 @@ function handlePause() {
 }
 
 function handleError(e) {
-  console.warn('[AudioController] Audio error:', e);
+  console.error('[AudioController] Audio error:', e, 'src:', currentSrc?.substring(0, 100));
   state.isPlaying = false;
   notify();
 }

@@ -163,7 +163,6 @@ async function loadCustomTracks() {
     await openDB();
     const data = localStorage.getItem(LS_CUSTOM_TRACKS);
     const tracksMeta = JSON.parse(data) || [];
-    console.log('[MELODY_LOAD] Loaded', tracksMeta.length, 'track metadata');
     
     const tracks = [];
     for (const meta of tracksMeta) {
@@ -172,10 +171,8 @@ async function loadCustomTracks() {
         tracks.push({ ...meta, src: dataUrl });
       }
     }
-    console.log('[MELODY_LOAD] Restored', tracks.length, 'tracks with audio');
     return tracks;
   } catch(e) { 
-    console.error('[MELODY_LOAD] Error:', e);
     return []; 
   }
 }
@@ -184,17 +181,13 @@ async function saveCustomTracks(tracks) {
   try {
     const tracksMeta = tracks.map(t => ({ id: t.id || t.name, name: t.name, builtin: t.builtin }));
     localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(tracksMeta));
-    console.log('[MELODY_SAVE] Saved', tracksMeta.length, 'track metadata');
     
     for (const track of tracks) {
       if (!track.builtin && track.src) {
         await saveAudioToDB(track.id || track.name, track.src);
       }
     }
-    console.log('[MELODY_SAVE] Done');
-  } catch(e) {
-    console.error('[MELODY_SAVE] Error:', e);
-  }
+  } catch(e) {}
 }
 
 function getAllTracks() {
@@ -214,8 +207,6 @@ let chainMode = false;
 let radiusBase = 105;
 
 export async function onEnter(container) {
-  console.log('[DEBUG] meditation onEnter called');
-  
   // Cleanup previous subscriptions
   if (audioUnsubscribe) {
     audioUnsubscribe();
@@ -244,9 +235,15 @@ export async function onEnter(container) {
   bindEvents();
   
   // Subscribe to audio state changes
+  let wasPlaying = false;
   audioUnsubscribe = subscribe((audioState) => {
     updatePlayButton(audioState);
     updateProgress(audioState);
+    
+    if (wasPlaying && !audioState.isPlaying && running) {
+      handleTrackEnd();
+    }
+    wasPlaying = audioState.isPlaying;
   });
   
   syncState();
@@ -258,8 +255,6 @@ function render(container) {
 }
 
 function bindEvents() {
-  console.log('[DEBUG] meditation bindEvents called');
-
   document.getElementById("trackList")?.addEventListener("click", (e) => {
     const track = e.target.closest(".track");
     if (!track) return;
@@ -284,7 +279,7 @@ function bindEvents() {
       if (deletedTrack && deletedTrack.id) {
         deleteAudioFromDB(deletedTrack.id);
       }
-      await saveCustomTracks(updated);
+      saveCustomTracks(updated);
       AppRuntime.setState(MODULE_NAME, { customTracks: updated });
       if (currentIndex >= getAllTracks().length) currentIndex = 0;
       return;
@@ -400,8 +395,7 @@ function bindEvents() {
     reader.onload = (ev) => {
       const state = AppRuntime.getState(MODULE_NAME);
       const currentCustom = state.customTracks || [];
-      if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
-        console.log('[MELODY_DEBUG] Limit reached!');
+        if (currentCustom.length >= MAX_CUSTOM_TRACKS) {
         e.target.value = '';
         return;
       }
@@ -419,14 +413,12 @@ function bindEvents() {
       const trackId = 'track_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       const newMelody = { id: trackId, name: fileNameBase, src: ev.target.result, builtin: false };
       if (!newMelody || !newMelody.name) {
-        console.log('[MELODY_DEBUG] Invalid melody!');
         e.target.value = '';
         return;
       }
       const updated = [...currentCustom, newMelody];
-      await saveCustomTracks(updated);
+      saveCustomTracks(updated);
       AppRuntime.setState(MODULE_NAME, { customTracks: updated });
-      console.log('MELODY_ADD', { total: updated.length, last: newMelody });
       e.target.value = '';
     };
     reader.readAsDataURL(file);
@@ -450,8 +442,6 @@ function updateAddButton() {
 }
 
 export function initMeditation(container) {
-  console.log('[DEBUG] initMeditation called');
-
   const state = AppRuntime.getState(MODULE_NAME);
   const customCount = (state.customTracks || []).length;
 
@@ -592,7 +582,7 @@ function toggleMeditation() {
     document.getElementById("playerControls").style.display = "flex";
     document.getElementById("progressWrap").style.display = "block";
     document.getElementById("meditationFeedback").style.display = "none";
-    updatePlayButton({ isPlaying: true });
+    setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
     
     SystemCore.analyzeMoodOnly(moodBeforeSession).then(result => {
       stateBeforeSession = result?.state || 'NEUTRAL';
@@ -615,17 +605,26 @@ function updatePlayButton(audioState) {
 }
 
 function handleTrackEnd() {
+  if (loopMode && chainMode) {
+    const allTracks = getAllTracks();
+    currentIndex = (currentIndex + 1) % allTracks.length;
+    handleTrackSwitch(true);
+    return;
+  }
+  
   if (loopMode) {
     setCurrentTime(0);
     resume();
     return;
   }
+  
   if (chainMode) {
     const allTracks = getAllTracks();
     currentIndex = (currentIndex + 1) % allTracks.length;
     handleTrackSwitch(true);
     return;
   }
+  
   running = false;
   cancelAnimationFrame(animationId);
   showFeedback();
@@ -641,7 +640,7 @@ function handleTrackSwitch(autoPlay = false) {
   if (autoPlay || wasRunning) {
     if (track) {
       play(track);
-      updatePlayButton({ isPlaying: true });
+      setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
     }
     if (!wasRunning) {
       running = true;
@@ -735,12 +734,3 @@ export function onExit() {
   const trackList = document.getElementById("trackList");
   if (trackList) trackList.remove();
 }
-
-console.log('ANTI_BUG_LAYER_OK', {
-    meditation: AppRuntime.getState(MODULE_NAME),
-    runtimeActive: true
-});
-
-console.log('ARL_SYNC_CHECK', {
-    meditation: AppRuntime.getState(MODULE_NAME)
-});

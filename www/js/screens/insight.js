@@ -184,31 +184,38 @@ function computeComparison(current, previous) {
   previous = Number(previous) || 0;
   const delta = current - previous;
   let percent = 0;
+  let trend = "stable";
+  
   if (previous === 0) {
     percent = current > 0 ? 100 : 0;
+    trend = current > 0 ? "up" : "stable";
+  } else if (current === previous) {
+    percent = 0;
+    trend = "stable";
   } else {
-    percent = (delta / previous) * 100;
+    percent = Math.round((delta / previous) * 100);
+    if (delta > 0) trend = "up";
+    if (delta < 0) trend = "down";
   }
+  
   let direction = 'neutral';
-  let arrow = '—';
-  let label = 'без изменений';
-  if (delta > 0) {
+  let arrow = '';
+  if (trend === "up") {
     direction = 'positive';
     arrow = '↑';
-    label = 'лучше';
-  } else if (delta < 0) {
+  } else if (trend === "down") {
     direction = 'negative';
     arrow = '↓';
-    label = 'хуже';
   }
+  
   return {
     current,
     previous,
     delta,
-    percent: Number(percent.toFixed(1)),
+    percent: Math.abs(percent),
     direction,
     arrow,
-    label,
+    trend,
     isZero: delta === 0
   };
 }
@@ -326,14 +333,16 @@ function buildPeriodComparisonHTML(history, days) {
 
   const comparison = computeComparison(cmp.currentAvg, cmp.prevAvg);
   const currentColor = cmp.currentAvg !== null ? mColor(cmp.currentAvg) : "#888";
-  const deltaColor = comparison.direction === 'positive' ? '#16a34a' : comparison.direction === 'negative' ? '#dc2626' : '#6b7280';
 
   let extraBlock = '';
-  if (comparison.isZero) {
-    extraBlock = '<div class="insight-label neutral">' + t('insight.same_as_before') + '</div>';
-  } else {
-    extraBlock = '<div class="insight-delta ' + comparison.direction + '">' + comparison.arrow + ' ' + Math.abs(comparison.delta) + ' (' + Math.abs(comparison.percent) + '%)</div>' +
-                 '<div class="insight-label ' + comparison.direction + '">' + t('insight.better_than_before') + ' (' + comparison.previous + ')</div>';
+  if (comparison.trend === 'stable') {
+    extraBlock = '<div class="insight-label neutral">' + t('insight_no_change') + '</div>';
+  } else if (comparison.trend === 'up') {
+    extraBlock = '<div class="insight-delta positive">' + comparison.arrow + ' ' + comparison.percent + '%</div>' +
+                 '<div class="insight-label positive">' + t('insight_better') + '</div>';
+  } else if (comparison.trend === 'down') {
+    extraBlock = '<div class="insight-delta negative">' + comparison.arrow + ' ' + comparison.percent + '%</div>' +
+                 '<div class="insight-label negative">' + t('insight_worse') + '</div>';
   }
 
   const html = '<div class="insight-section">' +

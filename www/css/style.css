@@ -515,6 +515,31 @@ body[data-theme="warm-sunset"] textarea {
   z-index: 100;
 }
 
+.track-list-fixed .track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  margin: 4px 0;
+  background: rgba(232, 237, 230, 0.9);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+.track-list-fixed .track.active {
+  background: rgba(159, 122, 234, 0.2);
+  color: #7b4fa0;
+  font-weight: 600;
+}
+
+.track-list-fixed .track .del-track {
+  margin-left: 10px;
+  color: #e05555;
+  font-size: 14px;
+}
+
 .meditation-title {
   margin-bottom: 12px;
 }
