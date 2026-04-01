@@ -24,12 +24,84 @@ let meditationContainer = null;
 let audioUnsubscribe = null;
 let stateUnsubscribe = null;
 
+let audioContext = null;
+let analyser = null;
+let audioSource = null;
+let frequencyData = null;
+
+const COLOR_PRESETS = [
+  { inner: "#e0ccff", mid: "#9f7aea", outer: "#5a67d8", dark: "#1a202c" },
+  { inner: "#ffe4b5", mid: "#ffa07a", outer: "#ff6347", dark: "#2d1f1f" },
+  { inner: "#b0e0e6", mid: "#4682b4", outer: "#191970", dark: "#0d1b2a" },
+  { inner: "#98fb98", mid: "#32cd32", outer: "#228b22", dark: "#1a2f1a" },
+  { inner: "#dda0dd", mid: "#ba55d3", outer: "#8b008b", dark: "#1a0d1a" },
+  { inner: "#ffd700", mid: "#ff8c00", outer: "#ff4500", dark: "#2d1a0d" },
+];
+
+let currentColorIndex = 0;
+
+function initAudioAnalyser() {
+  if (audioContext) return;
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 64;
+    frequencyData = new Uint8Array(analyser.frequencyBinCount);
+  } catch(e) {
+    console.warn('[Meditation] AudioAnalyser not available:', e);
+  }
+}
+
+function connectAnalyser(trackSrc) {
+  if (!audioContext || !analyser) return;
+  if (audioSource) {
+    try { audioSource.disconnect(); } catch(e) {}
+  }
+  const audio = new Audio();
+  audio.src = trackSrc;
+  audio.crossOrigin = "anonymous";
+  audioSource = audioContext.createMediaElementSource(audio);
+  audioSource.connect(analyser);
+  analyser.connect(audioContext.destination);
+  audio.play();
+}
+
+function getMoodColors() {
+  if (!analyser || !frequencyData) {
+    return COLOR_PRESETS[currentColorIndex % COLOR_PRESETS.length];
+  }
+  analyser.getByteFrequencyData(frequencyData);
+  
+  let low = 0, mid = 0, high = 0;
+  const len = frequencyData.length;
+  for (let i = 0; i < len; i++) {
+    if (i < len / 3) low += frequencyData[i];
+    else if (i < len * 2 / 3) mid += frequencyData[i];
+    else high += frequencyData[i];
+  }
+  
+  const max = Math.max(low, mid, high);
+  if (max === low) {
+    currentColorIndex = 0;
+  } else if (max === mid) {
+    currentColorIndex = 2;
+  } else {
+    currentColorIndex = 4;
+  }
+  
+  return COLOR_PRESETS[currentColorIndex % COLOR_PRESETS.length];
+}
+
+function selectTrackMood(trackIndex) {
+  currentColorIndex = trackIndex % COLOR_PRESETS.length;
+}
+
 const standardTracks = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
   { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
 ];
 const MAX_CUSTOM_TRACKS = 5;
-const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_MB = 6;
 const LS_CUSTOM_TRACKS = "med_custom_tracks";
 const MODULE_NAME = 'meditation';
 
@@ -325,8 +397,8 @@ export function initMeditation(container) {
     <div id="playerCard" class="meditation-player-card">
       <!-- ПОЛЗУНОК -->
       <div id="progressWrap" class="progress-wrap">
-        <input type="range" id="medProgress" value="0" min="0" step="1" class="progress-range">
         <div id="medTimer" class="progress-timer">00:00 / 00:00</div>
+        <input type="range" id="medProgress" value="0" min="0" step="1" class="progress-range">
       </div>
 
       <!-- КНОПКИ УПРАВЛЕНИЯ -->
@@ -418,6 +490,9 @@ function toggleMeditation() {
     running = true;
     sessionStartTime = Date.now();
     moodBeforeSession = getMood();
+    
+    initAudioAnalyser();
+    selectTrackMood(currentIndex);
     
     const track = getTrackByIndex(currentIndex);
     if (track) {
@@ -530,17 +605,18 @@ function drawWave() {
   }
   ctx.closePath();
 
+  const colors = getMoodColors();
   const gradient = ctx.createRadialGradient(
     centerX, centerY, radiusBase * 0.3,
     centerX, centerY, radiusBase * 1.2
   );
-  gradient.addColorStop(0,   "#e0ccff");
-  gradient.addColorStop(0.4, "#9f7aea");
-  gradient.addColorStop(0.7, "#5a67d8");
-  gradient.addColorStop(1,   "#1a202c");
+  gradient.addColorStop(0,   colors.inner);
+  gradient.addColorStop(0.4, colors.mid);
+  gradient.addColorStop(0.7, colors.outer);
+  gradient.addColorStop(1,   colors.dark);
 
   ctx.fillStyle   = gradient;
-  ctx.shadowColor = "#b794f4";
+  ctx.shadowColor = colors.mid;
   ctx.shadowBlur  = 60;
   ctx.fill();
 }
@@ -560,6 +636,12 @@ export function onExit() {
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
+  }
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+    analyser = null;
+    audioSource = null;
   }
 }
 

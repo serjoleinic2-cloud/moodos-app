@@ -50,3 +50,24 @@ Meditation player card layout fixed
 - Added CSS classes per design system (no inline styles)
 - Player card: .meditation-player-card
 - Content scrolls above card
+
+## TASK 37
+Meditation player UI bugs fixed
+- Progress timer: moved above slider (margin-bottom instead of margin-top)
+- Feedback buttons: centered horizontally (justify-content: center, removed flex: 1)
+- Add melody: added data-action="add-track" + click delegation for persistence
+- CSS cleanup: removed duplicate "background: inherit" rule
+
+Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 38
+Meditation player small UI fixes + audio-reactive animation
+- Max file size increased to 6MB
+- Player card top padding reduced (8px) and border-radius (16px)
+- Timer margin increased to 10px above slider
+- Track list max-height: 150px with scroll
+- Animation now reacts to audio frequencies (Web Audio API AnalyserNode)
+- 6 color presets for different track moods
+- AudioContext cleanup on screen exit
+
+Files: www/js/screens/meditation.js, www/css/style.css
