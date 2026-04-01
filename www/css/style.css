@@ -467,6 +467,7 @@ body[data-theme="warm-sunset"] textarea {
 }
 
 .meditation-content {
+  position: relative;
   text-align: center;
   padding: 20px 16px 160px 16px;
   min-height: 100%;
@@ -475,6 +476,8 @@ body[data-theme="warm-sunset"] textarea {
 }
 
 .track-list {
+  position: relative;
+  z-index: 10;
   margin-bottom: 16px;
 }
 
@@ -504,6 +507,14 @@ body[data-theme="warm-sunset"] textarea {
   font-size: 14px;
 }
 
+.track-list-fixed {
+  position: fixed;
+  top: 120px;
+  left: 16px;
+  right: 16px;
+  z-index: 100;
+}
+
 .meditation-title {
   margin-bottom: 12px;
 }
@@ -525,10 +536,16 @@ body[data-theme="warm-sunset"] textarea {
 }
 
 .meditation-canvas-wrap {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  align-items: center;
+  pointer-events: none;
 }
 
 .progress-wrap {

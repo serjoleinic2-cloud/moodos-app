@@ -104,17 +104,97 @@ const MAX_CUSTOM_TRACKS = 5;
 const MAX_FILE_SIZE_MB = 6;
 const LS_CUSTOM_TRACKS = "med_custom_tracks";
 const MODULE_NAME = 'meditation';
+const DB_NAME = 'meditationDB';
+const STORE_NAME = 'audioFiles';
+const DB_VERSION = 1;
 
-function loadCustomTracks() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_CUSTOM_TRACKS)) || [];
-  } catch(e) { return []; }
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) { resolve(db); return; }
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => { db = request.result; resolve(db); };
+    request.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+  });
 }
 
-function saveCustomTracks(tracks) {
+async function saveAudioToDB(id, dataUrl) {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put({ id, dataUrl });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadAudioFromDB(id) {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.get(id);
+    request.onsuccess = () => resolve(request.result?.dataUrl);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteAudioFromDB(id) {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadCustomTracks() {
   try {
-    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(tracks));
-  } catch(e) {}
+    await openDB();
+    const data = localStorage.getItem(LS_CUSTOM_TRACKS);
+    const tracksMeta = JSON.parse(data) || [];
+    console.log('[MELODY_LOAD] Loaded', tracksMeta.length, 'track metadata');
+    
+    const tracks = [];
+    for (const meta of tracksMeta) {
+      const dataUrl = await loadAudioFromDB(meta.id);
+      if (dataUrl) {
+        tracks.push({ ...meta, src: dataUrl });
+      }
+    }
+    console.log('[MELODY_LOAD] Restored', tracks.length, 'tracks with audio');
+    return tracks;
+  } catch(e) { 
+    console.error('[MELODY_LOAD] Error:', e);
+    return []; 
+  }
+}
+
+async function saveCustomTracks(tracks) {
+  try {
+    const tracksMeta = tracks.map(t => ({ id: t.id || t.name, name: t.name, builtin: t.builtin }));
+    localStorage.setItem(LS_CUSTOM_TRACKS, JSON.stringify(tracksMeta));
+    console.log('[MELODY_SAVE] Saved', tracksMeta.length, 'track metadata');
+    
+    for (const track of tracks) {
+      if (!track.builtin && track.src) {
+        await saveAudioToDB(track.id || track.name, track.src);
+      }
+    }
+    console.log('[MELODY_SAVE] Done');
+  } catch(e) {
+    console.error('[MELODY_SAVE] Error:', e);
+  }
 }
 
 function getAllTracks() {
@@ -133,7 +213,7 @@ let loopMode  = false;
 let chainMode = false;
 let radiusBase = 105;
 
-export function onEnter(container) {
+export async function onEnter(container) {
   console.log('[DEBUG] meditation onEnter called');
   
   // Cleanup previous subscriptions
@@ -146,8 +226,9 @@ export function onEnter(container) {
     stateUnsubscribe = null;
   }
 
+  const tracks = await loadCustomTracks();
   AppRuntime.initModule(MODULE_NAME, {
-    customTracks: loadCustomTracks(),
+    customTracks: tracks,
     activeTrackId: null,
     maxTracks: MAX_CUSTOM_TRACKS
   });
@@ -199,8 +280,11 @@ function bindEvents() {
       
       const state = AppRuntime.getState(MODULE_NAME);
       const updated = [...(state.customTracks || [])];
-      updated.splice(customIdx, 1);
-      saveCustomTracks(updated);
+      const deletedTrack = updated.splice(customIdx, 1)[0];
+      if (deletedTrack && deletedTrack.id) {
+        deleteAudioFromDB(deletedTrack.id);
+      }
+      await saveCustomTracks(updated);
       AppRuntime.setState(MODULE_NAME, { customTracks: updated });
       if (currentIndex >= getAllTracks().length) currentIndex = 0;
       return;
@@ -332,14 +416,15 @@ function bindEvents() {
         return;
       }
       
-      const newMelody = { name: fileNameBase, src: ev.target.result, builtin: false };
+      const trackId = 'track_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const newMelody = { id: trackId, name: fileNameBase, src: ev.target.result, builtin: false };
       if (!newMelody || !newMelody.name) {
         console.log('[MELODY_DEBUG] Invalid melody!');
         e.target.value = '';
         return;
       }
       const updated = [...currentCustom, newMelody];
-      saveCustomTracks(updated);
+      await saveCustomTracks(updated);
       AppRuntime.setState(MODULE_NAME, { customTracks: updated });
       console.log('MELODY_ADD', { total: updated.length, last: newMelody });
       e.target.value = '';
@@ -371,11 +456,11 @@ export function initMeditation(container) {
   const customCount = (state.customTracks || []).length;
 
   container.innerHTML = `
-    <!-- ОСНОВНОЙ КОНТЕНТ (скроллится) -->
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <div class="meditation-content">
       <h2 class="meditation-title">${t("med_title")}</h2>
 
-      <!-- ТРЕКИ -->
+      <!-- ДОБАВИТЬ ТРЕК -->
       <div id="addTrackWrap">
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
@@ -385,12 +470,11 @@ export function initMeditation(container) {
           }
         ` : ''}
       </div>
-      <div id="trackList" class="track-list"></div>
+    </div>
 
-      <!-- АНИМАЦИЯ -->
-      <div class="meditation-canvas-wrap">
-        <canvas id="meditationCanvas" width="280" height="280"></canvas>
-      </div>
+    <!-- АНИМАЦИЯ (фон) -->
+    <div class="meditation-canvas-wrap">
+      <canvas id="meditationCanvas" width="560" height="560"></canvas>
     </div>
 
     <!-- КАРТОЧКА ПЛЕЙЕРА (фиксирована внизу) -->
@@ -426,6 +510,14 @@ export function initMeditation(container) {
   meditationContainer = container;
   canvas = document.getElementById("meditationCanvas");
   ctx    = canvas.getContext("2d");
+
+  const existingList = document.getElementById("trackList");
+  if (!existingList) {
+    const list = document.createElement("div");
+    list.id = "trackList";
+    list.className = "track-list-fixed";
+    document.body.appendChild(list);
+  }
 
   renderTracks();
   updatePlayButton();
@@ -640,6 +732,8 @@ export function onExit() {
     analyser = null;
     audioSource = null;
   }
+  const trackList = document.getElementById("trackList");
+  if (trackList) trackList.remove();
 }
 
 console.log('ANTI_BUG_LAYER_OK', {

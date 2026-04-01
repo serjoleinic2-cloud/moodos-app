@@ -114,3 +114,13 @@ Reverted wheel picker, restored button-style track list
 - Track items styled as buttons: background, border-radius, hover states
 
 Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 44
+Track list moved outside .screen scroll container
+- trackList created in document.body with position: fixed
+- Removed from HTML template, created dynamically in initMeditation()
+- Removed on onExit()
+- CSS: .track-list-fixed with top: 120px, z-index: 100
+- Canvas 560x560 on background (z-index: -1)
+
+Files: www/js/screens/meditation.js, www/css/style.css
