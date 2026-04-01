@@ -79,3 +79,9 @@ Fixed meditation player slider vertical offset
 - .progress-range: margin 0 → margin 0 0 4px 0
 
 Files: www/css/style.css
+
+## TASK 40
+Fixed meditation player card hidden behind bottom nav
+- .meditation-player-card: bottom 70px → 100px (aligned with bottom-nav height)
+
+Files: www/css/style.css

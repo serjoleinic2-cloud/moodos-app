@@ -452,7 +452,7 @@ body[data-theme="warm-sunset"] textarea {
 /* ===== MEDITATION PLAYER CARD ===== */
 .meditation-player-card {
   position: fixed;
-  bottom: 70px;
+  bottom: 100px;
   left: 0;
   right: 0;
   background: #f8f9fa;
