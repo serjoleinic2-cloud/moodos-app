@@ -3,7 +3,7 @@
 // Saves/restores app state for crash recovery
 // =====================================
 
-import { AppRuntime } from "./appRuntime.js";
+import { AppRuntime } from "../core/appRuntime.js";
 import { getProfile } from "./user-profile.js";
 
 const CHECKPOINT_KEY = "app_checkpoint";

@@ -9,6 +9,13 @@ let currentPeriod = 7;
 
 export function onEnter() { renderReport(); }
 
+export function onExit() {
+  const popup = document.getElementById("dayPopup");
+  const overlay = document.getElementById("dayPopupOverlay");
+  if (popup) popup.remove();
+  if (overlay) overlay.remove();
+}
+
 function checkHistoryLimit() {
   if (currentPeriod > 7 && !isPremium()) {
     showPremiumModal({

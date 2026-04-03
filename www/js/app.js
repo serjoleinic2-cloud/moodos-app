@@ -24,6 +24,8 @@ import { showPremiumModal } from "./premium-modal.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling } from "./services/billing-service.js";
+import { stateGovernance } from "./core/state-governance.js";
+import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
@@ -140,6 +142,10 @@ console.log('[BOOT] DOMContentLoaded listener registered');
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log('[BOOT] DOMContentLoaded fired');
+  
+  // FIX 1: Safe default state — prevents undefined premium state
+  window._billingPremium = false;
+  
   try {
     initState();
     console.log('[BOOT] initState done');
@@ -176,13 +182,14 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Слушаем изменения entitlement
   document.addEventListener("premiumChanged", () => {
+    enqueuePremiumChanged();
     reconcileSystemState();
   });
   
   // Reconciliation при resume приложения
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
-      reconcileSystemState();
+      runReconciliation();
       refreshBilling();
     } else {
       // Save checkpoint when app goes to background
@@ -219,6 +226,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 function startApp() {
+  stateGovernance.enable();
+  
+  setTimeout(async () => {
+    const recoveryResult = await recoverEvents();
+    if (recoveryResult.recovered > 0) {
+      console.log('[APP] Recovered', recoveryResult.recovered, 'events from queue');
+    }
+  }, 500);
+  
   // ── Avatar ──
   try {
     initAvatarTap(); // sets up drag, tap, restores position

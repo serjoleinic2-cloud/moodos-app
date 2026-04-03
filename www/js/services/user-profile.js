@@ -3,6 +3,8 @@
 // Профиль юзера — база для калибровки
 // =====================================
 
+import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
+
 const PROFILE_KEY      = "user_profile";
 const ONBOARDING_KEY   = "onboarding_done";
 const MED_REMINDER_KEY = "med_reminder";
@@ -168,30 +170,12 @@ export function getPremiumInfo() {
   };
 }
 
-const PREMIUM_STRICT_MODE = true;
-
 export function isPremium() {
-  const info = getPremiumInfo();
-  
-  if (PREMIUM_STRICT_MODE && window._billingPremium !== undefined) {
-    if (window._billingPremium === true) {
-      return true;
-    }
-    if (info.isPremium && !info.isExpired) {
-      console.warn('[ENTITLEMENT] Strict mode: localStorage premium overridden by billing (not active)');
-    }
-    return false;
-  }
-  
-  return info.isPremium;
-}
-
-export function setPremiumStrictMode(enabled) {
-  window.__PREMIUM_STRICT_MODE = enabled;
+  return window._billingPremium === true;
 }
 
 export function setBillingPremium(value) {
-  window._billingPremium = value;
+  window._billingPremium = value === true;
 }
 
 export function activateTrial() {
@@ -343,78 +327,12 @@ export function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
 }
 
-export function validateEntitlementState() {
-  const info = getPremiumInfo();
-  const profile = getProfile();
-  const issues = [];
-  
-  if (!info.isPremium) {
-    const currentTheme = profile?.colorTheme;
-    if (currentTheme && currentTheme !== BASE_THEME) {
-      const premiumThemes = ['ocean-blue', 'warm-sunset'];
-      if (premiumThemes.includes(currentTheme)) {
-        issues.push('PREMIUM_THEME_LEAK: ' + currentTheme);
-        console.warn('[ENTITLEMENT] Theme leak detected:', currentTheme);
-        resetThemeToDefault();
-      }
-    }
-    
-    const customTracks = localStorage.getItem('med_custom_tracks');
-    if (customTracks && customTracks !== '[]') {
-      const tracks = JSON.parse(customTracks);
-      if (tracks.length > 0) {
-        issues.push('PREMIUM_TRACKS_LEAK: ' + tracks.length + ' tracks');
-        console.warn('[ENTITLEMENT] Custom tracks leak detected:', tracks.length, 'tracks');
-        localStorage.removeItem('med_custom_tracks');
-      }
-    }
-  }
-  
-  if (issues.length > 0) {
-    console.warn('[ENTITLEMENT] State violations found:', issues);
-  }
-  
-  return { valid: issues.length === 0, issues };
-}
-
 export function reconcileSystemState() {
-  const info = getPremiumInfo();
-  const prevPremium = isPremium();
-  
-  console.log('[RECONCILE] Starting...', { 
-    billingPremium: window._billingPremium, 
-    localStatus: info.status, 
-    isExpired: info.isExpired 
-  });
-  
-  if (info.isExpired) {
-    console.log('[RECONCILE] Premium expired detected, deactivating...');
-    deactivateExpiredPremium();
-  }
-  
-  const validation = validateEntitlementState();
-  if (!validation.valid) {
-    console.warn('[RECONCILE] Entitlement violations fixed:', validation.issues);
-  }
-  
-  if (!info.isPremium) {
-    const profile = getProfile();
-    if (profile?.colorTheme && profile.colorTheme !== BASE_THEME) {
-      const premiumThemes = ['ocean-blue', 'warm-sunset'];
-      if (premiumThemes.includes(profile.colorTheme)) {
-        console.log('[RECONCILE] Resetting premium theme to default');
-        resetThemeToDefault();
-      }
-    }
-  }
+  const currentPremium = isPremium();
   
   if (window.systemState) {
-    const newPremium = isPremium();
-    if (prevPremium !== newPremium) {
-      console.log('[RECONCILE] Premium state changed:', prevPremium, '->', newPremium);
-    }
-    window.systemState.premium = newPremium;
+    window.systemState.premium = currentPremium;
   }
   
-  document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: isPremium() } }));
+  document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: currentPremium } }));
 }

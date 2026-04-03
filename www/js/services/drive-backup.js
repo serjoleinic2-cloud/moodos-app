@@ -6,6 +6,8 @@
 import { getMoodHistory, getNotesHistory, getSessionHistory, resolveTimestamp } from "./memory.js";
 import { getProfile, isPremium } from "./user-profile.js";
 import { t } from "../i18n.js";
+import { migrateBackupData, BackupVersion } from "../core/migration-registry.js";
+import { auditLogger } from "../core/audit-logger.js";
 
 const LS_BACKUPS = "moodos_backups";
 const LS_LAST_BACKUP = "last_auto_backup";
@@ -416,12 +418,18 @@ export async function restoreFromBackup(file) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const data = JSON.parse(e.target.result);
+        let data = JSON.parse(e.target.result);
         
         if (!data.version || !data.mood_history) {
           resolve({ success: false, message: "Неверный формат файла" });
           return;
         }
+        
+        const migrationResult = await migrateBackupData(data);
+        if (!migrationResult.success) {
+          console.warn('[BACKUP] Migration had errors:', migrationResult.errors);
+        }
+        data = migrationResult.data;
         
         const validation = await validateRestoreData(data);
         if (!validation.valid) {
@@ -431,8 +439,13 @@ export async function restoreFromBackup(file) {
             const fallback = getPreviousValidBackup(validation.failedId);
             if (fallback) {
               console.log('[BACKUP] Falling back to previous backup:', fallback.id);
-              const fallbackResult = await restoreFromBackupData(fallback.data);
+              const fallbackData = (await migrateBackupData(fallback.data)).data;
+              const fallbackResult = await restoreFromBackupData(fallbackData);
               if (fallbackResult.success) {
+                auditLogger.log(auditLogger.constructor.AuditEvent?.BACKUP_RESTORE || 'BACKUP_RESTORE', {
+                  source: 'drive-backup',
+                  details: { fallback: true, backupId: fallback.id }
+                });
                 resolve({ 
                   success: true, 
                   message: "corrupted_restored_previous",
@@ -448,8 +461,22 @@ export async function restoreFromBackup(file) {
         }
 
         const result = await restoreFromBackupData(data);
+        
+        auditLogger.log('BACKUP_RESTORE', {
+          source: 'drive-backup',
+          details: {
+            version: data.version,
+            moodCount: data.mood_history?.length || 0,
+            migratedFrom: migrationResult.migrationsApplied
+          }
+        });
+        
         resolve(result);
       } catch(err) {
+        auditLogger.log('RESTORE_FAILED', {
+          source: 'drive-backup',
+          details: { error: err.message }
+        });
         resolve({ success: false, message: "Ошибка чтения: " + err.message });
       }
     };

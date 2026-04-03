@@ -6,6 +6,7 @@ d:\moodos-app\
   PROJECT_BRAIN.md
   TASK_LOG.md
   checkpoint.md
+  FREEZE_PROTOCOL.md
   auditclaude.md
   AUDIT.txt
   package.json
@@ -47,6 +48,11 @@ d:\moodos-app\
       core\
         appRuntime.js
         audioController.js
+        audit-logger.js
+        state-governance.js
+        migration-registry.js
+        state-execution-engine.js
+        event-queue.js
       ai\
         offline-ai.js
         voice.js

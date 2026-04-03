@@ -1,0 +1,122 @@
+// =====================================
+// Neyra State Execution Engine (TASK 78: Simplified)
+// Single entry point for all state changes
+// =====================================
+//
+// PIPELINE: EVENT → VALIDATE → GOVERNANCE → COMMIT
+//
+// GOLDEN RULE: BILLING ALWAYS WINS
+// =====================================
+
+import { auditLogger, AuditEvent } from "./audit-logger.js";
+import { stateGovernance } from "./state-governance.js";
+
+export const ExecutionEvent = {
+  PREMIUM_CHANGED: 'PREMIUM_CHANGED',
+  BILLING_SYNC: 'BILLING_SYNC'
+};
+
+export const ExecutionStatus = {
+  IDLE: 'idle',
+  RUNNING: 'running',
+  COMMITTED: 'committed',
+  FAILED: 'failed'
+};
+
+class StateExecutionEngine {
+  constructor() {
+    this.status = ExecutionStatus.IDLE;
+    this.stateLock = false;
+    this.lastCommittedAt = null;
+    this.executionCount = 0;
+  }
+
+  async execute(event) {
+    // FIX 2: Wait-safe mode during billing init
+    if (window._billingInitializing) {
+      return { status: 'waiting', reason: 'billing_initializing' };
+    }
+
+    if (this.stateLock) {
+      return { status: 'locked', event };
+    }
+
+    this.stateLock = true;
+    this.status = ExecutionStatus.RUNNING;
+
+    try {
+      if (!event || !event.type) {
+        this.unlock();
+        return { status: ExecutionStatus.FAILED, reason: 'invalid_event' };
+      }
+
+      const result = this.processEvent(event);
+      
+      this.lastCommittedAt = Date.now();
+      this.executionCount++;
+      
+      auditLogger.log(AuditEvent.FINAL_COMMIT, {
+        source: 'execution-engine',
+        details: { eventType: event.type, premium: result.isPremium }
+      });
+
+      this.unlock();
+      return { status: ExecutionStatus.COMMITTED, isPremium: result.isPremium };
+
+    } catch (error) {
+      console.error('[EXEC] Error:', error);
+      this.unlock();
+      return { status: ExecutionStatus.FAILED, error: error.message };
+    }
+  }
+
+  processEvent(event) {
+    let isPremium = false;
+
+    switch (event.type) {
+      case ExecutionEvent.PREMIUM_CHANGED:
+        isPremium = stateGovernance.resolvePremiumState(
+          window._billingPremium,
+          false
+        );
+        break;
+
+      case ExecutionEvent.BILLING_SYNC:
+        isPremium = event.data?.isPremium ?? false;
+        window._billingPremium = isPremium;
+        break;
+
+      default:
+        isPremium = stateGovernance.resolvePremiumState(
+          window._billingPremium,
+          false
+        );
+    }
+
+    if (window.systemState) {
+      window.systemState.premium = isPremium;
+    }
+
+    return { isPremium };
+  }
+
+  unlock() {
+    this.stateLock = false;
+    this.status = ExecutionStatus.IDLE;
+  }
+
+  getStatus() {
+    return {
+      status: this.status,
+      isLocked: this.stateLock,
+      lastCommittedAt: this.lastCommittedAt,
+      executionCount: this.executionCount
+    };
+  }
+}
+
+export const executionEngine = new StateExecutionEngine();
+
+export async function runReconciliation() {
+  return executionEngine.execute({ type: 'RECONCILE' });
+}

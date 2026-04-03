@@ -1,35 +1,32 @@
 import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, setBillingPremium } from "./user-profile.js";
+import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
+import { enqueueBillingSync } from "../core/event-queue.js";
 
 let storeReady = false;
 
 export function initBilling() {
+  // FIX 2: Guard flag for timing risk
+  window._billingInitializing = true;
+  
   if (!window.store) {
     console.warn('[billing] not available');
+    window._billingInitializing = false;
     return;
   }
 
   const store = window.store;
 
   store.register([
-    {
-      id: "premium_monthly",
-      type: store.PAID_SUBSCRIPTION
-    },
-    {
-      id: "premium_yearly",
-      type: store.PAID_SUBSCRIPTION
-    }
+    { id: "premium_monthly", type: store.PAID_SUBSCRIPTION },
+    { id: "premium_yearly", type: store.PAID_SUBSCRIPTION }
   ]);
 
   store.when("premium_monthly").approved(onPurchaseApproved);
   store.when("premium_yearly").approved(onPurchaseApproved);
-
   store.when("premium_monthly").owned(onOwned);
   store.when("premium_yearly").owned(onOwned);
-  
   store.when("premium_monthly").cancelled(onCancelled);
   store.when("premium_yearly").cancelled(onCancelled);
-  
   store.when("premium_monthly").expired(onExpired);
   store.when("premium_yearly").onExpired(onExpired);
 
@@ -40,13 +37,17 @@ export function initBilling() {
   store.refresh();
   storeReady = true;
   
-  setTimeout(() => getPremiumFromBilling(), 1000);
+  // FIX 2: Set flag to false after initial sync
+  getPremiumFromBilling();
+  window._billingInitializing = false;
 }
 
 function onPurchaseApproved(order) {
   try {
     order.finish();
     activatePremiumPaid();
+    setBillingPremium(true);
+    logPremiumGranted('billing', { productId: order?.productId });
   } catch (e) {
     console.error('[billing] approve error', e);
   }
@@ -54,16 +55,20 @@ function onPurchaseApproved(order) {
 
 function onOwned(product) {
   activatePremiumPaid();
+  setBillingPremium(true);
+  logPremiumGranted('billing_own', { productId: product?.id });
 }
 
 function onCancelled(product) {
-  console.log('[billing] subscription cancelled:', product?.id);
+  setBillingPremium(false);
+  enqueueBillingSync(false);
   deactivateExpiredPremium();
   reconcileSystemState();
 }
 
 function onExpired(product) {
-  console.log('[billing] subscription expired:', product?.id);
+  setBillingPremium(false);
+  enqueueBillingSync(false);
   deactivateExpiredPremium();
   reconcileSystemState();
 }

@@ -1,0 +1,10 @@
+{
+  "name": "Neyra",
+  "short_name": "Neyra",
+  "description": "Mood tracking & self-discovery app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#d4ede8",
+  "theme_color": "#4caf87",
+  "icons": []
+}

@@ -1,7 +1,7 @@
 # NEYRA CHECKPOINT
-Version: v2
+Version: v3
 Date: 2026-04-03
-Status: STABLE
+Status: **ARCHITECTURE FROZEN**
 
 ---
 
@@ -12,9 +12,16 @@ Status: STABLE
 - ✅ Reconciliation активен
 - ✅ CheckpointManager реализован (TASK 65)
 - ✅ Billing hardening выполнен (TASK 62)
-- ✅ Backup 7-days для FREE (TASK 63)
+- ✅ Backup 7 дней для FREE (TASK 63)
+- ✅ Premium strict mode (TASK 71)
+- ✅ Backup integrity layer (TASK 72)
+- ✅ System State Governance (TASK 75)
+- ✅ System Stabilization (TASK 78) — BILLING ALWAYS WINS
+- ✅ System Simplification (TASK 79)
+- ✅ **Architecture Freeze Protocol (TASK 80)**
+- ✅ **Billing timing guard (TASK 81)** — undefined premium fixed
 - ✅ UI стабильный
-- ✅ DEV режим изолирован
+- ✅ DEV режим удалён (TASK 74)
 
 ---
 
@@ -36,6 +43,11 @@ Status: STABLE
 | CheckpointManager | Восстановление после краша |
 | meditation.js | Критичный lifecycle модуль |
 | user-profile.js | Entitlement система |
+| audit-logger | Audit trail (PREMIUM_GRANTED, etc.) |
+| state-governance | Source of truth hierarchy |
+| migration-registry | Backup version migrations |
+| state-execution-engine | Unified execution pipeline |
+| event-queue | Reliable event delivery + crash recovery |
 
 ---
 
@@ -45,9 +57,9 @@ Status: STABLE
 - AudioController — единственный источник аудио состояния
 - Каждый экран обязан иметь onEnter() / onExit()
 - Все подписки удаляются в onExit()
-- Entitlement определяет доступ ко всем premium функциям
-- reconcileSystemState() обеспечивает консистентность
-- resetModule() требует полной переинициализации UI
+- **state-execution-engine.js = ONLY decision point** (TASK 79)
+- **BILLING ALWAYS WINS** — золотое правило (TASK 78)
+- Event Queue гарантированно drain до EMPTY
 
 ---
 
@@ -93,14 +105,14 @@ Status: STABLE
 
 ## 8. CURRENT RISKS
 
-| Риск | Приоритет |
-|------|-----------|
-| Billing: нет server-side валидации purchaseToken | 🔴 HIGH |
-| Backup: custom tracks не экспортируются (IndexedDB) | 🟡 MEDIUM |
-| Backup: нет Google Drive синхронизации | 🟡 MEDIUM |
-| Restore: нет preview конфликтов | 🟢 LOW |
+| Риск | Приоритет | Статус |
+|------|-----------|--------|
+| Billing: нет server-side валидации purchaseToken | 🔴 HIGH | ⚠️ |
+| Backup: custom tracks не экспортируются (IndexedDB) | 🟡 MEDIUM | ⚠️ |
+| Backup: нет Google Drive синхронизации | 🟡 MEDIUM | ⚠️ |
+| Restore: нет preview конфликтов | 🟢 LOW | ⚠️ |
 
-**TASK 71-72 выполнены:** Premium strict mode, backup checksum + validation.
+**TASK 71-75 выполнены:** Premium strict mode, backup checksum, state governance, migration registry.
 
 ---
 
@@ -150,3 +162,10 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 71 | Premium consistency hardening (strict mode) | ✅ |
 | 72 | Backup integrity layer (checksum, validation) | ✅ |
 | 74 | Clean system (removed DEV buttons) | ✅ |
+| 75 | System State Governance Layer | ✅ |
+| 76 | State Execution Engine | ✅ |
+| 77 | Event Queue + Recovery Buffer | ✅ |
+| 78 | System Stabilization Mode | ✅ |
+| 79 | System Simplification | ✅ |
+| 80 | Architecture Freeze Protocol | ✅ |
+| 81 | Fix: undefined premium + billing timing | ✅ |

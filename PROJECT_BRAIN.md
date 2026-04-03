@@ -241,3 +241,68 @@ CheckpointManager.restoreAppState()     // Восстановить AppRuntime s
 
 - Максимум 24 часа (старые checkpoint удаляются)
 - Version mismatch → checkpoint очищается
+
+---
+
+## SYSTEM STATE GOVERNANCE
+
+### Source of Truth Hierarchy (высший → низший)
+
+1. **billing-service** — авторитетный источник для premium
+2. **checkpoint** — транзиентное состояние
+3. **localStorage** — персистентное состояние пользователя
+4. **AppRuntime** — только UI cache
+
+### Offline Rules
+
+- **billing unavailable** → last verified state wins
+- **backup mismatch** → fallback to most recent valid backup
+- **reconcile conflict** → billing always wins
+
+### Audit Events
+
+```js
+PREMIUM_GRANTED      // premium активирован
+PREMIUM_REVOKED      // premium деактивирован
+BACKUP_RESTORE       // восстановление из backup
+STATE_CONFLICT_RESOLVED // конфликт состояния разрешён
+RECONCILE_STARTED    // начало reconciliation
+RECONCILE_COMPLETED  // завершение reconciliation
+BILLING_SYNC         // синхронизация с billing
+MIGRATION_APPLIED    // применена миграция
+```
+
+### Migration Registry
+
+Версии backup:
+- V1: базовый backup
+- V2: добавлены metadata (type, range, counts)
+- V3: добавлен checksum
+
+### Core Modules (TASK 78: Simplified)
+
+- `audit-logger.js` — только essential events
+- `state-governance.js` — billing абсолютный авторитет
+- `migration-registry.js` — versioned migrations
+- `state-execution-engine.js` — упрощённый pipeline
+- `event-queue.js` — гарантированный drain
+
+---
+
+## TASK 78: SYSTEM STABILIZATION
+
+### GOLDEN RULE
+**BILLING ALWAYS WINS** — без исключений
+
+### Simplifications Applied:
+1. Убраны verbose логи
+2. Упрощён audit до essentials
+3. Execution engine: EVENT → VALIDATE → GOVERNANCE → COMMIT
+4. Queue всегда drain до EMPTY
+5. Billing — единственный источник истины для premium
+
+### Audit Events (только essential):
+- PREMIUM_GRANTED
+- PREMIUM_REVOKED
+- FINAL_COMMIT
+- RECOVERY_COMPLETED

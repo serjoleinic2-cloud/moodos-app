@@ -516,3 +516,151 @@ Audit результат:
 - COMPLETED TASKS: добавлена таблица TASK 51-67
 
 Files: checkpoint.md
+
+## TASK 75
+System State Governance Layer
+
+Created www/js/core/audit-logger.js:
+- AuditLogger class with structured logs
+- Events: PREMIUM_GRANTED, PREMIUM_REVOKED, BACKUP_RESTORE, STATE_CONFLICT_RESOLVED, etc.
+- Log persistence to localStorage (max 100 entries)
+- Listeners for real-time notifications
+
+Created www/js/core/state-governance.js:
+- Source of truth hierarchy: billing > checkpoint > localStorage > AppRuntime
+- Offline rules: billing unavailable → last verified, backup mismatch → fallback, reconcile conflict → billing wins
+- resolvePremiumState() with conflict resolution
+- reconcile() function with audit integration
+
+Created www/js/core/migration-registry.js:
+- BackupVersion: V1, V2, V3
+- Migrations for backup data upgrade
+- applyMigrations() for safe upgrade path
+- Migration history tracking
+
+Integrated:
+- billing-service.js: audit logging on all premium events
+- drive-backup.js: migration on restore, audit logging
+- user-profile.js: stateGovernance.resolvePremiumState()
+- app.js: stateGovernance.enable() on start
+
+Files: www/js/core/audit-logger.js, www/js/core/state-governance.js, www/js/core/migration-registry.js, www/js/services/billing-service.js, www/js/services/drive-backup.js, www/js/services/user-profile.js, www/js/app.js, PROJECT_BRAIN.md, MODULE_MAP.md
+
+## TASK 76
+Console errors fix
+
+Fixed:
+- checkpoint-manager.js: wrong import path "./appRuntime.js" → "../core/appRuntime.js"
+- index.html: added SVG favicon inline
+- manifest.json: created valid manifest.json
+
+Files: www/js/services/checkpoint-manager.js, www/index.html, www/manifest.json
+
+## TASK 76
+State Execution Engine
+
+Created www/js/core/state-execution-engine.js:
+- Pipeline: EVENT → VALIDATE → GOVERNANCE → RESOLVE → MIGRATE → AUDIT → COMMIT
+- Events: PREMIUM_CHANGED, BACKUP_RESTORE, APP_START, RECONCILE_TRIGGER, BILLING_SYNC
+- State lock to prevent parallel executions
+- Event queue for concurrent events
+- Execution history tracking (max 50 entries)
+- Integration with audit-logger, state-governance, migration-registry
+
+Integrated:
+- billing-service.js: execution engine for billing sync
+- app.js: execution engine for APP_START and premiumChanged events
+
+Files: www/js/core/state-execution-engine.js, www/js/services/billing-service.js, www/js/app.js, MODULE_MAP.md, PROJECT_BRAIN.md
+
+## TASK 77
+Event Queue + Recovery Buffer
+
+Created www/js/core/event-queue.js:
+- EventQueue class with FIFO processing
+- Persistence in localStorage
+- Idempotency via eventId (prevents duplicates)
+- Retry engine with exponential backoff (3 attempts: 1s, 2s, 5s)
+- RecoveryBuffer class for crash recovery
+- replay events after app restart
+- Event tracking: ENQUEUED, PROCESSED, RETRY, EXHAUSTED
+
+Storage:
+- neyra_event_queue (pending events)
+- neyra_processed_events (idempotency cache, max 200)
+
+Integrated:
+- app.js: recovery on startup, enqueuePremiumChanged for premiumChanged events
+- billing-service.js: enqueueBillingSync for all billing events
+
+Files: www/js/core/event-queue.js, www/js/app.js, www/js/services/billing-service.js, MODULE_MAP.md, PROJECT_BRAIN.md
+
+## TASK 78
+System Stabilization Mode
+
+Architecture freeze - no new layers, just simplification:
+
+Simplified:
+- state-governance.js: billing is ONLY authority, removed complex hierarchy
+- audit-logger.js: only essential events (PREMIUM_GRANTED, PREMIUM_REVOKED, FINAL_COMMIT, RECOVERY_COMPLETED)
+- state-execution-engine.js: simplified to EVENT → VALIDATE → GOVERNANCE → COMMIT
+- event-queue.js: guaranteed drain, removed verbose logging
+- Removed unused imports from user-profile.js, app.js, billing-service.js, migration-registry.js
+
+GOLDEN RULE: Billing ALWAYS wins - no exceptions, no fallbacks
+
+Files: www/js/core/state-governance.js, www/js/core/audit-logger.js, www/js/core/state-execution-engine.js, www/js/core/event-queue.js, www/js/core/migration-registry.js, www/js/services/user-profile.js, www/js/app.js, www/js/services/billing-service.js, PROJECT_BRAIN.md
+
+## TASK 79
+System Simplification
+
+Duplicates removed, single decision point established:
+
+1. isPremium() in user-profile.js: simplified to `window._billingPremium === true`
+2. reconcileSystemState(): simplified to just sync systemState + emit event
+3. validateEntitlementState(): removed (unused after simplify)
+4. billing-service.js: removed logBillingSync (deleted), removed duplicate setBillingPremium calls
+5. Removed unused imports (enqueueBillingSync from app.js)
+
+SINGLE DECISION RULE:
+- state-execution-engine.js = ONLY decision point
+- Everything else = just provides data
+
+Files: www/js/services/user-profile.js, www/js/services/billing-service.js, www/js/app.js
+
+## TASK 80
+Architecture Freeze Protocol
+
+Created FREEZE_PROTOCOL.md documenting:
+- Architecture freeze rules
+- Single source of truth rule
+- Forbidden logic rules
+- Event flow lock (final pipeline)
+- Billing absolute rule
+- Audit freeze rule
+- Anti-regression rule
+
+Files: FREEZE_PROTOCOL.md
+
+## TASK 81
+Fix: undefined premium state + billing timing risk
+
+FIX 1: Safe default state
+- Added window._billingPremium = false at top of DOMContentLoaded (app.js)
+- Prevents undefined state, ensures deterministic baseline
+
+FIX 2: Billing init timing guard
+- Added window._billingInitializing flag in billing-service.js
+- Execution engine returns 'waiting' status when billing initializing
+- Event queue retries with 100ms delay when waiting
+
+Files: www/js/app.js, www/js/services/billing-service.js, www/js/core/state-execution-engine.js, www/js/core/event-queue.js
+
+## TASK 82
+Fix: Report popup not closing on navigation
+
+**ПРИЧИНА:** При открытии popup в Report, элементы создавались в document.body но не удалялись при уходе с экрана. Navigation не очищала popup.
+
+**ФИКС:** Добавлен onExit() в report.js который удаляет dayPopup и dayPopupOverlay при уходе с экрана.
+
+Files: www/js/screens/report.js
