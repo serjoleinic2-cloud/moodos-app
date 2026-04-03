@@ -202,3 +202,13 @@ TASK 51-3: deactivateExpiredPremium() clears custom tracks
 - Added premium check in meditation.js onEnter(): const tracks = isPremium() ? await loadCustomTracks() : []
 
 Files: www/js/services/user-profile.js, www/js/screens/meditation.js
+
+## TASK 52
+PROJECT_BRAIN.md updated to v2
+- Replaced full content with BRAIN v2
+- 6 sections: CORE PURPOSE, SYSTEM PRINCIPLES, SYSTEM MODEL, STATE RULES, ACCESS/ENTITLEMENT MODEL, WHAT IS NOT ALLOWED
+- Removed TGP, DEV LOOP PROTOCOL from old version
+- Premium entitlement model with table
+- Known issue documented (isExpired fix from TASK-51-2)
+
+Files: PROJECT_BRAIN.md
