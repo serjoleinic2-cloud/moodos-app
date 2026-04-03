@@ -124,13 +124,13 @@
 </nav>
 
 <!-- HAMBURGER MENU -->
-<div id="menuOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;"></div>
+<div id="menuOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);transform:translateZ(0);z-index:200;"></div>
 <div id="menuPanel" style="
   position:fixed; bottom:-400px; left:0; width:100%;
   background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);
   border-radius:24px 24px 0 0;
   padding:20px 20px 120px 20px;
-  max-height:380px; z-index:101; box-sizing:border-box;
+  max-height:380px; z-index:201; box-sizing:border-box;
   transition: bottom 0.35s ease;
   box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
 ">
@@ -140,7 +140,7 @@
 </div>
 
 <!-- TOOLS MENU -->
-<div id="toolsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;"></div>
+<div id="toolsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);transform:translateZ(0);z-index:100;"></div>
 <div id="toolsPanel" style="
   position:fixed; bottom:-620px; left:0; width:100%;
   background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);

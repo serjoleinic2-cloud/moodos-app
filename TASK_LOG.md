@@ -161,3 +161,24 @@ Fixed Insight trend calculation and display
 - Added i18n keys: insight_no_change, insight_better, insight_worse for all 4 languages
 
 Files: www/js/screens/insight.js, www/js/i18n/ru.js, www/js/i18n/en.js, www/js/i18n/es.js, www/js/i18n/uk.js
+
+## TASK 49
+Fixed navigation lifecycle - meditation cleanup
+- openScreen() calls meditation onExit FIRST (before any screen change)
+- All tool buttons clean meditation before loading new tool
+- menuItem click handlers now clean meditation before navigation
+- toolsBtn click handler cleans meditation when opening tools menu
+- hamburgerBtn cleans meditation when opening menu
+- onExit() now clears meditationContainer.innerHTML
+- loadedScreens["tools"] = mod to register meditation in screen tracking
+
+Files: www/js/navigation.js, www/js/screens/meditation.js
+
+## TASK 50
+Added blur effect to overlay menus
+- menuOverlay and toolsOverlay now have backdrop-filter: blur(30px)
+- Added transform:translateZ(0) for GPU layer
+- Increased z-index to 200/201 for menuOverlay/menuPanel
+- Fixed hamburgerBtn handler (removed duplicate closeMenu before openMenu)
+
+Files: www/index.html, www/js/navigation.js

@@ -81,8 +81,8 @@ export function initNavigation() {
     closeToolsMenu();
     menuPanel.style.bottom    = "0";
     menuOverlay.style.display = "block";
-    menuOverlay.style.zIndex  = "100";
-    menuPanel.style.zIndex    = "101";
+    menuOverlay.style.zIndex  = "200";
+    menuPanel.style.zIndex    = "201";
   }
 
   function openToolsMenu() {
@@ -94,21 +94,20 @@ export function initNavigation() {
   }
 
   function openScreen(name) {
+    // Stop meditation FIRST if active (before any screen switch)
+    if (window._activeMeditationModule) {
+      if (typeof window._activeMeditationModule.onExit === 'function') {
+        window._activeMeditationModule.onExit();
+      }
+      window._activeMeditationModule = null;
+    }
+    
     // Call onExit for current screen BEFORE switching
     if (currentScreen && loadedScreens[currentScreen]) {
       const prevModule = loadedScreens[currentScreen];
       if (prevModule && typeof prevModule.onExit === 'function') {
-        console.log('[nav] onExit:', currentScreen);
         prevModule.onExit();
       }
-    }
-    // Also stop meditation if it's loaded in tools
-    if (window._activeMeditationModule) {
-      if (typeof window._activeMeditationModule.onExit === 'function') {
-        console.log('[nav] onExit: meditation (tools)');
-        window._activeMeditationModule.onExit();
-      }
-      window._activeMeditationModule = null;
     }
     
     closeMenu();
@@ -128,132 +127,142 @@ export function initNavigation() {
 
   hamburgerBtn.addEventListener("click", () => {
     closeAllOverlays();
+    const toolsContent = document.getElementById("tools-content");
+    if (toolsContent) toolsContent.innerHTML = "";
+    if (window._activeMeditationModule) {
+      if (typeof window._activeMeditationModule.onExit === 'function') {
+        window._activeMeditationModule.onExit();
+      }
+      window._activeMeditationModule = null;
+    }
     openMenu();
   });
   menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); });
   menuPanel.addEventListener("click", (e) => e.stopPropagation());
 
   document.querySelectorAll(".menuItem").forEach(item => {
-    item.addEventListener("click", () => { closeMenu(); openScreen(item.dataset.nav); });
+    item.addEventListener("click", () => { 
+      closeMenu();
+      if (window._activeMeditationModule) {
+        if (typeof window._activeMeditationModule.onExit === 'function') {
+          window._activeMeditationModule.onExit();
+        }
+        window._activeMeditationModule = null;
+      }
+      openScreen(item.dataset.nav); 
+    });
   });
 
-  toolsBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openToolsMenu(); });
+  toolsBtn.addEventListener("click", (e) => { 
+    e.preventDefault(); 
+    e.stopPropagation();
+    closeAllOverlays();
+    if (window._activeMeditationModule) {
+      if (typeof window._activeMeditationModule.onExit === 'function') {
+        window._activeMeditationModule.onExit();
+      }
+      window._activeMeditationModule = null;
+    }
+    openToolsMenu(); 
+  });
   toolsOverlay.addEventListener("click", () => closeToolsMenu());
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
 
   document.getElementById("toolsBreathing").onclick = async () => {
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     const c = document.getElementById("tools-content");
     if (!c) return;
-    c.innerHTML = "<div style='padding:20px;color:red;font-size:16px;'>Загрузка...</div>";
     try {
       const mod = await import("./screens/breathing.js");
-      c.innerHTML = "<div style='padding:20px;color:green;font-size:16px;'>Модуль загружен: " + Object.keys(mod).join(", ") + "</div>";
+      c.innerHTML = "";
       if (mod.initBreathing) mod.initBreathing(c);
     } catch(e) {
-      c.innerHTML = "<div style='padding:20px;color:red;font-size:14px;'>ОШИБКА: " + e.message + "</div>";
+      console.error("[nav] breathing error:", e.message);
     }
   };
 
   document.getElementById("toolsMeditation").onclick = async () => {
-    console.log("[DEBUG] meditation clicked");
-    
-    // Call onExit if meditation is currently active
+    // Clean up previous tool if any
     if (window._activeMeditationModule) {
-      const mod = window._activeMeditationModule;
-      if (mod && typeof mod.onExit === 'function') {
-        console.log('[nav] Calling onExit for meditation');
-        mod.onExit();
+      if (typeof window._activeMeditationModule.onExit === 'function') {
+        window._activeMeditationModule.onExit();
       }
       window._activeMeditationModule = null;
     }
     
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing meditation");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
     try {
       const mod = await import("./screens/meditation.js");
-      console.log("[DEBUG] meditation imported, onEnter:", typeof mod.onEnter);
       window._activeMeditationModule = mod;
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; mod.onEnter(c); }
-      console.log("[DEBUG] meditation init done");
+      loadedScreens["tools"] = mod;
+      c.innerHTML = "";
+      mod.onEnter(c);
     } catch(e) {
-      console.error("[DEBUG] meditation error:", e.message, e.stack);
+      console.error("[nav] meditation error:", e.message);
     }
   };
 
   const vfBtn = document.getElementById("toolsVisualFocus");
   if (vfBtn) vfBtn.onclick = async () => {
-    console.log("[DEBUG] visual-focus clicked");
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing visual-focus");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
     try {
       const { onEnter } = await import("./screens/visual-focus.js");
-      console.log("[DEBUG] visual-focus imported, onEnter:", typeof onEnter);
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; onEnter(c); }
-      console.log("[DEBUG] visual-focus init done");
+      c.innerHTML = "";
+      onEnter(c);
     } catch(e) {
-      console.error("[DEBUG] visual-focus error:", e.message, e.stack);
+      console.error("[nav] visual-focus error:", e.message);
     }
   };
 
   const mdBtn = document.getElementById("toolsMindDump");
   if (mdBtn) mdBtn.onclick = async () => {
-    console.log("[DEBUG] mind-dump clicked");
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing mind-dump");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
     try {
       const { onEnter } = await import("./screens/mind-dump.js");
-      console.log("[DEBUG] mind-dump imported, onEnter:", typeof onEnter);
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; onEnter(c); }
-      console.log("[DEBUG] mind-dump init done");
+      c.innerHTML = "";
+      onEnter(c);
     } catch(e) {
-      console.error("[DEBUG] mind-dump error:", e.message, e.stack);
+      console.error("[nav] mind-dump error:", e.message);
     }
   };
 
   const tcBtn = document.getElementById("toolsTapCalm");
   if (tcBtn) tcBtn.onclick = async () => {
-    console.log("[DEBUG] tap-calm clicked");
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing tap-calm");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
     try {
       const { onEnter } = await import("./screens/tap-calm.js");
-      console.log("[DEBUG] tap-calm imported, onEnter:", typeof onEnter);
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; onEnter(c); }
-      console.log("[DEBUG] tap-calm init done");
+      c.innerHTML = "";
+      onEnter(c);
     } catch(e) {
-      console.error("[DEBUG] tap-calm error:", e.message, e.stack);
+      console.error("[nav] tap-calm error:", e.message);
     }
   };
 
   const stBtn = document.getElementById("toolsSupportTexts");
   if (stBtn) stBtn.onclick = async () => {
-    console.log("[DEBUG] support-texts clicked");
-    closeToolsMenu(); openScreen("tools");
+    openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
-    console.log("[DEBUG] importing support-texts");
+    const c = document.getElementById("tools-content");
+    if (!c) return;
     try {
       const { initSupportTexts } = await import("./screens/support-texts.js");
-      console.log("[DEBUG] support-texts imported, initSupportTexts:", typeof initSupportTexts);
-      const c = document.getElementById("tools-content");
-      console.log("[DEBUG] tools-content:", c);
-      if (c) { c.innerHTML = ""; initSupportTexts(c); }
-      console.log("[DEBUG] support-texts init done");
+      c.innerHTML = "";
+      initSupportTexts(c);
     } catch(e) {
-      console.error("[DEBUG] support-texts error:", e.message, e.stack);
+      console.error("[nav] support-texts error:", e.message);
     }
   };
   

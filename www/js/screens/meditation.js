@@ -720,7 +720,6 @@ export function onExit() {
   }
   destroy();
   running = false;
-  meditationContainer = null;
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
@@ -730,6 +729,10 @@ export function onExit() {
     audioContext = null;
     analyser = null;
     audioSource = null;
+  }
+  if (meditationContainer) {
+    meditationContainer.innerHTML = '';
+    meditationContainer = null;
   }
   const trackList = document.getElementById("trackList");
   if (trackList) trackList.remove();
