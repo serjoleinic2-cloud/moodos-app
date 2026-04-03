@@ -73,11 +73,6 @@ export function render() {
   const moodValue = document.getElementById("moodValue");
   if (moodValue) moodValue.textContent = mood + "%";
 
-  // НЕ пишем moodSlider.value — триггерит events на Android WebView
-
-  const fill = document.querySelector(".ecs-fill");
-  if (fill) fill.style.width = mood + "%";
-
   const insightEl = document.getElementById("todayInsight");
   if (insightEl) {
     insightEl.textContent = buildDayInsight();
@@ -179,10 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Слушаем изменения entitlement
   document.addEventListener("premiumChanged", () => {
-    reconcileSystemState();
-  });
-  
-  document.addEventListener("entitlementReconciled", () => {
     reconcileSystemState();
   });
   

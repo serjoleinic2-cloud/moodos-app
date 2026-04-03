@@ -13,7 +13,7 @@ import {
   getCurrentTime, getDuration, setCurrentTime
 } from "../core/audioController.js";
 
-let canvas, ctx;
+let waveCanvas, waveCtx;
 let animationId;
 let running = false;
 let sessionStartTime = null;
@@ -24,78 +24,6 @@ let meditationContainer = null;
 let audioUnsubscribe = null;
 let stateUnsubscribe = null;
 let premiumChangeHandler = null;
-
-let audioContext = null;
-let analyser = null;
-let audioSource = null;
-let frequencyData = null;
-
-const COLOR_PRESETS = [
-  { inner: "#e0ccff", mid: "#9f7aea", outer: "#5a67d8", dark: "#1a202c" },
-  { inner: "#ffe4b5", mid: "#ffa07a", outer: "#ff6347", dark: "#2d1f1f" },
-  { inner: "#b0e0e6", mid: "#4682b4", outer: "#191970", dark: "#0d1b2a" },
-  { inner: "#98fb98", mid: "#32cd32", outer: "#228b22", dark: "#1a2f1a" },
-  { inner: "#dda0dd", mid: "#ba55d3", outer: "#8b008b", dark: "#1a0d1a" },
-  { inner: "#ffd700", mid: "#ff8c00", outer: "#ff4500", dark: "#2d1a0d" },
-];
-
-let currentColorIndex = 0;
-
-function initAudioAnalyser() {
-  if (audioContext) return;
-  try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 64;
-    frequencyData = new Uint8Array(analyser.frequencyBinCount);
-  } catch(e) {
-    console.warn('[Meditation] AudioAnalyser not available:', e);
-  }
-}
-
-function connectAnalyser(trackSrc) {
-  if (!audioContext || !analyser) return;
-  if (audioSource) {
-    try { audioSource.disconnect(); } catch(e) {}
-  }
-  const audio = new Audio();
-  audio.src = trackSrc;
-  audio.crossOrigin = "anonymous";
-  audioSource = audioContext.createMediaElementSource(audio);
-  audioSource.connect(analyser);
-  analyser.connect(audioContext.destination);
-  audio.play();
-}
-
-function getMoodColors() {
-  if (!analyser || !frequencyData) {
-    return COLOR_PRESETS[currentColorIndex % COLOR_PRESETS.length];
-  }
-  analyser.getByteFrequencyData(frequencyData);
-  
-  let low = 0, mid = 0, high = 0;
-  const len = frequencyData.length;
-  for (let i = 0; i < len; i++) {
-    if (i < len / 3) low += frequencyData[i];
-    else if (i < len * 2 / 3) mid += frequencyData[i];
-    else high += frequencyData[i];
-  }
-  
-  const max = Math.max(low, mid, high);
-  if (max === low) {
-    currentColorIndex = 0;
-  } else if (max === mid) {
-    currentColorIndex = 2;
-  } else {
-    currentColorIndex = 4;
-  }
-  
-  return COLOR_PRESETS[currentColorIndex % COLOR_PRESETS.length];
-}
-
-function selectTrackMood(trackIndex) {
-  currentColorIndex = trackIndex % COLOR_PRESETS.length;
-}
 
 const standardTracks = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
@@ -205,7 +133,6 @@ let currentIndex = 0;
 
 let loopMode  = false;
 let chainMode = false;
-let radiusBase = 105;
 
 export async function onEnter(container) {
   // Cleanup previous subscriptions
@@ -338,15 +265,6 @@ function bindEvents() {
     };
   }
 
-  const medProgress = document.getElementById("medProgress");
-  if (medProgress) {
-    const newMedProgress = medProgress.cloneNode(true);
-    medProgress.replaceWith(newMedProgress);
-    newMedProgress.oninput = (e) => {
-      setCurrentTime(parseFloat(e.target.value));
-    };
-  }
-
   const medHelped = document.getElementById("medHelped");
   if (medHelped) {
     const newMedHelped = medHelped.cloneNode(true);
@@ -446,6 +364,36 @@ function bindEvents() {
     };
     reader.readAsDataURL(file);
   });
+
+  document.addEventListener("click", (e) => {
+    const wc = document.getElementById("waveProgress");
+    if (!wc || e.target !== wc) return;
+    const rect     = wc.getBoundingClientRect();
+    const clickX   = e.clientX - rect.left;
+    const ratio    = Math.max(0, Math.min(1, clickX / rect.width));
+    const duration = getDuration();
+    if (duration > 0) setCurrentTime(ratio * duration);
+  });
+
+  document.addEventListener("touchstart", (e) => {
+    const wc = document.getElementById("waveProgress");
+    if (!wc || e.target !== wc) return;
+    const rect   = wc.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+    const ratio  = Math.max(0, Math.min(1, touchX / rect.width));
+    const duration = getDuration();
+    if (duration > 0) setCurrentTime(ratio * duration);
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    const wc = document.getElementById("waveProgress");
+    if (!wc || e.target !== wc) return;
+    const rect   = wc.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+    const ratio  = Math.max(0, Math.min(1, touchX / rect.width));
+    const duration = getDuration();
+    if (duration > 0) setCurrentTime(ratio * duration);
+  }, { passive: true });
 }
 
 function updateAddButton() {
@@ -485,17 +433,12 @@ export function initMeditation(container) {
       </div>
     </div>
 
-    <!-- АНИМАЦИЯ (фон) -->
-    <div class="meditation-canvas-wrap">
-      <canvas id="meditationCanvas" width="560" height="560"></canvas>
-    </div>
-
     <!-- КАРТОЧКА ПЛЕЙЕРА (фиксирована внизу) -->
     <div id="playerCard" class="meditation-player-card">
       <!-- ПОЛЗУНОК -->
       <div id="progressWrap" class="progress-wrap">
         <div id="medTimer" class="progress-timer">00:00 / 00:00</div>
-        <input type="range" id="medProgress" value="0" min="0" step="1" class="progress-range">
+        <canvas id="waveProgress" class="wave-progress-canvas" height="36"></canvas>
       </div>
 
       <!-- КНОПКИ УПРАВЛЕНИЯ -->
@@ -521,8 +464,15 @@ export function initMeditation(container) {
   `;
 
   meditationContainer = container;
-  canvas = document.getElementById("meditationCanvas");
-  ctx    = canvas.getContext("2d");
+  waveCanvas = document.getElementById("waveProgress");
+  waveCtx    = waveCanvas ? waveCanvas.getContext("2d") : null;
+  
+  function resizeWaveCanvas() {
+    if (!waveCanvas) return;
+    waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+  }
+  resizeWaveCanvas();
+  window.addEventListener("resize", resizeWaveCanvas);
 
   const existingList = document.getElementById("trackList");
   if (!existingList) {
@@ -554,24 +504,89 @@ function renderTracks() {
 function updateProgress(audioState) {
   if (!audioState) return;
   const current = Math.floor(getCurrentTime());
-  const total = Math.floor(getDuration());
-  
-  const progress = document.getElementById("medProgress");
-  if (progress) {
-    progress.max = total || 300;
-    progress.value = current;
-  }
-  
+  const total   = Math.floor(getDuration());
+
   const timer = document.getElementById("medTimer");
   if (timer) {
     const format = (sec) => {
       sec = Math.floor(sec);
-      const m = Math.floor(sec / 60).toString().padStart(2, "0");
-      const s = (sec % 60).toString().padStart(2, "0");
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
       return `${m}:${s}`;
     };
     timer.innerText = `${format(current)} / ${format(total || 0)}`;
   }
+}
+
+function drawWaveProgress() {
+  if (!waveCtx || !waveCanvas) return;
+
+  const current  = getCurrentTime();
+  const duration = getDuration();
+  const progress = duration > 0 ? current / duration : 0;
+
+  const W   = waveCanvas.width;
+  const H   = waveCanvas.height;
+  const midY = H / 2;
+  const playX = W * progress;
+  const ZONE  = 5;
+
+  waveCtx.clearRect(0, 0, W, H);
+  waveCtx.lineWidth = 3;
+  waveCtx.lineCap   = "round";
+  waveCtx.lineJoin  = "round";
+
+  const time = performance.now() * 0.003;
+
+  if (playX - ZONE > 0) {
+    const gradPlayed = waveCtx.createLinearGradient(0, 0, playX - ZONE, 0);
+    gradPlayed.addColorStop(0,   "#4f8ef7");
+    gradPlayed.addColorStop(0.5, "#7b5cf5");
+    gradPlayed.addColorStop(1,   "#a855f7");
+    waveCtx.beginPath();
+    waveCtx.strokeStyle = gradPlayed;
+    waveCtx.moveTo(0, midY);
+    waveCtx.lineTo(playX - ZONE, midY);
+    waveCtx.stroke();
+  }
+
+  const pulse = (Math.sin(time * 6) * 0.5 + 0.5);
+  const amplitude = 4 + pulse * 10;
+  const zoneStart = Math.max(0, playX - ZONE);
+  const zoneEnd   = Math.min(W, playX + ZONE);
+
+  const gradZone = waveCtx.createLinearGradient(zoneStart, 0, zoneEnd, 0);
+  gradZone.addColorStop(0,   "#a855f7");
+  gradZone.addColorStop(0.5, "#c084fc");
+  gradZone.addColorStop(1,   "#a855f7");
+
+  waveCtx.beginPath();
+  waveCtx.strokeStyle = gradZone;
+  for (let x = zoneStart; x <= zoneEnd; x += 0.5) {
+    const dist     = Math.abs(x - playX) / ZONE;
+    const envelope = 1 - dist;
+    const wave     = Math.sin((x - zoneStart) * 0.8 + time * 8) * amplitude * envelope;
+    const y        = midY + wave;
+    if (x === zoneStart) waveCtx.moveTo(x, y);
+    else                 waveCtx.lineTo(x, y);
+  }
+  waveCtx.stroke();
+
+  if (playX + ZONE < W) {
+    waveCtx.beginPath();
+    waveCtx.strokeStyle = "rgba(120, 100, 200, 0.22)";
+    waveCtx.moveTo(playX + ZONE, midY);
+    waveCtx.lineTo(W, midY);
+    waveCtx.stroke();
+  }
+
+  waveCtx.beginPath();
+  waveCtx.arc(playX, midY, 4, 0, Math.PI * 2);
+  waveCtx.fillStyle = "#c084fc";
+  waveCtx.shadowColor = "#a855f7";
+  waveCtx.shadowBlur  = 6;
+  waveCtx.fill();
+  waveCtx.shadowBlur = 0;
 }
 
 function showPlayer() {
@@ -592,9 +607,6 @@ function toggleMeditation() {
     running = true;
     sessionStartTime = Date.now();
     moodBeforeSession = getMood();
-    
-    initAudioAnalyser();
-    selectTrackMood(currentIndex);
     
     const track = getTrackByIndex(currentIndex);
     if (track) {
@@ -692,44 +704,8 @@ function updateButtonState(id, active) {
 
 function animate() {
   if (!running) return;
-  drawWave();
+  drawWaveProgress();
   animationId = requestAnimationFrame(animate);
-}
-
-function drawWave() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const centerX       = canvas.width / 2;
-  const centerY       = canvas.height / 2;
-  const time          = performance.now() * 0.001;
-  const waveAmplitude = 12;
-
-  ctx.beginPath();
-  for (let angle = 0; angle <= Math.PI * 2; angle += 0.02) {
-    const wave1 = Math.sin(angle * 3 + time) * waveAmplitude;
-    const wave2 = Math.sin(angle * 6 - time * 0.7) * (waveAmplitude * 0.5);
-    const r = radiusBase + wave1 + wave2;
-    const x = centerX + r * Math.cos(angle);
-    const y = centerY + r * Math.sin(angle);
-    if (angle === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-
-  const colors = getMoodColors();
-  const gradient = ctx.createRadialGradient(
-    centerX, centerY, radiusBase * 0.3,
-    centerX, centerY, radiusBase * 1.2
-  );
-  gradient.addColorStop(0,   colors.inner);
-  gradient.addColorStop(0.4, colors.mid);
-  gradient.addColorStop(0.7, colors.outer);
-  gradient.addColorStop(1,   colors.dark);
-
-  ctx.fillStyle   = gradient;
-  ctx.shadowColor = colors.mid;
-  ctx.shadowBlur  = 60;
-  ctx.fill();
 }
 
 export function onExit() {
@@ -752,12 +728,8 @@ export function onExit() {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-    analyser = null;
-    audioSource = null;
-  }
+  waveCanvas = null;
+  waveCtx    = null;
   if (meditationContainer) {
     meditationContainer.innerHTML = '';
     meditationContainer = null;

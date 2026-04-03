@@ -24,7 +24,10 @@
       <div style="font-size:15px; font-weight:600; color:#3a3530;" data-i18n="home_how_feeling">Как ты себя чувствуешь?</div>
       <div id="moodSavedLabel" class="saved-label"></div>
     </div>
-    <input type="range" id="moodSlider" min="0" max="100" value="50">
+    <div class="mood-slider-wrap">
+      <div class="ecs-fill"></div>
+      <input type="range" id="moodSlider" min="0" max="100" value="50">
+    </div>
     <div class="mood-value-row">
       <span id="moodValue">50%</span>
       <button id="moodConfirmBtn" class="mood-ok-btn" data-i18n="home_ok">ОК</button>

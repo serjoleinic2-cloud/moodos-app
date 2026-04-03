@@ -291,3 +291,52 @@ TASK 57-2: Fixed custom tracks not hiding on premium disable
 - Reset currentIndex if was on custom track
 
 Files: www/css/style.css, www/js/screens/settings.js, www/js/screens/meditation.js
+
+## TASK 58
+Waveform string progress bar in meditation player
+
+- Replaced `<input type="range">` with `<canvas id="waveProgress">`
+- Added waveCanvas, waveCtx variables
+- Added drawWaveProgress() function with audio-reactive animation
+- Added resizeWaveCanvas() handler for responsive canvas
+- Updated animate() to call drawWaveProgress()
+- Updated updateProgress() to remove medProgress input work
+- Removed medProgress event handler from bindEvents()
+- Added canvas click handler for seeking
+- Added .wave-progress-canvas CSS class
+
+Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 60
+Home mood slider styling
+
+- Added .mood-slider-wrap container in index.html
+- Added .ecs-fill as decorative gradient background (100% width)
+- CSS: gradient from dark purple → purple → yellow → green
+- Height: 7px, border-radius: 4px
+- Input slider made transparent, positioned on top
+- Removed .ecs-fill width manipulation from app.js
+
+Files: www/index.html, www/css/style.css, www/js/app.js
+
+TASK 59-1: Removed ball animation completely
+- Deleted canvas, ctx, COLOR_PRESETS, currentColorIndex variables
+- Deleted initAudioAnalyser(), connectAnalyser(), getMoodColors(), selectTrackMood(), drawWave() functions
+- Deleted radiusBase variable
+- Removed meditationCanvas HTML block from initMeditation()
+- Removed canvas initialization in initMeditation()
+- Removed audioContext cleanup from onExit()
+- Removed initAudioAnalyser() and selectTrackMood() calls from toggleMeditation()
+- Updated animate() to call only drawWaveProgress()
+- Removed .meditation-canvas-wrap CSS
+
+TASK 59-2: Wave progress with burst effect
+- Updated drawWaveProgress() with new algorithm:
+  - Played part: straight line, blue → purple gradient
+  - Burst zone (±5px around playback point): pulsing wave with gradient
+  - Unplayed part: straight line, dim gray
+  - Playback point: small circle with glow effect
+- Added touchstart and touchmove handlers for seeking
+- Updated click handler with Math.max/min bounds
+
+Files: www/js/screens/meditation.js, www/css/style.css
