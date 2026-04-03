@@ -136,3 +136,108 @@ isPremium() возвращал true для статуса "premium" с истё�
 - не сохранять ссылки на DOM или listeners между входами
 
 Нарушение этого правила приводит к деградации системы
+
+---
+
+## BILLING SYSTEM
+
+### Google Play Integration
+
+- Используется `cordova-plugin-purchase` (window.store)
+- Продукты: `premium_monthly`, `premium_yearly` (PAID_SUBSCRIPTION)
+- Подписки: `approved`, `owned`, `cancelled`, `expired`
+
+### Priority в isPremium()
+
+1. `window._billingPremium` — флаг из billing проверки
+2. fallback → localStorage профиль (для trial)
+
+### Events
+
+- При APPROVED → `activatePremiumPaid()`
+- При CANCELLED → `deactivateExpiredPremium()` + `reconcileSystemState()`
+- При EXPIRED → `deactivateExpiredPremium()` + `reconcileSystemState()`
+- При resume (visibilitychange) → `refreshBilling()`
+
+### ⚠️ Security Note
+
+Нет серверной валидации purchase token. Это заглушка для MVP.
+
+---
+
+## BACKUP SYSTEM
+
+### Free vs Premium
+
+| Параметр | FREE | PREMIUM |
+|----------|------|---------|
+| Backup хранилище | 1 | 30 |
+| Автобэкап | ❌ | ✅ (24h interval) |
+| Объём данных | 7 дней | вся история |
+
+### Что сохраняется
+
+- mood_history (фильтр по 7 дням для FREE)
+- notes_history (фильтр по 7 дням для FREE)
+- session_history (фильтр по 7 дням для FREE)
+- user_profile
+
+### Что НЕ сохраняется
+
+- Custom audio tracks (IndexedDB)
+- Данные старше 7 дней для FREE
+
+### Backup metadata (v3)
+
+```js
+{
+  version: 3,
+  backupType: "free" | "premium",
+  backupRange: "7d" | "all",
+  moodCount, notesCount, sessionCount,
+  mood_history, notes_history, session_history,
+  user_profile
+}
+```
+
+---
+
+## CHECKPOINT SYSTEM
+
+### Цель
+
+Восстановление состояния после краша/закрытия приложения.
+
+### CheckpointManager API
+
+```js
+CheckpointManager.saveCheckpoint(data)     // Сохранить состояние
+CheckpointManager.restoreCheckpoint()     // Восстановить
+CheckpointManager.clearCheckpoint()     // Очистить
+CheckpointManager.restoreAppState()     // Восстановить AppRuntime state
+```
+
+### Что сохраняется
+
+- Текущий экран
+- AppRuntime state (минимально)
+- Profile (ключевые поля)
+- Timestamp (для age check)
+
+### Когда сохраняется
+
+- При onExit() экрана → `saveCheckpointOnExit(screen, module)`
+- При visibilitychange (уход в фон)
+- При важных действиях
+
+### Восстановление
+
+При старте приложения:
+1. `initCheckpointRecovery()` → восстанавливает AppRuntime state
+2. `reconcileSystemState()` → синхронизирует entitlement
+3. Старый checkpoint очищается после успешного восстановления
+
+### Ограничения
+
+- Максимум 24 часа (старые checkpoint удаляются)
+- Version mismatch → checkpoint очищается

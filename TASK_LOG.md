@@ -353,3 +353,166 @@ Screen lifecycle stabilization
 - Removed infinite recursion bug from entitlementReconciled listener
 
 Files: www/js/screens/meditation.js, www/js/app.js
+
+## TASK 62
+Premium/Billing/Backup System Audit
+
+Created AUDIT_PREMIUM_BACKUP.md with full analysis:
+
+1. PREMIUM SYSTEM:
+   - Source of truth: localStorage['user_profile']
+   - Statuses: free, trial (7 days), premium, paid, expired
+   - Activation flow documented (Google Play, trial, DEV)
+   - Deactivation flow: checkPremiumExpiry → reconcileSystemState
+   - isPremium() usage: 22 locations across codebase
+
+2. BILLING:
+   - Uses cordova-plugin-purchase (window.store)
+   - Products: premium_monthly, premium_yearly (PAID_SUBSCRIPTION)
+   - ⚠️ CRITICAL: No server-side purchase token validation
+   - ⚠️ CRITICAL: Refund/revoke not tracked properly
+
+3. BACKUP:
+   - localStorage['moodos_backups'] (max 1 FREE / 30 PREMIUM)
+   - Auto-backup: PREMIUM only, 24h interval
+   - ⚠️ DISCREPANCY: FREE = 500 records instead of 7 days
+   - Custom tracks NOT exported (IndexedDB)
+
+4. RISKS:
+   - Billing security (no server validation)
+   - Backup limit (500 vs 7 days)
+   - Custom tracks not restored
+   - Subscription revoke not tracked
+
+Files: AUDIT_PREMIUM_BACKUP.md
+
+## TASK 65
+Checkpoint System for crash recovery
+
+Created www/js/services/checkpoint-manager.js:
+- CheckpointManager.saveCheckpoint() - saves screen, AppRuntime state, profile
+- CheckpointManager.restoreCheckpoint() - restores with age check (24h max)
+- CheckpointManager.clearCheckpoint() - manual clear
+- CheckpointManager.restoreAppState() - restores AppRuntime state
+
+Integrated in navigation.js:
+- saveCheckpointOnExit() called on screen switch
+
+Integrated in app.js:
+- initCheckpointRecovery() called at start
+- checkpoint save on visibilitychange (app background)
+- refreshBilling() called on resume
+
+Files: www/js/services/checkpoint-manager.js, www/js/navigation.js, www/js/app.js
+
+## TASK 62
+Billing hardening
+
+Added billing-service.js:
+- getPremiumFromBilling() - checks active subscriptions from window.store
+- setBillingPremium() - sets window._billingPremium flag
+- refreshBilling() - exposed for external calls
+- Added cancelled/expired handlers → deactivateExpiredPremium()
+
+Updated user-profile.js:
+- isPremium() now checks window._billingPremium first
+- Added setBillingPremium() export
+
+Updated app.js:
+- refreshBilling() called on visibilitychange (resume)
+
+Files: www/js/services/billing-service.js, www/js/services/user-profile.js, www/js/app.js
+
+## TASK 63
+Backup 7 days for FREE users
+
+Updated drive-backup.js:
+- FREE: filter last 7 days (not 500 records)
+- PREMIUM: full history (no limit)
+- Added backupType ("free"/"premium") and backupRange ("7d"/"all")
+- Version bumped to 3
+
+Files: www/js/services/drive-backup.js
+
+## TASK 64
+Backup visibility in UI
+
+Updated settings.js:
+- Shows backup type badge (PREMIUM/FREE)
+- Shows range text: "Saved full history" or "Saved last 7 days (X moods)"
+- Toast now shows range after backup created
+
+Updated drive-backup.js:
+- getSystemBackupState() now returns backupInfo with type/range/counts
+
+Files: www/js/screens/settings.js, www/js/services/drive-backup.js
+
+## TASK 66
+Project Brain sync
+
+Updated PROJECT_BRAIN.md with new sections:
+- BILLING SYSTEM: Google Play integration, priority in isPremium(), events
+- BACKUP SYSTEM: Free vs Premium table, what saves, metadata v3
+- CHECKPOINT SYSTEM: API, what saves, when, recovery flow
+
+Files: PROJECT_BRAIN.md
+
+## TASK 67
+Create checkpoint.md entry point
+
+Created checkpoint.md as single entry point for future sessions:
+- System status summary
+- Source of truth files
+- Critical modules table
+- System invariants
+- Premium/Billing/Backup models
+- Current risks
+- Session rules
+
+Files: checkpoint.md
+
+## TASK 71
+Premium Consistency Hardening
+
+- Added PREMIUM_STRICT_MODE = true
+- isPremium() now checks billing first, warns if localStorage override in strict mode
+- Added setPremiumStrictMode() for toggling
+- reconcileSystemState() now logs all steps with [RECONCILE] prefix
+- validateEntitlementState() now logs each violation with [ENTITLEMENT] prefix
+
+Files: www/js/services/user-profile.js
+
+## TASK 72
+Backup Integrity Layer
+
+- Added SHA-256 checksum computation (with fallback for older browsers)
+- Added CURRENT_BACKUP_VERSION = 3
+- loadBackups() now validates and filters corrupted entries
+- validateBackupEntry() checks structure and required fields
+- getPreviousValidBackup() for fallback to previous backup
+- createBackup() now async, includes checksum and version
+- restoreFromBackup() validates data, falls back to previous backup if corrupted
+- validateRestoreData() checks mood values and arrays
+- clearAllBackups() clears version flag
+
+Files: www/js/services/drive-backup.js, www/js/screens/settings.js
+
+## TASK 74
+Clean System Consolidation
+
+- Removed DEV_MODE constant from app.js
+- Removed initDevPremiumToggle() call
+- Removed initDevPremiumToggle() function definition
+- Removed unused imports (resetThemeToDefault, validateEntitlementState)
+- deactivatePremiumForTest kept in settings.js (UI test feature, not DEV button)
+
+Files: www/js/app.js
+Checkpoint.md v2 Audit
+
+Audit результат:
+- NEXT TASKS: TASK 62-67 выполнены, обновлены на актуальные
+- CURRENT RISKS: добавлен приоритет (HIGH/MEDIUM/LOW)
+- SESSION RULE: уточнено правило checkpoint vs Brain
+- COMPLETED TASKS: добавлена таблица TASK 51-67
+
+Files: checkpoint.md

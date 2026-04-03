@@ -106,6 +106,13 @@ function renderSettings() {
     ? `<div style="font-size:11px; color:#888; margin-top:6px;">${t("auto_backup_enabled") || "Автобэкап включён"}</div>`
     : `<div style="font-size:11px; color:#aaa; margin-top:6px;">${t("auto_backup_premium") || "Автобэкап в Premium"}</div>`;
 
+  const backupRangeText = backupState.backupInfo 
+    ? (backupState.backupInfo.range === "all" 
+      ? "🌟 Saved full history" 
+      : `📅 Saved last 7 days (${backupState.backupInfo.moodCount} moods)`)
+    : "";
+  const backupTypeLabel = backupState.isPremium ? "PREMIUM" : "FREE";
+
   return `
     <style>
       .settings-wrap{padding:20px 16px 80px;font-family:-apple-system,'SF Pro Display',sans-serif}
@@ -228,6 +235,7 @@ function renderSettings() {
             <span class="backup-status-text">${statusIcon === '⏳' ? (t("settings_backup_pending") || "есть изменения") : (t("settings_backup_saved") || "сохранено")}</span>
           </div>
           <div class="backup-last">${t("backup_last") || "Последний backup"}: ${lastBackupText}</div>
+          ${backupRangeText ? `<div style="font-size:11px;color:#4caf87;margin-bottom:8px;">${backupRangeText}</div>` : ''}
           
           <button class="backup-btn" id="btnCreateBackup">
             📋 ${t("btn_create_backup") || "Создать backup"}
@@ -334,9 +342,13 @@ function bindEvents(el) {
     const btn = el.querySelector("#btnCreateBackup");
     if (btn) { btn.textContent = "⏳..."; btn.disabled = true; }
     try {
-      const result = createBackup();
+      const result = await createBackup();
       if (result.success) {
-        showToast("✅ " + (t("backup_created") || "Backup создан"));
+        const backupState = getSystemBackupState();
+        const rangeText = backupState.isPremium 
+          ? "full history" 
+          : "last 7 days";
+        showToast("✅ Backup saved: " + rangeText);
         setTimeout(() => refresh(), 1000);
       } else {
         showToast("❌ " + (t("backup_error") || "Ошибка"));

@@ -1,6 +1,8 @@
 // ============================================================
 // closeAllOverlays — живёт здесь, используется навигацией
 // ============================================================
+import { saveCheckpointOnExit } from "./services/checkpoint-manager.js";
+
 export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
   document.getElementById("moodCalendarOverlay")?.remove();
@@ -108,6 +110,7 @@ export function initNavigation() {
       if (prevModule && typeof prevModule.onExit === 'function') {
         prevModule.onExit();
       }
+      saveCheckpointOnExit(currentScreen, currentScreen);
     }
     
     closeMenu();

@@ -168,8 +168,30 @@ export function getPremiumInfo() {
   };
 }
 
+const PREMIUM_STRICT_MODE = true;
+
 export function isPremium() {
-  return getPremiumInfo().isPremium;
+  const info = getPremiumInfo();
+  
+  if (PREMIUM_STRICT_MODE && window._billingPremium !== undefined) {
+    if (window._billingPremium === true) {
+      return true;
+    }
+    if (info.isPremium && !info.isExpired) {
+      console.warn('[ENTITLEMENT] Strict mode: localStorage premium overridden by billing (not active)');
+    }
+    return false;
+  }
+  
+  return info.isPremium;
+}
+
+export function setPremiumStrictMode(enabled) {
+  window.__PREMIUM_STRICT_MODE = enabled;
+}
+
+export function setBillingPremium(value) {
+  window._billingPremium = value;
 }
 
 export function activateTrial() {
@@ -332,6 +354,7 @@ export function validateEntitlementState() {
       const premiumThemes = ['ocean-blue', 'warm-sunset'];
       if (premiumThemes.includes(currentTheme)) {
         issues.push('PREMIUM_THEME_LEAK: ' + currentTheme);
+        console.warn('[ENTITLEMENT] Theme leak detected:', currentTheme);
         resetThemeToDefault();
       }
     }
@@ -341,6 +364,7 @@ export function validateEntitlementState() {
       const tracks = JSON.parse(customTracks);
       if (tracks.length > 0) {
         issues.push('PREMIUM_TRACKS_LEAK: ' + tracks.length + ' tracks');
+        console.warn('[ENTITLEMENT] Custom tracks leak detected:', tracks.length, 'tracks');
         localStorage.removeItem('med_custom_tracks');
       }
     }
@@ -355,25 +379,41 @@ export function validateEntitlementState() {
 
 export function reconcileSystemState() {
   const info = getPremiumInfo();
+  const prevPremium = isPremium();
+  
+  console.log('[RECONCILE] Starting...', { 
+    billingPremium: window._billingPremium, 
+    localStatus: info.status, 
+    isExpired: info.isExpired 
+  });
   
   if (info.isExpired) {
+    console.log('[RECONCILE] Premium expired detected, deactivating...');
     deactivateExpiredPremium();
   }
   
-  validateEntitlementState();
+  const validation = validateEntitlementState();
+  if (!validation.valid) {
+    console.warn('[RECONCILE] Entitlement violations fixed:', validation.issues);
+  }
   
   if (!info.isPremium) {
     const profile = getProfile();
     if (profile?.colorTheme && profile.colorTheme !== BASE_THEME) {
       const premiumThemes = ['ocean-blue', 'warm-sunset'];
       if (premiumThemes.includes(profile.colorTheme)) {
+        console.log('[RECONCILE] Resetting premium theme to default');
         resetThemeToDefault();
       }
     }
   }
   
   if (window.systemState) {
-    window.systemState.premium = isPremium();
+    const newPremium = isPremium();
+    if (prevPremium !== newPremium) {
+      console.log('[RECONCILE] Premium state changed:', prevPremium, '->', newPremium);
+    }
+    window.systemState.premium = newPremium;
   }
   
   document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: isPremium() } }));

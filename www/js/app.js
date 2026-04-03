@@ -21,9 +21,9 @@ import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
-import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, resetThemeToDefault, validateEntitlementState, isPremium } from "./services/user-profile.js";
-
-const DEV_MODE = true;
+import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
+import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
+import { refreshBilling } from "./services/billing-service.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
@@ -183,6 +183,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       reconcileSystemState();
+      refreshBilling();
+    } else {
+      // Save checkpoint when app goes to background
+      if (window.systemState?.currentScreen) {
+        import("./services/checkpoint-manager.js").then(m => {
+          m.saveCheckpointOnExit(window.systemState.currentScreen, window.systemState.currentScreen);
+        });
+      }
     }
   });
   
@@ -238,8 +246,9 @@ function startApp() {
   
   reconcileSystemState();
   
-  if (DEV_MODE) {
-    initDevPremiumToggle();
+  const checkpoint = initCheckpointRecovery();
+  if (checkpoint) {
+    console.log("[APP] Recovered from checkpoint:", checkpoint.screen);
   }
   
   initNavigation();
@@ -384,43 +393,3 @@ function getViewportHeight() {
 // renderAvatar is defined in avatar.js and imported via initAvatarTap.
 // app.js does NOT re-implement it — that was the source of the x/y bug.
 // window.renderAvatarApp is set inside avatar.js itself if needed.
-
-function initDevPremiumToggle() {
-  if (!DEV_MODE) return;
-  
-  const existingToggle = document.getElementById('devPremiumToggle');
-  if (existingToggle) return;
-  
-  const toggle = document.createElement('div');
-  toggle.id = 'devPremiumToggle';
-  toggle.style.cssText = 'position:fixed;bottom:180px;right:10px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-  
-  const enableBtn = document.createElement('button');
-  enableBtn.textContent = 'ENABLE PREMIUM (TEST)';
-  enableBtn.style.cssText = 'padding:8px 12px;font-size:11px;background:#4CAF50;color:white;border:none;border-radius:6px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
-  enableBtn.onclick = () => {
-    const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
-    profile.isPremium = true;
-    profile.premiumExpiresAt = Date.now() + (365 * 24 * 60 * 60 * 1000);
-    profile.colorTheme = 'ocean-blue';
-    localStorage.setItem('user_profile', JSON.stringify(profile));
-    applyTheme('ocean-blue');
-    document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'premium' } }));
-    validateEntitlementState();
-    console.log('[DEV] Premium ENABLED');
-  };
-  
-  const disableBtn = document.createElement('button');
-  disableBtn.textContent = 'DISABLE PREMIUM (TEST)';
-  disableBtn.style.cssText = 'padding:8px 12px;font-size:11px;background:#f44336;color:white;border:none;border-radius:6px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
-  disableBtn.onclick = () => {
-    deactivateExpiredPremium();
-    resetThemeToDefault();
-    validateEntitlementState();
-    console.log('[DEV] Premium DISABLED');
-  };
-  
-  toggle.appendChild(enableBtn);
-  toggle.appendChild(disableBtn);
-  document.body.appendChild(toggle);
-}
