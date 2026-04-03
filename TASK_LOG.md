@@ -340,3 +340,16 @@ TASK 59-2: Wave progress with burst effect
 - Updated click handler with Math.max/min bounds
 
 Files: www/js/screens/meditation.js, www/css/style.css
+
+## TASK 61
+Screen lifecycle stabilization
+
+- Fixed meditation.js event listeners cleanup:
+  - Added handler variables: trackListClickHandler, fileInputChangeHandler, waveClickHandler, waveTouchStartHandler, waveTouchMoveHandler, windowResizeHandler
+  - bindEvents() now stores handler references
+  - onExit() now removes all document/window listeners
+- Added debug logs: console.log("onEnter", MODULE_NAME), console.log("bindEvents called"), console.log("onExit cleanup")
+- Returned DEV_MODE premium toggle buttons (ENABLE/DISABLE)
+- Removed infinite recursion bug from entitlementReconciled listener
+
+Files: www/js/screens/meditation.js, www/js/app.js

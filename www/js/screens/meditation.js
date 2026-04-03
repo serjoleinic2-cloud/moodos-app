@@ -25,6 +25,18 @@ let audioUnsubscribe = null;
 let stateUnsubscribe = null;
 let premiumChangeHandler = null;
 
+let waveClickHandler = null;
+let waveTouchStartHandler = null;
+let waveTouchMoveHandler = null;
+let trackListClickHandler = null;
+let fileInputChangeHandler = null;
+let windowResizeHandler = null;
+
+function resizeWaveCanvas() {
+  if (!waveCanvas) return;
+  waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+}
+
 const standardTracks = [
   { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
   { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
@@ -135,6 +147,8 @@ let loopMode  = false;
 let chainMode = false;
 
 export async function onEnter(container) {
+  console.log("onEnter", MODULE_NAME);
+  
   // Cleanup previous subscriptions
   if (audioUnsubscribe) {
     audioUnsubscribe();
@@ -205,7 +219,9 @@ function render(container) {
 }
 
 function bindEvents() {
-  document.getElementById("trackList")?.addEventListener("click", (e) => {
+  console.log("bindEvents called for", MODULE_NAME);
+  
+  trackListClickHandler = (e) => {
     const track = e.target.closest(".track");
     if (!track) return;
     if (e.target.classList.contains("del-track")) {
@@ -236,7 +252,8 @@ function bindEvents() {
     }
     currentIndex = parseInt(track.dataset.index);
     handleTrackSwitch();
-  });
+  };
+  document.getElementById("trackList")?.addEventListener("click", trackListClickHandler);
 
   const centerButton = document.getElementById("centerButton");
   if (centerButton) {
@@ -313,15 +330,15 @@ function bindEvents() {
     };
   }
 
-  document.addEventListener("click", (e) => {
+  const addTrackClickHandler = (e) => {
     if (e.target.closest('[data-action="add-track"]')) {
       const input = document.getElementById("addTrackInput");
       if (input) input.click();
     }
-  });
+  };
+  document.addEventListener("click", addTrackClickHandler);
 
-  // Event delegation for file input (persists after HTML replacement)
-  document.addEventListener("change", (e) => {
+  fileInputChangeHandler = (e) => {
     if (!e.target || e.target.id !== "addTrackInput") return;
     
     const file = e.target.files?.[0];
@@ -363,9 +380,10 @@ function bindEvents() {
       e.target.value = '';
     };
     reader.readAsDataURL(file);
-  });
+  };
+  document.addEventListener("change", fileInputChangeHandler);
 
-  document.addEventListener("click", (e) => {
+  waveClickHandler = (e) => {
     const wc = document.getElementById("waveProgress");
     if (!wc || e.target !== wc) return;
     const rect     = wc.getBoundingClientRect();
@@ -373,9 +391,10 @@ function bindEvents() {
     const ratio    = Math.max(0, Math.min(1, clickX / rect.width));
     const duration = getDuration();
     if (duration > 0) setCurrentTime(ratio * duration);
-  });
+  };
+  document.addEventListener("click", waveClickHandler);
 
-  document.addEventListener("touchstart", (e) => {
+  waveTouchStartHandler = (e) => {
     const wc = document.getElementById("waveProgress");
     if (!wc || e.target !== wc) return;
     const rect   = wc.getBoundingClientRect();
@@ -383,9 +402,10 @@ function bindEvents() {
     const ratio  = Math.max(0, Math.min(1, touchX / rect.width));
     const duration = getDuration();
     if (duration > 0) setCurrentTime(ratio * duration);
-  }, { passive: true });
+  };
+  document.addEventListener("touchstart", waveTouchStartHandler, { passive: true });
 
-  document.addEventListener("touchmove", (e) => {
+  waveTouchMoveHandler = (e) => {
     const wc = document.getElementById("waveProgress");
     if (!wc || e.target !== wc) return;
     const rect   = wc.getBoundingClientRect();
@@ -393,7 +413,8 @@ function bindEvents() {
     const ratio  = Math.max(0, Math.min(1, touchX / rect.width));
     const duration = getDuration();
     if (duration > 0) setCurrentTime(ratio * duration);
-  }, { passive: true });
+  };
+  document.addEventListener("touchmove", waveTouchMoveHandler, { passive: true });
 }
 
 function updateAddButton() {
@@ -467,12 +488,9 @@ export function initMeditation(container) {
   waveCanvas = document.getElementById("waveProgress");
   waveCtx    = waveCanvas ? waveCanvas.getContext("2d") : null;
   
-  function resizeWaveCanvas() {
-    if (!waveCanvas) return;
-    waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
-  }
   resizeWaveCanvas();
-  window.addEventListener("resize", resizeWaveCanvas);
+  windowResizeHandler = resizeWaveCanvas;
+  window.addEventListener("resize", windowResizeHandler);
 
   const existingList = document.getElementById("trackList");
   if (!existingList) {
@@ -709,6 +727,8 @@ function animate() {
 }
 
 export function onExit() {
+  console.log("onExit cleanup for", MODULE_NAME);
+  
   if (audioUnsubscribe) {
     audioUnsubscribe();
     audioUnsubscribe = null;
@@ -720,6 +740,30 @@ export function onExit() {
   if (premiumChangeHandler) {
     document.removeEventListener('premiumChanged', premiumChangeHandler);
     premiumChangeHandler = null;
+  }
+  if (trackListClickHandler) {
+    document.removeEventListener('click', trackListClickHandler);
+    trackListClickHandler = null;
+  }
+  if (fileInputChangeHandler) {
+    document.removeEventListener('change', fileInputChangeHandler);
+    fileInputChangeHandler = null;
+  }
+  if (waveClickHandler) {
+    document.removeEventListener('click', waveClickHandler);
+    waveClickHandler = null;
+  }
+  if (waveTouchStartHandler) {
+    document.removeEventListener('touchstart', waveTouchStartHandler);
+    waveTouchStartHandler = null;
+  }
+  if (waveTouchMoveHandler) {
+    document.removeEventListener('touchmove', waveTouchMoveHandler);
+    waveTouchMoveHandler = null;
+  }
+  if (windowResizeHandler) {
+    window.removeEventListener('resize', windowResizeHandler);
+    windowResizeHandler = null;
   }
   AppRuntime.resetModule(MODULE_NAME);
   destroy();
