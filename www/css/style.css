@@ -399,16 +399,11 @@ body[data-theme="warm-sunset"] textarea {
 /* ===== MEDITATION TRACK LIST ===== */
 #trackList,
 .track-list {
-  max-height: 180px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(159,122,234,0.3) transparent;
+  overflow-y: visible;
   margin-bottom: 10px;
 }
 #trackList::-webkit-scrollbar,
-.track-list::-webkit-scrollbar { width: 4px; }
-#trackList::-webkit-scrollbar-thumb,
-.track-list::-webkit-scrollbar-thumb { background: rgba(159,122,234,0.3); border-radius: 4px; }
+.track-list::-webkit-scrollbar { display: none; }
 
 .track {
   display: flex;
@@ -513,6 +508,8 @@ body[data-theme="warm-sunset"] textarea {
   left: 16px;
   right: 16px;
   z-index: 100;
+  overflow-y: visible;
+  max-height: none;
 }
 
 .track-list-fixed .track {
@@ -647,4 +644,19 @@ body[data-theme="warm-sunset"] textarea {
 .feedback-btn--neutral {
   color: #888;
 }
+
+/* ===== SETTINGS DEACTIVATE PREMIUM BTN ===== */
+.deactivate-premium-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fee2e2, #fecaca);
+  box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  color: #991b1b;
+  cursor: pointer;
 }
+

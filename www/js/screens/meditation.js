@@ -23,6 +23,7 @@ let stateBeforeSession = null;
 let meditationContainer = null;
 let audioUnsubscribe = null;
 let stateUnsubscribe = null;
+let premiumChangeHandler = null;
 
 let audioContext = null;
 let analyser = null;
@@ -248,6 +249,28 @@ export async function onEnter(container) {
   
   syncState();
   updatePlayButton();
+  
+  const onPremiumChanged = async () => {
+    const wasPremium = !isPremium();
+    const tracks = isPremium() ? await loadCustomTracks() : [];
+    AppRuntime.setState(MODULE_NAME, { customTracks: tracks });
+    
+    const allTracks = [...standardTracks, ...tracks];
+    if (currentIndex >= allTracks.length || (wasPremium && currentIndex >= standardTracks.length)) {
+      currentIndex = 0;
+      if (running) {
+        stop();
+        running = false;
+        cancelAnimationFrame(animationId);
+        showFeedback();
+      }
+    }
+    
+    renderTracks();
+    updateAddButton();
+  };
+  premiumChangeHandler = onPremiumChanged;
+  document.addEventListener('premiumChanged', premiumChangeHandler);
 }
 
 function render(container) {
@@ -399,10 +422,10 @@ function bindEvents() {
         e.target.value = '';
         return;
       }
-      const fileNameBase = file.name.replace(/\.[^.]+$/, '');
+      const fileNameBase = file.name.split('/').pop().replace(/\.[^.]+$/, '').trim();
       
       const isDuplicate = currentCustom.some(t => 
-        t.name.toLowerCase() === fileNameBase.toLowerCase()
+        t.name.toLowerCase().trim() === fileNameBase.toLowerCase()
       );
       if (isDuplicate) {
         alert(t("med_track_duplicate") || "Трек уже существует");
@@ -718,6 +741,11 @@ export function onExit() {
     stateUnsubscribe();
     stateUnsubscribe = null;
   }
+  if (premiumChangeHandler) {
+    document.removeEventListener('premiumChanged', premiumChangeHandler);
+    premiumChangeHandler = null;
+  }
+  AppRuntime.resetModule(MODULE_NAME);
   destroy();
   running = false;
   if (animationId) {

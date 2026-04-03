@@ -222,3 +222,72 @@ PROJECT_BRAIN.md updated to final BRAIN v2
 - Updated entitlement table with bold false for expired status
 
 Files: PROJECT_BRAIN.md
+
+## TASK 54
+Entitlement system stabilization
+
+Added BASE_THEME = "default" constant
+Added resetThemeToDefault() - resets theme to base and dispatches themeChanged
+deactivateExpiredPremium() now calls resetThemeToDefault()
+Added validateEntitlementState() - checks for premium theme leaks, custom tracks leaks, logs and fixes issues
+Added reconcileSystemState() - calls deactivateExpiredPremium, validateEntitlementState, fixes theme if premium, syncs systemState
+App startup now calls reconcileSystemState()
+Added DEV_MODE premium toggle buttons (3 buttons: ENABLE/DISABLE/CHECK STATUS)
+Added listeners for premiumChanged, entitlementReconciled events
+Added visibilitychange listener for reconciliation on app resume
+
+Files: www/js/services/user-profile.js, www/js/app.js
+
+## TASK 55
+Premium toggle in Settings + Meditation premiumChanged listener
+
+TASK 55-1: Settings premium test toggle
+- Added deactivatePremiumForTest() function in user-profile.js
+- Added dispatch of premiumChanged event in deactivateExpiredPremium()
+- Added import deactivatePremiumForTest in settings.js
+- Added "Выключить premium (тест)" button in premiumBlock (visible only when isPremium)
+- Added click handler for deactivatePremiumBtn
+
+TASK 55-2: Meditation responds to premiumChanged
+- Added premiumChangeHandler variable
+- onEnter() now subscribes to premiumChanged event
+- onExit() now unsubscribes from premiumChanged
+- Tracks reload based on isPremium() state
+
+TASK 55-3: Removed scroll from trackList
+- #trackList: removed max-height: 180px, overflow-y: auto
+- .track-list-fixed: added overflow-y: visible, max-height: none
+- Track list now displays as hamburger (no scroll)
+
+Files: www/js/services/user-profile.js, www/js/screens/settings.js, www/js/screens/meditation.js, www/css/style.css
+
+## TASK 56
+Remove DEV buttons + fix meditation premium handler
+
+TASK 56-1: Removed DEV premium toggle buttons
+- Deleted initDevPremiumToggle() function from app.js
+- Deleted DEV_MODE constant
+- Removed call to initDevPremiumToggle() in startApp()
+- Cleaned up unused imports (validateEntitlementState, resetThemeToDefault, etc.)
+- Buttons "ENABLE PREMIUM (TEST)", "DISABLE PREMIUM (TEST)", "CHECK STATUS (TEST)" no longer appear
+
+TASK 56-2: Fixed premiumChangeHandler to hide custom tracks
+- Added explicit renderTracks() and updateAddButton() calls after setState
+- Added currentIndex reset if out of bounds after tracks change
+- Custom tracks now properly hidden when premium disabled
+
+Files: www/js/app.js, www/js/screens/meditation.js
+
+## TASK 57
+Fix inline styles + custom tracks hide on premium disable
+
+TASK 57-1: Replace inline styles with CSS class
+- Added .deactivate-premium-btn class in style.css
+- Replaced inline styles in settings.js with class="deactivate-premium-btn"
+
+TASK 57-2: Fixed custom tracks not hiding on premium disable
+- Added AppRuntime.resetModule(MODULE_NAME) in onExit()
+- Added stop playback if playing custom track when premium disabled
+- Reset currentIndex if was on custom track
+
+Files: www/css/style.css, www/js/screens/settings.js, www/js/screens/meditation.js

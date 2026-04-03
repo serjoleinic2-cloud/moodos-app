@@ -21,7 +21,7 @@ import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang } from "./i18n.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
-import { checkPremiumExpiry, deactivateExpiredPremium } from "./services/user-profile.js";
+import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState } from "./services/user-profile.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {
@@ -177,6 +177,22 @@ document.addEventListener("DOMContentLoaded", () => {
     applyTheme(e.detail.theme);
   });
   
+  // Слушаем изменения entitlement
+  document.addEventListener("premiumChanged", () => {
+    reconcileSystemState();
+  });
+  
+  document.addEventListener("entitlementReconciled", () => {
+    reconcileSystemState();
+  });
+  
+  // Reconciliation при resume приложения
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      reconcileSystemState();
+    }
+  });
+  
   applyDomTranslations();
 
   if (!isOnboardingDone()) {
@@ -226,6 +242,8 @@ function startApp() {
       desc: t("premium_expired_desc")
     });
   }
+  
+  reconcileSystemState();
   
   initNavigation();
 

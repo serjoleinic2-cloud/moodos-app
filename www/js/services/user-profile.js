@@ -109,6 +109,8 @@ export function markMonthlyCheckDone() {
 
 // ---- PREMIUM ----
 
+export const BASE_THEME = "default";
+
 const PREMIUM_KEY = "premium_status";
 const GEMINI_COUNTER_KEY = "gemini_daily_counter";
 const GEMINI_COUNTER_DATE_KEY = "gemini_counter_date";
@@ -264,9 +266,34 @@ export function deactivateExpiredPremium() {
     profile.premiumExpiresAt = null;
     saveProfile(profile);
     localStorage.removeItem('med_custom_tracks');
+    resetThemeToDefault();
+    document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
     return true;
   }
   return false;
+}
+
+export function deactivatePremiumForTest() {
+  const profile = getProfile() || {};
+  profile.isPremium = false;
+  profile.premium = false;
+  profile.premium_type = null;
+  profile.premiumTrial = { active: false };
+  profile.premiumPlan = null;
+  profile.premiumExpiresAt = null;
+  saveProfile(profile);
+  localStorage.removeItem('med_custom_tracks');
+  if (window.systemState) window.systemState.premium = false;
+  resetThemeToDefault();
+  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
+}
+
+export function resetThemeToDefault() {
+  const profile = getProfile() || {};
+  profile.colorTheme = BASE_THEME;
+  saveProfile(profile);
+  applyTheme(BASE_THEME);
+  document.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme: BASE_THEME } }));
 }
 
 // ---- ТЕМА ----
@@ -292,4 +319,62 @@ export function setTheme(theme) {
 
 export function applyTheme(theme) {
   document.body.setAttribute("data-theme", theme);
+}
+
+export function validateEntitlementState() {
+  const info = getPremiumInfo();
+  const profile = getProfile();
+  const issues = [];
+  
+  if (!info.isPremium) {
+    const currentTheme = profile?.colorTheme;
+    if (currentTheme && currentTheme !== BASE_THEME) {
+      const premiumThemes = ['ocean-blue', 'warm-sunset'];
+      if (premiumThemes.includes(currentTheme)) {
+        issues.push('PREMIUM_THEME_LEAK: ' + currentTheme);
+        resetThemeToDefault();
+      }
+    }
+    
+    const customTracks = localStorage.getItem('med_custom_tracks');
+    if (customTracks && customTracks !== '[]') {
+      const tracks = JSON.parse(customTracks);
+      if (tracks.length > 0) {
+        issues.push('PREMIUM_TRACKS_LEAK: ' + tracks.length + ' tracks');
+        localStorage.removeItem('med_custom_tracks');
+      }
+    }
+  }
+  
+  if (issues.length > 0) {
+    console.warn('[ENTITLEMENT] State violations found:', issues);
+  }
+  
+  return { valid: issues.length === 0, issues };
+}
+
+export function reconcileSystemState() {
+  const info = getPremiumInfo();
+  
+  if (info.isExpired) {
+    deactivateExpiredPremium();
+  }
+  
+  validateEntitlementState();
+  
+  if (!info.isPremium) {
+    const profile = getProfile();
+    if (profile?.colorTheme && profile.colorTheme !== BASE_THEME) {
+      const premiumThemes = ['ocean-blue', 'warm-sunset'];
+      if (premiumThemes.includes(profile.colorTheme)) {
+        resetThemeToDefault();
+      }
+    }
+  }
+  
+  if (window.systemState) {
+    window.systemState.premium = isPremium();
+  }
+  
+  document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: isPremium() } }));
 }

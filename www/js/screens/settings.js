@@ -15,6 +15,7 @@ import {
   setTheme,
   applyTheme,
   isPremium,
+  deactivatePremiumForTest,
 } from "../services/user-profile.js";
 import { getLastBackupTime, getBackupStatus, getSystemBackupState, createBackup, shareBackup } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
@@ -63,6 +64,7 @@ function renderSettings() {
     ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_trial_access")}: ${premiumInfo.trialDaysLeft}</div>` 
     : "";
   const showTrialBtn = premiumInfo.status === "free";
+  const showDeactivateBtn = premiumInfo.isPremium;
 
   const themeLabels = {
     "default":      "🌿 " + t("theme_default"),
@@ -261,6 +263,8 @@ function renderSettings() {
             font-size:15px;font-weight:600;color:#92400e;cursor:pointer;
           ">${t("premium_try_btn")}</button>
           <div style="font-size:11px;color:#92400e;margin-top:6px;text-align:center;">${t("premium_try_desc")}</div>` : ""}
+          ${showDeactivateBtn ? `
+          <button id="deactivatePremiumBtn" class="deactivate-premium-btn">🧪 Выключить premium (тест)</button>` : ''}
         </div>
         <div class="neo-row" id="settingHowItWorks">
           <div class="neo-row-content">
@@ -376,6 +380,11 @@ function bindEvents(el) {
 
   el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
     openScreen("howItWorks");
+  });
+
+  el.querySelector("#deactivatePremiumBtn")?.addEventListener("click", () => {
+    deactivatePremiumForTest();
+    refresh();
   });
 }
 
