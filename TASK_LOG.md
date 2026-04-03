@@ -182,3 +182,23 @@ Added blur effect to overlay menus
 - Fixed hamburgerBtn handler (removed duplicate closeMenu before openMenu)
 
 Files: www/index.html, www/js/navigation.js
+
+## TASK 51
+Stabilization fixes (3 tasks)
+
+TASK 51-1: AppRuntime.subscribe() now returns unsubscribe function
+- subscribe() returns () => filter() for proper cleanup
+
+Files: www/js/core/appRuntime.js
+
+TASK 51-2: isPremium() returns false for expired premium
+- getPremiumInfo(): isPremium now checks !isExpired for "premium" status
+- (status === "premium" && !isExpired) || status === "trial" || status === "paid"
+
+Files: www/js/services/user-profile.js
+
+TASK 51-3: deactivateExpiredPremium() clears custom tracks
+- Added localStorage.removeItem('med_custom_tracks') on expiry
+- Added premium check in meditation.js onEnter(): const tracks = isPremium() ? await loadCustomTracks() : []
+
+Files: www/js/services/user-profile.js, www/js/screens/meditation.js

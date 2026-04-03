@@ -162,7 +162,7 @@ export function getPremiumInfo() {
     plan,
     expiresAt,
     isExpired,
-    isPremium: status === "premium" || status === "trial" || status === "paid"
+    isPremium: (status === "premium" && !isExpired) || status === "trial" || status === "paid"
   };
 }
 
@@ -263,6 +263,7 @@ export function deactivateExpiredPremium() {
     profile.isPremium = false;
     profile.premiumExpiresAt = null;
     saveProfile(profile);
+    localStorage.removeItem('med_custom_tracks');
     return true;
   }
   return false;

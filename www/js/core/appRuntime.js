@@ -22,6 +22,9 @@ export const AppRuntime = {
   subscribe(module, cb) {
     if (!this.listeners[module]) this.listeners[module] = [];
     this.listeners[module].push(cb);
+    return () => {
+      this.listeners[module] = (this.listeners[module] || []).filter(fn => fn !== cb);
+    };
   },
 
   emit(module) {

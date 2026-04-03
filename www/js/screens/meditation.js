@@ -217,7 +217,7 @@ export async function onEnter(container) {
     stateUnsubscribe = null;
   }
 
-  const tracks = await loadCustomTracks();
+  const tracks = isPremium() ? await loadCustomTracks() : [];
   AppRuntime.initModule(MODULE_NAME, {
     customTracks: tracks,
     activeTrackId: null,
