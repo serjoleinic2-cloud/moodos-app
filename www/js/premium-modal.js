@@ -2,7 +2,7 @@
 // Neyra Premium Modal
 // =====================================
 import { t } from "./i18n.js";
-import { activateTrial, getPremiumInfo } from "./services/user-profile.js";
+import { getPremiumInfo } from "./services/user-profile.js";
 
 let isShowing = false;
 
@@ -11,7 +11,7 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   isShowing = true;
   
   const premiumInfo = getPremiumInfo();
-  const isPremium = premiumInfo.isPremium;
+  const isPremiumUser = premiumInfo.isPremium;
   
   const modal = document.getElementById("premium-modal");
   const titleEl = document.getElementById("premium-modal-title");
@@ -26,7 +26,7 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   
   if (titleEl) titleEl.textContent = title || "";
   if (descEl) descEl.textContent = desc || "";
-  if (btnEl) btnEl.textContent = isPremium ? t("premium_unlimited") : t("premium_try_btn");
+  if (btnEl) btnEl.textContent = isPremiumUser ? t("premium_unlimited") : t("premium_open_btn");
   if (closeEl) closeEl.textContent = t("close");
   
   modal.style.display = "flex";
@@ -46,24 +46,10 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   
   if (btnEl) {
     btnEl.onclick = () => {
-      if (isPremium) {
-        closeModal();
-        return;
-      }
-      
-      activateTrial();
-      
-      if (window.systemState) {
-        window.systemState.premium = true;
-      }
-      
       closeModal();
-      
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_access_granted");
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 3000);
+      if (window.navigateTo) {
+        window.navigateTo("paywall");
+      }
     };
   }
 }

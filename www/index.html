@@ -25,7 +25,12 @@
       <div style="font-size:15px; font-weight:600; color:#3a3530;" data-i18n="home_how_feeling">Как ты себя чувствуешь?</div>
       <div id="moodSavedLabel" class="saved-label"></div>
     </div>
-    <div class="mood-slider-wrap">
+    
+    <!-- EVENTS GRID -->
+    <div id="eventsContainer"></div>
+    <div id="eventsHint" style="font-size:11px; color:#999; text-align:center; margin-top:6px;" data-i18n="home_events_hint">Это поможет лучше понять твоё состояние</div>
+    
+    <div class="mood-slider-wrap" style="margin-top:16px;">
       <div class="ecs-fill"></div>
       <input type="range" id="moodSlider" min="0" max="100" value="50">
     </div>
@@ -33,6 +38,18 @@
       <span id="moodValue">50%</span>
       <button id="moodConfirmBtn" class="mood-ok-btn" data-i18n="home_ok">ОК</button>
     </div>
+  </div>
+
+  <!-- INSIGHT CARD -->
+  <div id="homeInsightCard" class="card" style="display:none; background: linear-gradient(145deg, #e8f5e9, #c8e6c9); transition: opacity 0.4s ease;">
+    <div style="font-size:12px; color:#2e7d32; margin-bottom:4px; font-weight:600;">💡 <span data-i18n="home_insight_label">Инсайт</span></div>
+    <div id="homeInsightText" style="font-size:14px; color:#1b5e20; line-height:1.4;"></div>
+  </div>
+
+  <!-- PATTERN CARD -->
+  <div id="homePatternCard" class="card" style="display:none; background: linear-gradient(145deg, #fff3e0, #ffe0b2); transition: opacity 0.4s ease;">
+    <div style="font-size:12px; color:#e65100; margin-bottom:4px; font-weight:600;">🔄 <span data-i18n="home_pattern_label">Заметил закономерность</span></div>
+    <div id="homePatternText" style="font-size:13px; color:#00bcd4; line-height:1.4;"></div>
   </div>
 
   <!-- AI REFLECTION -->
@@ -156,10 +173,10 @@
 ">
   <div id="toolsBreathing"   style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_breathing">🫁 Дыхание</div>
   <div id="toolsMeditation"  style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_meditation">🧘 Медитация</div>
-  <div id="toolsVisualFocus" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_visual">👁 Зрительный якорь</div>
-  <div id="toolsMindDump"    style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_mind">🧠 Выгрузка мыслей</div>
-  <div id="toolsTapCalm"     style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_tap">✋ Тактильная разрядка</div>
-  <div id="toolsSupportTexts" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_support">💌 Тексты поддержки</div>
+  <div id="toolsVisualFocus" class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_visual">👁 Зрительный якорь 🔒</div>
+  <div id="toolsMindDump"    class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_mind">🧠 Выгрузка мыслей 🔒</div>
+  <div id="toolsTapCalm"     class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_tap">✋ Тактильная разрядка 🔒</div>
+  <div id="toolsSupportTexts" class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_support">💌 Тексты поддержки 🔒</div>
 </div><!-- tools -->
 </div><!-- #app -->
 

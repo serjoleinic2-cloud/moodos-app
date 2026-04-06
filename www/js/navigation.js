@@ -3,6 +3,7 @@
 // ============================================================
 import { saveCheckpointOnExit } from "./services/checkpoint-manager.js";
 import { t } from "./i18n.js";
+import { isPremium } from "./services/user-profile.js";
 
 export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
@@ -212,6 +213,14 @@ export function initNavigation() {
 
   const vfBtn = document.getElementById("toolsVisualFocus");
   if (vfBtn) vfBtn.onclick = async () => {
+    if (!isPremium()) {
+      const { showPremiumModal } = await import("./premium-modal.js");
+      showPremiumModal({ 
+        title: t("premium_feature_custom_tracks") || "Premium Feature", 
+        desc: t("free_history_limit_desc") || "Upgrade to access all features" 
+      });
+      return;
+    }
     openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     const c = document.getElementById("tools-content");
@@ -227,6 +236,14 @@ export function initNavigation() {
 
   const mdBtn = document.getElementById("toolsMindDump");
   if (mdBtn) mdBtn.onclick = async () => {
+    if (!isPremium()) {
+      const { showPremiumModal } = await import("./premium-modal.js");
+      showPremiumModal({ 
+        title: t("premium_feature_custom_tracks") || "Premium Feature", 
+        desc: t("free_history_limit_desc") || "Upgrade to access all features" 
+      });
+      return;
+    }
     openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     const c = document.getElementById("tools-content");
@@ -242,6 +259,14 @@ export function initNavigation() {
 
   const tcBtn = document.getElementById("toolsTapCalm");
   if (tcBtn) tcBtn.onclick = async () => {
+    if (!isPremium()) {
+      const { showPremiumModal } = await import("./premium-modal.js");
+      showPremiumModal({ 
+        title: t("premium_feature_custom_tracks") || "Premium Feature", 
+        desc: t("free_history_limit_desc") || "Upgrade to access all features" 
+      });
+      return;
+    }
     openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     const c = document.getElementById("tools-content");
@@ -257,6 +282,14 @@ export function initNavigation() {
 
   const stBtn = document.getElementById("toolsSupportTexts");
   if (stBtn) stBtn.onclick = async () => {
+    if (!isPremium()) {
+      const { showPremiumModal } = await import("./premium-modal.js");
+      showPremiumModal({ 
+        title: t("premium_feature_custom_tracks") || "Premium Feature", 
+        desc: t("free_history_limit_desc") || "Upgrade to access all features" 
+      });
+      return;
+    }
     openScreen("tools");
     await new Promise(r => setTimeout(r, 50));
     const c = document.getElementById("tools-content");

@@ -201,24 +201,55 @@ textarea {
 .mainBtn {
   width: 72px; height: 72px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; cursor: pointer;
+  cursor: pointer;
   background: linear-gradient(145deg, #f5efe6, #ede5d8);
   box-shadow: 6px 6px 12px #c8bfb2, -6px -6px 12px #ffffff;
   color: #7a6a58; transition: box-shadow 0.18s;
   -webkit-tap-highlight-color: transparent;
+  border: none;
+  padding: 0;
 }
 .mainBtn:active { box-shadow: inset 5px 5px 10px #c8bfb2, inset -5px -5px 10px #ffffff; }
 
 .smallBtn {
   width: 44px; height: 44px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px; cursor: pointer;
+  cursor: pointer;
   background: rgba(232, 237, 230, 0.9);
   box-shadow: 3px 3px 7px #b8c4b4, -3px -3px 7px #ffffff;
   color: #888; transition: box-shadow 0.18s;
   -webkit-tap-highlight-color: transparent;
+  border: none;
+  padding: 0;
 }
 .smallBtn:active { box-shadow: inset 4px 4px 8px #b8c4b4, inset -4px -4px 8px #ffffff; }
+
+.player-btn {
+  background: rgba(232, 237, 230, 0.9);
+}
+
+.player-icon {
+  width: 24px;
+  height: 24px;
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.mainBtn .player-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.smallBtn.active .player-icon,
+.player-btn.active .player-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.player-btn.active {
+  background: rgba(76, 175, 135, 0.15);
+}
 
 /* ===== ECS GAUGE ===== */
 .ecs-gauge {

@@ -1,7 +1,7 @@
 // ===============================
-// Neyra Premium Screen (Status - not paywall)
+// Neyra Paywall Screen
 // ===============================
-import { getPremiumInfo, activateTrial } from "../services/user-profile.js";
+import { getPremiumInfo } from "../services/user-profile.js";
 import { t } from "../i18n.js";
 
 export function onEnter(fromLimitParam = false) {
@@ -14,15 +14,7 @@ export function onEnter(fromLimitParam = false) {
 
 function renderPaywall() {
   const premiumInfo = getPremiumInfo();
-  const hasUsedTrial = premiumInfo.status === "trial" || premiumInfo.status === "premium";
-  const showTrialBtn = !hasUsedTrial;
-  
-  let statusText = "";
-  if (premiumInfo.status === "premium") {
-    statusText = t("premium_status_active");
-  } else if (premiumInfo.status === "trial") {
-    statusText = t("premium_trial_access") + ": " + premiumInfo.trialDaysLeft + " " + t("premium_days_left").toLowerCase();
-  }
+  const isPremium = premiumInfo.isPremium;
   
   return `
     <style>
@@ -77,15 +69,11 @@ function renderPaywall() {
         font-weight: 600;
         margin-bottom: 20px;
       }
-      .paywall-status-trial {
-        background: rgba(245,158,11,0.2);
-        color: #f59e0b;
-      }
       .paywall-status-active {
         background: rgba(76,175,135,0.2);
         color: #4caf87;
       }
-      .paywall-trial-btn {
+      .paywall-get-btn {
         width: 100%;
         padding: 16px;
         border: none;
@@ -98,7 +86,7 @@ function renderPaywall() {
         box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
         transition: transform 0.15s;
       }
-      .paywall-trial-btn:active {
+      .paywall-get-btn:active {
         transform: scale(0.97);
       }
       .paywall-active-btn {
@@ -116,14 +104,21 @@ function renderPaywall() {
     
     <div class="paywall-screen">
       <div class="paywall-icon">👑</div>
-      ${premiumInfo.status !== "free" ? '<div class="paywall-status ' + (premiumInfo.status === "premium" ? "paywall-status-active" : "paywall-status-trial") + '">' + statusText + '</div>' : ''}
-      ${fromLimit ? '<div class="paywall-limit-badge">' + t("paywall_limit_reached") + '</div>' : ''}
+      ${isPremium ? '<div class="paywall-status paywall-status-active">' + t("premium_status_active") + '</div>' : ''}
+      ${fromLimit && !isPremium ? '<div class="paywall-limit-badge">' + t("paywall_limit_reached") + '</div>' : ''}
       <h2 class="paywall-title">${t("premium_title")}</h2>
       
       <div class="paywall-features">
         <div class="paywall-feature">
           <span class="paywall-feature-icon">📊</span>
           <span>${t("premium_feature_history")}</span>
+        </div>
+        <div class="paywall-feature">
+          <span class="paywall-feature-icon">🧘</span>
+          <div>
+            <span>${t("premium_feature_practices")}</span>
+            <div class="premium-desc">${t("premium_feature_practices_desc")}</div>
+          </div>
         </div>
         <div class="paywall-feature">
           <span class="paywall-feature-icon">💡</span>
@@ -139,34 +134,34 @@ function renderPaywall() {
         </div>
       </div>
       
-      ${showTrialBtn 
-        ? '<button class="paywall-trial-btn" id="startTrialBtn">' + t("premium_try_btn") + '</button>'
-        : '<button class="paywall-active-btn" disabled>✓ ' + t("premium_unlimited") + '</button>'
+      ${isPremium 
+        ? '<button class="paywall-active-btn" disabled>✓ ' + t("premium_unlimited") + '</button>'
+        : '<button class="paywall-get-btn" id="getPremiumBtn">' + t("premium_open_btn") + '</button>'
       }
     </div>
   `;
 }
 
 function bindEvents() {
-  const trialBtn = document.getElementById("startTrialBtn");
+  const getBtn = document.getElementById("getPremiumBtn");
   
-  if (trialBtn) {
-    trialBtn.addEventListener("click", () => {
-      activateTrial();
-      
-      if (window.systemState) {
-        window.systemState.premium = true;
+  if (getBtn) {
+    getBtn.addEventListener("click", () => {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Billing) {
+        window.Capacitor.Plugins.Billing.purchase('premium_monthly');
+      } else {
+        showToast(t("premium_payments_later") || "Payment system coming soon");
       }
-      
-      onEnter();
-      
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_access_granted");
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 3000);
     });
   }
+}
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.style.cssText = "position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;white-space:nowrap;";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
 }
 
 export function openPaywall(fromLimitParam = false) {

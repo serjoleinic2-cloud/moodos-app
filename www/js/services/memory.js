@@ -8,7 +8,7 @@
 export function save(data) {
   let needsSnapshotUpdate = false;
   
-  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience'];
+  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience', 'events', 'insight'];
   const unknownFields = Object.keys(data).filter(k => !KNOWN_SAVE_FIELDS.includes(k));
   if (unknownFields.length > 0) {
     console.warn('[memory.save] Unknown fields (data may be lost):', unknownFields);
@@ -17,6 +17,7 @@ export function save(data) {
   if (data.lastInsight !== undefined) {
     localStorage.setItem("last_insight", JSON.stringify({
       text: data.lastInsight,
+      insight: data.insight,
       time: Date.now()
     }));
   }
@@ -26,6 +27,7 @@ export function save(data) {
     history.push({
       value: data.mood,
       state: data.state,
+      events: data.events || [],
       time: Date.now()
     });
     if (history.length > 730) history.shift();

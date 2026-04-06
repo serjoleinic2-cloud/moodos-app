@@ -2,7 +2,7 @@
 // Neyra Premium Screen
 // Status screen (not paywall)
 // ===============================
-import { getPremiumInfo, activateTrial } from "../services/user-profile.js";
+import { getPremiumInfo } from "../services/user-profile.js";
 import { t } from "../i18n.js";
 
 export function onEnter() {
@@ -16,14 +16,11 @@ export function onEnter() {
 function renderPremium() {
   const premiumInfo = getPremiumInfo();
   const isActive = premiumInfo.isPremium;
-  const statusClass = premiumInfo.status === "premium" || premiumInfo.status === "paid" ? "premium-active" : 
-                     premiumInfo.status === "trial" ? "premium-trial" : "premium-free";
+  const statusClass = premiumInfo.status === "premium" ? "premium-active" : "premium-free";
   
   let statusText = "";
-  if (premiumInfo.status === "premium" || premiumInfo.status === "paid") {
+  if (premiumInfo.status === "premium") {
     statusText = "👑 " + t("premium_status_active");
-  } else if (premiumInfo.status === "trial") {
-    statusText = t("premium_trial_access") + ": " + premiumInfo.trialDaysLeft + " " + t("premium_days_left").toLowerCase();
   } else {
     statusText = t("premium_status_free");
   }
@@ -68,16 +65,6 @@ function renderPremium() {
         margin-right: var(--neyra-space-md);
         flex-shrink: 0;
       }
-      .premium-trial-badge {
-        background: linear-gradient(145deg, #fef3c7, #fde68a);
-        border-radius: var(--neyra-radius-lg);
-        padding: var(--neyra-space-lg);
-        margin-bottom: var(--neyra-space-xl);
-        font-size: var(--neyra-font-size-lg);
-        font-weight: var(--neyra-font-weight-bold);
-        color: #92400e;
-        box-shadow: var(--neyra-shadow-sm);
-      }
       .premium-btn {
         width: 100%;
         padding: var(--neyra-space-lg);
@@ -110,10 +97,6 @@ function renderPremium() {
         background: rgba(136,136,136,0.2);
         color: #888;
       }
-      .premium-trial .premium-status-badge {
-        background: rgba(245,158,11,0.2);
-        color: var(--neyra-color-warning);
-      }
       .premium-active .premium-status-badge {
         background: var(--neyra-color-primary-light);
         color: var(--neyra-color-primary);
@@ -134,6 +117,13 @@ function renderPremium() {
         <div class="premium-feature">
           <span class="premium-feature-icon">🎨</span>
           <span>${t("premium_feature_themes")}</span>
+        </div>
+        <div class="premium-feature">
+          <span class="premium-feature-icon">🧘</span>
+          <div>
+            <span>${t("premium_feature_practices")}</span>
+            <div class="premium-desc">${t("premium_feature_practices_desc")}</div>
+          </div>
         </div>
         <div class="premium-feature">
           <span class="premium-feature-icon">🎵</span>
@@ -164,10 +154,9 @@ function renderPremium() {
         </div>
       </div>
       
-      ${premiumInfo.status === "free" ? `
-        <div class="premium-trial-badge">${t("premium_trial_days")}</div>
+      ${!isActive ? `
         <button id="premiumBtn" class="premium-btn">
-          ${t("premium_try_btn")}
+          ${t("premium_open_btn")}
         </button>
         ${window.store ? `
           <button id="restoreBtn" class="neyra-btn neyra-btn-ghost" style="margin-top: var(--neyra-space-sm);">
@@ -176,7 +165,7 @@ function renderPremium() {
         ` : ""}
       ` : `
         <button id="premiumBtn" class="premium-btn" disabled>
-          ✓ ${isActive ? t("premium_unlimited") : t("premium_status_active")}
+          ✓ ${t("premium_unlimited")}
         </button>
       `}
     </div>
@@ -189,21 +178,11 @@ function bindEvents() {
   
   const premiumInfo = getPremiumInfo();
   
-  if (premiumInfo.status === "free" && btn) {
+  if (!premiumInfo.isPremium && btn) {
     btn.addEventListener("click", () => {
-      activateTrial();
-      
-      if (window.systemState) {
-        window.systemState.premium = true;
+      if (window.navigateTo) {
+        window.navigateTo("paywall");
       }
-      
-      onEnter();
-      
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--neyra-color-primary);color:var(--neyra-color-text-inverse);padding:20px 28px;border-radius:18px;font-size:var(--neyra-font-size-base);font-weight:var(--neyra-font-weight-bold);z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_access_granted");
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 3000);
     });
   }
   

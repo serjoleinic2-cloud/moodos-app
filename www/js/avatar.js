@@ -276,6 +276,115 @@ const MSG = {
     uk: { inactive:['Ти давно не заходив','Можеш зафіксувати стан'], noEntry:['Сьогодні ще немає запису','Як ти зараз?'], decline:['Останнім часом важкувато','Хочеш зафіксувати стан?'] },
   },
 
+  afterSave: {
+    ru: {
+      withEvents: {
+        walk:    ['Прогулка — хороший выбор!','Даже короткая прогулка работает'],
+        coffee:  ['Кофе + фиксация = осознанность','Этот момент важен'],
+        work:    ['Работа в фокусе — это сила','Хорошо, что замечаешь'],
+        sport:   ['Спорт — это инвестиция в себя','Тело благодарит'],
+        social:  ['Связи важны для настроения','Общение заряжает'],
+        rest:    ['Отдых — это продуктивно','Правильный выбор'],
+        music:   ['Музыка лечит','Отличный выбор для состояния'],
+        food:    ['Забота о себе включает питание','Хорошо замечаешь'],
+        sleep:   ['Сон — основа всего','Это важный момент'],
+        stress:  ['Стресс бывает. Ты замечаешь — это важно','Ты справляешься']
+      },
+      noEvents: ['Зафиксировал — уже хорошо','Отмечай, что чувствуешь','Этот момент важен'],
+      multiple: ['Интересное сочетание!','Вижу, что сегодня было насыщено']
+    },
+    en: {
+      withEvents: {
+        walk:    ['A walk — great choice!','Even a short walk works'],
+        coffee:  ['Coffee + tracking = awareness','This moment matters'],
+        work:    ['Work in focus — that\'s strength','Good that you notice'],
+        sport:   ['Sport is an investment in yourself','Your body thanks you'],
+        social:  ['Connections matter for mood','Socializing charges you'],
+        rest:    ['Rest is productive','Right choice'],
+        music:   ['Music heals','Great choice for your state'],
+        food:    ['Self-care includes nutrition','Good that you notice'],
+        sleep:   ['Sleep is the foundation','This is an important moment'],
+        stress:  ['Stress happens. You notice — that\'s important','You\'re handling it']
+      },
+      noEvents: ['Tracked — that\'s already good','Note what you feel','This moment matters'],
+      multiple: ['Interesting combination!','Looks like today was eventful']
+    },
+    es: {
+      withEvents: {
+        walk:    ['¡Un paseo — gran elección!','Incluso un paseo corto funciona'],
+        coffee:  ['Café + seguimiento = conciencia','Este momento importa'],
+        work:    ['Trabajo en enfoque — eso es fuerza','Bien que notes'],
+        sport:   ['El deporte es una inversión en ti mismo','Tu cuerpo te agradece'],
+        social:  ['Las conexiones importan para el ánimo','Lo social te carga'],
+        rest:    ['El descanso es productivo','Elección correcta'],
+        music:   ['La música cura','Gran elección para tu estado'],
+        food:    ['El autocuidado incluye la alimentación','Bien que notes'],
+        sleep:   ['El sueño es la base','Este es un momento importante'],
+        stress:  ['El estrés pasa. Lo notas — eso es importante','Lo estás manejando']
+      },
+      noEvents: ['Rastreado — eso ya es bueno','Nota lo que sientes','Este momento importa'],
+      multiple: ['¡Combinación interesante!','Parece que hoy fue animado']
+    },
+    uk: {
+      withEvents: {
+        walk:    ['Прогулянка — чудовий вибір!','Навіть коротка прогулянка працює'],
+        coffee:  ['Кава + фіксація = усвідомленість','Цей момент важливий'],
+        work:    ['Робота у фокусі — це сила','Добре, що помічаєш'],
+        sport:   ['Спорт — це інвестиція в себе','Тіло дякує'],
+        social:  ['Зв\'язки важливі для настрою','Спілкування заряджає'],
+        rest:    ['Відпочинок — це продуктивно','Правильний вибір'],
+        music:   ['Музика лікує','Чудовий вибір для стану'],
+        food:    ['Піклування про себе включає харчування','Добре помічаєш'],
+        sleep:   ['Сон — основа всього','Це важливий момент'],
+        stress:  ['Стрес буває. Ти помічаєш — це важливо','Ти справляєшся']
+      },
+      noEvents: ['Зафіксував — вже добре','Відзначай, що відчуваєш','Цей момент важливий'],
+      multiple: ['Цікаве поєднання!','Здається, сьогодні було насичено']
+    }
+  },
+
+  streak: {
+    ru: ['Ты уже {n} дней подряд — это важно','Серия растёт! {n} дней','Продолжай в том же духе'],
+    en: ['You\'ve been tracking for {n} days — that matters','Streak growing! {n} days','Keep it up'],
+    es: ['Llevas {n} días seguidos — eso importa','¡La racha crece! {n} días','Sigue así'],
+    uk: ['Ти вже {n} днів поспіль — це важливо','Серія росте! {n} днів','Продовжуй у тому ж дусі']
+  },
+
+  improvement: {
+    ru: ['Вижу, что стало легче','Настроение подросло — это хороший знак','Ты молодец, что отмечаешь','Есть движение вверх'],
+    en: ['I see it got easier','Mood improved — that\'s a good sign','Good job tracking','There\'s upward movement'],
+    es: ['Veo que se puso más fácil','El ánimo mejoró — buena señal','Buen trabajo registrando','Hay movimiento hacia arriba'],
+    uk: ['Бачу, що стало легше','Настрій підріс — це хороший знак','Ти молодець, що відзначаєш','Є рух вгору']
+  },
+
+  lowMood: {
+    ru: ['Сегодня тяжелее — это нормально','Ты держишься, и это важно','Разреши себе отдохнуть'],
+    en: ['Today is harder — that\'s normal','You\'re holding on, and that matters','Give yourself permission to rest'],
+    es: ['Hoy es más difícil — eso es normal','Te sostienes, y eso importa','Date permiso para descansar'],
+    uk: ['Сьогодні важче — це нормально','Ти тримаєшся, і це важливо','Дозволь собі відпочити']
+  },
+
+  returnPause: {
+    ru: ['Рад, что ты вернулся после паузы','Снова здесь — это важно','Продолжаем с того места'],
+    en: ['Glad you\'re back after a pause','Here again — that matters','Picking up where we left off'],
+    es: ['Me alegra que hayas vuelto después de una pausa','Aquí de nuevo — eso importa','Continuamos desde donde quedamos'],
+    uk: ['Радий, що ти повернувся після паузи','Знову тут — це важливо','Продовжуємо з того місця']
+  },
+
+  patternPositive: {
+    ru: ['Похоже, ты нашёл что тебе помогает','Это важное наблюдение','Ты начинаешь понимать себя'],
+    en: ['Looks like you found something that helps','This is an important observation','You\'re starting to understand yourself'],
+    es: ['Parece que encontraste algo que te ayuda','Esta es una observación importante','Estás empezando a entenderte'],
+    uk: ['Схоже, ти знайшов що тобі допомагає','Це важливе спостереження','Ти починаєш розуміти себе']
+  },
+
+  patternNegative: {
+    ru: ['Есть повторяющийся фактор — давай разберёмся','Интересная закономерность','Это стоит обдумать'],
+    en: ['There\'s a repeating factor — let\'s figure it out','Interesting pattern','This is worth thinking about'],
+    es: ['Hay un factor que se repite — analicemos','Patrón interesante','Esto vale la pena pensar'],
+    uk: ['Є повторюваний фактор — давай розберемося','Цікава закономірність','Це варто обдумати']
+  },
+
   actions: {
     ru: { low:[{label:'Подышать',action:'breathing'},{label:'Выгрузить',action:'mind-dump'}], high:[{label:'Зафиксировать',action:'home'}] },
     en: { low:[{label:'Breathe',action:'breathing'},{label:'Mind dump',action:'mind-dump'}], high:[{label:'Save this',action:'home'}] },
@@ -554,6 +663,112 @@ export function showAvatarOnReturn() {
   const lang = getLang();
   const text = pickRandom(MSG.returnApp[lang] || MSG.returnApp.ru);
   showAvatar(text, false, null, 'support');
+}
+
+// Вызывается после сохранения записи с событиями
+export function showAvatarAfterSave({ mood, events = [], previousMood = null, pattern = null }) {
+  const lang = getLang();
+  let text = '';
+  
+  // Паттерны имеют приоритет
+  if (pattern) {
+    if (pattern.type === 'positive') {
+      text = pickRandom(MSG.patternPositive[lang] || MSG.patternPositive.en);
+    } else if (pattern.type === 'negative') {
+      text = pickRandom(MSG.patternNegative[lang] || MSG.patternNegative.en);
+    }
+    showAvatar(text, true, null, 'support');
+    return;
+  }
+  
+  // Анализ улучшения
+  if (previousMood !== null && mood > previousMood + 10) {
+    text = pickRandom(MSG.improvement[lang] || MSG.improvement.en);
+    showAvatar(text, true, null, 'support');
+    return;
+  }
+  
+  // Анализ низкого настроения
+  if (mood < 40) {
+    text = pickRandom(MSG.lowMood[lang] || MSG.lowMood.en);
+    showAvatar(text, true, null, 'support');
+    return;
+  }
+  
+  // Анализ событий
+  if (events.length > 0) {
+    const afterSave = MSG.afterSave[lang] || MSG.afterSave.en;
+    
+    if (events.length === 1) {
+      const eventMsgs = afterSave.withEvents[events[0]];
+      if (eventMsgs) {
+        text = pickRandom(eventMsgs);
+      } else {
+        text = pickRandom(afterSave.noEvents);
+      }
+    } else {
+      text = pickRandom(afterSave.multiple);
+    }
+  } else {
+    const afterSave = MSG.afterSave[lang] || MSG.afterSave.en;
+    text = pickRandom(afterSave.noEvents);
+  }
+  
+  showAvatar(text, true, null, 'support');
+}
+
+// Проверяет и показывает streak
+export function checkAndShowStreak() {
+  try {
+    const history = JSON.parse(localStorage.getItem('mood_history') || '[]');
+    if (history.length < 3) return;
+    
+    const sorted = [...history].sort((a, b) => (b.time || b.date) - (a.time || a.date));
+    const now = new Date();
+    let streak = 1;
+    
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(parseInt(sorted[i - 1].time || sorted[i - 1].date));
+      const curr = new Date(parseInt(sorted[i].time || sorted[i].date));
+      
+      const diffDays = Math.floor((prev - curr) / (24 * 60 * 60 * 1000));
+      
+      if (diffDays <= 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    if (streak >= 3) {
+      const lang = getLang();
+      let text = pickRandom(MSG.streak[lang] || MSG.streak.en);
+      text = text.replace('{n}', streak);
+      showAvatar(text, false, null, 'support');
+    }
+  } catch (e) {
+    console.warn('[AVATAR] streak check error:', e);
+  }
+}
+
+// Проверяет возврат после паузы
+export function checkAndShowReturnAfterPause() {
+  try {
+    const history = JSON.parse(localStorage.getItem('mood_history') || '[]');
+    if (history.length < 2) return;
+    
+    const sorted = [...history].sort((a, b) => (b.time || b.date) - (a.time || a.date));
+    const lastTime = parseInt(sorted[0]?.time || sorted[0]?.date);
+    const daysSince = (Date.now() - lastTime) / (24 * 60 * 60 * 1000);
+    
+    if (daysSince >= 3) {
+      const lang = getLang();
+      const text = pickRandom(MSG.returnPause[lang] || MSG.returnPause.en);
+      showAvatar(text, false, null, 'support');
+    }
+  } catch (e) {
+    console.warn('[AVATAR] return after pause check error:', e);
+  }
 }
 
 export function maybeShowAvatarProactive() {

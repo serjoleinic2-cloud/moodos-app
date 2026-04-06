@@ -9,7 +9,6 @@ import {
   removeMedReminder,
   getMedReminder,
   getPremiumInfo,
-  activateTrial,
   getTheme,
   saveTheme,
   setTheme,
@@ -49,20 +48,15 @@ function renderSettings() {
 
   const statusLabels = {
     free: t("premium_status_free"),
-    trial: t("premium_status_trial"),
     premium: t("premium_status_premium")
   };
   const statusColors = {
     free: "#888",
-    trial: "#f59e0b",
     premium: "#4caf87"
   };
   const premiumStatusLabel = statusLabels[premiumInfo.status] || t("premium_status_free");
   const premiumStatusColor = statusColors[premiumInfo.status] || "#888";
-  const trialInfo = premiumInfo.status === "trial" 
-    ? `<div style="font-size:12px; color:#f59e0b; margin-top:4px;">${t("premium_trial_access")}: ${premiumInfo.trialDaysLeft}</div>` 
-    : "";
-  const showTrialBtn = premiumInfo.status === "free";
+  const showGetPremiumBtn = !premiumInfo.isPremium;
 
   const themeLabels = {
     "default":      "🌿 " + t("theme_default"),
@@ -260,15 +254,13 @@ function renderSettings() {
           text-align: center;
         ">
           <div id="premiumStatus" style="font-size:16px;font-weight:700;color:${premiumStatusColor};margin-bottom:4px;">${premiumStatusLabel}</div>
-          ${trialInfo}
           <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : t("gemini_limit_reached")}</div>
-          ${showTrialBtn ? `<button id="startTrialBtn" style="
+          ${showGetPremiumBtn ? `<button id="getPremiumBtn" style="
             margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;
-            background:linear-gradient(145deg,#fef3c7,#fde68a);
+            background:linear-gradient(145deg,#9f7aea,#805ad5);
             box-shadow:5px 5px 10px #c8bfb2,-5px -5px 10px #ffffff;
-            font-size:15px;font-weight:600;color:#92400e;cursor:pointer;
-          ">${t("premium_try_btn")}</button>
-          <div style="font-size:11px;color:#92400e;margin-top:6px;text-align:center;">${t("premium_try_desc")}</div>` : ""}
+            font-size:15px;font-weight:600;color:#fff;cursor:pointer;
+          ">${t("premium_open_btn")}</button>` : ""}
         </div>
         <div class="neo-row" id="settingHowItWorks">
           <div class="neo-row-content">
@@ -373,16 +365,12 @@ function bindEvents(el) {
     if (btn) { btn.textContent = "☁️ " + t("btn_share_backup"); btn.disabled = false; }
   });
 
-  const trialBtn = el.querySelector("#startTrialBtn");
-  if (trialBtn) {
-    trialBtn.addEventListener("click", () => {
-      activateTrial();
-      
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-      msg.innerHTML = "✅ " + t("premium_access_granted");
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 3000);
+  const getPremiumBtn = el.querySelector("#getPremiumBtn");
+  if (getPremiumBtn) {
+    getPremiumBtn.addEventListener("click", () => {
+      if (window.navigateTo) {
+        window.navigateTo("paywall");
+      }
     });
   }
 

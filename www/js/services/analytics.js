@@ -1,6 +1,7 @@
 // =====================================
 // Neyra Analytics Service
 // =====================================
+import { t } from "../i18n.js";
 
 export function calculateStabilityScore(history) {
   if (!history || history.length === 0) return null;
@@ -12,12 +13,19 @@ export function calculateStabilityScore(history) {
 }
 
 export function calculateTrend(history) {
-  if (!history || history.length < 6) return "изучаю...";
+  if (!history || history.length < 6) return "learning";
   const recent   = history.slice(-3).reduce((s, h) => s + h.value, 0) / 3;
   const previous = history.slice(-6, -3).reduce((s, h) => s + h.value, 0) / 3;
-  if (recent > previous + 2) return "improving ↑";
-  if (recent < previous - 2) return "declining ↓";
-  return "stable →";
+  if (recent > previous + 2) return "improving";
+  if (recent < previous - 2) return "declining";
+  return "stable";
+}
+
+export function calculateGoldenHourLabel(history) {
+  if (!history || history.length < 3) return null;
+  const hour = calculateGoldenHour(history);
+  if (!hour) return null;
+  return `${hour}:00`;
 }
 
 export function calculateGoldenHour(history) {

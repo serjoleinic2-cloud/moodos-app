@@ -121,52 +121,32 @@ const FREE_GEMINI_LIMIT = 5;
 export function getPremiumStatus() {
   const profile = getProfile();
   if (!profile) return "free";
-  if (profile.premium_type === "paid") return "paid";
+  if (profile.premium_type === "paid") return "premium";
   if (profile.isPremium) return "premium";
-  if (profile.premiumTrial?.active) {
-    const startDate = new Date(profile.premiumTrial.startDate);
-    const trialEnd = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    if (Date.now() <= trialEnd.getTime()) return "trial";
-    return "free";
-  }
   return "free";
 }
 
 export function getPremiumInfo() {
   const profile = getProfile();
   const status = getPremiumStatus();
-  let trialDaysLeft = 0;
-  let trialEndDate = null;
   let plan = null;
   let expiresAt = null;
   let isExpired = false;
   
-  if (status === "trial" && profile?.premiumTrial?.startDate) {
-    const startDate = new Date(profile.premiumTrial.startDate);
-    const trialEnd = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    trialEndDate = trialEnd;
-    expiresAt = trialEnd;
-    const msLeft = trialEnd.getTime() - Date.now();
-    trialDaysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
-    plan = "trial";
-  } else if (status === "premium") {
-    plan = profile.premiumPlan || "monthly";
-    expiresAt = profile.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
+  if (status === "premium") {
+    plan = profile?.premiumPlan || "monthly";
+    expiresAt = profile?.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
     if (expiresAt && Date.now() > expiresAt.getTime()) {
       isExpired = true;
     }
-  } else if (status === "paid") {
-    plan = profile.premiumPlan || "monthly";
   }
   
   return {
     status,
-    trialDaysLeft,
-    trialEndDate,
     plan,
     expiresAt,
     isExpired,
-    isPremium: (status === "premium" && !isExpired) || status === "trial" || status === "paid"
+    isPremium: status === "premium" && !isExpired
   };
 }
 
@@ -176,20 +156,6 @@ export function isPremium() {
 
 export function setBillingPremium(value) {
   window._billingPremium = value === true;
-}
-
-export function activateTrial() {
-  const profile = getProfile() || {};
-  if (profile.premium_type === "paid") return;
-  profile.premiumTrial = {
-    active: true,
-    startDate: new Date().toISOString()
-  };
-  saveProfile(profile);
-  if (window.systemState) {
-    window.systemState.premium = true;
-  }
-  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'trial' } }));
 }
 
 export function activatePremiumPaid() {

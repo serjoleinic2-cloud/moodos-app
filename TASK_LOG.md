@@ -659,8 +659,211 @@ Files: www/js/app.js, www/js/services/billing-service.js, www/js/core/state-exec
 ## TASK 82
 Fix: Report popup not closing on navigation
 
-**ПРИЧИНА:** При открытии popup в Report, элементы создавались в document.body но не удалялись при уходе с экрана. Navigation не очищала popup.
+**ПРИЧИНА:** При открытии popup в Report, элементы создались в document.body но не удалялись при уходе с экрана. Navigation не очищала popup.
 
 **ФИКС:** Добавлен onExit() в report.js который удаляет dayPopup и dayPopupOverlay при уходе с экрана.
 
 Files: www/js/screens/report.js
+
+---
+
+## TASK 83
+Remove local trial system
+
+**Изменения:**
+- user-profile.js: удалены activateTrial(), trialDaysLeft, premiumTrial
+- premium.js: убраны trial-бейджи и кнопки
+- premium-modal.js: перенаправляет на paywall
+- paywall.js: удалён trial UI, кнопка "Get Premium"
+- settings.js: удалён trial-блок
+- insight.js: удалён вызов activateTrial()
+
+**Files:**
+- www/js/services/user-profile.js
+- www/js/screens/premium.js
+- www/js/screens/paywall.js
+- www/js/screens/settings.js
+- www/js/screens/insight.js
+- www/js/premium-modal.js
+
+---
+
+## TASK 84
+Events System with SVG icons
+
+**Изменения:**
+- Создан модуль events.js с 10 событиями
+- Используются SVG иконки из assets/icons/
+- AppRuntime state для selectedEvents
+- CSS grid layout (5 колонок)
+
+**Files:**
+- www/js/events.js (новый)
+
+---
+
+## TASK 85
+Offline AI upgrade - generateInsight
+
+**Изменения:**
+- Добавлена функция generateInsight() в offline-ai.js
+- Контекстные инсайты по событиям (EVENT_INSIGHTS)
+- Комбинации: stress+low, walk+high, sport
+- 4 языка: RU, EN, ES, UK
+
+**Files:**
+- www/js/ai/offline-ai.js
+- www/js/i18n/ru.js, en.js, es.js, uk.js (event_* ключи)
+
+---
+
+## TASK 86
+Avatar triggers for mood/events/streak
+
+**Изменения:**
+- Новые message pools: afterSave, streak, improvement, lowMood, returnPause
+- showAvatarAfterSave() - реакция на сохранение с событиями
+- checkAndShowStreak() - проверка серии дней
+- checkAndShowReturnAfterPause() - возврат после 3+ дней
+
+**Files:**
+- www/js/avatar.js
+
+---
+
+## TASK 87
+Events UI integration with CSS grid
+
+**Изменения:**
+- CSS grid: repeat(5, 1fr)
+- SVG иконки с grayscale → color при выборе
+- Центрирование в границах карточки
+- AppRuntime state management
+
+**Files:**
+- www/js/events.js
+- www/js/screens/home.js
+- www/index.html
+- www/js/system-core.js (MOOD_SUBMIT с events)
+
+---
+
+## TASK 88
+UI Polish + Player Icons + Insight Persistence
+
+**Изменения:**
+- Home: добавлен hint под событиями ("Это поможет лучше понять...")
+- Insight Persistence: сохранение в localStorage, показ при входе
+- Player Icons: SVG иконки (play/pause/loop/next)
+- Free/Premium practices: breathing + meditation бесплатны, остальное premium
+
+**Files:**
+- www/js/screens/home.js
+- www/js/screens/meditation.js
+- www/js/navigation.js
+- www/css/style.css
+- www/index.html
+- www/js/i18n/ru.js, en.js, es.js, uk.js
+
+---
+
+## TASK 89
+Bug Fix: Events click listener duplication
+
+**Проблема:** При возврате на Home после навигации, events не переключались. Причина — addEventListener добавлялся при каждом onEnter без удаления предыдущего.
+
+**Фикс:**
+- events.js: хранение ссылки на handler, удаление перед добавлением нового
+- events.js: экспорт cleanupEventsListener()
+- home.js: onExit вызывает cleanupEventsListener()
+
+**Files:**
+- www/js/events.js
+- www/js/screens/home.js
+
+---
+
+## TASK 90
+Insight Text Pack (file 8) - i18n update
+
+**Изменения:**
+- RU: insight_base, insight_event, insight_combo, insight_advice обновлены
+- EN: same updates
+- UK: insight texts already present
+- ES: insight texts already present
+
+**Files:**
+- www/js/i18n/ru.js
+- www/js/i18n/en.js
+- www/js/i18n/uk.js
+- www/js/i18n/es.js
+
+---
+
+## TASK 91
+Bug Fix: Year Comparison Premium gate в insight.js
+
+**Проблема:** Year Comparison показывалась бесплатным пользователям в insight.js (строна 545). В report.js проверка была, в insight.js — нет.
+
+**Фикс:**
+- Добавлена проверка isPremium() перед buildYearComparisonBlock()
+- Бесплатным пользователям показывается lock-блок
+
+**Files:**
+- www/js/screens/insight.js
+
+---
+
+## TASK 92
+Bug Fix: Daily Reflection i18n + text color
+
+**Проблема:** Текст Pattern card был на русском языке независимо от выбранного языка приложения.
+
+**Фикс:**
+- Добавлен импорт t() из i18n
+- getPatternEventLabel() теперь использует t('event_' + eventId)
+- Pattern text использует t('pattern_positive') и t('pattern_negative')
+- Цвет текста изменён на ярко-голубой (#00bcd4)
+
+**Files:**
+- www/js/screens/home.js
+- www/index.html
+
+---
+
+## TASK 93
+Bug Fix: Insight card language change listener
+
+**Проблема:** При смене языка в настройках, текст Insight card не обновлялся на новый язык.
+
+**Фикс:**
+- Добавлен слушатель languageChanged в home.js
+- При смене языка вызывается renderInsightCard() для перерисовки карточки
+- saveInsightToStorage() теперь хранит moodLevel, events, pattern вместо текста
+- renderInsightCard() регенерирует текст через generateInsight()
+- setLang() теперь диспатчит 'languageChanged' событие
+
+**Files:**
+- www/js/screens/home.js
+- www/js/i18n.js
+
+---
+
+## TASK 94
+Feature: Premium practices description in Menu
+
+**Изменения:**
+- Добавлены i18n ключи для 4 дополнительных практик
+- Добавлен блок в premium.js и paywall.js
+
+**i18n ключи:**
+- premium_feature_practices: "4 Additional Practices" / "4 Дополнительные практики"
+- premium_feature_practices_desc: описание практик на каждом языке
+
+**Files:**
+- www/js/i18n/ru.js
+- www/js/i18n/en.js
+- www/js/i18n/uk.js
+- www/js/i18n/es.js
+- www/js/screens/premium.js
+- www/js/screens/paywall.js

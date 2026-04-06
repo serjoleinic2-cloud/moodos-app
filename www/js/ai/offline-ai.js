@@ -1,7 +1,10 @@
 // ===============================
-// Neyra Offline AI — расширенный
+// Neyra Offline AI — Coach Logic
 // 4 языка: RU, EN, ES, UK
 // ===============================
+
+import { getMoodHistory } from "../services/memory.js";
+import { t as i18n } from "../i18n.js";
 
 // ---- ОПРЕДЕЛЕНИЕ ЯЗЫКА ----
 function detectLang() {
@@ -12,6 +15,160 @@ function detectLang() {
   if (nav.startsWith("ru")) return "ru";
   if (nav.startsWith("es")) return "es";
   return "en";
+}
+
+function pickRandom(arr) {
+  if (!arr || arr.length === 0) return '';
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getMoodLevel(mood) {
+  if (mood <= 30) return 'low';
+  if (mood <= 70) return 'mid';
+  return 'high';
+}
+
+function getBaseTexts(moodLevel) {
+  const keys = [
+    `insight_base_${moodLevel}_1`,
+    `insight_base_${moodLevel}_2`,
+    `insight_base_${moodLevel}_3`
+  ];
+  return keys.map(k => i18n(k)).filter(Boolean);
+}
+
+function getEventText(eventId) {
+  return i18n(`insight_event_${eventId}`);
+}
+
+function getAdvice(moodLevel) {
+  return i18n(`insight_advice_${moodLevel}`);
+}
+
+function getCombinationInsight(moodLevel, events) {
+  if (events.includes('stress') && moodLevel === 'low') {
+    return i18n('insight_combo_stress_low');
+  }
+  if (events.includes('walk') && moodLevel === 'high') {
+    return i18n('insight_combo_walk_high');
+  }
+  if (events.includes('sport') && moodLevel === 'high') {
+    return i18n('insight_combo_sport_high');
+  }
+  if (events.includes('work') && moodLevel === 'low') {
+    return i18n('insight_combo_work_low');
+  }
+  return null;
+}
+
+// ---- PATTERN ANALYSIS ----
+function getRecentHistory(days = 7) {
+  const all = getMoodHistory();
+  const now = Date.now();
+  return all.filter(item => {
+    return now - item.time < days * 24 * 60 * 60 * 1000;
+  });
+}
+
+function analyzeEventImpact(history) {
+  const stats = {};
+  
+  history.forEach(entry => {
+    if (!entry.events || entry.events.length === 0) return;
+    
+    entry.events.forEach(e => {
+      if (!stats[e]) {
+        stats[e] = { total: 0, sum: 0 };
+      }
+      stats[e].total += 1;
+      stats[e].sum += entry.value;
+    });
+  });
+  
+  Object.keys(stats).forEach(e => {
+    stats[e].avg = stats[e].sum / stats[e].total;
+  });
+  
+  return stats;
+}
+
+function findStrongPatterns(stats) {
+  const result = [];
+  
+  Object.entries(stats).forEach(([event, data]) => {
+    if (data.total < 3) return;
+    
+    if (data.avg > 70) {
+      result.push({
+        type: 'positive',
+        event,
+        value: data.avg,
+        count: data.total
+      });
+    }
+    
+    if (data.avg < 40) {
+      result.push({
+        type: 'negative',
+        event,
+        value: data.avg,
+        count: data.total
+      });
+    }
+  });
+  
+  return result;
+}
+
+function buildPatternInsight(patterns) {
+  if (!patterns.length) return null;
+  
+  const p = patterns[Math.floor(Math.random() * patterns.length)];
+  const label = i18n(`event_${p.event}`) || p.event;
+  
+  if (p.type === 'positive') {
+    return i18n('pattern_positive').replace('{event}', label);
+  }
+  
+  if (p.type === 'negative') {
+    return i18n('pattern_negative').replace('{event}', label);
+  }
+  
+  return null;
+}
+
+// ---- GENERATE INSIGHT (i18n-based) ----
+export function generateInsight({ mood, events = [], history = null }) {
+  const moodLevel = getMoodLevel(mood);
+  
+  const base = pickRandom(getBaseTexts(moodLevel));
+  const combo = getCombinationInsight(moodLevel, events);
+  
+  let eventText = null;
+  if (!combo && events.length > 0) {
+    const randomEvent = events[Math.floor(Math.random() * events.length)];
+    eventText = getEventText(randomEvent);
+  }
+  
+  const advice = getAdvice(moodLevel);
+  
+  // Паттерны с cooldown (показываем ~40% времени)
+  let patternText = null;
+  if (Math.random() < 0.4) {
+    const recentHistory = getRecentHistory(7);
+    const stats = analyzeEventImpact(recentHistory);
+    const patterns = findStrongPatterns(stats);
+    patternText = buildPatternInsight(patterns);
+  }
+  
+  const parts = [base, combo || eventText, patternText, advice].filter(Boolean);
+  
+  return {
+    insightText: parts.join(' '),
+    moodLevel: moodLevel,
+    events: events,
+    pattern: patternText ? patterns?.[0] || null : null
+  };
 }
 
 // ---- БАЗЫ ОТВЕТОВ ----

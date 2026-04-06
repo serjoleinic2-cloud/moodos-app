@@ -25,7 +25,9 @@ const SystemCore = {
 
   processingEvents: new Set(),
 
-  async handleMoodFlow(mood) {
+  async handleMoodFlow(payload) {
+    const mood = typeof payload === 'object' ? payload.mood : payload;
+    const events = typeof payload === 'object' ? payload.events : [];
 
     try {
 
@@ -44,14 +46,16 @@ const SystemCore = {
         state: newState,
         insights,
         patterns,
-        resilience
+        resilience,
+        events
       })
 
       return {
         state: newState,
         insights,
         patterns,
-        resilience
+        resilience,
+        events
       }
 
     } catch (error) {
@@ -138,8 +142,9 @@ const SystemCore = {
 
         case 'MOOD_SUBMIT':
           console.log('[AVATAR DEBUG] MOOD_SUBMIT with payload:', payload);
+          const moodValue = typeof payload === 'object' ? payload.mood : payload;
           result = await this.handleMoodFlow(payload)
-          showAvatarForMood(payload)
+          showAvatarForMood(moodValue)
           break
 
         case 'SAVE_NOTE':

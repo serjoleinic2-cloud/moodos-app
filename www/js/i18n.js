@@ -14,6 +14,7 @@ export function getLang() {
 
 export function setLang(lang) {
   localStorage.setItem(LANG_KEY, lang);
+  document.dispatchEvent(new CustomEvent('languageChanged'));
 }
 
 const TRANSLATIONS = { ru, en, es, uk };
@@ -43,7 +44,7 @@ export function getDaysLabel(days) {
 
 export const LANG_OPTIONS = [
   { code: "ru", label: "Русский",    flag: "🇷🇺" },
-  { code: "en", label: "English",    flag: "🇬🇧" },
+  { code: "en", label: "English",    flag: "🇺🇸" },
   { code: "es", label: "Español",    flag: "🇪🇸" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
 ];

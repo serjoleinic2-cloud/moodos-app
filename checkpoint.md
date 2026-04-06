@@ -1,6 +1,6 @@
 # NEYRA CHECKPOINT
-Version: v3
-Date: 2026-04-03
+Version: v3.3
+Date: 2026-04-06
 Status: **ARCHITECTURE FROZEN**
 
 ---
@@ -22,6 +22,13 @@ Status: **ARCHITECTURE FROZEN**
 - ✅ **Billing timing guard (TASK 81)** — undefined premium fixed
 - ✅ UI стабильный
 - ✅ DEV режим удалён (TASK 74)
+- ✅ **Local trial removed (TASK 83)**
+- ✅ **Events System with SVG icons (TASK 84-87)**
+- ✅ **Offline AI with generateInsight (TASK 85)**
+- ✅ **Avatar triggers for mood/events/streak (TASK 86)**
+- ✅ **UI Polish + Player Icons + Insight Persistence (TASK 88)**
+- ✅ **Bug Fix: Events click listener duplication (TASK 89)**
+- ✅ **Insight Text Pack i18n update (TASK 90)**
 
 ---
 
@@ -48,6 +55,9 @@ Status: **ARCHITECTURE FROZEN**
 | migration-registry | Backup version migrations |
 | state-execution-engine | Unified execution pipeline |
 | event-queue | Reliable event delivery + crash recovery |
+| events.js | Events System (10 событий, AppRuntime state) |
+| offline-ai.js | Offline AI с generateInsight() |
+| avatar.js | Avatar triggers (mood/events/streak) |
 
 ---
 
@@ -67,7 +77,9 @@ Status: **ARCHITECTURE FROZEN**
 
 **Источник:** billing-service + localStorage (fallback)
 
-**Статусы:** free / trial / premium / paid / expired
+**Статусы:** free / premium / paid / expired
+
+**Note:** Local trial полностью удалён (TASK 83). Только Google Play billing.
 
 **Доступ:**
 - Custom tracks (до 5)
@@ -169,3 +181,15 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 79 | System Simplification | ✅ |
 | 80 | Architecture Freeze Protocol | ✅ |
 | 81 | Fix: undefined premium + billing timing | ✅ |
+| 83 | Remove local trial system | ✅ |
+| 84 | Events System with SVG icons | ✅ |
+| 85 | Offline AI upgrade (generateInsight) | ✅ |
+| 86 | Avatar triggers (mood/events/streak) | ✅ |
+| 87 | Events UI integration (CSS grid) | ✅ |
+| 88 | UI Polish + Player Icons + Insight Persistence | ✅ |
+| 89 | Bug Fix: Events click listener duplication | ✅ |
+| 90 | Insight Text Pack i18n update (file 8) | ✅ |
+| 91 | Bug Fix: Year Comparison Premium gate в insight.js | ✅ |
+| 92 | Bug Fix: Daily Reflection i18n + text color | ✅ |
+| 93 | Bug Fix: Insight card language change listener | ✅ |
+| 94 | Feature: Premium practices description in Menu | ✅ |

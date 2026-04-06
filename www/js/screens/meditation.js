@@ -464,9 +464,15 @@ export function initMeditation(container) {
 
       <!-- КНОПКИ УПРАВЛЕНИЯ -->
       <div id="playerControls" class="player-controls">
-        <div id="loopBtn" class="smallBtn">🔁</div>
-        <div id="centerButton" class="mainBtn">▶</div>
-        <div id="chainBtn" class="smallBtn">⏭</div>
+        <button id="loopBtn" class="smallBtn player-btn">
+          <img src="assets/icons/player/loop.svg" class="player-icon" alt="Loop">
+        </button>
+        <button id="centerButton" class="mainBtn player-btn">
+          <img src="assets/icons/player/play.svg" class="player-icon" id="playIcon" alt="Play">
+        </button>
+        <button id="chainBtn" class="smallBtn player-btn">
+          <img src="assets/icons/player/next.svg" class="player-icon" alt="Next">
+        </button>
       </div>
 
       <!-- ФИДБЕК (скрыт) -->
@@ -651,9 +657,12 @@ function toggleMeditation() {
 
 function updatePlayButton(audioState) {
   const btn = document.getElementById("centerButton");
-  if (btn) {
+  const icon = document.getElementById("playIcon");
+  if (btn && icon) {
     const state = audioState || getState();
-    btn.innerText = state.isPlaying ? "❚❚" : "▶";
+    icon.src = state.isPlaying 
+      ? "assets/icons/player/pause.svg" 
+      : "assets/icons/player/play.svg";
   }
 }
 
@@ -711,12 +720,12 @@ function updateTrackHighlight() {
 
 function updateButtonState(id, active) {
   const el = document.getElementById(id);
-  if (active) {
-    el.style.boxShadow = "0 0 12px #b794f4";
-    el.style.color     = "#9f7aea";
-  } else {
-    el.style.boxShadow = "none";
-    el.style.color     = "#888";
+  if (el) {
+    if (active) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
   }
 }
 

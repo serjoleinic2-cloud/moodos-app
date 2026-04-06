@@ -2,7 +2,7 @@ import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";
-import { isPremium, activateTrial } from "../services/user-profile.js";
+import { isPremium } from "../services/user-profile.js";
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t, getLang } from "../i18n.js";
@@ -131,9 +131,10 @@ const PRACTICES = [
 ];
 
 function trendLabel(tr) {
-  if (!tr || tr.includes("изучаю")) return t("trend_no_data");
-  if (tr.includes("improving")) return t("trend_up");
-  if (tr.includes("declining")) return t("trend_down");
+  if (!tr) return t("trend_no_data");
+  if (tr === "learning") return t("trend_no_data");
+  if (tr === "improving" || tr.includes("improving")) return t("trend_up");
+  if (tr === "declining" || tr.includes("declining")) return t("trend_down");
   return t("trend_stable");
 }
 
@@ -160,9 +161,9 @@ function getDaysShort(days) {
 }
 
 function trendExplain(tr) {
-  if (!tr || tr.includes("изучаю")) return t("trend_exp_no_data");
-  if (tr.includes("improving")) return t("trend_exp_up");
-  if (tr.includes("declining")) return t("trend_exp_down");
+  if (!tr || tr === "learning") return t("trend_exp_no_data");
+  if (tr === "improving") return t("trend_exp_up");
+  if (tr === "declining") return t("trend_exp_down");
   return t("trend_exp_stable");
 }
 function sColor(s) { if (!s) return "#888"; return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
@@ -541,7 +542,26 @@ export async function onEnter() {
     }
   }
 
-  const yearComparisonHTML = selectedTimeRange === 'year' ? buildYearComparisonBlock() : '';
+  let yearComparisonHTML = '';
+  if (selectedTimeRange === 'year') {
+    if (isPremium()) {
+      yearComparisonHTML = buildYearComparisonBlock();
+    } else {
+      yearComparisonHTML = 
+        '<div class="insight-section">' +
+          '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
+          '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+              '<div style="font-size:20px;">🔒</div>' +
+              '<div>' +
+                '<div style="font-size:13px;color:#666;">' + t("year_comparison_locked").replace("🔒 ", "") + '</div>' +
+                '<div style="font-size:11px;color:#888;margin-top:2px;">' + t("year_comparison_sell") + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+  }
   const periodComparisonHTML = selectedTimeRange !== 'year' ? buildPeriodComparisonHTML(history, periodDays) : '';
 
   // Period selector HTML
@@ -758,19 +778,8 @@ export async function onEnter() {
   const premiumTriggerBtn = document.getElementById("premiumTriggerBtn");
   if (premiumTriggerBtn) {
     premiumTriggerBtn.addEventListener("click", function() {
-      if (isPremium()) {
-        const msg = document.createElement("div");
-        msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-        msg.innerHTML = "✅ " + t("premium_already_active");
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 3000);
-      } else {
-        activateTrial();
-        const msg = document.createElement("div");
-        msg.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4caf87;color:#fff;padding:20px 28px;border-radius:18px;font-size:16px;font-weight:700;z-index:9999;text-align:center;";
-        msg.innerHTML = "✅ " + t("premium_access_granted");
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 3000);
+      if (window.navigateTo) {
+        window.navigateTo("paywall");
       }
     });
   }
