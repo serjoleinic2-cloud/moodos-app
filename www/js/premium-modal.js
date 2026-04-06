@@ -27,6 +27,7 @@ export function showPremiumModal({ title, desc, fromLimit = false }) {
   if (titleEl) titleEl.textContent = title || "";
   if (descEl) descEl.textContent = desc || "";
   if (btnEl) btnEl.textContent = isPremium ? t("premium_unlimited") : t("premium_try_btn");
+  if (closeEl) closeEl.textContent = t("close");
   
   modal.style.display = "flex";
   
@@ -77,10 +78,9 @@ export function showGeminiLimitModal() {
   const premiumInfo = getPremiumInfo();
   if (premiumInfo.isPremium) return;
   
-  const i18n = window._t || {};
   showPremiumModal({
-    title: i18n["gemini_limit_reached"] || "Дневной лимит запросов исчерпан",
-    desc: (i18n["gemini_limit_desc"] || "Premium даёт безлимит").replace("{used}", "5").replace("{limit}", "5"),
+    title: t("gemini_limit_reached"),
+    desc: t("gemini_limit_desc").replace("{used}", "5").replace("{limit}", "5"),
     fromLimit: true
   });
 }
@@ -89,10 +89,9 @@ export function showHistoryLimitModal() {
   const premiumInfo = getPremiumInfo();
   if (premiumInfo.isPremium) return;
   
-  const i18n = window._t || {};
   showPremiumModal({
-    title: i18n["free_history_limit_title"] || "Доступна только последняя неделя",
-    desc: i18n["free_history_limit_desc"] || "Полная история доступна в Premium",
+    title: t("free_history_limit_title"),
+    desc: t("free_history_limit_desc"),
     fromLimit: true
   });
 }

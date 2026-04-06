@@ -52,6 +52,8 @@ class EventQueue {
   }
 
   async drain() {
+    const MAX_ATTEMPTS = 5;
+    
     while (this.queue.length > 0) {
       const item = this.queue[0];
       
@@ -61,17 +63,33 @@ class EventQueue {
         continue;
       }
 
-      const result = await executionEngine.execute({ type: item.type, data: item.data });
+      item.attempts = (item.attempts || 0) + 1;
       
-      if (result.status === 'committed' || result.status === 'failed') {
+      if (item.attempts > MAX_ATTEMPTS) {
+        console.warn('[event-queue] Max attempts exceeded for event:', item.eventId);
         this.processed.add(item.eventId);
         this.queue.shift();
         this.save();
-      } else if (result.status === 'waiting') {
-        // FIX 2: Wait for billing init, retry after short delay
+        continue;
+      }
+
+      const result = await executionEngine.execute({ type: item.type, data: item.data });
+      
+      if (result.status === 'committed') {
+        this.processed.add(item.eventId);
+        this.queue.shift();
+        this.save();
+      } else if (result.status === 'waiting' || result.status === 'locked') {
         await this.sleep(100);
+        continue;
+      } else if (result.status === 'failed') {
+        this.processed.add(item.eventId);
+        this.queue.shift();
+        this.save();
+        continue;
       } else {
-        break;
+        await this.sleep(50);
+        continue;
       }
     }
   }
@@ -98,12 +116,36 @@ class EventQueue {
 
 export const eventQueue = new EventQueue();
 
+eventQueue.startWatchdog = function() {
+  this._watchdogInterval = setInterval(() => {
+    if (this.queue.length > 0 && !this._draining) {
+      this._draining = true;
+      this.drain().finally(() => {
+        this._draining = false;
+      });
+    }
+  }, 2000);
+};
+
+eventQueue.stopWatchdog = function() {
+  if (this._watchdogInterval) {
+    clearInterval(this._watchdogInterval);
+    this._watchdogInterval = null;
+  }
+};
+
+eventQueue.startWatchdog();
+
 export function enqueuePremiumChanged() {
   return eventQueue.enqueue({ type: ExecutionEvent.PREMIUM_CHANGED });
 }
 
 export function enqueueBillingSync(isPremium) {
   return eventQueue.enqueue({ type: ExecutionEvent.BILLING_SYNC, data: { isPremium } });
+}
+
+export function enqueueBillingStateUpdate(premium) {
+  return eventQueue.enqueue({ type: ExecutionEvent.BILLING_STATE_UPDATE, data: { premium } });
 }
 
 export function recoverEvents() {

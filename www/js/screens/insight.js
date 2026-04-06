@@ -793,7 +793,7 @@ function initChartFor(id, history, stats, practiceData) {
     const c = document.getElementById(canvasId);
     if (c) {
       const parent = c.parentElement;
-      if (parent) parent.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' + (t('chart_unavailable') || 'График недоступен') + '</div>';
+      if (parent) parent.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' + t('chart_unavailable') + '</div>';
     }
     return;
   }

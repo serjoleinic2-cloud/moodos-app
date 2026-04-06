@@ -62,3 +62,7 @@ export function onEnter() {
     }
   });
 }
+
+export function onExit() {
+  // cleanup listeners if needed
+}

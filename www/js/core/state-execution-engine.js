@@ -13,7 +13,8 @@ import { stateGovernance } from "./state-governance.js";
 
 export const ExecutionEvent = {
   PREMIUM_CHANGED: 'PREMIUM_CHANGED',
-  BILLING_SYNC: 'BILLING_SYNC'
+  BILLING_SYNC: 'BILLING_SYNC',
+  BILLING_STATE_UPDATE: 'BILLING_STATE_UPDATE'
 };
 
 export const ExecutionStatus = {
@@ -84,6 +85,11 @@ class StateExecutionEngine {
       case ExecutionEvent.BILLING_SYNC:
         isPremium = event.data?.isPremium ?? false;
         window._billingPremium = isPremium;
+        break;
+
+      case ExecutionEvent.BILLING_STATE_UPDATE:
+        window._billingPremium = event.data?.premium === true;
+        isPremium = window._billingPremium;
         break;
 
       default:

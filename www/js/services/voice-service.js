@@ -1,3 +1,5 @@
+import { t } from "../i18n.js";
+
 let mediaRecorder;
 let chunks = [];
 
@@ -8,7 +10,7 @@ export async function startVoiceRecording(
   try {
 
     if (!navigator.mediaDevices) {
-      statusEl.textContent = "Recording unavailable";
+      statusEl.textContent = t("voice_unavailable");
       return;
     }
 
@@ -51,7 +53,7 @@ export async function startVoiceRecording(
           JSON.stringify(history)
         );
 
-        statusEl.textContent = "Saved";
+        statusEl.textContent = t("voice_saved");
         onFinish();
       };
 
@@ -60,7 +62,7 @@ export async function startVoiceRecording(
 
     mediaRecorder.start();
 
-    statusEl.textContent = "Recording...";
+    statusEl.textContent = t("voice_recording");
 
     setTimeout(() => {
       mediaRecorder.stop();
@@ -68,6 +70,6 @@ export async function startVoiceRecording(
 
   } catch (err) {
     console.error(err);
-    statusEl.textContent = "Recording failed";
+    statusEl.textContent = t("voice_failed");
   }
 }

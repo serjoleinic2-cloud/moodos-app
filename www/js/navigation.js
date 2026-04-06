@@ -2,6 +2,7 @@
 // closeAllOverlays — живёт здесь, используется навигацией
 // ============================================================
 import { saveCheckpointOnExit } from "./services/checkpoint-manager.js";
+import { t } from "./i18n.js";
 
 export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
@@ -57,7 +58,7 @@ export function initNavigation() {
       } else {
         loadScreen._retried.delete(name);
         const s = document.querySelector(`[data-screen="${name}"]`);
-        if (s) s.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa;">Ошибка загрузки экрана</div>';
+        if (s) s.innerHTML = `<div style="padding:40px;text-align:center;color:#aaa;">${t("screen_load_error")}</div>`;
       }
     }
   }

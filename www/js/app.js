@@ -23,7 +23,7 @@ import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity 
 import { showPremiumModal } from "./premium-modal.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
-import { refreshBilling } from "./services/billing-service.js";
+import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 
@@ -225,8 +225,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+function waitForBillingReady() {
+  return new Promise(resolve => {
+    const check = () => {
+      if (!window._billingInitializing) return resolve();
+      setTimeout(check, 50);
+    };
+    check();
+  });
+}
+
+async function initBillingWithOrder() {
+  initBilling();
+  await waitForBillingReady();
+}
+
 function startApp() {
   stateGovernance.enable();
+  
+  initBillingWithOrder();
+  reconcileSystemState();
+  
+  const checkpoint = initCheckpointRecovery();
+  if (checkpoint) {
+    console.log("[APP] Recovered from checkpoint:", checkpoint.screen);
+  }
   
   setTimeout(async () => {
     const recoveryResult = await recoverEvents();
@@ -258,13 +281,6 @@ function startApp() {
       title: t("premium_expired_title"),
       desc: t("premium_expired_desc")
     });
-  }
-  
-  reconcileSystemState();
-  
-  const checkpoint = initCheckpointRecovery();
-  if (checkpoint) {
-    console.log("[APP] Recovered from checkpoint:", checkpoint.screen);
   }
   
   initNavigation();
@@ -299,17 +315,6 @@ function startApp() {
       console.warn("autoBackup failed:", e);
     }
   }, 4500);
-
-  setTimeout(async () => {
-    try {
-      const { initBilling } = await import("./services/billing-service.js");
-      initBilling();
-    } catch(e) {
-      console.warn("initBilling failed:", e);
-    }
-  }, 500);
-
-
 
   const btn         = document.getElementById("analyzeNoteBtn");
   const note        = document.getElementById("dailyNote");

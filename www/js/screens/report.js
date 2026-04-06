@@ -357,7 +357,7 @@ function showMoodCalendarOverlay() {
       </div>` : ''}
       ${hasVoice ? `
         <div style="margin-bottom:12px;">
-          <div style="font-size:11px;color:#888;margin-bottom:6px;">🎤 ${t("hist_voice_diary") || "Голосовой дневник"}</div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">🎤 ${t("hist_voice_diary")}</div>
           ${voices.map((src, i) => `
             <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:6px;">
               <audio id="voice-player-${i}" src="${src}" preload="none" style="display:none;"></audio>
@@ -367,13 +367,13 @@ function showMoodCalendarOverlay() {
                 else{a.pause();this.textContent='▶';}
                 a.onended=()=>this.textContent='▶';
               " style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);font-size:16px;cursor:pointer;flex-shrink:0;">▶</button>
-              <div style="font-size:12px;color:#555;">${t("hist_voice_diary") || "Запись"} ${voices.length > 1 ? (i+1) : ''}</div>
+              <div style="font-size:12px;color:#555;">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
             </div>
           `).join('')}
         </div>
       ` : ''}
-      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:#aaa;margin-bottom:12px;">${t("no_data_short") || "—"}</div>` : ''}
-      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:#888;">${t("close") || "Закрыть"}</div>
+      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:#aaa;margin-bottom:12px;">${t("no_data_short")}</div>` : ''}
+      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:#888;">${t("close")}</div>
     `;
     
     const overlay = document.createElement("div");
@@ -501,7 +501,7 @@ function drawChart(filtered) {
     const parent = canvas.parentElement;
     if (parent) parent.innerHTML =
       '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' +
-      (t('chart_unavailable') || 'График недоступен') + '</div>';
+      t('chart_unavailable') + '</div>';
     return;
   }
   const ex = window.Chart.getChart(canvas);

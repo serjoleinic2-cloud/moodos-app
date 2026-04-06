@@ -424,7 +424,7 @@ function updateAddButton() {
   const count = (state.customTracks || []).length;
   const isDisabled = count >= MAX_CUSTOM_TRACKS;
   if (isDisabled) {
-    wrap.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`;
+    wrap.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;">${t("med_track_limit")}</div>`;
     return;
   }
   wrap.innerHTML = `
@@ -447,8 +447,8 @@ export function initMeditation(container) {
         ${isPremium() ? `
           <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
           ${customCount < MAX_CUSTOM_TRACKS
-            ? `<button id="addTrackBtn" class="add-track-btn" data-action="add-track">+ ${t("med_add_track") || "Добавить мелодию"} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
-            : `<div class="track-limit-msg">${t("med_track_limit") || "Достигнут лимит (5 мелодий)"}</div>`
+            ? `<button id="addTrackBtn" class="add-track-btn" data-action="add-track">+ ${t("med_add_track")} (${customCount}/${MAX_CUSTOM_TRACKS})</button>`
+            : `<div class="track-limit-msg">${t("med_track_limit")}</div>`
           }
         ` : ''}
       </div>

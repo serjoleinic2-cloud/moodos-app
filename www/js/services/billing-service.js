@@ -1,6 +1,6 @@
-import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, setBillingPremium } from "./user-profile.js";
+import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState } from "./user-profile.js";
 import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
-import { enqueueBillingSync } from "../core/event-queue.js";
+import { enqueueBillingStateUpdate } from "../core/event-queue.js";
 
 let storeReady = false;
 
@@ -46,7 +46,7 @@ function onPurchaseApproved(order) {
   try {
     order.finish();
     activatePremiumPaid();
-    setBillingPremium(true);
+    enqueueBillingStateUpdate(true);
     logPremiumGranted('billing', { productId: order?.productId });
   } catch (e) {
     console.error('[billing] approve error', e);
@@ -55,20 +55,18 @@ function onPurchaseApproved(order) {
 
 function onOwned(product) {
   activatePremiumPaid();
-  setBillingPremium(true);
+  enqueueBillingStateUpdate(true);
   logPremiumGranted('billing_own', { productId: product?.id });
 }
 
 function onCancelled(product) {
-  setBillingPremium(false);
-  enqueueBillingSync(false);
+  enqueueBillingStateUpdate(false);
   deactivateExpiredPremium();
   reconcileSystemState();
 }
 
 function onExpired(product) {
-  setBillingPremium(false);
-  enqueueBillingSync(false);
+  enqueueBillingStateUpdate(false);
   deactivateExpiredPremium();
   reconcileSystemState();
 }
@@ -85,11 +83,11 @@ export function getPremiumFromBilling() {
       monthly?.state === "APPROVED" || yearly?.state === "APPROVED" ||
       monthly?.state === "VALID" || yearly?.state === "VALID";
     
-    setBillingPremium(isPremiumBilling);
+    enqueueBillingStateUpdate(isPremiumBilling);
     return isPremiumBilling;
   } catch(e) {
     console.warn('[billing] getPremiumFromBilling error:', e);
-    setBillingPremium(false);
+    enqueueBillingStateUpdate(false);
     return false;
   }
 }
@@ -112,4 +110,9 @@ export function buyYearly() {
 export function restorePurchases() {
   if (!window.store) return;
   window.store.refresh();
+}
+
+export async function verifyPurchaseWithServer(token) {
+  // TODO: POST /verify
+  return { valid: true };
 }

@@ -547,6 +547,10 @@ export const es = {
     premium_feature_custom_tracks: "Melodías personalizadas de meditación",
     voice_notes_caption: "A veces es útil escucharse desde fuera",
     voice_notes_duration: "Nota de voz",
+    voice_unavailable: "Grabación no disponible",
+    voice_saved: "Guardado",
+    voice_failed: "Error de grabación",
+    screen_load_error: "Error de carga de pantalla",
     insight_no_change: "Sin cambios",
     insight_better: "mejor que antes",
     insight_worse: "peor que antes"

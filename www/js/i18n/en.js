@@ -546,6 +546,10 @@ export const en = {
     premium_feature_custom_tracks: "Custom Meditation Tracks",
     voice_notes_caption: "Sometimes it's useful to hear yourself from the outside",
     voice_notes_duration: "Voice Note",
+    voice_unavailable: "Recording unavailable",
+    voice_saved: "Saved",
+    voice_failed: "Recording failed",
+    screen_load_error: "Screen load error",
     insight_no_change: "No change",
     insight_better: "better than before",
     insight_worse: "worse than before"

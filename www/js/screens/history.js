@@ -343,7 +343,7 @@ function renderCard(item) {
     return `<div class="hist-card" style="flex-direction:column;align-items:stretch;cursor:default;" data-ts="${ts}" data-type="voice_note">
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
-        <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${t("voice_notes_duration") || "Длительность: " + durationStr}</div></div>
+        <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${t("voice_notes_duration")}</div></div>
         <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice_note")}<div class="hist-card-time">${time}</div></div>
       </div>
       ${hasAudio?`
