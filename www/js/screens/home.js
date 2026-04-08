@@ -27,6 +27,7 @@ function saveInsightToStorage(insight) {
       moodLevel: insight.moodLevel,
       events: insight.events,
       pattern: insight.pattern,
+      insightText: insight.insightText,
       timestamp: Date.now()
     }));
   } catch (e) {}
@@ -44,20 +45,15 @@ function renderInsightCard(state) {
   if (!card || !text) return;
 
   const stored = getLastInsight();
-  if (stored) {
-    const moodValue = stored.moodLevel === 'low' ? 25 : stored.moodLevel === 'high' ? 80 : 50;
-    const insight = generateInsight({ 
-      mood: moodValue, 
-      events: stored.events || [] 
-    });
-    
-    text.textContent = insight.insightText;
+  if (stored && stored.insightText) {
+    // Показываем сохранённый текст (не генерируем новый!)
+    text.textContent = stored.insightText;
     card.style.display = 'block';
     card.style.opacity = '1';
     
-    if (insight.pattern && patternCard && patternText) {
-      const label = getPatternEventLabel(insight.pattern.event);
-      if (insight.pattern.type === 'positive') {
+    if (stored.pattern && patternCard && patternText) {
+      const label = getPatternEventLabel(stored.pattern.event);
+      if (stored.pattern.type === 'positive') {
         patternText.textContent = t('pattern_positive').replace('{event}', label);
       } else {
         patternText.textContent = t('pattern_negative').replace('{event}', label);

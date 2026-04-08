@@ -951,3 +951,17 @@ Avatar reactions to event icons + Premium text fix
 - www/js/ui/avatar-controller.js
 - www/css/avatar.css
 - www/js/i18n/ru.js, en.js, uk.js, es.js
+
+---
+
+## TASK 100
+Bug Fix: patterns scope + home.js clone logic
+
+**Изменения:**
+- Fixed: patterns defined inside if block but used outside in offline-ai.js
+- Fixed: cloneNode logic to prevent duplicate listeners
+- Home screen now loads correctly on first load and returns
+
+**Files:**
+- www/js/ai/offline-ai.js
+- www/js/screens/home.js

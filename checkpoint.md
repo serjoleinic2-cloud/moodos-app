@@ -32,6 +32,9 @@ Status: **ARCHITECTURE FROZEN**
 - ✅ **Live Avatar v1 (TASK 95)** — CSS animations + mood states
 - ✅ **Avatar v2 (TASK 96)** — Custom SVG wave-head with emotions
 - ✅ **Avatar v2 Bug Fix (TASK 97)** — Drag, blink, wave frequency
+- ✅ **Avatar v2 (TASK 98)** — Scandinavian style + animated eyebrows
+- ✅ **Avatar reactions (TASK 99)** — Event icons + Premium text fix
+- ✅ **Bug Fix (TASK 100)** — patterns scope + home.js
 - ✅ **Avatar v2 (TASK 98)** — Symmetric waves + animated eyebrows
 
 ---
@@ -203,3 +206,4 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 97 | Avatar v2 Bug Fix — Drag, blink, wave frequency | ✅ |
 | 98 | Avatar v2 — Symmetric waves + animated eyebrows | ✅ |
 | 99 | Avatar reactions to event icons + Premium text fix | ✅ |
+| 100 | Bug Fix: patterns scope + home.js clone logic | ✅ |
