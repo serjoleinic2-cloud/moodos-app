@@ -965,3 +965,18 @@ Bug Fix: patterns scope + home.js clone logic
 **Files:**
 - www/js/ai/offline-ai.js
 - www/js/screens/home.js
+
+---
+
+## TASK 101
+Insight Screen Fixes: Translations, Math, Logic
+
+**Изменения:**
+- "vs" replaced with proper prepositions in all 4 languages
+- Formula changed from relative to absolute (percent = abs(delta))
+- Trend threshold increased from ±2 to ±5
+
+**Files:**
+- www/js/i18n/en.js, ru.js, uk.js, es.js
+- www/js/screens/insight.js
+- www/js/services/analytics.js

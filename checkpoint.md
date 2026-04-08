@@ -207,3 +207,4 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 98 | Avatar v2 — Symmetric waves + animated eyebrows | ✅ |
 | 99 | Avatar reactions to event icons + Premium text fix | ✅ |
 | 100 | Bug Fix: patterns scope + home.js clone logic | ✅ |
+| 101 | Insight Screen Fixes: translations, math, threshold | ✅ |

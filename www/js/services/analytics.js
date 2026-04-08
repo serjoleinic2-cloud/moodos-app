@@ -16,8 +16,9 @@ export function calculateTrend(history) {
   if (!history || history.length < 6) return "learning";
   const recent   = history.slice(-3).reduce((s, h) => s + h.value, 0) / 3;
   const previous = history.slice(-6, -3).reduce((s, h) => s + h.value, 0) / 3;
-  if (recent > previous + 2) return "improving";
-  if (recent < previous - 2) return "declining";
+  // Threshold увеличен с ±2 до ±5 для уменьшения ложных трендов
+  if (recent > previous + 5) return "improving";
+  if (recent < previous - 5) return "declining";
   return "stable";
 }
 

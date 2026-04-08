@@ -194,7 +194,8 @@ function computeComparison(current, previous) {
     percent = 0;
     trend = "stable";
   } else {
-    percent = Math.round((delta / previous) * 100);
+    // Абсолютное изменение (в пунктах 0-100)
+    percent = Math.abs(delta);
     if (delta > 0) trend = "up";
     if (delta < 0) trend = "down";
   }
@@ -213,7 +214,7 @@ function computeComparison(current, previous) {
     current,
     previous,
     delta,
-    percent: Math.abs(percent),
+    percent,
     direction,
     arrow,
     trend,
