@@ -30,6 +30,8 @@ d:\moodos-app\
     styles\
       design-system.css
     assets\
+      avatar\
+        neyra-avatar.svg
       audio\
         meditation\
           Celestial Tranquility.mp3
@@ -40,6 +42,7 @@ d:\moodos-app\
       state.js
       system-core.js
       ui-controller.js
+      avatar-controller.js
       i18n.js
       onboarding.js
       avatar.js
@@ -128,11 +131,13 @@ d:\moodos-app\
 - www/styles/design-system.css
 - www/assets/audio/meditation/Celestial Tranquility.mp3
 - www/assets/audio/meditation/Tibetan Serenity.mp3
+- www/assets/avatar/neyra-avatar.svg
 - www/js/app.js
 - www/js/navigation.js
 - www/js/state.js
 - www/js/system-core.js
 - www/js/ui-controller.js
+- www/js/ui/avatar-controller.js
 - www/js/i18n.js
 - www/js/onboarding.js
 - www/js/avatar.js

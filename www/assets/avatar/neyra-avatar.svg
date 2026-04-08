@@ -1,0 +1,37 @@
+<svg id="avatarSvg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- BODY — волнистая голова -->
+  <path id="avatarBody"
+        d="M15,50 
+           Q25,25 35,30 Q45,20 55,30 Q65,20 75,30 Q85,20 95,30 Q105,25 105,50 
+           Q105,90 60,100 
+           Q15,90 15,50 Z"
+        fill="#FFE08A"
+        stroke="#D97706"
+        stroke-width="1.5"/>
+
+  <!-- EYES -->
+  <g id="eyes">
+    <rect class="eye" x="40" y="56" width="8" height="8" rx="4" ry="4" fill="#111"/>
+    <rect class="eye right" x="72" y="56" width="8" height="8" rx="4" ry="4" fill="#111"/>
+
+    <!-- highlights -->
+    <circle cx="43" cy="58" r="1.5" fill="#fff"/>
+    <circle cx="75" cy="58" r="1.5" fill="#fff"/>
+  </g>
+
+  <!-- EYEBROWS -->
+  <g id="brows" stroke="#D97706" stroke-width="2.5" stroke-linecap="round">
+    <line id="browLeft" x1="38" y1="50" x2="50" y2="48"/>
+    <line id="browRight" x1="70" y1="48" x2="82" y2="50"/>
+  </g>
+
+  <!-- MOUTH -->
+  <path id="mouth"
+        d="M45,75 Q60,85 75,75"
+        stroke="#D97706"
+        stroke-width="2"
+        fill="none"
+        stroke-linecap="round"/>
+
+</svg>

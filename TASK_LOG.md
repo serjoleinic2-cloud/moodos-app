@@ -867,3 +867,87 @@ Feature: Premium practices description in Menu
 - www/js/i18n/es.js
 - www/js/screens/premium.js
 - www/js/screens/paywall.js
+
+---
+
+## TASK 95
+Live Avatar v1 — CSS animations + mood states
+
+**Изменения:**
+- Создан avatar-controller.js в www/js/ui/
+- Добавлены CSS анимации: breathe, blink, bounce
+- Mood states: support (<30), engaged (30-70), positive (>70)
+- Micro-behavior: look around каждые 6 секунд
+
+**Files:**
+- www/js/ui/avatar-controller.js
+- www/js/screens/home.js
+- www/index.html
+- www/css/style.css
+
+---
+
+## TASK 96
+Avatar v2 — Custom SVG wave-head with emotions
+
+**Изменения:**
+- Создан SVG аватар с волнистой формой головы
+- Глаза с бликами, брови, рот
+- 4 эмоции: support, engaged, positive, happy
+- Управление через avatar-controller.js
+- CSS анимации в avatar.css
+
+**Files:**
+- www/assets/avatar/neyra-avatar.svg
+- www/css/avatar.css
+- www/js/ui/avatar-controller.js
+- www/index.html
+- MODULE_MAP.md
+
+---
+
+## TASK 97
+Avatar v2 Bug Fix
+
+**Изменения:**
+- Drag fixed: SVG встроен inline вместо object/embed
+- Blink fixed: SMIL анимация на ry атрибуте
+- Wave frequency: увеличена частота волн в path
+
+**Files:**
+- www/index.html
+- www/css/avatar.css
+
+---
+
+## TASK 98
+Avatar v2 — Symmetric waves + animated eyebrows
+
+**Изменения:**
+- Symmetric sine wave on head (M20,50 → Q arcs)
+- Eyebrows controlled by JS (not CSS)
+- Worried brows: mood < 30% (сводятся к центру, опускаются)
+- Surprised flash: mood 30-40% (приподнимаются → worried)
+- Default brows: mood > 40%
+
+**Files:**
+- www/index.html
+- www/js/ui/avatar-controller.js
+- www/css/avatar.css
+
+---
+
+## TASK 99
+Avatar reactions to event icons + Premium text fix
+
+**Изменения:**
+- Avatar reacts to event icon selection (coffee/walk/sport animations)
+- Events.js triggers avatarReactToEvent on icon click
+- CSS animations: energize, calm, pulse
+- Premium AI text fixed in all 4 languages (no "AI", clarify offline)
+
+**Files:**
+- www/js/events.js
+- www/js/ui/avatar-controller.js
+- www/css/avatar.css
+- www/js/i18n/ru.js, en.js, uk.js, es.js

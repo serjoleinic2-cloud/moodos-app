@@ -425,7 +425,7 @@ export const uk = {
     gemini_get_premium: "Отримати Premium",
     premium_title: "Повний доступ до себе",
     premium_feature_history: "Уся історія стану",
-    premium_feature_ai: "Безмежні AI інсайти",
+    premium_feature_ai: "Необмежені інсайти та персональні висновки (офлайн аналіз)",
     premium_feature_auto: "Автозбереження даних",
     premium_feature_restore: "Відновлення будь-коли",
     premium_trial_days: "7 днів безкоштовно",

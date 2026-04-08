@@ -182,7 +182,43 @@
 
 <div id="avatar-container">
   <div id="avatar-effects"></div>
-  <div id="avatar-face">🙂</div>
+  <svg id="avatarSvg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- BODY — овальная форма -->
+    <ellipse id="avatarBody" cx="60" cy="62" rx="28" ry="32" fill="#F5F0E8" stroke="#2D3436" stroke-width="1.8"/>
+    
+    <!-- HAIR — простые арки -->
+    <path id="hair"
+          d="M32,50 Q35,25 60,28 Q85,25 88,50"
+          fill="none"
+          stroke="#2D3436"
+          stroke-width="1.8"
+          stroke-linecap="round"/>
+    <path d="M38,48 Q40,38 60,35 Q80,38 82,48" fill="none" stroke="#2D3436" stroke-width="1.2" stroke-linecap="round"/>
+    
+    <!-- EYES — точки -->
+    <g id="eyes">
+      <circle class="eye" cx="48" cy="58" r="2.5" fill="#2D3436">
+        <animate attributeName="ry" values="2.5;0.3;2.5" keyTimes="0;0.03;1" dur="5s" repeatCount="indefinite"/>
+      </circle>
+      <circle class="eye" cx="72" cy="58" r="2.5" fill="#2D3436">
+        <animate attributeName="ry" values="2.5;0.3;2.5" keyTimes="0;0.03;1" dur="5s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    
+    <!-- EYEBROWS — тонкие линии -->
+    <g id="brows" stroke="#2D3436" stroke-width="1.5" stroke-linecap="round">
+      <line id="browLeft" x1="44" y1="52" x2="52" y2="51"/>
+      <line id="browRight" x1="68" y1="51" x2="76" y2="52"/>
+    </g>
+    
+    <!-- MOUTH — простая линия -->
+    <path id="mouth"
+          d="M52,72 Q60,76 68,72"
+          stroke="#2D3436"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="round"/>
+  </svg>
   <div id="avatar-bubble">
     <div id="avatar-text"></div>
     <div id="avatar-actions"></div>

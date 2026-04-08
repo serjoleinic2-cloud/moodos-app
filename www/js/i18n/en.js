@@ -420,7 +420,7 @@ export const en = {
     gemini_get_premium: "Get Premium",
     premium_title: "Full access to yourself",
     premium_feature_history: "Full mood history",
-    premium_feature_ai: "Unlimited AI insights",
+    premium_feature_ai: "Unlimited insights and personal feedback (offline analysis)",
     premium_feature_auto: "Auto-save data",
     premium_feature_restore: "Restore anytime",
     premium_trial_days: "7 days free",

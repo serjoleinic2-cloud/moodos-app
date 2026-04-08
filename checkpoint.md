@@ -29,6 +29,10 @@ Status: **ARCHITECTURE FROZEN**
 - ✅ **UI Polish + Player Icons + Insight Persistence (TASK 88)**
 - ✅ **Bug Fix: Events click listener duplication (TASK 89)**
 - ✅ **Insight Text Pack i18n update (TASK 90)**
+- ✅ **Live Avatar v1 (TASK 95)** — CSS animations + mood states
+- ✅ **Avatar v2 (TASK 96)** — Custom SVG wave-head with emotions
+- ✅ **Avatar v2 Bug Fix (TASK 97)** — Drag, blink, wave frequency
+- ✅ **Avatar v2 (TASK 98)** — Symmetric waves + animated eyebrows
 
 ---
 
@@ -57,6 +61,7 @@ Status: **ARCHITECTURE FROZEN**
 | event-queue | Reliable event delivery + crash recovery |
 | events.js | Events System (10 событий, AppRuntime state) |
 | offline-ai.js | Offline AI с generateInsight() |
+| avatar-controller.js | Live avatar control (SVG + emotions) |
 | avatar.js | Avatar triggers (mood/events/streak) |
 
 ---
@@ -193,3 +198,8 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 92 | Bug Fix: Daily Reflection i18n + text color | ✅ |
 | 93 | Bug Fix: Insight card language change listener | ✅ |
 | 94 | Feature: Premium practices description in Menu | ✅ |
+| 95 | Live Avatar v1 — CSS animations + mood states | ✅ |
+| 96 | Avatar v2 — Custom SVG wave-head with emotions | ✅ |
+| 97 | Avatar v2 Bug Fix — Drag, blink, wave frequency | ✅ |
+| 98 | Avatar v2 — Symmetric waves + animated eyebrows | ✅ |
+| 99 | Avatar reactions to event icons + Premium text fix | ✅ |

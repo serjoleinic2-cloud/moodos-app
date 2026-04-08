@@ -7,6 +7,7 @@ import { generateInsight } from "../ai/offline-ai.js";
 import { showAvatarForMood } from "../avatar.js";
 import { AppRuntime } from "../core/appRuntime.js";
 import { t } from "../i18n.js";
+import { setAvatarMood, avatarReact, initAvatarController } from "../ui/avatar-controller.js";
 
 const STORAGE_KEY = 'neyra_last_insight';
 
@@ -77,16 +78,20 @@ export function onEnter() {
   
   initEventsModule();
   
-  const slider     = document.getElementById("moodSlider");
+  const slider = document.getElementById("moodSlider");
   const valueLabel = document.getElementById("moodValue");
   const savedLabel = document.getElementById("moodSavedLabel");
   const eventsContainer = document.getElementById("eventsContainer");
 
-  if (!slider) return;
+  if (!slider) {
+    console.error('home.onEnter: slider not found');
+    return;
+  }
 
   const currentMood = getMood();
   valueLabel.textContent = currentMood + "%";
 
+  // Clone slider to remove old listeners
   const newSlider = slider.cloneNode(true);
   slider.parentNode.replaceChild(newSlider, slider);
   newSlider.id = "moodSlider";
@@ -98,16 +103,23 @@ export function onEnter() {
   }
   
   renderInsightCard();
+  initAvatarController();
 
   newSlider.addEventListener("input", () => {
     valueLabel.textContent = newSlider.value + "%";
     showAvatarHint(Number(newSlider.value));
+    setAvatarMood(Number(newSlider.value));
   });
 
   const confirmBtn = document.getElementById("moodConfirmBtn");
-  if (!confirmBtn) return;
+  if (!confirmBtn) {
+    console.error('home.onEnter: confirmBtn not found');
+    return;
+  }
+  
   const newBtn = confirmBtn.cloneNode(true);
   confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+  newBtn.id = "moodConfirmBtn";
 
   newBtn.addEventListener("click", async () => {
     console.log('MOOD_SUBMIT clicked');
@@ -149,6 +161,7 @@ export function onEnter() {
       saveInsightToStorage(insight);
       showInsightCard(insight);
       showAvatarForMood(moodValue);
+      avatarReact();
       showAvatarAfterSave({ 
         mood: moodValue, 
         events: selectedEvents,

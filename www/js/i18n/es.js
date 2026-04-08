@@ -425,7 +425,7 @@ export const es = {
     gemini_get_premium: "Obtener Premium",
     premium_title: "Acceso completo a ti mismo",
     premium_feature_history: "Historial completo de estados",
-    premium_feature_ai: "AI insights ilimitados",
+    premium_feature_ai: "Insights ilimitados y conclusiones personales (análisis offline)",
     premium_feature_auto: "Guardado automático",
     premium_feature_restore: "Restaurar en cualquier momento",
     premium_trial_days: "7 días gratis",

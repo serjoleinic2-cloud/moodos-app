@@ -156,6 +156,11 @@ export function renderEventsGrid(container, onToggle) {
 
     AppRuntime.setState(MODULE_NAME, { selectedEvents: selected });
     if (onToggle) onToggle(id);
+    
+    // Also trigger avatar reaction
+    if (window.avatarReactToEvent) {
+      window.avatarReactToEvent(id);
+    }
   };
   
   container.addEventListener('click', eventsClickHandler);

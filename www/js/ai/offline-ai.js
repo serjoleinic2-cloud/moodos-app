@@ -154,10 +154,11 @@ export function generateInsight({ mood, events = [], history = null }) {
   
   // Паттерны с cooldown (показываем ~40% времени)
   let patternText = null;
+  let patterns = null;
   if (Math.random() < 0.4) {
     const recentHistory = getRecentHistory(7);
     const stats = analyzeEventImpact(recentHistory);
-    const patterns = findStrongPatterns(stats);
+    patterns = findStrongPatterns(stats);
     patternText = buildPatternInsight(patterns);
   }
   
@@ -167,7 +168,7 @@ export function generateInsight({ mood, events = [], history = null }) {
     insightText: parts.join(' '),
     moodLevel: moodLevel,
     events: events,
-    pattern: patternText ? patterns?.[0] || null : null
+    pattern: patternText && patterns ? patterns[0] : null
   };
 }
 

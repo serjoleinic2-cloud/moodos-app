@@ -1,8 +1,8 @@
 /* ─── Avatar Container ─────────────────────────────────────────────────────── */
 #avatar-container {
   position: fixed;
-  width: 60px;
-  height: 60px;
+  width: 72px;
+  height: 72px;
   z-index: 9000;
   touch-action: none;
   user-select: none;
@@ -18,32 +18,26 @@
   opacity: 0.85;
 }
 
-/* ─── Avatar Face ─────────────────────────────────────────────────────────── */
-#avatar-face {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #d4ede8 0%, #c8e6e0 100%);
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.15), -2px -2px 8px rgba(255,255,255,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* ─── SVG Avatar ─────────────────────────────────────────────────────────── */
+#avatarSvg {
+  width: 72px;
+  height: 72px;
+  pointer-events: none;
+  animation: avatar-breathe 4s ease-in-out infinite;
 }
 
 /* Idle — breathing */
-#avatar-container.idle #avatar-face {
+#avatar-container.idle #avatarSvg {
   animation: avatar-breathe 4s ease-in-out infinite;
 }
 
 @keyframes avatar-breathe {
   0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.06); }
+  50%       { transform: scale(1.03); }
 }
 
 /* Tap — bounce */
-#avatar-container.tapped #avatar-face {
+#avatar-container.tapped #avatarSvg {
   animation: avatar-bounce 0.4s ease;
 }
 
@@ -55,7 +49,7 @@
 }
 
 /* Show message — scale pulse */
-#avatar-container.active #avatar-face {
+#avatar-container.active #avatarSvg {
   animation: avatar-pulse 0.35s ease;
 }
 
@@ -66,10 +60,82 @@
 }
 
 /* Dragging */
-#avatar-container.dragging #avatar-face {
+#avatar-container.dragging #avatarSvg {
   transform: scale(1.1);
-  box-shadow: 6px 6px 16px rgba(0,0,0,0.2), -3px -3px 10px rgba(255,255,255,0.9);
   animation: none;
+}
+
+/* ─── Emotion States (Scandinavian Style) ──────────────────────────────── */
+
+/* SUPPORT — грустноватый рот опущен */
+.avatar-support #mouth {
+  d: path("M52,73 Q60,70 68,73");
+}
+
+/* ENGAGED — нейтральный */
+.avatar-engaged #mouth {
+  d: path("M52,72 Q60,76 68,72");
+}
+
+/* POSITIVE — улыбка */
+.avatar-positive #mouth {
+  d: path("M52,70 Q60,78 68,70");
+}
+
+/* HAPPY — широкая улыбка */
+.avatar-happy #mouth {
+  d: path("M50,70 Q60,80 70,70");
+}
+
+/* Reaction bounce */
+.react {
+  animation: avatar-react-bounce 0.5s ease;
+}
+
+@keyframes avatar-react-bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Micro behavior — look around */
+.avatar-look .eye {
+  transform: translateX(2px);
+}
+
+/* ─── Event Reactions ─────────────────────────────────────────────────────── */
+
+/* Coffee/Work — energize */
+.event-coffee {
+  animation: avatar-energize 0.6s ease;
+}
+
+@keyframes avatar-energize {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12) rotate(2deg); }
+  100% { transform: scale(1); }
+}
+
+/* Walk/Rest/Sleep — calm */
+.event-walk {
+  animation: avatar-calm 0.8s ease;
+}
+
+@keyframes avatar-calm {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Sport/Social — pulse */
+.event-sport {
+  animation: avatar-pulse 0.5s ease;
+}
+
+@keyframes avatar-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }
 
 /* ─── Bubble — базовое положение: СНИЗУ (аватар у верхнего края) ────────── */

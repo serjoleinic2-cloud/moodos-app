@@ -371,7 +371,7 @@ export const ru = {
     gemini_get_premium: "Получить Premium",
     premium_title: "Полный доступ к себе",
     premium_feature_history: "Вся история состояния",
-    premium_feature_ai: "Неограниченные AI инсайты",
+    premium_feature_ai: "Неограниченные инсайты и персональные выводы (офлайн анализ)",
     premium_feature_auto: "Автосохранение данных",
     premium_feature_restore: "Восстановление в любой момент",
     premium_trial_days: "7 дней бесплатно",
