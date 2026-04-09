@@ -104,9 +104,8 @@ class EventQueue {
   }
 
   clear() {
-    this.queue = [];
-    this.processed.clear();
-    this.save();
+    console.warn('[SECURITY] eventQueue.clear() blocked');
+  }
     auditLogger.log(AuditEvent.RECOVERY_COMPLETED, {
       source: 'event-queue',
       details: { action: 'cleared' }

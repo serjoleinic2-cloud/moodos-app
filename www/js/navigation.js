@@ -1,6 +1,8 @@
 // ============================================================
 // closeAllOverlays — живёт здесь, используется навигацией
 // ============================================================
+let premiumListener = null;
+// ============================================================
 import { saveCheckpointOnExit } from "./services/checkpoint-manager.js";
 import { t } from "./i18n.js";
 import { isPremium } from "./services/user-profile.js";
@@ -325,7 +327,12 @@ export function initNavigation() {
     }
   });
 
-  document.addEventListener('premiumChanged', () => {
+  if (premiumListener) {
+    document.removeEventListener('premiumChanged', premiumListener);
+  }
+
+  premiumListener = () => {
     if (currentScreen) loadScreen(currentScreen);
-  });
+  };
+  document.addEventListener('premiumChanged', premiumListener);
 }

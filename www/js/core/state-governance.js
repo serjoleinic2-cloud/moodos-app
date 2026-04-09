@@ -17,10 +17,6 @@ class StateGovernance {
     this.governanceEnabled = true;
   }
 
-  disable() {
-    this.governanceEnabled = false;
-  }
-
   resolvePremiumState(billingPremium, localPremium) {
     if (billingPremium !== undefined && billingPremium !== null) {
       return billingPremium;

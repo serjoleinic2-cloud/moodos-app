@@ -10,11 +10,13 @@
 
 import { auditLogger, AuditEvent } from "./audit-logger.js";
 import { stateGovernance } from "./state-governance.js";
+import { _trustedSetBillingPremium } from "../app.js";
 
 export const ExecutionEvent = {
   PREMIUM_CHANGED: 'PREMIUM_CHANGED',
   BILLING_SYNC: 'BILLING_SYNC',
-  BILLING_STATE_UPDATE: 'BILLING_STATE_UPDATE'
+  BILLING_STATE_UPDATE: 'BILLING_STATE_UPDATE',
+  AVATAR_UPDATE: 'AVATAR_UPDATE'
 };
 
 export const ExecutionStatus = {
@@ -77,24 +79,25 @@ class StateExecutionEngine {
     switch (event.type) {
       case ExecutionEvent.PREMIUM_CHANGED:
         isPremium = stateGovernance.resolvePremiumState(
-          window._billingPremium,
+          _billingPremiumInternal,
           false
         );
         break;
 
       case ExecutionEvent.BILLING_SYNC:
         isPremium = event.data?.isPremium ?? false;
-        window._billingPremium = isPremium;
+        _trustedSetBillingPremium(isPremium);
         break;
 
       case ExecutionEvent.BILLING_STATE_UPDATE:
-        window._billingPremium = event.data?.premium === true;
-        isPremium = window._billingPremium;
+        const next = event.data?.premium === true;
+        _trustedSetBillingPremium(next);
+        isPremium = next;
         break;
 
       default:
         isPremium = stateGovernance.resolvePremiumState(
-          window._billingPremium,
+          _billingPremiumInternal,
           false
         );
     }

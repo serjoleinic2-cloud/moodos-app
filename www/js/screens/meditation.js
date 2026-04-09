@@ -614,16 +614,22 @@ function drawWaveProgress() {
 }
 
 function showPlayer() {
-  document.getElementById("playerControls").style.display = "flex";
-  document.getElementById("progressWrap").style.display = "block";
-  document.getElementById("meditationFeedback").style.display = "none";
+  const playerControls = document.getElementById("playerControls");
+  const progressWrap = document.getElementById("progressWrap");
+  const feedback = document.getElementById("meditationFeedback");
+  if (playerControls) playerControls.style.display = "flex";
+  if (progressWrap) progressWrap.style.display = "block";
+  if (feedback) feedback.style.display = "none";
   updatePlayButton({ isPlaying: false });
 }
 
 function showFeedback() {
-  document.getElementById("playerControls").style.display = "none";
-  document.getElementById("progressWrap").style.display = "none";
-  document.getElementById("meditationFeedback").style.display = "flex";
+  const playerControls = document.getElementById("playerControls");
+  const progressWrap = document.getElementById("progressWrap");
+  const feedback = document.getElementById("meditationFeedback");
+  if (playerControls) playerControls.style.display = "none";
+  if (progressWrap) progressWrap.style.display = "none";
+  if (feedback) feedback.style.display = "flex";
 }
 
 function toggleMeditation() {
@@ -638,9 +644,12 @@ function toggleMeditation() {
     }
     animate();
     
-    document.getElementById("playerControls").style.display = "flex";
-    document.getElementById("progressWrap").style.display = "block";
-    document.getElementById("meditationFeedback").style.display = "none";
+    const playerControls = document.getElementById("playerControls");
+    const progressWrap = document.getElementById("progressWrap");
+    const feedback = document.getElementById("meditationFeedback");
+    if (playerControls) playerControls.style.display = "flex";
+    if (progressWrap) progressWrap.style.display = "block";
+    if (feedback) feedback.style.display = "none";
     setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
     
     SystemCore.analyzeMoodOnly(moodBeforeSession).then(result => {

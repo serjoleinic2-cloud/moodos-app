@@ -1,5 +1,31 @@
 // app.js — Neyra boot
 
+// 🔐 HARD LOCK: billing premium
+let _billingPremiumInternal = false;
+
+if (window.hasOwnProperty('_billingPremium')) {
+  try {
+    delete window._billingPremium;
+  } catch (e) {
+    console.warn('[SECURITY] cannot delete existing _billingPremium');
+  }
+}
+
+Object.defineProperty(window, '_billingPremium', {
+  get: () => _billingPremiumInternal,
+  set: () => {
+    console.warn('[SECURITY] BLOCKED direct write to _billingPremium');
+  },
+  configurable: false,
+  enumerable: false
+});
+
+export function _trustedSetBillingPremium(val) {
+  _billingPremiumInternal = val === true;
+}
+
+console.log('[SECURITY] billingPremium HARD LOCK ENABLED');
+
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
@@ -26,6 +52,7 @@ import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
+import { runReconciliation } from "./core/state-execution-engine.js";
 
 /* ---------- ИНСАЙТ ДНЯ ---------- */
 function buildDayInsight() {

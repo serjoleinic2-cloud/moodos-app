@@ -208,3 +208,5 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 99 | Avatar reactions to event icons + Premium text fix | ✅ |
 | 100 | Bug Fix: patterns scope + home.js clone logic | ✅ |
 | 101 | Insight Screen Fixes: translations, math, threshold | ✅ |
+| 102 | Security Patch: Premium state protection | ✅ |
+| 103 | Critical Fix Pack: Security + Runtime + UI Sync | ✅ |

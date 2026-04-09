@@ -42,15 +42,39 @@ export function initBilling() {
   window._billingInitializing = false;
 }
 
-function onPurchaseApproved(order) {
+async function onPurchaseApproved(order) {
   try {
+    if (!order || !order.productId) {
+      console.error('[billing] invalid order');
+      return;
+    }
+
+    const token = order?.transaction?.token || order?.id;
+
+    const verification = await verifyPurchaseWithServer(token);
+
+    if (!verification || verification.valid !== true) {
+      console.error('[billing] verification failed');
+      return;
+    }
+
     order.finish();
     activatePremiumPaid();
     enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing', { productId: order?.productId });
+    logPremiumGranted('billing', { productId: order.productId });
   } catch (e) {
     console.error('[billing] approve error', e);
   }
+}
+
+export async function verifyPurchaseWithServer(token) {
+  console.warn('[billing] server verification not implemented');
+
+  if (!token) {
+    return { valid: false };
+  }
+
+  return { valid: true }; // MVP fallback
 }
 
 function onOwned(product) {
