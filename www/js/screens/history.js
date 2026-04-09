@@ -42,6 +42,9 @@ function buildShareText(item) {
     const result = item.result === "positive" ? t("hist_helped") : t("hist_not_helped");
     return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}\n\n— Neyra`;
   }
+  if (item.type === "photo") {
+    return `📷 ${t("hist_photo")}\n${item.note || t("hist_photo_mood")}\n📅 ${date} ${time}\n— Neyra`;
+  }
   return null;
 }
 
@@ -49,7 +52,11 @@ function shareItem(item) {
   const text = buildShareText(item);
   if (!text) return;
 
-  // Capacitor Share plugin — открывает нативное Android share-меню
+  if (item.type === "photo" && item.dataUrl) {
+    sharePhoto(item);
+    return;
+  }
+
   try {
     const Share = window.Capacitor?.Plugins?.Share;
     if (Share) {
@@ -58,16 +65,50 @@ function shareItem(item) {
     }
   } catch(e) {}
 
-  // Fallback — navigator.share
   if (navigator.share) {
     navigator.share({ title: "Neyra", text }).catch(() => {});
     return;
   }
 
-  // Последний fallback — копирование
   navigator.clipboard?.writeText(text).then(() => {
     showToast("✓ Скопировано");
   }).catch(() => {});
+}
+
+function sharePhoto(item) {
+  const text = buildShareText(item);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    const scale = Math.min(1, 1200 / Math.max(img.width, img.height));
+    canvas.width  = img.width  * scale;
+    canvas.height = img.height * scale;
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    const base64 = dataUrl.split(",")[1];
+    const fileName = "neyra-photo-" + Date.now() + ".jpg";
+    
+    // Try Capacitor.Share first
+    const Share = window.Capacitor?.Plugins?.Share;
+    const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+    
+    if (Share && Filesystem) {
+      Filesystem.writeFile({ path: fileName, data: base64, directory: "CACHE" })
+        .then(() => Filesystem.getUri({ path: fileName, directory: "CACHE" }))
+        .then(fileUri => {
+          return Share.share({ title: "Neyra", text, url: fileUri.uri, dialogTitle: "Поделиться" });
+        })
+        .catch(err => {
+          if (err.name !== "AbortError") {
+            console.warn("[share] Capacitor.Share failed:", err);
+          }
+        });
+    } else if (navigator.share) {
+      navigator.share({ title: "Neyra", text, url: dataUrl }).catch(() => {});
+    }
+  };
+  img.src = item.dataUrl;
 }
 
 function showToast(msg) {
@@ -384,7 +425,7 @@ function renderDetail(item, filterDate) {
   const container=document.getElementById("history-content");
   const meta=SESSION_META();
   const time=formatTime(item.ts), date=formatDate(item.ts);
-  const canShare = ["mood","note","session"].includes(item.type);
+  const canShare = ["mood","note","session","photo"].includes(item.type);
   let body="";
 
   if (item.type==="mood") {

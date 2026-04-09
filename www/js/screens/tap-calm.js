@@ -75,7 +75,9 @@ function render(container) {
 
       <!-- КНОПКА -->
       <div style="display:flex; justify-content:center; margin-bottom:20px;">
-        <div id="tcMainBtn" class="mainBtn">▶</div>
+        <button id="tcMainBtn" class="mainBtn" style="border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <img id="tcPlayIcon" src="assets/icons/player/play.svg" style="width:28px;height:28px;">
+        </button>
       </div>
 
       <!-- ФИДБЕК -->
@@ -228,7 +230,8 @@ async function startSession() {
   const analysisResult = await SystemCore.analyzeMoodOnly(moodBeforeSession);
   stateBeforeSession = analysisResult ? analysisResult.state : null;
   
-  if (mainBtn) mainBtn.innerText = "⏸";
+  const icon1 = document.getElementById("tcPlayIcon");
+  if (icon1) icon1.src = "assets/icons/player/pause.svg";
   if (status) status.textContent = t("tc_tapping");
   
   tapCount = 0;
@@ -258,7 +261,8 @@ function stopSession() {
   if (animationId) cancelAnimationFrame(animationId);
   if (countdownInterval) clearInterval(countdownInterval);
   if (status) status.textContent = t("tc_done");
-  if (mainBtn) mainBtn.innerText = "▶";
+  const icon2 = document.getElementById("tcPlayIcon");
+  if (icon2) icon2.src = "assets/icons/player/play.svg";
 }
 
 function drawLoop() {

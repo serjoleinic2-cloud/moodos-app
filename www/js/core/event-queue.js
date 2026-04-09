@@ -106,11 +106,6 @@ class EventQueue {
   clear() {
     console.warn('[SECURITY] eventQueue.clear() blocked');
   }
-    auditLogger.log(AuditEvent.RECOVERY_COMPLETED, {
-      source: 'event-queue',
-      details: { action: 'cleared' }
-    });
-  }
 }
 
 export const eventQueue = new EventQueue();

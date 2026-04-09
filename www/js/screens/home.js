@@ -1,6 +1,5 @@
 import { getMood } from "../state.js";
 import SystemCore from "../system-core.js";
-import { render } from "../app.js";
 import { showAvatarHint, showAvatarAfterSave } from "../avatar.js";
 import { initEventsModule, renderEventsGrid, getSelectedEvents, clearSelectedEvents, updateEventsUI, cleanupEventsListener } from "../events.js";
 import { generateInsight } from "../ai/offline-ai.js";

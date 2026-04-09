@@ -25,8 +25,7 @@ window.systemState = {
   premium: false,
   avatar: {},
   insights: {},
-  dailySnapshots: [],
-  isReady: false
+  dailySnapshots: []
 };
 
 export function updateSystemState(updates) {

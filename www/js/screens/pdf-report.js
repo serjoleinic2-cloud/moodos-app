@@ -355,6 +355,46 @@ async function generatePdf(fromStr, toStr) {
   const minV = vals.length ? Math.min.apply(null, vals) : null;
   const maxV = vals.length ? Math.max.apply(null, vals) : null;
 
+  // Event icons (recent factors)
+  const eventCounts = {};
+  moodHistory.forEach(function(e) {
+    if (e.events && Array.isArray(e.events)) {
+      e.events.forEach(function(ev) {
+        eventCounts[ev] = (eventCounts[ev] || 0) + 1;
+      });
+    }
+  });
+  const eventIconMap = {
+    coffee: "☕", walk: "🚶", sport: "🏃", food: "🍽️", music: "🎵",
+    nature: "🌿", stress: "⚡", sleep: "😴", social: "👥", work: "💼",
+    family: "👨‍👩‍👧", health: "💊", sun: "☀️", reading: "📚", pets: "🐾"
+  };
+  const eventLabelMap = {
+    coffee: t("event_coffee") || "Coffee",
+    walk: t("event_walk") || "Walk",
+    sport: t("event_sport") || "Sport",
+    food: t("event_food") || "Food",
+    music: t("event_music") || "Music",
+    nature: t("event_nature") || "Nature",
+    stress: t("event_stress") || "Stress",
+    sleep: t("event_sleep") || "Sleep",
+    social: t("event_social") || "Social",
+    work: t("event_work") || "Work",
+    family: t("event_family") || "Family",
+    health: t("event_health") || "Health",
+    sun: t("event_sun") || "Sun",
+    reading: t("event_reading") || "Reading",
+    pets: t("event_pets") || "Pets"
+  };
+  const recentFactors = Object.entries(eventCounts)
+    .sort(function(a, b) { return b[1] - a[1]; })
+    .slice(0, 6)
+    .map(function(entry) {
+      const icon = eventIconMap[entry[0]] || "•";
+      const label = eventLabelMap[entry[0]] || entry[0];
+      return icon + " " + label;
+    });
+
   // БАГ 3: тренд на языке приложения
   let trendTxt;
   if (trend === "improving ↑") trendTxt = "📈 " + t("trend_up");
@@ -427,6 +467,19 @@ async function generatePdf(fromStr, toStr) {
           '<div><span style="color:#aaa;font-size:12px">' + t("settings_meds_label") + ':</span><br><b style="font-size:13px">' + getMedLabel(profile.takesMeds) + '</b></div>' +
           (showEffect ? '<div><span style="color:#aaa;font-size:12px">' + t("settings_effect_label") + ':</span><br><b style="font-size:13px">' + getEffectLabel(profile.medEffect) + '</b></div>' : "") +
           '<div><span style="color:#aaa;font-size:12px">' + t("settings_baseline_label") + ':</span><br><b style="font-size:13px">' + (profile.moodBaseline != null ? profile.moodBaseline : 50) + '%</b></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  let factorsBlock = "";
+  if (recentFactors.length > 0) {
+    factorsBlock =
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + (t("pdf_recent_factors") || "Recent Factors") + '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          recentFactors.map(function(f) {
+            return '<span style="background:#e8f5e9;border-radius:8px;padding:6px 12px;font-size:13px;">' + f + '</span>';
+          }).join("") +
         '</div>' +
       '</div>';
   }
@@ -504,7 +557,7 @@ async function generatePdf(fromStr, toStr) {
         '<div style="font-size:11px;opacity:0.7;margin-top:6px;">' + t("pr_from") + ': ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' · ' + new Date().toLocaleDateString(locale) + '</div>' +
       '</div>' +
       '<div style="padding:20px 24px;">' +
-        patientBlock + statsBlock + recsBlock + practicesBlock + journalBlock +
+        patientBlock + factorsBlock + statsBlock + recsBlock + practicesBlock + journalBlock +
         '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">' + t("pdf_footer") + '</div>' +
       '</div>' +
     '</div>';

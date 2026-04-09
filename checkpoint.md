@@ -210,3 +210,6 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 101 | Insight Screen Fixes: translations, math, threshold | ✅ |
 | 102 | Security Patch: Premium state protection | ✅ |
 | 103 | Critical Fix Pack: Security + Runtime + UI Sync | ✅ |
+| 103.1 | Meditation Crash Fix + Audio Validation | ✅ |
+| 103.2 | Final Stabilization: Security + Share + Photo + PDF | ✅ |
+| 103.3 | FREEZE PROTOCOL Compliance: Remove isReady ad-hoc logic | ✅ |

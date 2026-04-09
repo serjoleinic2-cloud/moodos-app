@@ -63,7 +63,9 @@ export function initBreathing(container) {
 
       <!-- КНОПКА СТАРТ/СТОП -->
       <div style="margin-top:0; display:flex; justify-content:center;">
-        <div id="breathingMainBtn" class="mainBtn">▶</div>
+        <button id="breathingMainBtn" class="mainBtn" style="border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <img id="breathingPlayIcon" src="assets/icons/player/play.svg" style="width:28px;height:28px;">
+        </button>
       </div>
 
       <!-- ФИДБЕК — скрыт по умолчанию -->
@@ -134,9 +136,10 @@ export function initBreathing(container) {
   }
 
   mainBtn.onclick = () => {
+    const icon = document.getElementById("breathingPlayIcon");
     if (!running) {
       startBreathing();
-      mainBtn.innerText = "⏸";
+      if (icon) icon.src = "assets/icons/player/pause.svg";
     } else {
       stopBreathing();
       showFeedback();
@@ -163,7 +166,8 @@ addSessionEntry({
     moodBeforeSession = null;
     showPlayer();
     document.getElementById("breathingText").innerText = t("breath_ready");
-    mainBtn.innerText = "▶";
+    const icon1 = document.getElementById("breathingPlayIcon");
+    if (icon1) icon1.src = "assets/icons/player/play.svg";
   };
 
   document.getElementById("breathingNotHelped").onclick = () => {
@@ -181,7 +185,8 @@ addSessionEntry({
     moodBeforeSession = null;
     showPlayer();
     document.getElementById("breathingText").innerText = t("breath_ready");
-    mainBtn.innerText = "▶";
+    const icon2 = document.getElementById("breathingPlayIcon");
+    if (icon2) icon2.src = "assets/icons/player/play.svg";
   };
 }
 

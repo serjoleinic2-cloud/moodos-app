@@ -47,8 +47,15 @@ export function getAudioController() {
 
 // For backward compatibility - export functions directly
 export const play = (track) => {
-  if (!track || !track.src) {
-    console.warn('[AudioController] Invalid track:', track);
+  if (!track) {
+    console.error('[AudioController] play() called without track');
+    return;
+  }
+  
+  const src = typeof track === 'string' ? track : track.src;
+  
+  if (!src) {
+    console.error('[AudioController] play() called without src');
     return;
   }
 

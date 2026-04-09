@@ -135,8 +135,3 @@ export function restorePurchases() {
   if (!window.store) return;
   window.store.refresh();
 }
-
-export async function verifyPurchaseWithServer(token) {
-  // TODO: POST /verify
-  return { valid: true };
-}

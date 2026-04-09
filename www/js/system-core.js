@@ -154,6 +154,18 @@ const SystemCore = {
           })
           break
 
+        case 'AVATAR_UPDATE':
+          console.log('[AVATAR] AVATAR_UPDATE event:', payload);
+          if (payload?.text) {
+            showAvatar({
+              text: payload.text,
+              source: payload.source || 'system',
+              force: true
+            });
+          }
+          result = { success: true };
+          break
+
         case 'AVATAR_TEST':
           console.log('[AVATAR DEBUG] AVATAR_TEST event');
           showAvatar({

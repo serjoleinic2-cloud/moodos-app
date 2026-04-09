@@ -56,7 +56,9 @@ function render(container) {
       </div>
 
       <div style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
-        <div id="mdMainBtn" class="mainBtn">▶</div>
+        <button id="mdMainBtn" class="mainBtn" style="border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <img id="mdPlayIcon" src="assets/icons/player/play.svg" style="width:28px;height:28px;">
+        </button>
         <div id="mdClearBtn" style="display:none;width:52px;height:52px;border-radius:50%;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;cursor:pointer;font-size:20px;align-items:center;justify-content:center;color:#888;">🗑</div>
       </div>
 
@@ -200,7 +202,8 @@ async function startSession() {
   const analysisResult = await SystemCore.analyzeMoodOnly(moodBeforeSession);
   stateBeforeSession = analysisResult ? analysisResult.state : null;
   
-  if (mainBtn) mainBtn.innerText = "⏸";
+  const icon1 = document.getElementById("mdPlayIcon");
+  if (icon1) icon1.src = "assets/icons/player/pause.svg";
   if (clearBtn) clearBtn.style.display = "flex";
   if (textarea) { textarea.disabled = false; textarea.focus(); }
   if (status) status.textContent = t("md_writing");
@@ -224,7 +227,8 @@ function stopSession() {
   running = false;
   if (countdownInterval) clearInterval(countdownInterval);
   if (textarea) textarea.disabled = true;
-  if (mainBtn) mainBtn.innerText = "▶";
+  const icon2 = document.getElementById("mdPlayIcon");
+  if (icon2) icon2.src = "assets/icons/player/play.svg";
   if (status) status.textContent = t("md_done");
 }
 

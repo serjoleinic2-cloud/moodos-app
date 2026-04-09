@@ -79,7 +79,7 @@ class StateExecutionEngine {
     switch (event.type) {
       case ExecutionEvent.PREMIUM_CHANGED:
         isPremium = stateGovernance.resolvePremiumState(
-          _billingPremiumInternal,
+          window.__NEYRA_SECURITY__?.billingPremium ?? false,
           false
         );
         break;
@@ -97,7 +97,7 @@ class StateExecutionEngine {
 
       default:
         isPremium = stateGovernance.resolvePremiumState(
-          _billingPremiumInternal,
+          window.__NEYRA_SECURITY__?.billingPremium ?? false,
           false
         );
     }

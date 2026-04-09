@@ -174,7 +174,9 @@ export async function onEnter(container) {
   });
 
   render(container);
-  bindEvents();
+  
+  // Wait for render to complete before binding events
+  setTimeout(() => bindEvents(), 50);
   
   // Subscribe to audio state changes
   let wasPlaying = false;
@@ -434,8 +436,23 @@ function updateAddButton() {
 }
 
 export function initMeditation(container) {
+  if (!container) {
+    console.warn('[meditation] container not ready, retrying...');
+    requestAnimationFrame(() => {
+      const el = document.getElementById("meditationContainer");
+      if (el) {
+        initMeditation(el);
+      } else {
+        console.error('[meditation] container still not found after retry');
+      }
+    });
+    return;
+  }
+  
   const state = AppRuntime.getState(MODULE_NAME);
   const customCount = (state.customTracks || []).length;
+  console.log('[meditation] tracks:', getAllTracks());
+  console.log('[meditation] currentIndex:', currentIndex);
 
   container.innerHTML = `
     <!-- ОСНОВНОЙ КОНТЕНТ -->
@@ -638,9 +655,16 @@ function toggleMeditation() {
     sessionStartTime = Date.now();
     moodBeforeSession = getMood();
     
+    const allTracks = getAllTracks();
+    if (currentIndex < 0 || currentIndex >= allTracks.length) {
+      currentIndex = 0;
+    }
+    
     const track = getTrackByIndex(currentIndex);
-    if (track) {
+    if (track && track.src) {
       play(track);
+    } else {
+      console.warn('[meditation] invalid track at index', currentIndex);
     }
     animate();
     
@@ -705,18 +729,24 @@ function handleTrackEnd() {
 function handleTrackSwitch(autoPlay = false) {
   const wasRunning = running;
   
+  const allTracks = getAllTracks();
+  if (currentIndex < 0 || currentIndex >= allTracks.length) {
+    currentIndex = 0;
+  }
+  
   const track = getTrackByIndex(currentIndex);
   renderTracks();
   
   if (autoPlay || wasRunning) {
-    if (track) {
+    if (track && track.src) {
       play(track);
       setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
     }
     if (!wasRunning) {
       running = true;
       animate();
-      document.getElementById("meditationFeedback").style.display = "none";
+      const feedback = document.getElementById("meditationFeedback");
+      if (feedback) feedback.style.display = "none";
     }
   }
 }
@@ -784,7 +814,7 @@ export function onExit() {
     windowResizeHandler = null;
   }
   AppRuntime.resetModule(MODULE_NAME);
-  destroy();
+  pause(); // Use pause instead of destroy to preserve audio state
   running = false;
   if (animationId) {
     cancelAnimationFrame(animationId);
