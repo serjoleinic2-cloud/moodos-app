@@ -292,11 +292,18 @@ if (!window.__neyraAppRunning) {
       });
     }
     
+    function setRecordingUI(isRecording) {
+      document.body.classList.toggle('recording', isRecording);
+    }
+    
     const voiceBtn = document.getElementById("recordVoiceBtn");
     if (voiceBtn) {
       voiceBtn.addEventListener("click", () => {
         trackUserActivity();
         const voiceStatus = document.getElementById("voiceStatus");
+        
+        SystemCore.dispatch('VOICE_START');
+        setRecordingUI(true);
         
         let recordSeconds = 0;
         const timerEl = document.createElement("div");
@@ -316,6 +323,7 @@ if (!window.__neyraAppRunning) {
           if (existingTimer) existingTimer.remove();
           if (voiceStatus) voiceStatus.textContent = "";
           voiceBtn.disabled = false;
+          setRecordingUI(false);
         };
 
         startVoiceRecording(voiceStatus, () => {

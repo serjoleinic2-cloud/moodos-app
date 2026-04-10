@@ -175,7 +175,7 @@ export const ru = {
     med_reminder: "Напоминание о приёме",
     base_feeling: "Базовое состояние",
     data_section: "Данные",
-    doctor_report: "Отчёт для врача",
+    doctor_report: "Сводный отчёт",
     language: "Язык",
     app_section: "Приложение",
     not_specified: "Не указано",
@@ -252,7 +252,7 @@ export const ru = {
     settings_reminder_label: "Напоминание о приёме",
     settings_baseline_label: "Базовое состояние",
     settings_language_label: "Язык",
-    settings_pdf_label: "Отчёт для врача",
+    settings_pdf_label: "Сводный отчёт",
     settings_theme_label: "Цветовая схема",
     settings_theme_subtitle: "Выбери оформление приложения",
     theme_default: "Зелёно-бежевая",
@@ -277,8 +277,8 @@ export const ru = {
     dow_mon: "Пн", dow_tue: "Вт", dow_wed: "Ср", dow_thu: "Чт",
     dow_fri: "Пт", dow_sat: "Сб", dow_sun: "Вс",
 
-    // Отчёт для врача — интерфейс
-    pr_title: "Отчёт для врача",
+    // Сводный отчёт
+    pr_title: "Сводный отчёт",
     pr_subtitle: "PDF с данными об эмоциональном состоянии",
     pr_period_title: "Период отчёта",
     pr_from: "С",
@@ -309,7 +309,7 @@ export const ru = {
     pr_saved: "✅ PDF сохранён",
     pr_error: "Ошибка",
     pr_share_text: "Отчёт об эмоциональном состоянии",
-    pr_notif_body: "Время отправить отчёт врачу (за {period} дней)",
+    pr_notif_body: "Время сформировать отчёт (за {period} дней)",
     insight_period_label: "Период анализа",
     "insight.before": "было",
     "insight.now": "сейчас",
@@ -562,8 +562,8 @@ export const ru = {
     pdf_rec_volatility: "Высокая волатильность настроения (стабильность {stab}%).",
     pdf_rec_declining: "Настроение снижается. Возможно, стоит обратиться к специалисту.",
     pdf_rec_improving: "Настроение улучшается. Отличная работа!",
-    pdf_rec_side_effects: "Отмечены побочные эффекты. Обсудите с врачом.",
+    pdf_rec_side_effects: "Отмечены побочные эффекты.",
     pdf_rec_numbness: "Отмечена приглушённость эмоций.",
-    pdf_rec_adapting: "Идёт адаптация к терапии.",
+    pdf_rec_adapting: "Идёт адаптация.",
     pdf_rec_best_practice: "Лучшая практика: {practice} ({pct}% улучшения)"
   };

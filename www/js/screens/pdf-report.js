@@ -87,9 +87,9 @@ function getSessionName(key) {
     "support_texts": t("support_texts_title") || "Support Texts",
     "support-texts": t("support_texts_title") || "Support Texts",
   };
-  // Убираем эмодзи из начала
   const label = map[key] || key;
-  return label.replace(/^[^\s]+\s/, "");
+  const result = label.replace(/^[^\s]+\s/, "");
+  return capitalizeFirstChar(result);
 }
 
 function getStateLabelPdf(s) {
@@ -357,6 +357,8 @@ async function generatePdf(fromStr, toStr) {
   const profile   = getProfile();
   const stability = calculateStabilityScore(moodHistory);
   const trend     = calculateTrend(allMoodHistory);
+
+  console.log('PDF DATA:', { moodCount: moodHistory.length, sessionCount: sessions.length, moodHistory: moodHistory.slice(0, 5), sessions: sessions.slice(0, 5) });
 
   function fmtDate(d) { return new Date(d).toLocaleDateString(locale, { day:"2-digit", month:"long", year:"numeric" }); }
   function fmtDT(d) {
