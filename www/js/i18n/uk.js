@@ -607,4 +607,5 @@ export const uk = {
     followup_negative: "Можливо, варто бути з цим обережніше.",
     followup_neutral: "Цікаво спостерігати за цим. Зверни увагу ще кілька днів.",
     reflection_understood: "Я зрозумів тебе. Ось що я бачу:",
+    reflection_fallback: "Спробуй описати по-іншому.",
 };

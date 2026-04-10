@@ -300,47 +300,103 @@ if (!window.__neyraAppRunning) {
     }
     
     const analyzeNoteBtn = document.getElementById("analyzeNoteBtn");
+    console.log('[REFLECTION] analyzeNoteBtn found:', !!analyzeNoteBtn);
     if (analyzeNoteBtn) {
-      analyzeNoteBtn.addEventListener("click", async () => {
+      const newBtn = analyzeNoteBtn.cloneNode(true);
+      analyzeNoteBtn.parentNode.replaceChild(newBtn, analyzeNoteBtn);
+      newBtn.id = "analyzeNoteBtn";
+      
+      newBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        console.log('[REFLECTION] button clicked');
+        if (newBtn.disabled) {
+          console.log('[REFLECTION] button disabled');
+          return;
+        }
+        newBtn.disabled = true;
+        console.log('[REFLECTION] button disabled set');
+
         const noteEl = document.getElementById("dailyNote");
         const responseEl = document.getElementById("aiResponse");
-        if (!noteEl || !responseEl) return;
-        
+        console.log('[REFLECTION] noteEl:', !!noteEl, 'responseEl:', !!responseEl);
+        if (!noteEl || !responseEl) {
+          newBtn.disabled = false;
+          return;
+        }
+
         const text = noteEl.value.trim();
-        if (!text) return;
-        
+        console.log('[REFLECTION] text value:', JSON.stringify(noteEl.value), 'trimmed:', JSON.stringify(text));
+        if (!text) {
+          newBtn.disabled = false;
+          return;
+        }
+
         const mood = getMood();
-        responseEl.textContent = t("home_ai_listening") || "Анализирую...";
-        
-        SystemCore.dispatch('REFLECTION_START');
-        
-        SystemCore.dispatch('SAVE_NOTE', {
-          text: text,
-          type: 'reflection',
-          mood: mood,
-          time: Date.now()
-        });
-        
-        const insight = await safeGenerateInsight({
-          mood: mood,
-          events: [],
-          text: text
-        });
-        
+
         if (responseEl) {
-          responseEl.textContent = insight.insightText || "";
+          responseEl.textContent = t("home_ai_listening") || "Анализирую...";
         }
-        
-        if (window.showAvatar) {
-          window.showAvatar(t("reflection_understood") || "Я понял тебя. Вот что я вижу:", true);
-          if (insight.followup && insight.followup.type) {
-            setTimeout(() => {
-              window.showAvatar(t(insight.followup.type), true);
-            }, 1500);
+
+        try {
+          SystemCore.dispatch('SAVE_NOTE', {
+            text: text,
+            type: 'reflection',
+            mood: mood,
+            time: Date.now()
+          });
+
+          const insight = await safeGenerateInsight({
+            mood: mood,
+            events: [],
+            text: text
+          });
+
+          console.log('[REFLECTION] insight received:', insight);
+
+          if (!insight || !insight.insightText) {
+            if (window.showAvatar) {
+              window.showAvatar({
+                text: t('reflection_fallback') || "Я рядом. Попробуй сформулировать чуть иначе.",
+                source: 'reflection',
+                force: true
+              });
+            }
+            if (responseEl) responseEl.textContent = "";
+            return;
           }
+
+          console.log('[REFLECTION] responseEl:', !!responseEl, 'setting text to:', insight.insightText);
+          if (responseEl) {
+            responseEl.textContent = insight.insightText || "";
+            console.log('[REFLECTION] text set, actual text:', responseEl.textContent);
+            
+            // Ensure visible
+            responseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            console.log('[REFLECTION] scrolled into view');
+          }
+
+          if (window.showAvatar) {
+            window.showAvatar(t("reflection_understood") || "Я понял тебя. Вот что я вижу:", true);
+            if (insight.followup && insight.followup.type) {
+              setTimeout(() => {
+                window.showAvatar(t(insight.followup.type), true);
+              }, 1500);
+            }
+          }
+
+          noteEl.value = '';
+          console.log('[REFLECTION] noteEl.value NOT cleared, keeping for reference');
+        } catch (e) {
+          console.error('[Reflection]', e);
+          if (window.showAvatar) {
+            window.showAvatar(t('reflection_fallback') || "Что-то пошло не так. Попробуй ещё раз.", true);
+          }
+          if (responseEl) responseEl.textContent = "";
+        } finally {
+          const btn = document.getElementById("analyzeNoteBtn");
+          if (btn) btn.disabled = false;
+          console.log('[REFLECTION] button re-enabled');
         }
-        
-        noteEl.value = '';
       });
     }
     

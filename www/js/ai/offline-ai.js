@@ -92,59 +92,125 @@ function calculateBaseline(history) {
   return sum / recent.length;
 }
 
+function getEventKey(events) {
+  if (!events || events.length === 0) return null;
+  return events.slice().sort().join('+');
+}
+
+function savePatterns(patterns) {
+  localStorage.setItem('neyra_patterns', JSON.stringify(patterns));
+}
+
+function getStoredPatterns() {
+  try {
+    return JSON.parse(localStorage.getItem('neyra_patterns') || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+function mergePatterns(newPatterns) {
+  const old = getStoredPatterns();
+  const map = {};
+
+  [...old, ...newPatterns].forEach(p => {
+    if (!map[p.key]) {
+      map[p.key] = { ...p };
+    } else {
+      map[p.key].count += p.count;
+      map[p.key].score = (map[p.key].score + p.score) / 2;
+    }
+  });
+
+  return Object.values(map);
+}
+
+function isRelevant(pattern, history) {
+  const recent = history.slice(-20);
+  return recent.some(entry => {
+    const key = getEventKey(entry.events);
+    return key === pattern.key;
+  });
+}
+
 function analyzeEventImpact(history) {
   const map = {};
 
   history.forEach(entry => {
     const mood = entry.value || entry.mood || 0;
     const events = entry.events || [];
+    
+    const key = getEventKey(events);
+    if (!key) return;
+    
+    if (!map[key]) {
+      map[key] = {
+        count: 0,
+        totalMood: 0,
+        events: events
+      };
+    }
 
-    events.forEach(ev => {
-      const weight = EVENT_WEIGHTS[ev] || 1.0;
-      if (!map[ev]) {
-        map[ev] = {
-          count: 0,
-          totalMood: 0,
-          weightedSum: 0,
-          totalWeight: 0
-        };
-      }
-
-      map[ev].count += 1;
-      map[ev].totalMood += mood;
-      map[ev].weightedSum += mood * weight;
-      map[ev].totalWeight += weight;
-    });
+    map[key].count++;
+    map[key].totalMood += mood;
   });
 
   const baseline = calculateBaseline(history);
 
-  const patterns = Object.keys(map).map(ev => {
-    const avgMood = map[ev].totalMood / map[ev].count;
-    const weightedAvg = map[ev].weightedSum / map[ev].totalWeight;
-    const score = weightedAvg - baseline;
+  const patterns = Object.keys(map).map(k => {
+    const avgMood = map[k].totalMood / map[k].count;
+    const score = avgMood - baseline;
 
     return {
-      event: ev,
-      count: map[ev].count,
+      key: k,
+      events: map[k].events,
+      event: map[k].events[0] || k,
+      count: map[k].count,
       avgMood: Math.round(avgMood),
-      weightedAvg: Math.round(weightedAvg),
       score: Math.round(score)
     };
   });
 
-  return patterns.sort((a, b) => b.score - a.score);
+  const hasCombos = patterns.some(p => p.key.includes('+'));
+  const filtered = patterns.filter(p => {
+    if (hasCombos && !p.key.includes('+')) return false;
+    return p.count >= 3;
+  });
+
+  const relevant = filtered.filter(p => isRelevant(p, history));
+
+  relevant.sort((a, b) => {
+    if (a.key.includes('+') && !b.key.includes('+')) return -1;
+    if (!a.key.includes('+') && b.key.includes('+')) return 1;
+    if (Math.abs(b.score) !== Math.abs(a.score)) {
+      return Math.abs(b.score) - Math.abs(a.score);
+    }
+    return b.count - a.count;
+  });
+
+  const merged = mergePatterns(filtered);
+  savePatterns(merged);
+
+  console.log('[PATTERNS]', relevant);
+
+  return relevant;
 }
 
 function findBestPatterns(patterns, limit = 1) {
-  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 7);
+  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 5);
   return filtered.slice(0, limit);
 }
 
 function buildPatternInsight(pattern) {
   if (!pattern) return null;
+  if (!pattern.key || pattern.count < 3) return null;
   
   const label = i18n(`event_${pattern.event}`) || pattern.event;
+  
+  if (!label || label.includes('event_')) {
+    console.warn('[i18n] missing key for', pattern.event);
+    return null;
+  }
   
   let type, params;
   if (pattern.score > 10) {

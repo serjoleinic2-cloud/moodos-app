@@ -607,4 +607,5 @@ export const es = {
     followup_negative: "Tal vez valga la pena ser un poco más cuidadoso con esto.",
     followup_neutral: "Interesante de observar. Presta atención durante unos días más.",
     reflection_understood: "Te entiendo. Esto es lo que veo:",
+    reflection_fallback: "Intenta describirlo de otra manera.",
 };
