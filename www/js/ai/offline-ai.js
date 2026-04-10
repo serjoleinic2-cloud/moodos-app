@@ -64,6 +64,7 @@ function getCombinationInsight(moodLevel, events) {
 // ---- PATTERN ANALYSIS ----
 function getRecentHistory(days = 7) {
   const all = getMoodHistory();
+  console.log('[AI INPUT]', all.slice(-10));
   const now = Date.now();
   return all.filter(item => {
     return now - item.time < days * 24 * 60 * 60 * 1000;

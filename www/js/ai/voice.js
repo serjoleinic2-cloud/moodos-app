@@ -22,16 +22,10 @@ export async function startVoiceRecording(statusEl, onFinish) {
       const blob   = new Blob(chunks, { type: "audio/webm" });
       const reader = new FileReader();
       reader.onloadend = () => {
-        let history = JSON.parse(localStorage.getItem("voice_history")) || [];
-        history.push({
-          type: 'voice_note',
-          audio: reader.result,
-          duration: duration,
-          mood: getMood(),
-          date: Date.now()
-        });
-        localStorage.setItem("voice_history", JSON.stringify(history));
-        if (onFinish) onFinish(reader.result);
+        const audioData = reader.result;
+        if (onFinish) {
+          onFinish({ audio: audioData, duration, mood: getMood(), date: Date.now() });
+        }
       };
       reader.readAsDataURL(blob);
     };

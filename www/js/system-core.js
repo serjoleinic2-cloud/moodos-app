@@ -21,6 +21,7 @@ import * as Memory from './services/memory.js'
 import { showAvatarForMood, showAvatar } from './avatar.js'
 import { t } from './i18n.js'
 import { analyzeText } from './ai/offline-ai.js'
+import { saveVoiceNote } from './services/memory.js'
 
 const SystemCore = {
 
@@ -28,7 +29,9 @@ const SystemCore = {
 
   async handleMoodFlow(payload) {
     const mood = typeof payload === 'object' ? payload.mood : payload;
-    const events = typeof payload === 'object' ? payload.events : [];
+    const events = typeof payload === 'object' ? (payload.events || []) : [];
+    
+    console.log('[DEBUG EVENTS]', { mood, events });
 
     try {
 
@@ -192,8 +195,28 @@ const SystemCore = {
           result = { success: true };
           break
 
+        case 'VOICE_SAVE':
+          console.log('[VOICE] Saving voice note:', payload);
+          if (payload && payload.audio) {
+            saveVoiceNote({
+              audio: payload.audio,
+              duration: payload.duration || 0,
+              mood: payload.mood || 50,
+              date: payload.date || Date.now()
+            });
+            result = { success: true, saved: true };
+          } else {
+            result = { success: false, error: 'No audio data' };
+          }
+          break
+
         case 'REFLECTION_START':
           console.log('[REFLECTION] Daily reflection started');
+          showAvatar({ 
+            text: t('reflection_prompt') || 'Как твой день? Напиши несколько слов.', 
+            source: 'reflection', 
+            force: true 
+          });
           result = { success: true };
           break
 

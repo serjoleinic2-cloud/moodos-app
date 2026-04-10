@@ -120,6 +120,22 @@ export function saveVoiceHistory(history) {
   }
 }
 
+export function saveVoiceNote(note) {
+  try {
+    const history = getVoiceHistory();
+    history.push({
+      type: 'voice_note',
+      audio: note.audio,
+      duration: note.duration,
+      mood: note.mood,
+      date: note.date || Date.now()
+    });
+    localStorage.setItem("voice_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveVoiceNote failed:', e);
+  }
+}
+
 /* ---------- SUPPORT FEEDBACK HISTORY ---------- */
 
 export function getSupportFeedbackHistory() {

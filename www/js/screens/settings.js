@@ -254,7 +254,7 @@ function renderSettings() {
           text-align: center;
         ">
           <div id="premiumStatus" style="font-size:16px;font-weight:700;color:${premiumStatusColor};margin-bottom:4px;">${premiumStatusLabel}</div>
-          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : t("gemini_limit_reached")}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "Бесплатная версия"}</div>
           ${showGetPremiumBtn ? `<button id="getPremiumBtn" style="
             margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;
             background:linear-gradient(145deg,#9f7aea,#805ad5);

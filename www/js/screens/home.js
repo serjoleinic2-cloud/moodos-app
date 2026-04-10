@@ -206,7 +206,6 @@ function showInsightCard(insight) {
 }
 
 export function onExit() {
-  AppRuntime.setState('home', { selectedEvents: [] });
   const container = document.getElementById('eventsContainer');
   if (container) {
     cleanupEventsListener(container);

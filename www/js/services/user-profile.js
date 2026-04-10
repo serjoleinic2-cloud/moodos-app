@@ -151,7 +151,12 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  return window._billingPremium === true;
+  if (window._billingPremium === true) return true;
+  if (window._billingInitializing) {
+    const status = getPremiumStatus();
+    return status === "premium";
+  }
+  return false;
 }
 
 export function setBillingPremium(value) {

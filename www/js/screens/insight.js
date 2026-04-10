@@ -447,6 +447,10 @@ function buildYearComparisonBlock() {
 }
 
 export async function onEnter() {
+  if (window._billingInitializing) {
+    await new Promise(r => setTimeout(r, 600));
+  }
+
   // Sync selected period from AppRuntime/localStorage
   selectedTimeRange = getSelectedPeriod();
   

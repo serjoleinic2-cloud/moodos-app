@@ -309,6 +309,15 @@ if (!window.__neyraAppRunning) {
         const mood = getMood();
         responseEl.textContent = t("home_ai_listening") || "Анализирую...";
         
+        SystemCore.dispatch('REFLECTION_START');
+        
+        SystemCore.dispatch('SAVE_NOTE', {
+          text: text,
+          type: 'reflection',
+          mood: mood,
+          time: Date.now()
+        });
+        
         SystemCore.dispatch('GENERATE_INSIGHT', {
           type: 'note',
           source: 'daily-reflection',
@@ -317,6 +326,7 @@ if (!window.__neyraAppRunning) {
           mood: mood
         }).then(() => {
           if (responseEl) responseEl.textContent = "";
+          noteEl.value = '';
         });
       });
     }
@@ -334,6 +344,12 @@ if (!window.__neyraAppRunning) {
         const timerEl = document.createElement("div");
         timerEl.id = "voiceRecordingTimer";
         document.body.appendChild(timerEl);
+        
+        if (voiceStatus) {
+          voiceStatus.classList.add('recording');
+          voiceStatus.textContent = '⏺ Запись...';
+        }
+        voiceBtn.disabled = true;
 
         const timerInterval = setInterval(() => {
           recordSeconds++;
@@ -342,17 +358,29 @@ if (!window.__neyraAppRunning) {
           timerEl.textContent = '⏺ ' + m + ':' + s;
         }, 1000);
 
-        const cleanup = () => {
+        const cleanup = (saved = false) => {
           clearInterval(timerInterval);
           const existingTimer = document.getElementById("voiceRecordingTimer");
           if (existingTimer) existingTimer.remove();
-          if (voiceStatus) voiceStatus.textContent = "";
+          if (voiceStatus) {
+            voiceStatus.classList.remove('recording');
+            voiceStatus.textContent = saved ? '✓ Готово' : '';
+          }
           voiceBtn.disabled = false;
           setRecordingUI(false);
         };
 
-        startVoiceRecording(voiceStatus, () => {
-          cleanup();
+        startVoiceRecording(voiceStatus, (data) => {
+          console.log('[VOICE] recorded', data);
+          cleanup(true);
+          if (data && data.audio) {
+            SystemCore.dispatch('VOICE_SAVE', {
+              audio: data.audio,
+              duration: data.duration,
+              mood: data.mood,
+              date: data.date
+            });
+          }
         }).catch(() => {
           cleanup();
           if (voiceStatus) voiceStatus.textContent = "❌";
