@@ -8,11 +8,16 @@ import { uk } from "./i18n/uk.js";
 
 const LANG_KEY = "app_language";
 
+let CURRENT_LANG = null;
+
 export function getLang() {
-  return localStorage.getItem(LANG_KEY) || "ru";
+  if (CURRENT_LANG !== null) return CURRENT_LANG;
+  CURRENT_LANG = localStorage.getItem(LANG_KEY) || "ru";
+  return CURRENT_LANG;
 }
 
 export function setLang(lang) {
+  CURRENT_LANG = lang;
   localStorage.setItem(LANG_KEY, lang);
   document.dispatchEvent(new CustomEvent('languageChanged'));
 }
@@ -21,13 +26,21 @@ const TRANSLATIONS = { ru, en, es, uk };
 
 export function t(key) {
   const lang = getLang();
-  const translations = TRANSLATIONS[lang] || TRANSLATIONS["ru"];
-  return translations?.[key] || key;
+  const translations = TRANSLATIONS[lang];
+  if (translations && translations[key]) {
+    return translations[key];
+  }
+  const enTranslations = TRANSLATIONS["en"];
+  if (enTranslations && enTranslations[key]) {
+    return enTranslations[key];
+  }
+  console.warn(`[i18n] Missing key: ${key}`);
+  return key;
 }
 
 export function tSafe(key, fallback = "") {
   const lang = getLang();
-  const result = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["ru"]?.[key];
+  const result = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS["en"]?.[key];
   if (result === undefined || result === "") return fallback;
   return result;
 }
@@ -48,3 +61,5 @@ export const LANG_OPTIONS = [
   { code: "es", label: "Español",    flag: "🇪🇸" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
 ];
+
+window._i18nReady = true;

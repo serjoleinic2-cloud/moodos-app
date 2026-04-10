@@ -5,6 +5,7 @@
 
 import { getMoodHistory } from "../services/memory.js";
 import { t as i18n } from "../i18n.js";
+import { isPremium } from "../services/user-profile.js";
 
 // ---- ОПРЕДЕЛЕНИЕ ЯЗЫКА ----
 function detectLang() {
@@ -71,71 +72,156 @@ function getRecentHistory(days = 7) {
   });
 }
 
+const EVENT_WEIGHTS = {
+  sleep: 1.2,
+  walk: 1.1,
+  sport: 1.3,
+  music: 1.0,
+  coffee: 0.9,
+  food: 0.9,
+  rest: 1.1,
+  social: 1.1,
+  work: 0.9,
+  stress: 0.8
+};
+
+function calculateBaseline(history) {
+  const recent = history.slice(-20);
+  if (recent.length === 0) return 50;
+  const sum = recent.reduce((acc, e) => acc + (e.value || e.mood || 0), 0);
+  return sum / recent.length;
+}
+
 function analyzeEventImpact(history) {
-  const stats = {};
-  
+  const map = {};
+
   history.forEach(entry => {
-    if (!entry.events || entry.events.length === 0) return;
-    
-    entry.events.forEach(e => {
-      if (!stats[e]) {
-        stats[e] = { total: 0, sum: 0 };
+    const mood = entry.value || entry.mood || 0;
+    const events = entry.events || [];
+
+    events.forEach(ev => {
+      const weight = EVENT_WEIGHTS[ev] || 1.0;
+      if (!map[ev]) {
+        map[ev] = {
+          count: 0,
+          totalMood: 0,
+          weightedSum: 0,
+          totalWeight: 0
+        };
       }
-      stats[e].total += 1;
-      stats[e].sum += entry.value;
+
+      map[ev].count += 1;
+      map[ev].totalMood += mood;
+      map[ev].weightedSum += mood * weight;
+      map[ev].totalWeight += weight;
     });
   });
-  
-  Object.keys(stats).forEach(e => {
-    stats[e].avg = stats[e].sum / stats[e].total;
+
+  const baseline = calculateBaseline(history);
+
+  const patterns = Object.keys(map).map(ev => {
+    const avgMood = map[ev].totalMood / map[ev].count;
+    const weightedAvg = map[ev].weightedSum / map[ev].totalWeight;
+    const score = weightedAvg - baseline;
+
+    return {
+      event: ev,
+      count: map[ev].count,
+      avgMood: Math.round(avgMood),
+      weightedAvg: Math.round(weightedAvg),
+      score: Math.round(score)
+    };
   });
-  
-  return stats;
+
+  return patterns.sort((a, b) => b.score - a.score);
 }
 
-function findStrongPatterns(stats) {
-  const result = [];
-  
-  Object.entries(stats).forEach(([event, data]) => {
-    if (data.total < 3) return;
-    
-    if (data.avg > 70) {
-      result.push({
-        type: 'positive',
-        event,
-        value: data.avg,
-        count: data.total
-      });
-    }
-    
-    if (data.avg < 40) {
-      result.push({
-        type: 'negative',
-        event,
-        value: data.avg,
-        count: data.total
-      });
-    }
-  });
-  
-  return result.sort((a, b) => b.count - a.count);
+function findBestPatterns(patterns, limit = 1) {
+  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 7);
+  return filtered.slice(0, limit);
 }
 
-function buildPatternInsight(patterns) {
-  if (!patterns.length) return null;
+function buildPatternInsight(pattern) {
+  if (!pattern) return null;
   
-  const p = patterns[0];
-  const label = i18n(`event_${p.event}`) || p.event;
+  const label = i18n(`event_${pattern.event}`) || pattern.event;
   
-  if (p.type === 'positive') {
-    return i18n('pattern_positive').replace('{event}', label);
+  let type, params;
+  if (pattern.score > 10) {
+    type = 'pattern_positive';
+    params = { label };
+  } else if (pattern.score > 7) {
+    type = 'pattern_mild_positive';
+    params = { label };
+  } else if (pattern.score < -7) {
+    type = humanizePattern(pattern) || 'pattern_negative';
+    params = { label };
+  } else {
+    type = 'pattern_neutral';
+    params = { label };
   }
   
-  if (p.type === 'negative') {
-    return i18n('pattern_negative').replace('{event}', label);
+  return {
+    type,
+    params,
+    meta: {
+      count: pattern.count,
+      avg: pattern.avgMood,
+      impact: pattern.score
+    }
+  };
+}
+
+function buildFollowUp(pattern) {
+  if (!pattern) return null;
+  if (pattern.score > 10) {
+    return { type: 'followup_positive' };
   }
+  if (pattern.score < -10) {
+    return { type: 'followup_negative' };
+  }
+  return { type: 'followup_neutral' };
+}
+
+// ---- SAFE GENERATE INSIGHT ----
+export async function safeGenerateInsight(payload) {
+  let resolved = false;
+
+  const timeout = new Promise(resolve => {
+    setTimeout(() => {
+      if (!resolved) {
+        resolve({
+          insightText: "Попробуй описать чуть подробнее — я пока не смог понять.",
+          fallback: true,
+          pattern: null,
+          meta: null,
+          followup: null
+        });
+      }
+    }, 2000);
+  });
+
+  const ai = Promise.resolve(generateInsight(payload)).then(res => {
+    resolved = true;
+    return res;
+  });
+
+  return Promise.race([ai, timeout]);
+}
+
+function humanizePattern(pattern) {
+  if (!pattern) return null;
   
-  return null;
+  if (pattern.score < 0) {
+    const contextKeys = {
+      food: 'pattern_food_negative',
+      work: 'pattern_work_negative',
+      stress: 'pattern_stress_negative'
+    };
+    return contextKeys[pattern.event] || 'pattern_negative';
+  }
+
+  return 'pattern_positive';
 }
 
 // ---- GENERATE INSIGHT (i18n-based) ----
@@ -154,22 +240,41 @@ export function generateInsight({ mood, events = [], history = null }) {
   const advice = getAdvice(moodLevel);
   
   // Паттерны с cooldown (показываем ~40% времени)
-  let patternText = null;
-  let patterns = null;
+  let patternResult = null;
+  let bestPatterns = [];
   if (Math.random() < 0.4) {
     const recentHistory = getRecentHistory(7);
-    const stats = analyzeEventImpact(recentHistory);
-    patterns = findStrongPatterns(stats);
-    patternText = buildPatternInsight(patterns);
+    const patterns = analyzeEventImpact(recentHistory);
+    const limit = isPremium() ? 3 : 1;
+    bestPatterns = findBestPatterns(patterns, limit);
+    if (bestPatterns.length > 0) {
+      patternResult = buildPatternInsight(bestPatterns[0]);
+    }
+  }
+
+  let patternText = null;
+  if (patternResult) {
+    const template = i18n(patternResult.type) || patternResult.type;
+    if (template && patternResult.params) {
+      let text = template;
+      Object.keys(patternResult.params).forEach(key => {
+        text = text.replace(`{{${key}}}`, patternResult.params[key]);
+        text = text.replace(`{${key}}`, patternResult.params[key]);
+      });
+      patternText = text;
+    }
   }
   
   const parts = [base, combo || eventText, patternText, advice].filter(Boolean);
-  
+
   return {
     insightText: parts.join(' '),
     moodLevel: moodLevel,
     events: events,
-    pattern: patternText && patterns ? patterns[0] : null
+    pattern: bestPatterns[0] || null,
+    patterns: bestPatterns,
+    meta: patternResult?.meta || null,
+    followup: buildFollowUp(bestPatterns[0])
   };
 }
 

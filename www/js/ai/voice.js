@@ -6,8 +6,25 @@ let recordingStartTime = null;
 
 export async function startVoiceRecording(statusEl, onFinish) {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let prep = 3;
+    
+    const prepInterval = setInterval(() => {
+      if (statusEl) statusEl.textContent = `Подготовка ${prep}...`;
+      prep--;
+      if (prep < 0) {
+        clearInterval(prepInterval);
+        startActualRecording(statusEl, onFinish);
+      }
+    }, 1000);
 
+  } catch(err) {
+    console.error(err);
+    if (statusEl) statusEl.textContent = "❌";
+  }
+}
+
+function startActualRecording(statusEl, onFinish) {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     mediaRecorder = new MediaRecorder(stream);
     chunks = [];
     recordingStartTime = Date.now();
@@ -31,15 +48,24 @@ export async function startVoiceRecording(statusEl, onFinish) {
     };
 
     mediaRecorder.start();
+    
+    let sec = 0;
+    const timerInterval = setInterval(() => {
+      sec++;
+      const m = String(Math.floor(sec/60)).padStart(2,'0');
+      const s = String(sec%60).padStart(2,'0');
+      if (statusEl) statusEl.textContent = `⏺ ${m}:${s}`;
+    }, 1000);
 
     setTimeout(() => {
+      clearInterval(timerInterval);
       if (mediaRecorder && mediaRecorder.state === "recording") {
         mediaRecorder.stop();
       }
     }, 10000);
 
-  } catch(err) {
+  }).catch(err => {
     console.error(err);
     if (statusEl) statusEl.textContent = "❌";
-  }
+  });
 }

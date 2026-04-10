@@ -595,6 +595,15 @@ export const en = {
     trend_improving: "improving ↑",
     trend_declining: "declining ↓",
     trend_stable: "stable →",
-    pattern_positive: "You often feel better after \"{event}\". This might be your resource.",
-    pattern_negative: "It seems \"{event}\" is often linked to mood decline. Worth noting."
+    pattern_positive: "You feel noticeably better after \"{label}\". Looks like it really supports you.",
+    pattern_mild_positive: "\"{label}\" improves your state. Try using it more often.",
+    pattern_negative: "Sometimes after \"{label}\" your mood drops. Maybe pay attention to the details.",
+    pattern_food_negative: "Certain foods may be affecting how you feel. Try noticing what exactly and when.",
+    pattern_work_negative: "After workdays, mood tends to be lower. This is a normal reaction to load.",
+    pattern_stress_negative: "Stress noticeably affects your state. It's important to rest in time.",
+    pattern_neutral: "\"{label}\" doesn't show a noticeable effect yet.",
+    followup_positive: "Looks like this really helps you. Want to try it more often?",
+    followup_negative: "Maybe it's worth being a bit more careful with this.",
+    followup_neutral: "Interesting to observe. Pay attention for a few more days.",
+    reflection_understood: "I understand you. Here's what I see:",
 };

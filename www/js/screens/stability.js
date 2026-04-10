@@ -2,25 +2,42 @@ import { getMoodHistory, getNotesHistory } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
 
-export function onEnter() {
-  const container = document.getElementById("stability-content");
-  if (!container) return;
+let cachedStability = null;
+let cachedHistoryHash = null;
 
+function getStability() {
   const rawHistory = getMoodHistory();
-
-  if (!rawHistory || rawHistory.length < 2) {
-    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">${t("stab_no_data")}</div></div>`;
-    return;
-  }
-
+  
   const seen = new Set();
   const history = rawHistory.filter(e => {
     const key = Math.floor(new Date(e.time).getTime() / 1000);
     if (seen.has(key)) return false;
     seen.add(key); return true;
   });
+  
+  const hash = history.length + '-' + (history.length > 0 ? history[history.length-1].time : 0);
+  if (cachedStability !== null && cachedHistoryHash === hash) {
+    return { stability: cachedStability, history, hash };
+  }
+  
+  const stability = calculateStabilityScore(history);
+  cachedStability = stability;
+  cachedHistoryHash = hash;
+  
+  return { stability, history, hash };
+}
 
-  const stability  = calculateStabilityScore(history);
+export function onEnter() {
+  const container = document.getElementById("stability-content");
+  if (!container) return;
+
+  const { stability, history } = getStability();
+
+  if (!history || history.length < 2) {
+    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">${t("stab_no_data")}</div></div>`;
+    return;
+  }
+
   const volatility = 100 - stability;
 
   const now14  = Date.now();

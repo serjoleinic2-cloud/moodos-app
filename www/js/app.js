@@ -9,7 +9,7 @@ export function _trustedSetBillingPremium(val) {
 
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
-import { analyzeText } from "./ai/offline-ai.js";
+import { analyzeText, safeGenerateInsight } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import SystemCore from "./system-core.js";
 
@@ -25,7 +25,7 @@ import {
 } from "./state.js";
 import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme, applyTheme } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
-import { t, getDaysLabel, getLang } from "./i18n.js";
+import { t, getDaysLabel, getLang, setLang } from "./i18n.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
@@ -254,6 +254,9 @@ if (!window.__neyraAppRunning) {
   function startApp() {
     console.log('[APP] startApp called');
     
+    const detectedLang = getLang();
+    setLang(detectedLang);
+    
     stateGovernance.enable();
     
     initBilling();
@@ -318,16 +321,26 @@ if (!window.__neyraAppRunning) {
           time: Date.now()
         });
         
-        SystemCore.dispatch('GENERATE_INSIGHT', {
-          type: 'note',
-          source: 'daily-reflection',
-          result: null,
-          text: text,
-          mood: mood
-        }).then(() => {
-          if (responseEl) responseEl.textContent = "";
-          noteEl.value = '';
+        const insight = await safeGenerateInsight({
+          mood: mood,
+          events: [],
+          text: text
         });
+        
+        if (responseEl) {
+          responseEl.textContent = insight.insightText || "";
+        }
+        
+        if (window.showAvatar) {
+          window.showAvatar(t("reflection_understood") || "Я понял тебя. Вот что я вижу:", true);
+          if (insight.followup && insight.followup.type) {
+            setTimeout(() => {
+              window.showAvatar(t(insight.followup.type), true);
+            }, 1500);
+          }
+        }
+        
+        noteEl.value = '';
       });
     }
     

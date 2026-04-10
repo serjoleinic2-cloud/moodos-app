@@ -1,6 +1,6 @@
 import { getMood } from "../state.js";
 import SystemCore from "../system-core.js";
-import { showAvatarHint, showAvatarAfterSave } from "../avatar.js";
+import { showAvatarHint, showAvatarAfterSave, showAvatar } from "../avatar.js";
 import { initEventsModule, renderEventsGrid, getSelectedEvents, clearSelectedEvents, updateEventsUI, cleanupEventsListener } from "../events.js";
 import { generateInsight } from "../ai/offline-ai.js";
 import { showAvatarForMood } from "../avatar.js";
@@ -162,11 +162,10 @@ export function onEnter() {
       showInsightCard(insight);
       showAvatarForMood(moodValue);
       avatarReact();
-      showAvatarAfterSave({ 
-        mood: moodValue, 
-        events: selectedEvents,
-        pattern: insight.pattern
-      });
+      if (insight.followup && insight.followup.type) {
+        const followupText = t(insight.followup.type);
+        showAvatar(followupText, true);
+      }
       
       AppRuntime.setState('home', { selectedEvents: [] });
       document.querySelectorAll('.event-item').forEach(el => {
@@ -191,18 +190,27 @@ function showInsightCard(insight) {
   card.style.display = 'block';
   card.style.opacity = '1';
   
-  if (insight.pattern && patternCard && patternText) {
-    const label = getPatternEventLabel(insight.pattern.event);
-    if (insight.pattern.type === 'positive') {
-      patternText.textContent = t('pattern_positive').replace('{event}', label);
-    } else {
-      patternText.textContent = t('pattern_negative').replace('{event}', label);
-    }
-    patternCard.style.display = 'block';
-    patternCard.style.opacity = '1';
-  } else if (patternCard) {
-    patternCard.style.display = 'none';
+  if (!insight.pattern || !patternCard || !patternText) {
+    if (patternCard) patternCard.style.display = 'none';
+    return;
   }
+  
+  const label = getPatternEventLabel(insight.pattern.event);
+  if (insight.pattern.score > 0) {
+    patternText.innerHTML = t('pattern_positive').replace('{label}', label);
+  } else {
+    patternText.innerHTML = t('pattern_negative').replace('{label}', label);
+  }
+  
+  if (insight.meta) {
+    const metaEl = document.createElement('div');
+    metaEl.style.cssText = 'font-size:10px;color:#888;margin-top:4px;';
+    metaEl.textContent = `Основано на ${insight.meta.count} записях • влияние ${insight.meta.impact > 0 ? '+' : ''}${insight.meta.impact}`;
+    patternText.appendChild(metaEl);
+  }
+  
+  patternCard.style.display = 'block';
+  patternCard.style.opacity = '1';
 }
 
 export function onExit() {
