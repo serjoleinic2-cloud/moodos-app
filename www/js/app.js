@@ -298,26 +298,21 @@ if (!window.__neyraAppRunning) {
         trackUserActivity();
         const voiceStatus = document.getElementById("voiceStatus");
         
-        let countdown = 3;
+        let recordSeconds = 0;
         const timerEl = document.createElement("div");
-        timerEl.id = "voiceCountdown";
-        timerEl.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:20px 40px;border-radius:16px;font-size:32px;font-weight:700;z-index:9999;";
-        timerEl.textContent = countdown;
+        timerEl.id = "voiceRecordingTimer";
         document.body.appendChild(timerEl);
 
-        const countdownInterval = setInterval(() => {
-          countdown--;
-          if (countdown > 0) {
-            timerEl.textContent = countdown;
-          } else {
-            clearInterval(countdownInterval);
-            timerEl.remove();
-          }
+        const timerInterval = setInterval(() => {
+          recordSeconds++;
+          const m = String(Math.floor(recordSeconds/60)).padStart(2,'0');
+          const s = String(recordSeconds%60).padStart(2,'0');
+          timerEl.textContent = '⏺ ' + m + ':' + s;
         }, 1000);
 
         const cleanup = () => {
-          clearInterval(countdownInterval);
-          const existingTimer = document.getElementById("voiceCountdown");
+          clearInterval(timerInterval);
+          const existingTimer = document.getElementById("voiceRecordingTimer");
           if (existingTimer) existingTimer.remove();
           if (voiceStatus) voiceStatus.textContent = "";
           voiceBtn.disabled = false;

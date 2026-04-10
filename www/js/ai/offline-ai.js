@@ -117,13 +117,13 @@ function findStrongPatterns(stats) {
     }
   });
   
-  return result;
+  return result.sort((a, b) => b.count - a.count);
 }
 
 function buildPatternInsight(patterns) {
   if (!patterns.length) return null;
   
-  const p = patterns[Math.floor(Math.random() * patterns.length)];
+  const p = patterns[0];
   const label = i18n(`event_${p.event}`) || p.event;
   
   if (p.type === 'positive') {

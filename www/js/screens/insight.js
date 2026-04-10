@@ -44,7 +44,7 @@ function setSelectedPeriod(period) {
   AppRuntime.setState(INSIGHT_MODULE, { selectedPeriod: period });
 }
 
-let selectedTimeRange = localStorage.getItem("insight_period") || DEFAULT_PERIOD;
+let selectedTimeRange = getSelectedPeriod();
 
 function formatPracticeCard(practiceType, practiceData) {
   if (!practiceData || !practiceData[practiceType]) {
@@ -358,7 +358,7 @@ function buildPeriodComparisonHTML(history, days) {
   return html;
 }
 
-function buildYearComparisonBlock(history) {
+function buildYearComparisonBlock() {
   const yc = getYearComparison();
   if (!yc) return "";
   
@@ -915,32 +915,3 @@ function buildStateTable(activePractices, practiceData) {
 }
 
 document.addEventListener("languageChanged", () => { onEnter(); });
-
-console.log('INSIGHT_AUDIT_FIX_DONE');
-console.log('INSIGHT_PRODUCTION_CHECK', {
-    ui: 'single-card',
-    zeroHandled: true,
-    i18n: true,
-    status: 'OK'
-});
-
-console.log('UX_CHECK', {
-    noChange: computeComparison(74, 74),
-    increase: computeComparison(80, 70),
-    decrease: computeComparison(60, 80),
-    status: 'OK'
-});
-
-console.log('FINAL_UI_CHECK', {
-    labels: ['now', 'before'],
-    i18n: 'no hardcoded RU',
-    alignment: 'centered',
-    status: 'OK'
-});
-
-console.log('INSIGHT_PRODUCTION_CHECK', {
-    ui: 'single-card',
-    zeroHandled: true,
-    i18n: true,
-    status: 'OK'
-});

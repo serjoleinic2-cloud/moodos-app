@@ -100,7 +100,23 @@ function getStateLabelPdf(s) {
     STRESSED: t("state_stressed")|| "Stressed",
     LOW:      t("state_low")     || "Low",
   };
-  return map[s] || "—";
+  const result = map[s] || "—";
+  const clean = String(result).trim();
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+}
+
+function moodToState(value) {
+  if (value >= 80) return 'HIGH';
+  if (value >= 65) return 'GOOD';
+  if (value >= 45) return 'NEUTRAL';
+  if (value >= 30) return 'STRESSED';
+  return 'LOW';
+}
+
+function capitalizeFirstChar(str) {
+  if (!str) return str;
+  const clean = String(str).trim();
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
 const STORE_KEY = "pdf_report_settings";
@@ -367,7 +383,7 @@ async function generatePdf(fromStr, toStr) {
   const eventIconMap = {
     coffee: "☕", walk: "🚶", sport: "🏃", food: "🍽️", music: "🎵",
     nature: "🌿", stress: "⚡", sleep: "😴", social: "👥", work: "💼",
-    family: "👨‍👩‍👧", health: "💊", sun: "☀️", reading: "📚", pets: "🐾"
+    family: "👨‍👩‍👧", health: "💊", sun: "☀️", reading: "📚", pets: "🐾", rest: "😴"
   };
   const eventLabelMap = {
     coffee: t("event_coffee") || "Coffee",
@@ -384,7 +400,8 @@ async function generatePdf(fromStr, toStr) {
     health: t("event_health") || "Health",
     sun: t("event_sun") || "Sun",
     reading: t("event_reading") || "Reading",
-    pets: t("event_pets") || "Pets"
+    pets: t("event_pets") || "Pets",
+    rest: t("event_rest") || "Rest"
   };
   const recentFactors = Object.entries(eventCounts)
     .sort(function(a, b) { return b[1] - a[1]; })
@@ -403,12 +420,14 @@ async function generatePdf(fromStr, toStr) {
 
   const practiceStats = {};
   sessions.forEach(function(s) {
-    // Нормализуем ключ — support-texts → support_texts
     const tp = (s.type || "other").replace("support-texts", "support_texts");
-    if (!practiceStats[tp]) practiceStats[tp] = { count:0, positive:0, lift:0 };
+    if (!practiceStats[tp]) practiceStats[tp] = { count:0, positive:0, lift:0, liftCount:0 };
     practiceStats[tp].count++;
     if (s.result === "positive") practiceStats[tp].positive++;
-    if (s.moodBefore != null && s.moodAfter != null) practiceStats[tp].lift += (s.moodAfter - s.moodBefore);
+    if (s.moodBefore != null && s.moodAfter != null) {
+      practiceStats[tp].lift += (s.moodAfter - s.moodBefore);
+      practiceStats[tp].liftCount++;
+    }
   });
 
   // Рекомендации на языке приложения
@@ -438,7 +457,7 @@ async function generatePdf(fromStr, toStr) {
   const practicesHTML = Object.entries(practiceStats).map(function(entry) {
     const type = entry[0]; const data = entry[1];
     const pct  = Math.round(data.positive / data.count * 100);
-    const lift = Math.round(data.lift / data.count);
+    const lift = data.liftCount > 0 ? Math.round(data.lift / data.liftCount) : 0;
     return '<tr>' +
       '<td style="padding:4px 8px">' + getSessionName(type) + '</td>' +
       '<td style="padding:4px 8px;text-align:center">' + data.count + '</td>' +
@@ -453,7 +472,7 @@ async function generatePdf(fromStr, toStr) {
     return '<tr style="background:' + (i % 2 === 0 ? "#f5faf5" : "#fff") + '">' +
       '<td style="padding:3px 8px;font-size:11px">' + fmtDT(e.time) + '</td>' +
       '<td style="padding:3px 8px;font-size:11px;font-weight:700;color:' + moodColor(e.value) + '">' + e.value + '%</td>' +
-      '<td style="padding:3px 8px;font-size:11px;color:#666">' + getStateLabelPdf(e.state) + '</td>' +
+      '<td style="padding:3px 8px;font-size:11px;color:#666">' + getStateLabelPdf(e.state || moodToState(e.value)) + '</td>' +
       '</tr>';
   }).join("");
 
@@ -496,8 +515,8 @@ async function generatePdf(fromStr, toStr) {
     ];
     const statCells = statItems.map(function(item) {
       return '<div style="flex:1;min-width:100px;background:#f5faf5;border-radius:8px;padding:10px 12px;">' +
-        '<div style="font-size:11px;color:#aaa;margin-bottom:4px">' + item[0] + '</div>' +
         '<div style="font-size:18px;font-weight:700;color:' + item[2] + '">' + item[1] + '</div>' +
+        '<div style="font-size:11px;color:#aaa;margin-top:4px">' + item[0] + '</div>' +
         '</div>';
     }).join("");
     statsBlock =
