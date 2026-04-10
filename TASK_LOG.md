@@ -1081,3 +1081,34 @@ FREEZE PROTOCOL Compliance Fix
 - www/js/app.js
 - www/js/navigation.js
 - www/js/state.js
+
+---
+
+## TASK 103.4
+Audio Player Icons Fix
+
+**Изменения:**
+- Заменены старые emoji иконки (▶, ⏸) на SVG в Mood Calendar (report.js)
+- Заменены старые emoji иконки на SVG в Истории (history.js)
+- Добавлены event handlers для SVG кнопок
+
+**Files:**
+- www/js/screens/report.js
+- www/js/screens/history.js
+
+---
+
+## TASK 103.5
+Bug Fixes: Calendar Audio + Voice Recording + Days
+
+**Изменения:**
+- Исправлены voice button handlers в showDayPopup() (report.js)
+- Исправлено имя кнопки voiceRecordBtn → recordVoiceBtn (app.js)
+- Исправлен таймер голосовой записи (удаляется из DOM после завершения)
+- home.js теперь вызывает window.__neyraRender() для обновления значений
+
+**Files:**
+- www/js/screens/report.js
+- www/js/app.js
+- www/js/state.js
+- www/js/screens/home.js

@@ -134,7 +134,9 @@ export function getUsageDays() {
           const start = new Date(parseInt(firstDate));
           const now = new Date();
           const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
-          return Math.max(1, diff);
+          const days = Math.max(1, diff);
+          console.log('[getUsageDays] from mood_history:', days, 'days, first entry:', new Date(parseInt(firstDate)).toLocaleDateString());
+          return days;
         }
       }
     }
@@ -142,9 +144,14 @@ export function getUsageDays() {
     console.warn("Error calculating usage days:", e);
   }
   
-  if (!state.startDate) return 1;
+  if (!state.startDate) {
+    console.log('[getUsageDays] no startDate, returning 1');
+    return 1;
+  }
   const start = new Date(state.startDate);
   const now = new Date();
   const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
-  return Math.max(1, diff);
+  const days = Math.max(1, diff);
+  console.log('[getUsageDays] from startDate:', days, 'days, start:', state.startDate);
+  return days;
 }

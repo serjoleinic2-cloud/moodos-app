@@ -292,18 +292,15 @@ if (!window.__neyraAppRunning) {
       });
     }
     
-    const voiceBtn = document.getElementById("voiceRecordBtn");
+    const voiceBtn = document.getElementById("recordVoiceBtn");
     if (voiceBtn) {
       voiceBtn.addEventListener("click", () => {
         trackUserActivity();
-        const voiceStatus = document.getElementById("voiceStatus") || document.createElement("div");
-        if (!voiceStatus.id) {
-          voiceStatus.id = "voiceStatus";
-          document.body.appendChild(voiceStatus);
-        }
+        const voiceStatus = document.getElementById("voiceStatus");
         
         let countdown = 3;
         const timerEl = document.createElement("div");
+        timerEl.id = "voiceCountdown";
         timerEl.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:20px 40px;border-radius:16px;font-size:32px;font-weight:700;z-index:9999;";
         timerEl.textContent = countdown;
         document.body.appendChild(timerEl);
@@ -311,17 +308,18 @@ if (!window.__neyraAppRunning) {
         const countdownInterval = setInterval(() => {
           countdown--;
           if (countdown > 0) {
-            if (timerEl) timerEl.textContent = countdown;
+            timerEl.textContent = countdown;
           } else {
             clearInterval(countdownInterval);
-            if (timerEl) timerEl.textContent = "";
+            timerEl.remove();
           }
         }, 1000);
 
         const cleanup = () => {
           clearInterval(countdownInterval);
-          if (timerEl) timerEl.textContent = "";
-          voiceStatus.textContent = "";
+          const existingTimer = document.getElementById("voiceCountdown");
+          if (existingTimer) existingTimer.remove();
+          if (voiceStatus) voiceStatus.textContent = "";
           voiceBtn.disabled = false;
         };
 
@@ -329,7 +327,7 @@ if (!window.__neyraAppRunning) {
           cleanup();
         }).catch(() => {
           cleanup();
-          voiceStatus.textContent = "❌";
+          if (voiceStatus) voiceStatus.textContent = "❌";
         });
       });
     }

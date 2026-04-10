@@ -213,3 +213,5 @@ PROJECT_BRAIN.md = архитектура (контракт)
 | 103.1 | Meditation Crash Fix + Audio Validation | ✅ |
 | 103.2 | Final Stabilization: Security + Share + Photo + PDF | ✅ |
 | 103.3 | FREEZE PROTOCOL Compliance: Remove isReady ad-hoc logic | ✅ |
+| 103.4 | Audio Player Icons: Emoji → SVG in History + Calendar | ✅ |
+| 103.5 | Bug Fixes: Calendar Audio + Voice Recording + Days | ✅ |

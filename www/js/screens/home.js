@@ -73,6 +73,11 @@ export function onEnter() {
   
   initEventsModule();
   
+  // Update app-level values (days, stability, golden hours, insight)
+  setTimeout(() => {
+    if (window.__neyraRender) window.__neyraRender();
+  }, 0);
+  
   const slider = document.getElementById("moodSlider");
   const valueLabel = document.getElementById("moodValue");
   const savedLabel = document.getElementById("moodSavedLabel");
