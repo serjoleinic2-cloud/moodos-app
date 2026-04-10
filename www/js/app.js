@@ -296,6 +296,31 @@ if (!window.__neyraAppRunning) {
       document.body.classList.toggle('recording', isRecording);
     }
     
+    const analyzeNoteBtn = document.getElementById("analyzeNoteBtn");
+    if (analyzeNoteBtn) {
+      analyzeNoteBtn.addEventListener("click", async () => {
+        const noteEl = document.getElementById("dailyNote");
+        const responseEl = document.getElementById("aiResponse");
+        if (!noteEl || !responseEl) return;
+        
+        const text = noteEl.value.trim();
+        if (!text) return;
+        
+        const mood = getMood();
+        responseEl.textContent = t("home_ai_listening") || "Анализирую...";
+        
+        SystemCore.dispatch('GENERATE_INSIGHT', {
+          type: 'note',
+          source: 'daily-reflection',
+          result: null,
+          text: text,
+          mood: mood
+        }).then(() => {
+          if (responseEl) responseEl.textContent = "";
+        });
+      });
+    }
+    
     const voiceBtn = document.getElementById("recordVoiceBtn");
     if (voiceBtn) {
       voiceBtn.addEventListener("click", () => {

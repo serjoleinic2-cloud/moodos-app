@@ -357,7 +357,7 @@ export const ru = {
     premium_status_premium: "Премиум",
     premium_days_left: "Осталось дней",
     premium_open_access: "Открыть доступ",
-    premium_try_btn: "Активировать пробный доступ",
+    premium_try_btn: "Активировать Premium",
     premium_try_desc: "Расширенная аналитика и персональные инсайты",
     premium_trigger_text: "Хочешь увидеть больше закономерностей?",
     premium_access_granted: "Ты получил доступ к расширенным возможностям",

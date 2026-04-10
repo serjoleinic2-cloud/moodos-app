@@ -20,6 +20,7 @@ import * as ResilienceEngine from './services/resilience-engine.js'
 import * as Memory from './services/memory.js'
 import { showAvatarForMood, showAvatar } from './avatar.js'
 import { t } from './i18n.js'
+import { analyzeText } from './ai/offline-ai.js'
 
 const SystemCore = {
 
@@ -186,24 +187,52 @@ const SystemCore = {
           result = { success: true };
           break
 
+        case 'VOICE_START':
+          console.log('[VOICE] Voice recording started');
+          result = { success: true };
+          break
+
+        case 'REFLECTION_START':
+          console.log('[REFLECTION] Daily reflection started');
+          result = { success: true };
+          break
+
         case 'GENERATE_INSIGHT':
           console.log('[INSIGHT] Generating insight for:', payload);
           const mood = getMood();
           const analysis = await StateEngine.analyze(mood);
-          const insightResult = await InsightEngine.generate({
-            type: payload.type,
-            source: payload.source,
-            result: payload.result,
-            mood,
-            state: analysis?.state
-          });
-          if (insightResult?.insight) {
-            Memory.save({ lastInsight: insightResult.insight });
-            showAvatar({
-              text: insightResult.insight,
-              source: 'insight',
-              force: true
+          let insightResult;
+          
+          if (payload.type === 'note' && payload.text) {
+            const textAnalysis = analyzeText(payload.text, payload.mood || mood);
+            insightResult = {
+              insight: textAnalysis.insight,
+              emotion: textAnalysis.emotion
+            };
+            if (insightResult?.insight) {
+              Memory.save({ lastInsight: insightResult.insight });
+              showAvatar({
+                text: insightResult.insight,
+                source: 'insight',
+                force: true
+              });
+            }
+          } else {
+            insightResult = await InsightEngine.generate({
+              type: payload.type,
+              source: payload.source,
+              result: payload.result,
+              mood,
+              state: analysis?.state
             });
+            if (insightResult?.insight) {
+              Memory.save({ lastInsight: insightResult.insight });
+              showAvatar({
+                text: insightResult.insight,
+                source: 'insight',
+                force: true
+              });
+            }
           }
           result = { success: true, insight: insightResult };
           break
