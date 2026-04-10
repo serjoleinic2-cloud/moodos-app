@@ -1112,3 +1112,122 @@ Bug Fixes: Calendar Audio + Voice Recording + Days
 - www/js/app.js
 - www/js/state.js
 - www/js/screens/home.js
+
+---
+
+## TASK 104
+Fix Pack: Voice Timer + Pattern Algorithm + UI Cleanup + PDF
+
+**Изменения:**
+1. Voice recording timer: countdown 3-2-1 → runtime MM:SS timer
+2. Pattern algorithm: findStrongPatterns sorts by count DESC, buildPatternInsight uses patterns[0]
+3. Console spam: removed all debug console.log from insight.js
+4. PDF delta = 0: added liftCount counter, delta only calculated with both moodBefore and moodAfter
+5. PDF "rest" translation: added rest to eventIconMap and eventLabelMap
+6. PDF stats layout: percent value on top, label below
+7. PDF recommendations: updated ru.js with sleep influence text
+8. PDF journal state: added moodToState() fallback for entries without state
+9. Capitalize fix: added capitalizeFirstChar() applied to getSessionName()
+10. Insight duplicate init: selectedTimeRange = getSelectedPeriod() instead of localStorage
+11. Year block clean: buildYearComparisonBlock() without history parameter
+
+**Files:**
+- www/js/app.js
+- www/js/ai/offline-ai.js
+- www/js/screens/insight.js
+- www/js/screens/pdf-report.js
+- www/js/i18n/ru.js
+
+---
+
+## TASK 105
+Data Flow Restore: Events + Voice + Reflection + Premium
+
+**Изменения:**
+1. Events pipeline: already fixed - uses getSelectedEvents()
+2. Voice UI state: added setRecordingUI(), dispatch('VOICE_START'), classList.toggle('recording')
+3. Reflection button: analyzeNoteBtn → dispatch('GENERATE_INSIGHT') with text
+4. Medical language removed: "Отчёт для врача" → "Сводный отчёт"
+5. capitalizeFirstChar applied to getSessionName()
+
+**Files:**
+- www/js/app.js
+- www/js/system-core.js
+- www/js/i18n/ru.js
+- www/js/services/user-profile.js
+- www/js/screens/pdf-report.js
+
+---
+
+## TASK Z2 (AUDIT Z2)
+Post TASK 104-105: UI→State→Dispatch→Storage pipeline fixes
+
+**BUG 1: Events [] в MOOD_SUBMIT**
+- FIX: events.js already syncs to AppRuntime on toggle
+- FIX: removed AppRuntime.setState reset from home.js onExit()
+
+**BUG 2: Voice не сохраняется в history**
+- FIX: voice.js callback returns {audio, duration, mood, date}
+- FIX: app.js dispatch('VOICE_SAVE') with audio data
+- FIX: system-core.js case 'VOICE_SAVE' → saveVoiceNote()
+
+**BUG 3: Дневная рефлексия не триггерится**
+- FIX: analyzeNoteBtn → dispatch('REFLECTION_START') + dispatch('GENERATE_INSIGHT')
+- FIX: REFLECTION_START → showAvatar with prompt
+
+**BUG 4: Premium timing race**
+- FIX: isPremium() fallback to getPremiumStatus() when _billingInitializing
+- FIX: insight.js onEnter() awaits 600ms if billing initializing
+
+**BUG 5: canMakeGeminiRequest**
+- FIX: verified not applied to offline-ai.js
+
+**Files:**
+- www/js/screens/home.js
+- www/js/events.js
+- www/js/ai/voice.js
+- www/js/app.js
+- www/js/system-core.js
+- www/js/services/memory.js
+- www/js/services/user-profile.js
+- www/js/screens/insight.js
+
+---
+
+## TASK 107
+Logic Correction & UX Fix: Patterns + Voice + Reflection + UI
+
+**BUG 1: Паттерны всегда "кофе"**
+- ADD: [DEBUG EVENTS] log in system-core.js
+- ADD: [AI INPUT] log in offline-ai.js getRecentHistory()
+- events already passed correctly from home.js
+
+**BUG 2: Voice "пишется втихую"**
+- FIX: voiceStatus shows "⏺ Запись..." on start
+- FIX: voiceStatus shows "✓ Готово" on finish
+- FIX: voiceStatus classList toggle 'recording'
+- ADD: [VOICE] recorded log
+
+**BUG 3: "Пробный доступ" ещё есть**
+- ADD: open_premium i18n key in ru.js
+- verified: no premium_trial/paywall_trial in code
+
+**BUG 4: Settings лимиты**
+- FIX: removed gemini_limit_reached, replaced with "Бесплатная версия"
+
+**BUG 5: Voice не всегда в history**
+- FIX: VOICE_SAVE dispatch → saveVoiceNote() → Memory (already correct)
+
+**BUG 6: Reflection пустая (нет сохранения)**
+- FIX: added dispatch('SAVE_NOTE') before GENERATE_INSIGHT
+- FIX: noteEl.value = '' after save
+
+**BUG 7: PDF мелкие**
+- FIX: already fixed in TASK 104
+
+**Files:**
+- www/js/system-core.js
+- www/js/ai/offline-ai.js
+- www/js/app.js
+- www/js/i18n/ru.js
+- www/js/screens/settings.js
