@@ -355,13 +355,6 @@ if (!window.__neyraAppRunning) {
         const mood = getMood();
 
         if (responseEl) {
-          if (responseEl.innerText && responseEl.innerText !== 'Анализирую...' && responseEl.innerText !== (t("home_ai_listening") || "Анализирую...")) {
-            console.warn('[REFLECTION] BLOCKED loading overwrite, current:', responseEl.innerText);
-            analyzeNoteBtn.disabled = false;
-            window._reflectionBusy = false;
-            window._activeInsightId = null;
-            return;
-          }
           responseEl.textContent = t("home_ai_listening") || "Анализирую...";
           console.log('[REFLECTION FLOW] LOADING TRUE');
         }
