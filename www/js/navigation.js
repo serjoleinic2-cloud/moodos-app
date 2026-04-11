@@ -11,6 +11,8 @@ export function closeAllOverlays() {
   document.getElementById("pdfReportScreen")?.remove();
   document.getElementById("moodCalendarOverlay")?.remove();
   document.getElementById("photoMenuOverlay")?.remove();
+  document.getElementById("dayPopup")?.remove();
+  document.getElementById("dayPopupOverlay")?.remove();
   document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
 }
 
