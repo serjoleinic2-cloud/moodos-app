@@ -336,7 +336,7 @@ function showPhotoMenu(container, photoInput) {
   overlay.id = "photoMenuOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:flex-end;";
   overlay.innerHTML = `
-    <div style="width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 20px 50px;box-shadow:0 -8px 30px rgba(0,0,0,0.12);">
+    <div style="width:100%;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 20px calc(80px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,0.12);">
       <div style="font-size:16px;font-weight:600;color:#3a3530;margin-bottom:16px;text-align:center;">${t("hist_add_photo")}</div>
       <div id="pmCamera"  style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;">${t("hist_camera")}</div>
       <div id="pmGallery" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;">${t("hist_gallery")}</div>
@@ -498,4 +498,9 @@ function renderDetail(item, filterDate) {
 function detRow(label, valHTML) {
   return `<div class="mo-metric" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;">
     <span style="color:#888;">${label}</span>${valHTML}</div>`;
+}
+
+export function onExit() {
+  document.getElementById("photoMenuOverlay")?.remove();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 }
