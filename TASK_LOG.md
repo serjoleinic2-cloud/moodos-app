@@ -25,17 +25,22 @@
 ### DAY-POPUP — Overlay Cleanup
 - dayPopup и dayPopupOverlay → closeAllOverlays()
 
+### TASK 116 — Pattern Algorithm
+- analyzeEventImpact: одиночные + комбо раздельно
+- findBestPatterns: count >= 2, score >= 4
+- getRecommendationForLowMood: что помогало при плохом настроении
+- detectWarningPattern: стресс+сон, повторяющийся стресс
+- generateInsight: паттерны всегда (без random 40%)
+- i18n: pattern_recommend_low, warning_*
+
 ---
 
 ## KNOWN ISSUES (ACTIVE)
-- pattern всегда "кофе"
 - voice иногда не сохраняется
-- reflection UX сырой
 - premium UI inconsistency
 
 ---
 
 ## NEXT TASKS
-- Fix pattern algorithm (real weights)
-- Fix reflection UX
+- Fix voice save
 - Fix premium UI state
