@@ -134,71 +134,150 @@ function isRelevant(pattern, history) {
 }
 
 function analyzeEventImpact(history) {
-  const map = {};
-
-  history.forEach(entry => {
-    const mood = entry.value || entry.mood || 0;
-    const events = entry.events || [];
-    
-    const key = getEventKey(events);
-    if (!key) return;
-    
-    if (!map[key]) {
-      map[key] = {
-        count: 0,
-        totalMood: 0,
-        events: events
-      };
-    }
-
-    map[key].count++;
-    map[key].totalMood += mood;
-  });
+  const single = {};
+  const combo = {};
 
   const baseline = calculateBaseline(history);
 
-  const patterns = Object.keys(map).map(k => {
-    const avgMood = map[k].totalMood / map[k].count;
+  history.forEach(entry => {
+    const mood = entry.value || entry.mood || 0;
+    const events = (entry.events || []).slice().sort();
+    if (events.length === 0) return;
+
+    events.forEach(ev => {
+      if (!single[ev]) single[ev] = { count: 0, totalMood: 0 };
+      single[ev].count++;
+      single[ev].totalMood += mood;
+    });
+
+    if (events.length >= 2) {
+      for (let i = 0; i < events.length - 1; i++) {
+        for (let j = i + 1; j < events.length; j++) {
+          const key = events[i] + '+' + events[j];
+          if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: [events[i], events[j]] };
+          combo[key].count++;
+          combo[key].totalMood += mood;
+        }
+      }
+    }
+  });
+
+  const results = [];
+
+  Object.entries(single).forEach(([ev, data]) => {
+    if (data.count < 2) return;
+    const avgMood = data.totalMood / data.count;
     const score = avgMood - baseline;
-
-    return {
-      key: k,
-      events: map[k].events,
-      event: map[k].events[0] || k,
-      count: map[k].count,
+    const weight = EVENT_WEIGHTS[ev] || 1.0;
+    results.push({
+      key: ev,
+      events: [ev],
+      event: ev,
+      count: data.count,
       avgMood: Math.round(avgMood),
-      score: Math.round(score)
-    };
+      score: Math.round(score * weight),
+      isCombo: false
+    });
   });
 
-  const hasCombos = patterns.some(p => p.key.includes('+'));
-  const filtered = patterns.filter(p => {
-    if (hasCombos && !p.key.includes('+')) return false;
-    return p.count >= 3;
+  Object.entries(combo).forEach(([key, data]) => {
+    if (data.count < 2) return;
+    const avgMood = data.totalMood / data.count;
+    const score = avgMood - baseline;
+    const mainEvent = data.events.reduce((a, b) =>
+      (EVENT_WEIGHTS[a] || 1.0) >= (EVENT_WEIGHTS[b] || 1.0) ? a : b
+    );
+    results.push({
+      key,
+      events: data.events,
+      event: mainEvent,
+      count: data.count,
+      avgMood: Math.round(avgMood),
+      score: Math.round(score),
+      isCombo: true
+    });
   });
 
-  const relevant = filtered.filter(p => isRelevant(p, history));
-
-  relevant.sort((a, b) => {
-    if (a.key.includes('+') && !b.key.includes('+')) return -1;
-    if (!a.key.includes('+') && b.key.includes('+')) return 1;
+  results.sort((a, b) => {
     if (Math.abs(b.score) !== Math.abs(a.score)) {
       return Math.abs(b.score) - Math.abs(a.score);
     }
+    if (a.isCombo !== b.isCombo) return a.isCombo ? -1 : 1;
     return b.count - a.count;
   });
 
-  const merged = mergePatterns(filtered);
+  const merged = mergePatterns(results);
   savePatterns(merged);
 
-  console.log('[PATTERNS]', relevant);
-
-  return relevant;
+  return results;
 }
 
 function findBestPatterns(patterns, limit = 1) {
-  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 5);
+  const filtered = patterns.filter(p => p.count >= 2 && Math.abs(p.score) >= 4);
   return filtered.slice(0, limit);
+}
+
+// Что помогало этому пользователю когда было плохо
+function getRecommendationForLowMood(history) {
+  const baseline = calculateBaseline(history);
+  const lowEntries = history.filter(e => (e.value || 0) < baseline - 5);
+  if (lowEntries.length < 3) return null;
+
+  const improvements = {};
+  for (let i = 0; i < history.length - 1; i++) {
+    const curr = history[i];
+    const next = history[i + 1];
+    if (!curr || !next) continue;
+    const currMood = curr.value || 0;
+    const nextMood = next.value || 0;
+    if (currMood >= baseline) continue;
+    if (nextMood <= currMood) continue;
+    const events = (next.events || []);
+    events.forEach(ev => {
+      if (!improvements[ev]) improvements[ev] = { count: 0, totalLift: 0 };
+      improvements[ev].count++;
+      improvements[ev].totalLift += (nextMood - currMood);
+    });
+  }
+
+  const best = Object.entries(improvements)
+    .filter(([, d]) => d.count >= 2)
+    .sort((a, b) => (b[1].totalLift / b[1].count) - (a[1].totalLift / a[1].count))[0];
+
+  if (!best) return null;
+  return { event: best[0], avgLift: Math.round(best[1].totalLift / best[1].count) };
+}
+
+// Обнаружение: стресс + плохой сон + low mood повторяется
+function detectWarningPattern(history) {
+  const recent = history.slice(-10);
+  if (recent.length < 4) return null;
+
+  let stressLowCount = 0;
+  let sleepLowCount = 0;
+
+  recent.forEach(e => {
+    const mood = e.value || 0;
+    const events = e.events || [];
+    if (mood < 45 && events.includes('stress')) stressLowCount++;
+    if (mood < 45 && events.includes('sleep')) sleepLowCount++;
+  });
+
+  const hasBoth = recent.some(e => {
+    const events = e.events || [];
+    return (e.value || 0) < 45 && events.includes('stress') && events.includes('sleep');
+  });
+
+  if (hasBoth && stressLowCount >= 2) {
+    return 'warning_stress_sleep';
+  }
+  if (stressLowCount >= 3) {
+    return 'warning_stress_repeat';
+  }
+  if (sleepLowCount >= 3) {
+    return 'warning_sleep_repeat';
+  }
+  return null;
 }
 
 function buildPatternInsight(pattern) {
@@ -293,30 +372,25 @@ function humanizePattern(pattern) {
 // ---- GENERATE INSIGHT (i18n-based) ----
 export function generateInsight({ mood, events = [], history = null }) {
   const moodLevel = getMoodLevel(mood);
-  
+  const recentHistory = getRecentHistory(14);
+
   const base = pickRandom(getBaseTexts(moodLevel));
   const combo = getCombinationInsight(moodLevel, events);
-  
+
   let eventText = null;
   if (!combo && events.length > 0) {
     const randomEvent = events[Math.floor(Math.random() * events.length)];
     eventText = getEventText(randomEvent);
   }
-  
+
   const advice = getAdvice(moodLevel);
-  
-  // Паттерны с cooldown (показываем ~40% времени)
-  let patternResult = null;
-  let bestPatterns = [];
-  if (Math.random() < 0.4) {
-    const recentHistory = getRecentHistory(7);
-    const patterns = analyzeEventImpact(recentHistory);
-    const limit = isPremium() ? 3 : 1;
-    bestPatterns = findBestPatterns(patterns, limit);
-    if (bestPatterns.length > 0) {
-      patternResult = buildPatternInsight(bestPatterns[0]);
-    }
-  }
+
+  const patterns = analyzeEventImpact(recentHistory);
+  const limit = isPremium() ? 3 : 1;
+  const bestPatterns = findBestPatterns(patterns, limit);
+  let patternResult = bestPatterns.length > 0
+    ? buildPatternInsight(bestPatterns[0])
+    : null;
 
   let patternText = null;
   if (patternResult) {
@@ -330,8 +404,29 @@ export function generateInsight({ mood, events = [], history = null }) {
       patternText = text;
     }
   }
-  
-  const parts = [base, combo || eventText, patternText, advice].filter(Boolean);
+
+  let recommendText = null;
+  if (moodLevel === 'low' || moodLevel === 'mid') {
+    const rec = getRecommendationForLowMood(recentHistory);
+    if (rec) {
+      const label = i18n(`event_${rec.event}`) || rec.event;
+      recommendText = i18n('pattern_recommend_low')?.replace('{event}', label)
+        || `Раньше тебе помогало — ${label}. Попробуй сейчас.`;
+    }
+  }
+
+  let warningText = null;
+  const warning = detectWarningPattern(recentHistory);
+  if (warning) {
+    warningText = i18n(warning) || null;
+  }
+
+  const parts = [
+    warningText || base,
+    combo || eventText,
+    patternText,
+    recommendText || advice
+  ].filter(Boolean);
 
   return {
     insightText: parts.join(' '),
@@ -340,7 +435,8 @@ export function generateInsight({ mood, events = [], history = null }) {
     pattern: bestPatterns[0] || null,
     patterns: bestPatterns,
     meta: patternResult?.meta || null,
-    followup: buildFollowUp(bestPatterns[0])
+    followup: buildFollowUp(bestPatterns[0]),
+    warning
   };
 }
 
