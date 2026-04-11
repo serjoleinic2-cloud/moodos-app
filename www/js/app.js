@@ -301,40 +301,69 @@ if (!window.__neyraAppRunning) {
     
     const analyzeNoteBtn = document.getElementById("analyzeNoteBtn");
     console.log('[REFLECTION] analyzeNoteBtn found:', !!analyzeNoteBtn);
-    if (analyzeNoteBtn) {
-      const newBtn = analyzeNoteBtn.cloneNode(true);
-      analyzeNoteBtn.parentNode.replaceChild(newBtn, analyzeNoteBtn);
-      newBtn.id = "analyzeNoteBtn";
+    if (analyzeNoteBtn && !analyzeNoteBtn.dataset.bound) {
+      analyzeNoteBtn.dataset.bound = 'true';
       
-      newBtn.addEventListener("click", async (e) => {
+      const noteEl = document.getElementById("dailyNote");
+      
+      if (noteEl) {
+        noteEl.addEventListener('input', () => {
+          analyzeNoteBtn.disabled = !noteEl.value.trim();
+        });
+      }
+      
+      analyzeNoteBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         console.log('[REFLECTION] button clicked');
-        if (newBtn.disabled) {
-          console.log('[REFLECTION] button disabled');
-          return;
-        }
-        newBtn.disabled = true;
-        console.log('[REFLECTION] button disabled set');
+        
+        if (window._reflectionBusy) return;
+        window._reflectionBusy = true;
+        const currentInsightId = Date.now();
+        window._activeInsightId = currentInsightId;
+        analyzeNoteBtn.disabled = true;
+        console.log('[REFLECTION] button disabled set, insightId:', currentInsightId);
 
         const noteEl = document.getElementById("dailyNote");
         const responseEl = document.getElementById("aiResponse");
         console.log('[REFLECTION] noteEl:', !!noteEl, 'responseEl:', !!responseEl);
         if (!noteEl || !responseEl) {
-          newBtn.disabled = false;
+          analyzeNoteBtn.disabled = false;
+          window._reflectionBusy = false;
+          window._activeInsightId = null;
           return;
         }
 
         const text = noteEl.value.trim();
         console.log('[REFLECTION] text value:', JSON.stringify(noteEl.value), 'trimmed:', JSON.stringify(text));
+        
         if (!text) {
-          newBtn.disabled = false;
+          analyzeNoteBtn.disabled = false;
+          if (window.showAvatar) {
+            window.showAvatar({
+              text: t('reflection_prompt') || "Напиши пару слов о дне",
+              source: 'reflection',
+              force: true
+            });
+          }
+          window._reflectionBusy = false;
+          window._activeInsightId = null;
           return;
         }
 
+        console.log('[REFLECTION FLOW] START', currentInsightId);
+        
         const mood = getMood();
 
         if (responseEl) {
+          if (responseEl.innerText && responseEl.innerText !== 'Анализирую...' && responseEl.innerText !== (t("home_ai_listening") || "Анализирую...")) {
+            console.warn('[REFLECTION] BLOCKED loading overwrite, current:', responseEl.innerText);
+            analyzeNoteBtn.disabled = false;
+            window._reflectionBusy = false;
+            window._activeInsightId = null;
+            return;
+          }
           responseEl.textContent = t("home_ai_listening") || "Анализирую...";
+          console.log('[REFLECTION FLOW] LOADING TRUE');
         }
 
         try {
@@ -351,7 +380,12 @@ if (!window.__neyraAppRunning) {
             text: text
           });
 
-          console.log('[REFLECTION] insight received:', insight);
+          console.log('[REFLECTION FLOW] RESPONSE', insight);
+
+          if (window._activeInsightId !== currentInsightId) {
+            console.log('[REFLECTION] stale insight, ignoring');
+            return;
+          }
 
           if (!insight || !insight.insightText) {
             if (window.showAvatar) {
@@ -362,6 +396,9 @@ if (!window.__neyraAppRunning) {
               });
             }
             if (responseEl) responseEl.textContent = "";
+            analyzeNoteBtn.disabled = false;
+            window._reflectionBusy = false;
+            window._activeInsightId = null;
             return;
           }
 
@@ -393,9 +430,12 @@ if (!window.__neyraAppRunning) {
           }
           if (responseEl) responseEl.textContent = "";
         } finally {
-          const btn = document.getElementById("analyzeNoteBtn");
-          if (btn) btn.disabled = false;
-          console.log('[REFLECTION] button re-enabled');
+          if (window._activeInsightId === currentInsightId) {
+            analyzeNoteBtn.disabled = false;
+            console.log('[REFLECTION FLOW] LOADING FALSE');
+            window._reflectionBusy = false;
+            window._activeInsightId = null;
+          }
         }
       });
     }
