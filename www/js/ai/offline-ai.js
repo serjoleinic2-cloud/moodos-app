@@ -391,7 +391,53 @@ function humanizePattern(pattern) {
 }
 
 // ---- GENERATE INSIGHT (i18n-based) ----
-export function generateInsight({ mood, events = [], history = null }) {
+export function generateInsight(data) {
+  if (data.type === 'reflection') {
+    return generateReflectionInsight(data);
+  }
+
+  return generatePatternInsight(data);
+}
+
+function generateReflectionInsight({ text, mood }) {
+  if (!text || text.trim().length < 5) {
+    return {
+      insightText: i18n('reflection_fallback') || "Попробуй описать подробнее."
+    };
+  }
+
+  const lower = text.toLowerCase();
+
+  if (lower.includes('устал') || lower.includes('перегруж') || lower.includes('устала') || lower.includes('измотан')) {
+    return {
+      insightText: i18n('reflection_tired') || "Похоже, ты перегружен. Возможно стоит снизить нагрузку."
+    };
+  }
+
+  if (lower.includes('хорошо') || lower.includes('рад') || lower.includes('классно') || lower.includes('отлично') || lower.includes('прекрасно')) {
+    return {
+      insightText: i18n('reflection_positive') || "Звучит как хороший день. Запомни, что помогло."
+    };
+  }
+
+  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('тревог') || lower.includes('волнен')) {
+    return {
+      insightText: i18n('reflection_stress') || "Похоже, был стресс. Попробуй найти способ разгрузиться."
+    };
+  }
+
+  if (lower.includes('плохо') || lower.includes('ужасно') || lower.includes('грустно') || lower.includes('тоскливо')) {
+    return {
+      insightText: i18n('reflection_negative') || "День был непростым. Я рядом, если хочешь поговорить."
+    };
+  }
+
+  return {
+    insightText: i18n('reflection_generic') || "Похоже, день был непростым. Хочешь разобраться подробнее?"
+  };
+}
+
+function generatePatternInsight({ mood, events = [] }) {
   const moodLevel = getMoodLevel(mood);
   const recentHistory = getRecentHistory(14);
 

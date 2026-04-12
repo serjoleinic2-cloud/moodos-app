@@ -368,9 +368,9 @@ if (!window.__neyraAppRunning) {
           });
 
           const insight = await safeGenerateInsight({
-            mood: mood,
-            events: [],
-            text: text
+            type: 'reflection',
+            text: text,
+            mood: mood
           });
 
           console.log('[REFLECTION FLOW] RESPONSE', insight);

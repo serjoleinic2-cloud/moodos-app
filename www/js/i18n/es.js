@@ -613,5 +613,10 @@ export const es = {
     followup_negative: "Tal vez valga la pena ser un poco más cuidadoso con esto.",
     followup_neutral: "Interesante de observar. Presta atención durante unos días más.",
     reflection_understood: "Te entiendo. Esto es lo que veo:",
-    reflection_fallback: "Intenta describirlo de otra manera.",
+    reflection_fallback: "Intenta describirlo con más detalle.",
+    reflection_tired: "Parece que estás sobrecargado. Quizás deberías reducir la carga.",
+    reflection_positive: "Suena como un buen día. Recuerda lo que te ayudó.",
+    reflection_stress: "Parece que hubo estrés. Intenta encontrar una forma de relajarte.",
+    reflection_negative: "El día fue difícil. Estoy aquí si quieres hablar.",
+    reflection_generic: "Parece que el día fue desafiante. ¿Quieres profundizar más?",
 };

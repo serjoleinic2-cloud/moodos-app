@@ -613,4 +613,9 @@ export const en = {
     followup_neutral: "Interesting to observe. Pay attention for a few more days.",
     reflection_understood: "I understand you. Here's what I see:",
     reflection_fallback: "Try describing it differently.",
+    reflection_tired: "Looks like you're overloaded. Maybe ease off a bit.",
+    reflection_positive: "Sounds like a good day. Remember what helped.",
+    reflection_stress: "Looks like there was stress. Try to find a way to unwind.",
+    reflection_negative: "The day was tough. I'm here if you want to talk.",
+    reflection_generic: "Looks like the day was challenging. Want to dig deeper?",
 };
