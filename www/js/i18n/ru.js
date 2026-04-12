@@ -41,6 +41,7 @@ export const ru = {
     home_studying: "изучаю...",
     home_ok: "ОК",
     reflection_placeholder: "Опиши свой день...",
+    home_confirm: "Сохранить",
     reflection_stress: "Похоже, это был напряжённый момент. Важно дать себе восстановиться.",
     reflection_positive: "Звучит как хороший опыт. Стоит закрепить такие моменты.",
     reflection_neutral: "Ты фиксируешь состояние — это уже важный шаг.",

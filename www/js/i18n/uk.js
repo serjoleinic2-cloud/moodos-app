@@ -39,6 +39,7 @@ export const uk = {
     home_studying: "вивчаю...",
     home_ok: "ОК",
     reflection_placeholder: "Опиши свій день...",
+    home_confirm: "Зберегти",
     reflection_stress: "Схоже, це був напружений момент. Важливо дати собі відновитись.",
     reflection_positive: "Звучить як хороший досвід. Варто закріпити такі моменти.",
     reflection_neutral: "Ти фіксуєш стан — це вже важливий крок.",

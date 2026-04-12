@@ -39,6 +39,7 @@ export const es = {
     home_studying: "estudiando...",
     home_ok: "OK",
     reflection_placeholder: "Describe tu día...",
+    home_confirm: "Guardar",
     reflection_stress: "Parece que fue un momento tenso. Es importante darte tiempo para recuperarte.",
     reflection_positive: "Suena como una buena experiencia. Vale la pena anclarla.",
     reflection_neutral: "Estás anotando tu estado — eso ya es un paso importante.",

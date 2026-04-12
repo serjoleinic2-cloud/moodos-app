@@ -448,24 +448,6 @@ export function analyzeReflection(text) {
 
   return i18n('reflection_neutral') || "Ты фиксируешь состояние — это важный шаг.";
 }
-  }
-
-  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('тревог') || lower.includes('волнен')) {
-    return {
-      insightText: i18n('reflection_stress') || "Похоже, был стресс. Попробуй найти способ разгрузиться."
-    };
-  }
-
-  if (lower.includes('плохо') || lower.includes('ужасно') || lower.includes('грустно') || lower.includes('тоскливо')) {
-    return {
-      insightText: i18n('reflection_negative') || "День был непростым. Я рядом, если хочешь поговорить."
-    };
-  }
-
-  return {
-    insightText: i18n('reflection_generic') || "Похоже, день был непростым. Хочешь разобраться подробнее?"
-  };
-}
 
 function generatePatternInsight({ mood, events = [] }) {
   const moodLevel = getMoodLevel(mood);
