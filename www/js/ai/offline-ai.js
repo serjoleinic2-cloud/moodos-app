@@ -364,7 +364,6 @@ function buildPatternInsight(pattern, currentMood) {
       impact: pattern.score,
       timeBucket: pattern.timeBucket
     }
-    }
   };
 }
 
