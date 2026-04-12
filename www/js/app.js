@@ -295,7 +295,7 @@ if (!window.__neyraAppRunning) {
         trackUserActivity();
         if (confirmBtn) {
           const reflectionInput = document.getElementById("reflectionInput");
-          const hasContent = (reflectionInput?.value.trim()) || getMood() || getSelectedEvents().length > 0;
+          const hasContent = (reflectionInput?.value.trim()) || getSelectedEvents().length > 0;
           confirmBtn.disabled = !hasContent;
         }
       });
@@ -313,7 +313,7 @@ if (!window.__neyraAppRunning) {
       
       if (reflectionInput) {
         reflectionInput.addEventListener('input', () => {
-          const hasContent = reflectionInput.value.trim() || getMood() || getSelectedEvents().length > 0;
+          const hasContent = reflectionInput.value.trim() || getSelectedEvents().length > 0;
           confirmBtn.disabled = !hasContent;
         });
       }
@@ -334,14 +334,6 @@ if (!window.__neyraAppRunning) {
         confirmBtn.disabled = true;
         
         try {
-          if (mood || events.length > 0) {
-            SystemCore.dispatch('MOOD_SUBMIT', {
-              mood,
-              events,
-              time: now
-            });
-          }
-          
           if (text) {
             SystemCore.dispatch('SAVE_REFLECTION', {
               text,
