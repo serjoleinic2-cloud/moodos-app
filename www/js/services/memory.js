@@ -8,7 +8,7 @@
 export function save(data) {
   let needsSnapshotUpdate = false;
   
-  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience', 'events', 'insight'];
+  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience', 'events', 'insight', 'timeBucket'];
   const unknownFields = Object.keys(data).filter(k => !KNOWN_SAVE_FIELDS.includes(k));
   if (unknownFields.length > 0) {
     console.warn('[memory.save] Unknown fields (data may be lost):', unknownFields);
@@ -28,6 +28,7 @@ export function save(data) {
       value: data.mood,
       state: data.state,
       events: data.events || [],
+      timeBucket: data.timeBucket || null,
       time: Date.now()
     });
     if (history.length > 730) history.shift();

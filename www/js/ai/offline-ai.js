@@ -155,16 +155,19 @@ function analyzeEventImpact(history) {
     const weightedMood = mood * weight;
 
     events.forEach(ev => {
-      if (!single[ev]) single[ev] = { count: 0, totalMood: 0 };
-      single[ev].count++;
-      single[ev].totalMood += weightedMood;
+      const bucket = entry.timeBucket || 'day';
+      const key = ev + '_' + bucket;
+      if (!single[key]) single[key] = { count: 0, totalMood: 0, event: ev, timeBucket: bucket };
+      single[key].count++;
+      single[key].totalMood += weightedMood;
     });
 
     if (events.length >= 2) {
       for (let i = 0; i < events.length - 1; i++) {
         for (let j = i + 1; j < events.length; j++) {
-          const key = events[i] + '+' + events[j];
-          if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: [events[i], events[j]] };
+          const bucket = entry.timeBucket || 'day';
+          const key = events[i] + '+' + events[j] + '_' + bucket;
+          if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: [events[i], events[j]], timeBucket: bucket };
           combo[key].count++;
           combo[key].totalMood += weightedMood;
         }
@@ -178,11 +181,12 @@ function analyzeEventImpact(history) {
     if (data.count < 2) return;
     const avgMood = data.totalMood / data.count;
     const score = avgMood - baseline;
-    const weight = EVENT_WEIGHTS[ev] || 1.0;
+    const weight = EVENT_WEIGHTS[data.event] || 1.0;
     results.push({
       key: ev,
-      events: [ev],
-      event: ev,
+      events: [data.event],
+      event: data.event,
+      timeBucket: data.timeBucket || 'day',
       count: data.count,
       avgMood: Math.round(avgMood),
       score: Math.round(score * weight),
@@ -201,6 +205,7 @@ function analyzeEventImpact(history) {
       key,
       events: data.events,
       event: mainEvent,
+      timeBucket: data.timeBucket || 'day',
       count: data.count,
       avgMood: Math.round(avgMood),
       score: Math.round(score),
@@ -312,7 +317,11 @@ function buildPatternInsight(pattern, currentMood) {
 
   if (moodIsGood) {
     if (pattern.score >= 0) {
-      type = pattern.isCombo ? 'pattern_combo_positive' : 'pattern_positive';
+      if (pattern.timeBucket && params.time) {
+        type = pattern.isCombo ? 'pattern_combo_positive_time' : 'pattern_positive_time';
+      } else {
+        type = pattern.isCombo ? 'pattern_combo_positive' : 'pattern_positive';
+      }
     } else {
       return null;
     }
@@ -327,7 +336,7 @@ function buildPatternInsight(pattern, currentMood) {
     }
   } else {
     if (pattern.score > 7) {
-      type = 'pattern_positive';
+      type = pattern.timeBucket && params.time ? 'pattern_positive_time' : 'pattern_positive';
     } else if (pattern.score > 3) {
       type = 'pattern_mild_positive';
     } else if (pattern.score < -7) {
@@ -339,13 +348,22 @@ function buildPatternInsight(pattern, currentMood) {
 
   params = { label };
 
+  if (pattern.timeBucket) {
+    const timeLabel = i18n('time_' + pattern.timeBucket) || pattern.timeBucket;
+    if (timeLabel && timeLabel !== pattern.timeBucket) {
+      params.time = timeLabel;
+    }
+  }
+
   return {
     type,
     params,
     meta: {
       count: pattern.count,
       avg: pattern.avgMood,
-      impact: pattern.score
+      impact: pattern.score,
+      timeBucket: pattern.timeBucket
+    }
     }
   };
 }

@@ -8,6 +8,14 @@ import { AppRuntime } from "../core/appRuntime.js";
 import { t } from "../i18n.js";
 import { setAvatarMood, avatarReact, initAvatarController } from "../ui/avatar-controller.js";
 
+function getTimeBucket() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return 'morning';
+  if (h >= 11 && h < 17) return 'day';
+  if (h >= 17 && h < 23) return 'evening';
+  return 'night';
+}
+
 const STORAGE_KEY = 'neyra_last_insight';
 
 function getLastInsight() {
@@ -128,11 +136,13 @@ export function onEnter() {
 
     const moodValue = Number(newSlider.value);
     const selectedEvents = getSelectedEvents();
+    const timeBucket = getTimeBucket();
     
     try {
       const result = await SystemCore.dispatch('MOOD_SUBMIT', { 
         mood: moodValue, 
-        events: selectedEvents 
+        events: selectedEvents,
+        timeBucket: timeBucket
       });
 
       if (!result || result.error) {
