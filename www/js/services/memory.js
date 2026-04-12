@@ -163,6 +163,7 @@ export function saveVoiceNote(note) {
       mood: note.mood,
       date: note.date || Date.now()
     });
+    if (history.length > 30) history.splice(0, history.length - 30);
     localStorage.setItem("voice_history", JSON.stringify(history));
   } catch(e) {
     console.error('[memory] saveVoiceNote failed:', e);

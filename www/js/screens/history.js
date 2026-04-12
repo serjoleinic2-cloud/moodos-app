@@ -357,6 +357,7 @@ function savePhoto(dataUrl) {
   try {
     const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
     arr.push({ dataUrl, timestamp:Date.now(), note:"" });
+    if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem("photo_history", JSON.stringify(arr));
   } catch(e) {}
 }

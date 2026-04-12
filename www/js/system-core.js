@@ -124,6 +124,7 @@ const SystemCore = {
         time: Date.now(),
         timestamp: Date.now()
       });
+      if (history.length > 500) history.splice(0, history.length - 500);
       Memory.saveNotesHistory(history);
     }
   },
@@ -152,10 +153,19 @@ const SystemCore = {
           break
 
         case 'SAVE_NOTE':
-          result = await this.saveEvent({
-            type: 'note',
-            ...payload
-          })
+          if (payload?.type === 'reflection') {
+            const { saveReflection } = await import('./services/memory.js');
+            saveReflection({
+              text: payload.text,
+              mood: payload.mood,
+              time: payload.time || Date.now()
+            });
+          } else {
+            result = await this.saveEvent({
+              type: 'note',
+              ...payload
+            })
+          }
           break
 
         case 'SAVE_REFLECTION':

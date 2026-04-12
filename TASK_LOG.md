@@ -6,6 +6,18 @@
 
 ## COMPLETED TASKS
 
+### TASK 124 — PRE-RELEASE BLOCKER FIX
+- memory.js: voice_history MAX 30, photo_history MAX 20, notes_history MAX 500
+- system-core.js: SAVE_NOTE → call saveReflection() for type=reflection
+- offline-ai.js: функции проверены (EVENT_WEIGHTS для спорт/кофе разные)
+
+### TASK 123 — Smart Time-Aware Patterns
+- shouldUseTimeDimension(): решает использовать time bucket или нет
+- Критерии: >= 2 временных периода, count >= 2 в каждом, avg difference >= 15
+- Single events: использует time bucket только если decision = true (coffee_morning vs coffee_evening)
+- Combos: НЕ используют time buckets (events joined with +)
+- Debug logging: [TIME DIMENSION CHECK], [TIME PATTERN]
+
 ### TASK 122-A — Time-Aware Patterns + {label} Fix
 - getTimeBucket() в home.js: morning/day/evening/night
 - timeBucket сохраняется в mood_history
