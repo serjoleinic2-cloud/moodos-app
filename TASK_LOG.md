@@ -33,12 +33,15 @@
 - generateInsight: паттерны всегда (без random 40%)
 - i18n: pattern_recommend_low, warning_*
 
-### TASK 117 — buildPatternInsight Mood-Aware
-- buildPatternInsight: now accepts currentMood param
-- moodIsGood (>=65): только позитивные паттерны
-- moodIsLow (<45): рекомендации + негативные
-- i18n: pattern_combo_positive, pattern_mild_positive, pattern_recommend_low
-- NEVER_RECOMMEND blacklist: stress, work не рекомендуются
+### TASK 118 — AI RESPONSE TRACE
+- Debug trace для innerText перезаписи (временно)
+
+### TASK 119 — Split Reflection AI from Pattern AI
+- generateInsight теперь маршрутизирует по type
+- generateReflectionInsight: анализирует текст пользователя (устал, хорошо, стресс...)
+- generatePatternInsight: оригинальная логика паттернов
+- app.js передаёт type: 'reflection'
+- i18n: reflection_tired, reflection_positive, reflection_stress, reflection_negative, reflection_generic
 
 ---
 
