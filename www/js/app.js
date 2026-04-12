@@ -26,6 +26,7 @@ import {
 import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme, applyTheme } from "./services/user-profile.js";
 import { initOnboarding } from "./onboarding.js";
 import { t, getDaysLabel, getLang, setLang } from "./i18n.js";
+import { getSelectedEvents } from "./events.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
@@ -317,7 +318,7 @@ if (!window.__neyraAppRunning) {
         const reflectionInput = document.getElementById("reflectionInput");
         const text = reflectionInput?.value.trim() || '';
         const mood = getMood();
-        const events = getSelectedEvents ? getSelectedEvents() : [];
+        const events = getSelectedEvents();
         const now = Date.now();
         
         if (!text && !mood && events.length === 0) {
