@@ -60,13 +60,17 @@ function renderInsightCard(state) {
     
     if (stored.pattern && patternCard && patternText) {
       const label = getPatternEventLabel(stored.pattern.event);
-      if (stored.pattern.type === 'positive') {
-        patternText.textContent = t('pattern_positive').replace('{event}', label);
+      if (!label || label.includes('event_') || label === stored.pattern.event) {
+        if (patternCard) patternCard.style.display = 'none';
       } else {
-        patternText.textContent = t('pattern_negative').replace('{event}', label);
+        if (stored.pattern.type === 'positive') {
+          patternText.textContent = t('pattern_positive').replace('{label}', label);
+        } else {
+          patternText.textContent = t('pattern_negative').replace('{label}', label);
+        }
+        patternCard.style.display = 'block';
+        patternCard.style.opacity = '1';
       }
-      patternCard.style.display = 'block';
-      patternCard.style.opacity = '1';
     } else if (patternCard) {
       patternCard.style.display = 'none';
     }
@@ -206,8 +210,21 @@ function showInsightCard(insight) {
   }
   
   const label = getPatternEventLabel(insight.pattern.event);
+  if (!label || label.includes('event_') || label === insight.pattern.event) {
+    console.warn('[PATTERN] label not found for event:', insight.pattern.event);
+    if (patternCard) patternCard.style.display = 'none';
+    return;
+  }
+  
+  const timeKey = insight.meta?.timeBucket ? 'time_' + insight.meta.timeBucket : null;
+  const timeLabel = timeKey ? t(timeKey) : null;
+  
   if (insight.pattern.score > 0) {
-    patternText.innerHTML = t('pattern_positive').replace('{label}', label);
+    if (timeLabel && insight.meta?.timeBucket) {
+      patternText.innerHTML = t('pattern_positive_time').replace('{label}', label).replace('{time}', timeLabel);
+    } else {
+      patternText.innerHTML = t('pattern_positive').replace('{label}', label);
+    }
   } else {
     patternText.innerHTML = t('pattern_negative').replace('{label}', label);
   }
