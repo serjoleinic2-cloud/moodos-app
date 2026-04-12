@@ -43,6 +43,15 @@
 - app.js передаёт type: 'reflection'
 - i18n: reflection_tired, reflection_positive, reflection_stress, reflection_negative, reflection_generic
 
+### TASK 120 — Home UX + Reflection Model
+- Единая кнопка confirmBtn вместо analyzeNoteBtn
+- textarea#reflectionInput (заменяет dailyNote)
+- confirmBtn.onclick: MOOD_SUBMIT + SAVE_REFLECTION + GENERATE_INSIGHT
+- memory.js: saveReflection(), getReflections()
+- system-core.js: case 'SAVE_REFLECTION'
+- i18n: reflection_placeholder, reflection_stress, reflection_positive, reflection_neutral
+- analyzeReflection() экспортирована для истории
+
 ---
 
 ## KNOWN ISSUES (ACTIVE)
