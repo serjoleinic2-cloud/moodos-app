@@ -22,6 +22,24 @@
 
 ---
 
+## TASK 121.1 — Stabilization Patch
+
+### IMPROVEMENTS
+- добавлен consistency filter для паттернов (count >= 3, score >= 5)
+- скрытие слабых паттернов (null → UI hide)
+- добавлен приоритет событий над текстом
+- улучшен UX рефлексии (instant feedback "Сохранено")
+- добавлен лимит истории рефлексий (100 записей)
+
+### CHANGED FILES
+- offline-ai.js — findBestPatterns: count >= 3, score >= 5
+- offline-ai.js — generateInsight: events priority over text
+- memory.js — MAX_REFLECTIONS = 100
+- app.js — instant feedback "Сохранено"
+- i18n — reflection_saved_short
+
+---
+
 ## KNOWN ISSUES
 - voice иногда нестабилен
 - premium UI требует финальной синхронизации

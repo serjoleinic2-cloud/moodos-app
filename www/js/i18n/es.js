@@ -44,6 +44,7 @@ export const es = {
     reflection_positive: "Suena como una buena experiencia. Vale la pena anclarla.",
     reflection_neutral: "Estás anotando tu estado — eso ya es un paso importante.",
     reflection_saved: "Guardado. Esto puede ayudarte a notar patrones.",
+    reflection_saved_short: "Guardado",
     reflection_negative: "El día fue difícil. Estoy aquí.",
     screen_insight: "Insight",
     chart_unavailable: "Gráfico no disponible",

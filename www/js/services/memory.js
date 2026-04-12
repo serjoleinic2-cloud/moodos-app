@@ -113,12 +113,16 @@ export function getReflections() {
 }
 
 export function saveReflection(entry) {
-  const data = getReflections();
+  let data = getReflections();
   data.push({
     ...entry,
     type: 'reflection',
     time: entry.time || Date.now()
   });
+  const MAX_REFLECTIONS = 100;
+  if (data.length > MAX_REFLECTIONS) {
+    data = data.slice(-MAX_REFLECTIONS);
+  }
   try {
     localStorage.setItem("reflections", JSON.stringify(data));
   } catch(e) {

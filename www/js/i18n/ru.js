@@ -46,6 +46,7 @@ export const ru = {
     reflection_positive: "Звучит как хороший опыт. Стоит закрепить такие моменты.",
     reflection_neutral: "Ты фиксируешь состояние — это уже важный шаг.",
     reflection_saved: "Записал. Это поможет заметить важные моменты.",
+    reflection_saved_short: "Сохранено",
     reflection_negative: "День был непростым. Я рядом.",
     screen_insight: "Инсайт",
     chart_unavailable: "График недоступен",

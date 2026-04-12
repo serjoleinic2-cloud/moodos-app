@@ -44,6 +44,7 @@ export const uk = {
     reflection_positive: "Звучить як хороший досвід. Варто закріпити такі моменти.",
     reflection_neutral: "Ти фіксуєш стан — це вже важливий крок.",
     reflection_saved: "Записав. Це допоможе помітити важливі моменти.",
+    reflection_saved_short: "Збережено",
     reflection_negative: "День був непростим. Я поруч.",
     screen_insight: "Інсайт",
     chart_unavailable: "Графік недоступний",

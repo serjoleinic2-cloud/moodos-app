@@ -225,7 +225,7 @@ function analyzeEventImpact(history) {
 }
 
 function findBestPatterns(patterns, limit = 1) {
-  const filtered = patterns.filter(p => p.count >= 2 && Math.abs(p.score) >= 4);
+  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 5);
   return filtered.slice(0, limit);
 }
 
@@ -404,10 +404,20 @@ function humanizePattern(pattern) {
 
 // ---- GENERATE INSIGHT (i18n-based) ----
 export function generateInsight(data) {
-  if (data.type === 'reflection') {
+  // 1. Event priority
+  if (data.events && data.events.length) {
+    const pattern = generatePatternInsight(data);
+    if (pattern && pattern.insightText) {
+      return pattern;
+    }
+  }
+
+  // 2. Fallback to text (reflection)
+  if (data.type === 'reflection' || data.text) {
     return generateReflectionInsight(data);
   }
 
+  // 3. Default pattern insight
   return generatePatternInsight(data);
 }
 

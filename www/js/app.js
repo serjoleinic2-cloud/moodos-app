@@ -341,6 +341,12 @@ if (!window.__neyraAppRunning) {
               mood,
               time: now
             });
+            const savedText = t('reflection_saved_short') || 'Сохранено';
+            const responseEl = document.getElementById("aiResponse");
+            if (responseEl) {
+              responseEl.textContent = savedText;
+              setTimeout(() => { responseEl.textContent = ''; }, 2000);
+            }
             if (window.showAvatar) {
               window.showAvatar({
                 text: t('reflection_saved') || 'Записал. Это поможет заметить важные моменты.',
