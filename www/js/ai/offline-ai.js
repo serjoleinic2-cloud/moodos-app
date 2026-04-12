@@ -280,32 +280,49 @@ function detectWarningPattern(history) {
   return null;
 }
 
-function buildPatternInsight(pattern) {
+function buildPatternInsight(pattern, currentMood) {
   if (!pattern) return null;
-  if (!pattern.key || pattern.count < 3) return null;
-  
+  if (!pattern.key || pattern.count < 2) return null;
+
   const label = i18n(`event_${pattern.event}`) || pattern.event;
-  
   if (!label || label.includes('event_')) {
     console.warn('[i18n] missing key for', pattern.event);
     return null;
   }
-  
+
+  const moodIsGood = currentMood >= 65;
+  const moodIsLow  = currentMood < 45;
+
   let type, params;
-  if (pattern.score > 10) {
-    type = 'pattern_positive';
-    params = { label };
-  } else if (pattern.score > 7) {
-    type = 'pattern_mild_positive';
-    params = { label };
-  } else if (pattern.score < -7) {
-    type = humanizePattern(pattern) || 'pattern_negative';
-    params = { label };
+
+  if (moodIsGood) {
+    if (pattern.score >= 0) {
+      type = pattern.isCombo ? 'pattern_combo_positive' : 'pattern_positive';
+    } else {
+      return null;
+    }
+  } else if (moodIsLow) {
+    if (pattern.score > 5) {
+      type = 'pattern_recommend_low';
+    } else if (pattern.score < -5) {
+      type = humanizePattern(pattern) || 'pattern_negative';
+    } else {
+      return null;
+    }
   } else {
-    type = 'pattern_neutral';
-    params = { label };
+    if (pattern.score > 7) {
+      type = 'pattern_positive';
+    } else if (pattern.score > 3) {
+      type = 'pattern_mild_positive';
+    } else if (pattern.score < -7) {
+      type = humanizePattern(pattern) || 'pattern_negative';
+    } else {
+      return null;
+    }
   }
-  
+
+  params = { label };
+
   return {
     type,
     params,
@@ -389,7 +406,7 @@ export function generateInsight({ mood, events = [], history = null }) {
   const limit = isPremium() ? 3 : 1;
   const bestPatterns = findBestPatterns(patterns, limit);
   let patternResult = bestPatterns.length > 0
-    ? buildPatternInsight(bestPatterns[0])
+    ? buildPatternInsight(bestPatterns[0], mood)
     : null;
 
   let patternText = null;
