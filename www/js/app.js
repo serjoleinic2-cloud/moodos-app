@@ -397,6 +397,19 @@ if (!window.__neyraAppRunning) {
 
           console.log('[REFLECTION] responseEl:', !!responseEl, 'setting text to:', insight.insightText);
           if (responseEl) {
+            const originalSetter = Object.getOwnPropertyDescriptor(
+              Element.prototype,
+              'innerText'
+            ).set;
+
+            Object.defineProperty(responseEl, 'innerText', {
+              set(value) {
+                console.log('[AI RESPONSE SET]', value);
+                console.trace();
+                originalSetter.call(this, value);
+              }
+            });
+            
             responseEl.textContent = insight.insightText || "";
             console.log('[REFLECTION] text set, actual text:', responseEl.textContent);
             
