@@ -374,7 +374,7 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="note") {
-    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || "—");
+    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || t("hist_no_text") || "Нет заметки");
     return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1">
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev}</div></div>
@@ -460,7 +460,11 @@ function renderDetail(item, filterDate) {
       <div style="color:#888;margin-top:8px;">${t("hist_mood")}</div></div>`;
   }
   if (item.type==="note") {
-    body=`<div class="mo-metric" style="margin-top:20px;"><div style="font-size:16px;line-height:1.7;color:#444;">${item.text||t("hist_no_text")}</div></div>`;
+    if (!item.text) {
+      body = `<div style="margin-top:20px;text-align:center;color:#888;font-size:14px;">${t("hist_no_text") || "Нет дополнительных заметок"}</div>`;
+    } else {
+      body=`<div class="mo-metric" style="margin-top:20px;"><div style="font-size:16px;line-height:1.7;color:#444;">${item.text}</div></div>`;
+    }
   }
   if (item.type==="photo") {
     body=`<div style="margin-top:20px;text-align:center;">
@@ -488,10 +492,14 @@ function renderDetail(item, filterDate) {
     </div>`;
   }
   if (item.type==="reflection") {
-    body=`<div style="margin-top:20px;">
-      ${item.mood ? `<div style="text-align:center;margin-bottom:20px;"><span style="font-size:48px;">${moodEmoji(item.mood)}</span><div style="font-size:32px;font-weight:700;color:${moodColor(item.mood)};">${item.mood}%</div></div>` : ""}
-      <div class="mo-metric"><div style="font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;">${item.text || t("hist_no_text")}</div></div>
-    </div>`;
+    if (!item.text) {
+      body = `<div style="margin-top:20px;text-align:center;color:#888;font-size:14px;">${t("hist_no_text") || "Нет дополнительных заметок"}</div>`;
+    } else {
+      body=`<div style="margin-top:20px;">
+        ${item.mood ? `<div style="text-align:center;margin-bottom:20px;"><span style="font-size:48px;">${moodEmoji(item.mood)}</span><div style="font-size:32px;font-weight:700;color:${moodColor(item.mood)};">${item.mood}%</div></div>` : ""}
+        <div class="mo-metric"><div style="font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;">${item.text}</div></div>
+      </div>`;
+    }
   }
 
   container.innerHTML = `
