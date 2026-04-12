@@ -151,13 +151,45 @@ function isRelevant(pattern, history) {
   });
 }
 
+function shouldUseTimeDimension(timeStats, event) {
+  if (!timeStats) return false;
+  
+  const periods = Object.keys(timeStats);
+  if (periods.length < 2) return false;
+  
+  let validPeriods = 0;
+  const avgs = [];
+  
+  for (const period of periods) {
+    const data = timeStats[period];
+    if (data.count >= 2) {
+      validPeriods++;
+      avgs.push(data.totalMood / data.count);
+    }
+  }
+  
+  if (validPeriods < 2) return false;
+  
+  const minAvg = Math.min(...avgs);
+  const maxAvg = Math.max(...avgs);
+  const diff = maxAvg - minAvg;
+  
+  console.log('[TIME DIMENSION CHECK]', { event, periods: periods.length, validPeriods, diff });
+  
+  return diff >= 15;
+}
+
 function analyzeEventImpact(history) {
   const single = {};
+  const singleByTime = {};
   const combo = {};
 
   const baseline = calculateBaseline(history);
   const now = Date.now();
   const DAY = 24 * 60 * 60 * 1000;
+
+  // Collect stats by event + timeBucket for smart decision
+  const timeStats = {};
 
   history.forEach(entry => {
     // Ignore entries older than 7 days
@@ -180,25 +212,36 @@ function analyzeEventImpact(history) {
     const ageDays = (now - entry.time) / DAY;
     const weight = Math.max(0.3, 1 - ageDays / 7);
     const weightedMood = mood * weight;
+    const bucket = entry.timeBucket || 'day';
 
+    // Collect time stats per event (for smart time decision)
     events.forEach(ev => {
-      const bucket = entry.timeBucket || 'day';
-      const key = ev + '_' + bucket;
-      if (!single[key]) single[key] = { count: 0, totalMood: 0, event: ev, timeBucket: bucket };
+      if (!timeStats[ev]) timeStats[ev] = {};
+      if (!timeStats[ev][bucket]) timeStats[ev][bucket] = { count: 0, totalMood: 0 };
+      timeStats[ev][bucket].count++;
+      timeStats[ev][bucket].totalMood += mood;
+    });
+
+    // Use time bucket only for single events, not combos
+    events.forEach(ev => {
+      const useTime = shouldUseTimeDimension(timeStats[ev], ev);
+      const key = useTime ? ev + '_' + bucket : ev;
+      
+      if (!single[key]) single[key] = { count: 0, totalMood: 0, event: ev, timeBucket: useTime ? bucket : null };
       single[key].count++;
       single[key].totalMood += weightedMood;
+      
+      if (useTime) {
+        console.log('[TIME PATTERN]', { event: ev, timeBucket: bucket, used: true });
+      }
     });
 
     if (events.length >= 2) {
-      for (let i = 0; i < events.length - 1; i++) {
-        for (let j = i + 1; j < events.length; j++) {
-          const bucket = entry.timeBucket || 'day';
-          const key = events[i] + '+' + events[j] + '_' + bucket;
-          if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: [events[i], events[j]], timeBucket: bucket };
-          combo[key].count++;
-          combo[key].totalMood += weightedMood;
-        }
-      }
+      // NO time bucket for combos
+      const key = events.slice().sort().join('+');
+      if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: events.slice() };
+      combo[key].count++;
+      combo[key].totalMood += weightedMood;
     }
   });
 
