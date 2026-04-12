@@ -293,6 +293,11 @@ if (!window.__neyraAppRunning) {
       });
       moodSlider.addEventListener("change", () => {
         trackUserActivity();
+        if (confirmBtn) {
+          const reflectionInput = document.getElementById("reflectionInput");
+          const hasContent = (reflectionInput?.value.trim()) || getMood() || getSelectedEvents().length > 0;
+          confirmBtn.disabled = !hasContent;
+        }
       });
     }
     
@@ -308,7 +313,8 @@ if (!window.__neyraAppRunning) {
       
       if (reflectionInput) {
         reflectionInput.addEventListener('input', () => {
-          confirmBtn.disabled = !reflectionInput.value.trim();
+          const hasContent = reflectionInput.value.trim() || getMood() || getSelectedEvents().length > 0;
+          confirmBtn.disabled = !hasContent;
         });
       }
       
@@ -376,6 +382,17 @@ if (!window.__neyraAppRunning) {
           console.error('[HOME] confirmBtn error:', err);
         } finally {
           confirmBtn.disabled = false;
+        }
+      });
+    }
+    
+    const openHistoryBtn = document.getElementById("openHistoryBtn");
+    if (openHistoryBtn && !openHistoryBtn.dataset.bound) {
+      openHistoryBtn.dataset.bound = 'true';
+      openHistoryBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (window.openScreen) {
+          window.openScreen('history');
         }
       });
     }
