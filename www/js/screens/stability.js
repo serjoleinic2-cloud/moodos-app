@@ -1,6 +1,81 @@
-import { getMoodHistory, getNotesHistory } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory, getReflections } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
+
+function getTodayEntries() {
+  const history = getMoodHistory();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStart = today.getTime();
+  const todayEnd = todayStart + 24 * 60 * 60 * 1000;
+  
+  return history.filter(e => e.time >= todayStart && e.time < todayEnd);
+}
+
+function getTodaySummary(todayHistory) {
+  if (todayHistory.length === 0) {
+    return null;
+  }
+  
+  const avg = Math.round(todayHistory.reduce((sum, e) => sum + (e.value || 0), 0) / todayHistory.length);
+  
+  const best = todayHistory.reduce((best, e) => 
+    (!best || (e.value || 0) > (best.value || 0)) ? e : best
+  , null);
+  
+  const worst = todayHistory.reduce((worst, e) => 
+    (!worst || (e.value || 0) < (worst.value || 0)) ? e : worst
+  , null);
+  
+  return { avg, best, worst };
+}
+
+function formatEventLabel(events) {
+  if (!events || events.length === 0) return '';
+  const labels = events.map(e => {
+    const key = 'event_' + e;
+    return t(key) || e;
+  });
+  return labels.join(' + ');
+}
+
+function formatTimeBucketLabel(timeBucket) {
+  if (!timeBucket) return '';
+  const key = 'time_' + timeBucket;
+  return t(key) || timeBucket;
+}
+
+function renderTodaySection(todaySummary) {
+  if (!todaySummary) {
+    return `<div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
+      <div class="mo-metric" style="text-align:center;padding:20px;color:#888;font-size:14px;">
+        ${t("stab_today_no_data") || "Сегодня пока нет записей"}
+      </div>`;
+  }
+  
+  const { avg, best, worst } = todaySummary;
+  const bestLabel = best?.events?.length ? formatEventLabel(best.events) : '';
+  const bestTime = best?.timeBucket ? formatTimeBucketLabel(best.timeBucket) : '';
+  const bestStr = bestLabel ? `${bestLabel}${bestTime ? ' ' + bestTime : ''}` : '';
+  
+  const worstLabel = worst?.events?.length ? formatEventLabel(worst.events) : '';
+  const worstTime = worst?.timeBucket ? formatTimeBucketLabel(worst.timeBucket) : '';
+  const worstStr = worstLabel ? `${worstLabel}${worstTime ? ' ' + worstTime : ''}` : '';
+  
+  return `<div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
+    <div class="mo-metric" style="margin-bottom:12px;">
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_avg") || "Среднее настроение"}</div>
+      <div style="font-size:28px;font-weight:700;color:${avg >= 70 ? '#4caf87' : avg >= 40 ? '#f0a500' : '#e05555'}">${avg}%</div>
+    </div>
+    ${best ? `<div class="mo-metric" style="margin-bottom:12px;">
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_best") || "Лучший момент"}</div>
+      <div style="font-size:14px;color:#4caf87;">${bestStr ? bestStr + ' (' + best.value + '%)' : best.value + '%'}</div>
+    </div>` : ''}
+    ${worst ? `<div class="mo-metric" style="margin-bottom:12px;">
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_worst") || "Сложный момент"}</div>
+      <div style="font-size:14px;color:#e05555;">${worstStr ? worstStr + ' (' + worst.value + '%)' : worst.value + '%'}</div>
+    </div>` : ''}`;
+}
 
 let cachedStability = null;
 let cachedHistoryHash = null;
@@ -134,8 +209,7 @@ export function onEnter() {
         <canvas id="stabilityChart14" height="120"></canvas>
       </div>
 
-      <div class="mo-section-title">${t("stab_last")}</div>
-      ${entryCards(last10)}
+      ${renderTodaySection(getTodaySummary(getTodayEntries()))}
     </div>`;
 
   container.querySelectorAll(".mo-info-btn").forEach(btn => {
