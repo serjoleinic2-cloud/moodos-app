@@ -36,8 +36,9 @@
 ### TASK 117 — buildPatternInsight Mood-Aware
 - buildPatternInsight: now accepts currentMood param
 - moodIsGood (>=65): только позитивные паттерны
-- moodIsLow (<45): рекомендации + негатив
+- moodIsLow (<45): рекомендации + негативные
 - i18n: pattern_combo_positive, pattern_mild_positive, pattern_recommend_low
+- NEVER_RECOMMEND blacklist: stress, work не рекомендуются
 
 ---
 
