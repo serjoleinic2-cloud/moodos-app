@@ -3,7 +3,7 @@
 // 4 языка: RU, EN, ES, UK
 // ===============================
 
-import { getMoodHistory } from "../services/memory.js";
+import { getMoodHistory, getReflections } from "../services/memory.js";
 import { t as i18n } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
 
@@ -63,13 +63,31 @@ function getCombinationInsight(moodLevel, events) {
 }
 
 // ---- PATTERN ANALYSIS ----
+function mergeMoodAndReflections(moods, reflections) {
+  if (!reflections || reflections.length === 0) return moods;
+  
+  return moods.map(m => {
+    const nearestReflection = reflections.find(r => 
+      r.time && m.time && Math.abs(r.time - m.time) < 2 * 60 * 60 * 1000
+    );
+    
+    return {
+      ...m,
+      text: nearestReflection?.text || null
+    };
+  });
+}
+
 function getRecentHistory(days = 30) {
   const all = getMoodHistory();
+  const reflections = getReflections();
   console.log('[AI INPUT]', all.slice(-10));
   const now = Date.now();
-  return all.filter(item => {
+  const filtered = all.filter(item => {
     return now - item.time < days * 24 * 60 * 60 * 1000;
-  }).slice(-30); // max 30 entries
+  }).slice(-30);
+  
+  return mergeMoodAndReflections(filtered, reflections);
 }
 
 const EVENT_WEIGHTS = {
@@ -145,8 +163,17 @@ function analyzeEventImpact(history) {
     // Ignore entries older than 7 days
     if (now - entry.time > 7 * DAY) return;
 
-    const mood = entry.value || entry.mood || 0;
+    let mood = entry.value || entry.mood || 0;
     const events = (entry.events || []).slice().sort();
+    
+    // BLOCK 2: Reflection affects insight - if text contains negative words and mood < 40, reduce score
+    if (entry.text && entry.text.trim().length > 0 && mood < 40) {
+      const lowerText = entry.text.toLowerCase();
+      if (lowerText.includes('плохо') || lowerText.includes('ужасно') || lowerText.includes('грустно') || lowerText.includes('тоскливо') || lowerText.includes('стресс') || lowerText.includes('устал')) {
+        mood = Math.max(0, mood - 5); // penalize
+      }
+    }
+
     if (events.length === 0) return;
 
     // Time weight: entries closer to now have more weight
