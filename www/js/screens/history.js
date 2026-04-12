@@ -424,6 +424,7 @@ if (item.type==="session") {
     const dur=fmtSec(item.duration);
     const rt=item.result==="positive"?"😊":item.result==="negative"?"😔":"😐";
     const extra=item.tapCount?`· ${item.tapCount} taps`:"";
+    const rc = col;
 
     return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1">
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.emoji}</span></div>
