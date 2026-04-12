@@ -258,12 +258,9 @@ const SystemCore = {
             };
             if (insightResult?.insight) {
               Memory.save({ lastInsight: insightResult.insight });
-              showAvatar({
-                text: insightResult.insight,
-                source: 'insight',
-                force: true
-              });
             }
+          } else if (payload.type === 'reflection') {
+            return { success: true, insight: null };
           } else {
             insightResult = await InsightEngine.generate({
               type: payload.type,

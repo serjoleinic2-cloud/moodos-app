@@ -29,6 +29,7 @@ import { t, getDaysLabel, getLang, setLang } from "./i18n.js";
 import { getSelectedEvents } from "./events.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
+import { safeGenerateInsight, generateInsight } from "./ai/offline-ai.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
@@ -175,6 +176,61 @@ if (!window.__neyraAppRunning) {
       const val = t(el.getAttribute('data-i18n-placeholder'));
       if (val) el.placeholder = val;
     });
+  }
+
+  /* ---------- INSIGHT CARD ---------- */
+  const STORAGE_KEY = 'neyra_last_insight';
+  
+  function saveInsightToStorage(insight) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        moodLevel: insight.moodLevel,
+        events: insight.events,
+        pattern: insight.pattern,
+        insightText: insight.insightText,
+        timestamp: Date.now()
+      }));
+    } catch (e) {}
+  }
+  
+  function showInsightCard(insight) {
+    const card = document.getElementById("homeInsightCard");
+    const text = document.getElementById("homeInsightText");
+    const patternCard = document.getElementById("homePatternCard");
+    const patternText = document.getElementById("homePatternText");
+    
+    if (!card || !text) return;
+    
+    text.textContent = insight.insightText;
+    card.style.display = 'block';
+    card.style.opacity = '1';
+    
+    if (!insight.pattern || !patternCard || !patternText) {
+      if (patternCard) patternCard.style.display = 'none';
+      return;
+    }
+    
+    const label = t('event_' + insight.pattern.event) || insight.pattern.event;
+    if (!label || label.includes('event_') || label === insight.pattern.event) {
+      if (patternCard) patternCard.style.display = 'none';
+      return;
+    }
+    
+    const timeKey = insight.meta?.timeBucket ? 'time_' + insight.meta.timeBucket : null;
+    const timeLabel = timeKey ? t(timeKey) : null;
+    
+    if (insight.pattern.score > 0) {
+      if (timeLabel && insight.meta?.timeBucket) {
+        patternText.innerHTML = t('pattern_positive_time')?.replace('{label}', label).replace('{time}', timeLabel) || label;
+      } else {
+        patternText.innerHTML = t('pattern_positive')?.replace('{label}', label) || label;
+      }
+    } else {
+      patternText.innerHTML = t('pattern_negative')?.replace('{label}', label) || label;
+    }
+    
+    patternCard.style.display = 'block';
+    patternCard.style.opacity = '1';
   }
 
   /* ---------- BOOT ---------- */
@@ -355,11 +411,34 @@ if (!window.__neyraAppRunning) {
             }
           }
           
-          if (events.length > 0) {
-            SystemCore.dispatch('GENERATE_INSIGHT', {
+          const hasText = text && text.trim().length > 0;
+          const hasEvents = events && events.length > 0;
+          
+          let insight;
+          
+          if (hasText) {
+            insight = await safeGenerateInsight({
               mood,
-              events
+              events: [],
+              text,
+              type: 'reflection'
             });
+          } else if (hasEvents) {
+            insight = await safeGenerateInsight({
+              mood,
+              events,
+              text: '',
+              type: 'events'
+            });
+          } else {
+            return;
+          }
+          
+          if (hasText && insight?.insightText) {
+            // Не показывать в avatar — уже есть feedback "Сохранено"
+          } else if (hasEvents && insight?.insightText) {
+            showInsightCard(insight);
+            saveInsightToStorage(insight);
           }
           
           if (reflectionInput) {

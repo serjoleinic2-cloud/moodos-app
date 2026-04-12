@@ -489,7 +489,12 @@ function humanizePattern(pattern) {
 
 // ---- GENERATE INSIGHT (i18n-based) ----
 export function generateInsight(data) {
-  // 1. Event priority
+  // SAFETY: reflection type = HARD RETURN (no fallback)
+  if (data.type === 'reflection' || (data.text && data.text.trim().length > 0)) {
+    return generateReflectionInsight(data);
+  }
+
+  // Events only
   if (data.events && data.events.length) {
     const pattern = generatePatternInsight(data);
     if (pattern && pattern.insightText) {
@@ -497,12 +502,6 @@ export function generateInsight(data) {
     }
   }
 
-  // 2. Fallback to text (reflection)
-  if (data.type === 'reflection' || data.text) {
-    return generateReflectionInsight(data);
-  }
-
-  // 3. Default pattern insight
   return generatePatternInsight(data);
 }
 

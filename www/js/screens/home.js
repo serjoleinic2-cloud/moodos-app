@@ -2,7 +2,7 @@ import { getMood } from "../state.js";
 import SystemCore from "../system-core.js";
 import { showAvatarHint, showAvatarAfterSave, showAvatar } from "../avatar.js";
 import { initEventsModule, renderEventsGrid, getSelectedEvents, clearSelectedEvents, updateEventsUI, cleanupEventsListener } from "../events.js";
-import { generateInsight } from "../ai/offline-ai.js";
+
 import { showAvatarForMood } from "../avatar.js";
 import { AppRuntime } from "../core/appRuntime.js";
 import { t } from "../i18n.js";
@@ -26,18 +26,6 @@ function getLastInsight() {
     }
   } catch (e) {}
   return null;
-}
-
-function saveInsightToStorage(insight) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      moodLevel: insight.moodLevel,
-      events: insight.events,
-      pattern: insight.pattern,
-      insightText: insight.insightText,
-      timestamp: Date.now()
-    }));
-  } catch (e) {}
 }
 
 function getPatternEventLabel(eventId) {
@@ -167,19 +155,8 @@ export function onEnter() {
       const date = now.toLocaleDateString(locale, { day:"2-digit", month:"2-digit", year:"numeric" });
       if (savedLabel) savedLabel.textContent = `${time} (${date})`;
       
-      const insight = generateInsight({ 
-        mood: moodValue, 
-        events: selectedEvents 
-      });
-      
-      saveInsightToStorage(insight);
-      showInsightCard(insight);
       showAvatarForMood(moodValue);
       avatarReact();
-      if (insight.followup && insight.followup.type) {
-        const followupText = t(insight.followup.type);
-        showAvatar(followupText, true);
-      }
       
       AppRuntime.setState('home', { selectedEvents: [] });
       document.querySelectorAll('.event-item').forEach(el => {

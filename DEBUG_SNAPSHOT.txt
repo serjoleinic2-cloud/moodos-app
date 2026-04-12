@@ -1,0 +1,382 @@
+DEBUG SNAPSHOT (АУДИТ)
+========================
+
+🔴 1. app.js — обработчик confirmBtn (аналог #analyzeNoteBtn)
+
+Кнопка #confirmBtn в app.js (строки 321-378):
+
+confirmBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  
+  const reflectionInput = document.getElementById("reflectionInput");
+  const text = reflectionInput?.value.trim() || '';
+  const mood = getMood();
+  const events = getSelectedEvents();
+  const now = Date.now();
+  
+  if (!text && !mood && events.length === 0) {
+    return;
+  }
+  
+  confirmBtn.disabled = true;
+  
+  try {
+    if (text) {
+      SystemCore.dispatch('SAVE_REFLECTION', {
+        text,
+        mood,
+        time: now
+      });
+      // ... сохрание отражения
+    }
+    
+    if (events.length > 0) {
+      SystemCore.dispatch('GENERATE_INSIGHT', {
+        mood,
+        events
+      });
+    }
+    
+    // ... очистка
+  } finally {
+    confirmBtn.disabled = false;
+  }
+});
+
+
+🔴 2. offline-ai.js — ключевые функции
+
+=== safeGenerateInsight (строки 450-473) ===
+
+export async function safeGenerateInsight(payload) {
+  let resolved = false;
+
+  const timeout = new Promise(resolve => {
+    setTimeout(() => {
+      if (!resolved) {
+        resolve({
+          insightText: "Попробуй описать чуть подробнее — я пока не смог понять.",
+          fallback: true,
+          pattern: null,
+          meta: null,
+          followup: null
+        });
+      }
+    }, 2000);
+  });
+
+  const ai = Promise.resolve(generateInsight(payload)).then(res => {
+    resolved = true;
+    return res;
+  });
+
+  return Promise.race([ai, timeout]);
+}
+
+
+=== generateInsight (строки 491-507) ===
+
+export function generateInsight(data) {
+  // 1. Event priority
+  if (data.events && data.events.length) {
+    const pattern = generatePatternInsight(data);
+    if (pattern && pattern.insightText) {
+      return pattern;
+    }
+  }
+
+  // 2. Fallback to text (reflection)
+  if (data.type === 'reflection' || data.text) {
+    return generateReflectionInsight(data);
+  }
+
+  // 3. Default pattern insight
+  return generatePatternInsight(data);
+}
+
+
+=== analyzeEventImpact (строки 182-300) ===
+
+function analyzeEventImpact(history) {
+  // ...
+  const baseline = calculateBaseline(history);
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  // Age-based weighting (recency):
+  const ageDays = (now - entry.time) / DAY;
+  const weight = Math.max(0.3, 1 - ageDays / 7);
+  const weightedMood = mood * weight;
+  
+  // timeBucket used:
+  const bucket = entry.timeBucket || 'day';
+  // ...
+}
+
+
+=== buildPatternInsight (строки 373-436) ===
+
+function buildPatternInsight(pattern, currentMood) {
+  // ...
+  if (pattern.timeBucket) {
+    const tl = i18n('time_' + pattern.timeBucket);
+    if (tl && tl !== 'time_' + pattern.timeBucket) timeLabel = tl;
+  }
+  // ...
+}
+
+
+=== analyzeText (строки 832-912) ===
+
+export function analyzeText(text, mood) {
+  const t = (text || "").toLowerCase();
+
+  // detect negative text
+  const isNegative =
+  t.includes("плохо") ||
+  t.includes("хреново") ||
+  t.includes("тревога") ||
+  t.includes("устал") ||
+  t.includes("депресс") ||
+  t.includes("нет сил");
+
+  // detect positive text
+  const isPositive =
+  t.includes("хорошо") ||
+  t.includes("отлично") ||
+  t.includes("рад") ||
+  t.includes("спокойно");
+
+  // PRIORITY: TEXT > SLIDER
+  if (isNegative) {
+    return { insight: "...", emotion: "low", ... };
+  }
+  if (isPositive) { ... }
+  // ...
+}
+
+
+🔴 3. system-core.js
+
+=== case 'SAVE_NOTE' (строки 155-170) ===
+
+case 'SAVE_NOTE':
+  if (payload?.type === 'reflection') {
+    const { saveReflection } = await import('./services/memory.js');
+    saveReflection({
+      text: payload.text,
+      mood: payload.mood,
+      time: payload.time || Date.now()
+    });
+    result = { success: true };
+  } else {
+    result = await this.saveEvent({
+      type: 'note',
+      ...payload
+    })
+  }
+  break
+
+
+=== case 'GENERATE_INSIGHT' (строки 247-285) ===
+
+case 'GENERATE_INSIGHT':
+  console.log('[INSIGHT] Generating insight for:', payload);
+  const mood = getMood();
+  const analysis = await StateEngine.analyze(mood);
+  let insightResult;
+  
+  if (payload.type === 'note' && payload.text) {
+    const textAnalysis = analyzeText(payload.text, payload.mood || mood);
+    insightResult = {
+      insight: textAnalysis.insight,
+      emotion: textAnalysis.emotion
+    };
+    if (insightResult?.insight) {
+      Memory.save({ lastInsight: insightResult.insight });
+      showAvatar({ text: insightResult.insight, source: 'insight', force: true });
+    }
+  } else {
+    insightResult = await InsightEngine.generate({
+      type: payload.type,
+      source: payload.source,
+      result: payload.result,
+      mood,
+      state: analysis?.state
+    });
+    if (insightResult?.insight) {
+      Memory.save({ lastInsight: insightResult.insight });
+      showAvatar({ text: insightResult.insight, source: 'insight', force: true });
+    }
+  }
+  result = { success: true, insight: insightResult };
+  break
+
+
+=== case 'VOICE_SAVE' (строки 222-235) ===
+
+case 'VOICE_SAVE':
+  console.log('[VOICE] Saving voice note:', payload);
+  if (payload && payload.audio) {
+    saveVoiceNote({
+      audio: payload.audio,
+      duration: payload.duration || 0,
+      mood: payload.mood || 50,
+      date: payload.date || Date.now()
+    });
+    result = { success: true, saved: true };
+  } else {
+    result = { success: false, error: 'No audio data' };
+  }
+  break
+
+
+🔴 4. memory.js — лимиты
+
+=== saveReflection (строки 116-135) ===
+
+export function saveReflection(entry) {
+  let data = getReflections();
+  data.push({
+    ...entry,
+    type: 'reflection',
+    time: entry.time || Date.now()
+  });
+  const MAX_REFLECTIONS = 100;
+  if (data.length > MAX_REFLECTIONS) {
+    data = data.slice(-MAX_REFLECTIONS);
+  }
+  localStorage.setItem("reflections", JSON.stringify(data));
+}
+
+
+=== saveVoiceNote (строки 156-171) ===
+
+export function saveVoiceNote(note) {
+  const history = getVoiceHistory();
+  history.push({
+    type: 'voice_note',
+    audio: note.audio,
+    duration: note.duration,
+    mood: note.mood,
+    date: note.date || Date.now()
+  });
+  if (history.length > 30) history.splice(0, history.length - 30);
+  localStorage.setItem("voice_history", JSON.stringify(history));
+}
+
+
+=== getMoodHistory (строки 62-78) ===
+
+export function getMoodHistory() {
+  return JSON.parse(localStorage.getItem("mood_history")) || [];
+}
+
+Лимит: 730 (history.length > 730) — в save()-функции:
+
+
+🔴 5. home.js — MOOD_SUBMIT обработчик
+
+=== newBtn (confirmBtn) обработчик (строки 136-192) ===
+
+newBtn.addEventListener("click", async () => {
+  const moodValue = Number(newSlider.value);
+  const selectedEvents = getSelectedEvents();
+  const timeBucket = getTimeBucket();
+  
+  const result = await SystemCore.dispatch('MOOD_SUBMIT', { 
+    mood: moodValue, 
+    events: selectedEvents,
+    timeBucket: timeBucket
+  });
+
+  // Генерация инсайта ПОСЛЕ MOOD_SUBMIT:
+  const insight = generateInsight({ 
+    mood: moodValue, 
+    events: selectedEvents 
+  });
+  
+  saveInsightToStorage(insight);
+  showInsightCard(insight);
+  // ...
+});
+
+
+🔴 6. home.js — getTimeBucket()
+
+function getTimeBucket() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return 'morning';
+  if (h >= 11 && h < 17) return 'day';
+  if (h >= 17 && h < 23) return 'evening';
+  return 'night';
+}
+
+
+🔴 7. home.js — showInsightCard()
+
+function showInsightCard(insight) {
+  // ...
+  const timeKey = insight.meta?.timeBucket ? 'time_' + insight.meta.timeBucket : null;
+  const timeLabel = timeKey ? t(timeKey) : null;
+  
+  if (insight.pattern.score > 0) {
+    if (timeLabel && insight.meta?.timeBucket) {
+      patternText.innerHTML = t('pattern_positive_time').replace('{label}', label).replace('{time}', timeLabel);
+    } else {
+      patternText.innerHTML = t('pattern_positive').replace('{label}', label);
+    }
+  }
+  // ...
+}
+
+
+🔴 8. home.js — getLastInsight()
+
+function getLastInsight() {
+  const stored = localStorage.getItem('neyra_last_insight');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return null;
+}
+
+
+=== DEBUG FLAGS ===
+
+safeGenerateInsight has text branch:
+true (проверка: data.type === 'reflection' || data.text)
+
+analyzeEventImpact has recency:
+true (проверка: ageDays = (now - entry.time) / DAY)
+
+uses timeBucket:
+true (проверка: const bucket = entry.timeBucket || 'day')
+
+analyzeText has data.text:
+false (проверка: НЕТ data.text в analyzeText, только text и mood параметры)
+
+safeGenerateInsight вызывает generateInsight:
+true (generateInsight обрабатывает и events, и text/reflection)
+
+
+=== LAST LOGS (из DevTools) ===
+
+[SYSTEM] dispatch: SAVE_REFLECTION {text, mood, time}
+[SYSTEM] SAVE_REFLECTION payload: {text, mood, time}
+[SYSTEM] dispatch: GENERATE_INSIGHT {mood, events}
+[INSIGHT] Generating insight for: {mood, events}
+[MEMORY] saveReflection called: {text, mood, time}
+[MEMORY] reflections after save: N
+[AI INPUT] [последние 10 записей]
+[TIME PATTERN] {event, timeBucket, used: true}
+[AVATAR] Avatar message displayed
+
+
+=== KEY OBSERVATIONS ===
+
+1. safeGenerateInsight НЕ используется в home.js — там вызывается напрямую generateInsight()
+2. generateInsight() обрабатывает ВСЕ случаи (events priority -> text/reflection fallback -> default)
+3. timeBucket передаётся в MOOD_SUBMIT и используется в analyzeEventImpact для паттернов
+4. Анализ текста (analyzeText) НЕ связан с data.text — работает через параметры text и mood
+5. Инсайт сохраняется в localStorage через saveInsightToStorage() и показывается через showInsightCard()
