@@ -380,18 +380,22 @@ function buildPatternInsight(pattern, currentMood) {
     return null;
   }
 
+  let timeLabel = null;
+  if (pattern.timeBucket) {
+    const tl = i18n('time_' + pattern.timeBucket);
+    if (tl && tl !== 'time_' + pattern.timeBucket) timeLabel = tl;
+  }
+
   const moodIsGood = currentMood >= 65;
   const moodIsLow  = currentMood < 45;
 
-  let type, params;
+  let type;
 
   if (moodIsGood) {
     if (pattern.score >= 0) {
-      if (pattern.timeBucket && params.time) {
-        type = pattern.isCombo ? 'pattern_combo_positive_time' : 'pattern_positive_time';
-      } else {
-        type = pattern.isCombo ? 'pattern_combo_positive' : 'pattern_positive';
-      }
+      type = pattern.isCombo
+        ? (timeLabel ? 'pattern_combo_positive_time' : 'pattern_combo_positive')
+        : (timeLabel ? 'pattern_positive_time' : 'pattern_positive');
     } else {
       return null;
     }
@@ -406,7 +410,7 @@ function buildPatternInsight(pattern, currentMood) {
     }
   } else {
     if (pattern.score > 7) {
-      type = pattern.timeBucket && params.time ? 'pattern_positive_time' : 'pattern_positive';
+      type = timeLabel ? 'pattern_positive_time' : 'pattern_positive';
     } else if (pattern.score > 3) {
       type = 'pattern_mild_positive';
     } else if (pattern.score < -7) {
@@ -416,14 +420,8 @@ function buildPatternInsight(pattern, currentMood) {
     }
   }
 
-  params = { label };
-
-  if (pattern.timeBucket) {
-    const timeLabel = i18n('time_' + pattern.timeBucket) || pattern.timeBucket;
-    if (timeLabel && timeLabel !== pattern.timeBucket) {
-      params.time = timeLabel;
-    }
-  }
+  const params = { label };
+  if (timeLabel) params.time = timeLabel;
 
   return {
     type,

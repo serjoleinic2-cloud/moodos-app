@@ -235,6 +235,7 @@ export function getPhotoHistory() {
 }
 
 export function savePhotoHistory(history) {
+  if (history.length > 20) history.splice(0, history.length - 20);
   localStorage.setItem("photo_history", JSON.stringify(history));
 }
 

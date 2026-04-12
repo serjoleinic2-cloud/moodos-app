@@ -160,6 +160,7 @@ const SystemCore = {
               mood: payload.mood,
               time: payload.time || Date.now()
             });
+            result = { success: true };
           } else {
             result = await this.saveEvent({
               type: 'note',
