@@ -97,6 +97,7 @@ export const es = {
     hist_no_day: "No hay registros para este día",
     hist_mood: "Humor",
     hist_note: "Nota",
+    hist_reflection: "Reflexión",
     hist_photo: "Foto",
     hist_voice: "Grabación de voz",
     hist_voice_diary: "Diario de voz",

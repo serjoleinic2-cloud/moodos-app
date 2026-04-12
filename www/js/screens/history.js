@@ -1,4 +1,4 @@
-import { getMoodHistory, getNotesHistory, getVoiceHistory, getSessionHistory } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory, getVoiceHistory, getSessionHistory, getReflections } from "../services/memory.js";
 import { t } from "../i18n.js";
 
 export function onEnter() { renderHistory(); }
@@ -142,6 +142,7 @@ function buildTimeline() {
     sessionType:e.type, moodBefore:e.moodBefore, moodAfter:e.moodAfter,
     stateBefore:e.stateBefore, result:e.result, duration:e.duration, tapCount:e.tapCount||null,
   }));
+  getReflections().forEach(e => items.push({ type:"reflection", ts:e.time||Date.now(), text:e.text||"", mood:e.mood||null }));
   items.sort((a,b)=>b.ts-a.ts);
   return items;
 }
@@ -169,6 +170,9 @@ function deleteItem(item) {
     } else if (item.type==="session") {
       const arr = getSessionHistory().filter(e => (e.timestamp) !== item.ts);
       localStorage.setItem("session_history", JSON.stringify(arr));
+    } else if (item.type==="reflection") {
+      const arr = getReflections().filter(e => (e.time) !== item.ts);
+      localStorage.setItem("reflections", JSON.stringify(arr));
     }
   } catch(e) {}
 }
@@ -414,20 +418,28 @@ function renderCard(item) {
       </div>`:`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06);font-size:12px;color:#bbb;">${t("hist_voice_no_audio")}</div>`}
     </div>`;
   }
-  if (item.type==="session") {
-    const m=meta[item.sessionType]||{icon:"🛠",label:item.sessionType||"—"};
-    const rc=item.result==="positive"?"#4caf87":"#888";
-    const rt=item.result==="positive"?t("hist_helped"):t("hist_not_helped");
-    const min=Math.floor((item.duration||0)/60), sec=(item.duration||0)%60;
-    const dur=min>0?`${min} ${t("hist_min")} ${sec} ${t("hist_sec")}`:`${sec} ${t("hist_sec")}`;
-    const extra=item.tapCount?` · ${item.tapCount} ${t("hist_taps")}`:"";
+if (item.type==="session") {
+    const col=moodColor(item.moodAfter);
+    const m=meta[item.sessionType]||{label:item.sessionType,emoji:"🧘",rc:col};
+    const dur=fmtSec(item.duration);
+    const rt=item.result==="positive"?"😊":item.result==="negative"?"😔":"😐";
+    const extra=item.tapCount?`· ${item.tapCount} taps`:"";
+
     return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1">
-      <div class="hist-card-left" style="background:#2d9cdb22;"><span style="font-size:20px;">${m.icon}</span></div>
+      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.emoji}</span></div>
       <div class="hist-card-body">
         <div class="hist-card-title">${m.label}</div>
         <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
+  }
+  if (item.type==="reflection") {
+    const prev=item.text.length>60?item.text.slice(0,60)+"...":item.text;
+    const moodBadge = item.mood ? `<span style="font-size:14px;margin-left:8px;">😊 ${item.mood}%</span>` : "";
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="reflection" data-clickable="1">
+      <div class="hist-card-left" style="background:#10b98122;"><span style="font-size:20px;">📝</span></div>
+      <div class="hist-card-body"><div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}</div><div class="hist-card-sub">${prev||"—"}${moodBadge}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("reflection")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   return "";
 }
@@ -472,6 +484,12 @@ function renderDetail(item, filterDate) {
       ${item.moodAfter!=null?detRow(t("hist_mood_after"),`<span style="color:${moodColor(item.moodAfter)}">${item.moodAfter}%</span>`):""}
       ${item.tapCount?detRow(t("hist_taps"), item.tapCount):""}
       ${item.text?`<div class="mo-metric" style="margin-top:4px;"><div style="font-size:11px;color:#aaa;margin-bottom:6px;">${t("hist_thoughts")}</div><div style="font-size:15px;color:#444;line-height:1.7;">${item.text}</div></div>`:""}
+    </div>`;
+  }
+  if (item.type==="reflection") {
+    body=`<div style="margin-top:20px;">
+      ${item.mood ? `<div style="text-align:center;margin-bottom:20px;"><span style="font-size:48px;">${moodEmoji(item.mood)}</span><div style="font-size:32px;font-weight:700;color:${moodColor(item.mood)};">${item.mood}%</div></div>` : ""}
+      <div class="mo-metric"><div style="font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;">${item.text||t("hist_no_text")}</div></div>
     </div>`;
   }
 

@@ -97,6 +97,7 @@ export const uk = {
     hist_no_day: "Записів за цей день немає",
     hist_mood: "Настрій",
     hist_note: "Нотатка",
+    hist_reflection: "Рефлексія",
     hist_photo: "Фото",
     hist_voice: "Голосовий запис",
     hist_voice_diary: "Голосовий щоденник",

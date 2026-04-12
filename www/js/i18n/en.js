@@ -97,6 +97,7 @@ export const en = {
     hist_no_day: "No entries for this day",
     hist_mood: "Mood",
     hist_note: "Note",
+    hist_reflection: "Reflection",
     hist_photo: "Photo",
     hist_voice: "Voice Recording",
     hist_voice_diary: "Voice Diary",

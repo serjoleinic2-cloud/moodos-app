@@ -99,6 +99,7 @@ export const ru = {
     hist_no_day: "Записей за этот день нет",
     hist_mood: "Настроение",
     hist_note: "Заметка",
+    hist_reflection: "Рефлексия",
     hist_photo: "Фото",
     hist_voice: "Голосовая запись",
     hist_voice_diary: "Голосовой дневник",
