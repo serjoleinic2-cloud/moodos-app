@@ -12,13 +12,13 @@ function fmtSec(s) { if(!s||isNaN(s)||!isFinite(s)) return "0:00"; return `${Mat
 
 function SESSION_META() {
   return {
-    "breathing":    { icon:"🫁", label: t("tools_breathing").replace(/^🫁\s*/,"") },
-    "meditation":   { icon:"🧘", label: t("tools_meditation").replace(/^🧘\s*/,"") },
-    "visual-focus": { icon:"👁",  label: t("tools_visual").replace(/^👁\s*/,"") },
-    "mind-dump":    { icon:"🧠", label: t("tools_mind").replace(/^🧠\s*/,"") },
-    "tap-calm":     { icon:"✋", label: t("tools_tap").replace(/^✋\s*/,"") },
-    "support-texts": { icon:"💬", label: t("support_texts_title") },
-    "support_texts": { icon:"💬", label: t("support_texts_title") },
+    "breathing":    { icon:"🫁", label: (t("tools_breathing") || "Дыхание").replace(/^🫁\s*/,"") },
+    "meditation":   { icon:"🧘", label: (t("tools_meditation") || "Медитация").replace(/^🧘\s*/,"") },
+    "visual-focus": { icon:"👁",  label: (t("tools_visual") || "Визуализация").replace(/^👁\s*/,"") },
+    "mind-dump":    { icon:"🧠", label: (t("tools_mind") || "Мозговой сброс").replace(/^🧠\s*/,"") },
+    "tap-calm":     { icon:"✋", label: (t("tools_tap") || "ЭФР").replace(/^✋\s*/,"") },
+    "support-texts": { icon:"💬", label: t("support_texts_title") || "Поддержка" },
+    "support_texts": { icon:"💬", label: t("support_texts_title") || "Поддержка" },
   };
 }
 
@@ -374,10 +374,10 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="note") {
-    const prev=item.text.length>60?item.text.slice(0,60)+"...":item.text;
+    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || "—");
     return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1">
       <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev||"—"}</div></div>
+      <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="photo") {
@@ -420,26 +420,26 @@ function renderCard(item) {
   }
 if (item.type==="session") {
     const col=moodColor(item.moodAfter);
-    const m=meta[item.sessionType]||{label:item.sessionType,emoji:"🧘",rc:col};
+    const m=meta[item.sessionType]||{label:item.sessionType||"—",emoji:"🧘",rc:col};
     const dur=fmtSec(item.duration);
     const rt=item.result==="positive"?"😊":item.result==="negative"?"😔":"😐";
     const extra=item.tapCount?`· ${item.tapCount} taps`:"";
     const rc = col;
 
     return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1">
-      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.emoji}</span></div>
+      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.emoji || '🧘'}</span></div>
       <div class="hist-card-body">
-        <div class="hist-card-title">${m.label}</div>
+        <div class="hist-card-title">${m.label || '—'}</div>
         <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="reflection") {
-    const prev=item.text.length>60?item.text.slice(0,60)+"...":item.text;
+    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || "—");
     const moodBadge = item.mood ? `<span style="font-size:14px;margin-left:8px;">😊 ${item.mood}%</span>` : "";
     return `<div class="hist-card" data-ts="${item.ts}" data-type="reflection" data-clickable="1">
       <div class="hist-card-left" style="background:#10b98122;"><span style="font-size:20px;">📝</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}</div><div class="hist-card-sub">${prev||"—"}${moodBadge}</div></div>
+      <div class="hist-card-body"><div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}</div><div class="hist-card-sub">${prev}${moodBadge}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("reflection")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   return "";
@@ -469,14 +469,14 @@ function renderDetail(item, filterDate) {
     </div>`;
   }
   if (item.type==="session") {
-    const m=meta[item.sessionType]||{icon:"🛠",label:item.sessionType||"—"};
+    const m=meta[item.sessionType]||{icon:"🛠", label:item.sessionType || "—"};
     const rc=item.result==="positive"?"#4caf87":"#888";
     const rt=item.result==="positive"?`👍 ${t("hist_helped")}`:`👎 ${t("hist_not_helped")}`;
     const min=Math.floor((item.duration||0)/60), sec=(item.duration||0)%60;
     const dur=min>0?`${min} ${t("hist_min")} ${sec} ${t("hist_sec")}`:`${sec} ${t("hist_sec")}`;
     body=`<div style="text-align:center;margin-top:30px;">
-      <div style="font-size:56px;">${m.icon}</div>
-      <div style="font-size:22px;font-weight:600;margin-top:10px;">${m.label}</div>
+      <div style="font-size:56px;">${m.icon || '🛠'}</div>
+      <div style="font-size:22px;font-weight:600;margin-top:10px;">${m.label || '—'}</div>
     </div>
     <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
       ${detRow(t("hist_result"),`<span style="color:${rc};font-weight:600;">${rt}</span>`)}
@@ -490,7 +490,7 @@ function renderDetail(item, filterDate) {
   if (item.type==="reflection") {
     body=`<div style="margin-top:20px;">
       ${item.mood ? `<div style="text-align:center;margin-bottom:20px;"><span style="font-size:48px;">${moodEmoji(item.mood)}</span><div style="font-size:32px;font-weight:700;color:${moodColor(item.mood)};">${item.mood}%</div></div>` : ""}
-      <div class="mo-metric"><div style="font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;">${item.text||t("hist_no_text")}</div></div>
+      <div class="mo-metric"><div style="font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;">${item.text || t("hist_no_text")}</div></div>
     </div>`;
   }
 

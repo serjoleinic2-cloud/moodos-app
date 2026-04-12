@@ -43,6 +43,7 @@ export const en = {
     reflection_stress: "Looks like it was a tense moment. It's important to give yourself time to recover.",
     reflection_positive: "Sounds like a good experience. Worth anchoring these moments.",
     reflection_neutral: "You're noting your state — that's already an important step.",
+    reflection_saved: "Saved. This can help you notice patterns.",
     reflection_negative: "The day was tough. I'm here.",
     screen_insight: "Insight",
     chart_unavailable: "Chart unavailable",

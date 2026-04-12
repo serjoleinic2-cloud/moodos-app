@@ -63,13 +63,13 @@ function getCombinationInsight(moodLevel, events) {
 }
 
 // ---- PATTERN ANALYSIS ----
-function getRecentHistory(days = 7) {
+function getRecentHistory(days = 30) {
   const all = getMoodHistory();
   console.log('[AI INPUT]', all.slice(-10));
   const now = Date.now();
   return all.filter(item => {
     return now - item.time < days * 24 * 60 * 60 * 1000;
-  });
+  }).slice(-30); // max 30 entries
 }
 
 const EVENT_WEIGHTS = {
@@ -138,16 +138,26 @@ function analyzeEventImpact(history) {
   const combo = {};
 
   const baseline = calculateBaseline(history);
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
 
   history.forEach(entry => {
+    // Ignore entries older than 7 days
+    if (now - entry.time > 7 * DAY) return;
+
     const mood = entry.value || entry.mood || 0;
     const events = (entry.events || []).slice().sort();
     if (events.length === 0) return;
 
+    // Time weight: entries closer to now have more weight
+    const ageDays = (now - entry.time) / DAY;
+    const weight = Math.max(0.3, 1 - ageDays / 7);
+    const weightedMood = mood * weight;
+
     events.forEach(ev => {
       if (!single[ev]) single[ev] = { count: 0, totalMood: 0 };
       single[ev].count++;
-      single[ev].totalMood += mood;
+      single[ev].totalMood += weightedMood;
     });
 
     if (events.length >= 2) {
@@ -156,7 +166,7 @@ function analyzeEventImpact(history) {
           const key = events[i] + '+' + events[j];
           if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: [events[i], events[j]] };
           combo[key].count++;
-          combo[key].totalMood += mood;
+          combo[key].totalMood += weightedMood;
         }
       }
     }
@@ -206,10 +216,12 @@ function analyzeEventImpact(history) {
     return b.count - a.count;
   });
 
-  const merged = mergePatterns(results);
+  // Limit to max 5 patterns
+  const limited = results.slice(0, 5);
+  const merged = mergePatterns(limited);
   savePatterns(merged);
 
-  return results;
+  return limited;
 }
 
 function findBestPatterns(patterns, limit = 1) {

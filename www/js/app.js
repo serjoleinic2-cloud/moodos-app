@@ -341,6 +341,13 @@ if (!window.__neyraAppRunning) {
               mood,
               time: now
             });
+            if (window.showAvatar) {
+              window.showAvatar({
+                text: t('reflection_saved') || 'Записал. Это поможет заметить важные моменты.',
+                type: 'reflection',
+                force: true
+              });
+            }
           }
           
           if (events.length > 0) {
