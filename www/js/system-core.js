@@ -159,6 +159,7 @@ const SystemCore = {
           break
 
         case 'SAVE_REFLECTION':
+          console.log('[SYSTEM] SAVE_REFLECTION payload:', payload);
           if (payload?.text) {
             const { saveReflection } = await import('./services/memory.js');
             saveReflection({

@@ -113,18 +113,21 @@ export function getReflections() {
 }
 
 export function saveReflection(entry) {
+  console.log('[MEMORY] saveReflection called:', entry);
   let data = getReflections();
   data.push({
     ...entry,
     type: 'reflection',
     time: entry.time || Date.now()
   });
+  console.log('[MEMORY] reflections after save:', data.length);
   const MAX_REFLECTIONS = 100;
   if (data.length > MAX_REFLECTIONS) {
     data = data.slice(-MAX_REFLECTIONS);
   }
   try {
     localStorage.setItem("reflections", JSON.stringify(data));
+    console.log('[MEMORY] reflections saved to localStorage');
   } catch(e) {
     console.error('[memory] saveReflection failed:', e);
   }
