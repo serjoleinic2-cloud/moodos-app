@@ -2,6 +2,19 @@
 
 ## ACTIVE TASKS
 
+---
+
+## COMPLETED TASKS
+
+### TASK 122-A — Time-Aware Patterns + {label} Fix
+- getTimeBucket() в home.js: morning/day/evening/night
+- timeBucket сохраняется в mood_history
+- analyzeEventImpact использует time bucket в ключе (coffee_morning vs coffee_evening)
+- buildPatternInsight добавляет time в params
+- i18n: time_morning, time_day, time_evening, time_night для 4 языков
+- pattern_positive_time, pattern_combo_positive_time
+- FIX {label} bug: проверка label перед рендером, скрытие паттерна если label не найден
+
 ### TASK 122 — Reflection UX + History Button
 - confirmBtn disabled when empty (text or events)
 - add openHistoryBtn to open history screen
