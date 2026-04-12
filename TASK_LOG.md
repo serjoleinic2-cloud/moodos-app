@@ -32,6 +32,17 @@
 - instant feedback "Сохранено"
 - лимит истории рефлексий (100 записей)
 
+### TASK 123-LITE — Unified Logic
+- mergeMoodAndReflections: AI now sees mood + text together (within 2h window)
+- analyzeEventImpact: reflection text affects insight (negative words → -5 mood penalty)
+- Balance cleanup (from 122-B)
+
+### TASK 122-A — Time-Aware Patterns + {label} Fix
+
+### TASK 122 — Reflection UX + History Button
+
+### TASK 122-B — Fix Balance
+
 ### TASK 121 — UX & Pattern Fix
 - undefined в history → fallback значения
 - паттерны → ограничены 30 записями, max 5 паттернов
