@@ -408,16 +408,46 @@ function generateReflectionInsight({ text, mood }) {
 
   const lower = text.toLowerCase();
 
-  if (lower.includes('устал') || lower.includes('перегруж') || lower.includes('устала') || lower.includes('измотан')) {
+  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('тревог') || lower.includes('устал') || lower.includes('перегруж')) {
     return {
-      insightText: i18n('reflection_tired') || "Похоже, ты перегружен. Возможно стоит снизить нагрузку."
+      insightText: i18n('reflection_stress') || "Похоже, это был напряжённый момент."
     };
   }
 
-  if (lower.includes('хорошо') || lower.includes('рад') || lower.includes('классно') || lower.includes('отлично') || lower.includes('прекрасно')) {
+  if (lower.includes('хорош') || lower.includes('рад') || lower.includes('классно') || lower.includes('отлично') || lower.includes('прекрасно')) {
     return {
-      insightText: i18n('reflection_positive') || "Звучит как хороший день. Запомни, что помогло."
+      insightText: i18n('reflection_positive') || "Звучит как хороший опыт."
     };
+  }
+
+  if (lower.includes('плохо') || lower.includes('ужасно') || lower.includes('грустно') || lower.includes('тоскливо')) {
+    return {
+      insightText: i18n('reflection_negative') || "День был непростым."
+    };
+  }
+
+  return {
+    insightText: i18n('reflection_neutral') || "Ты фиксируешь состояние — это важный шаг."
+  };
+}
+
+export function analyzeReflection(text) {
+  const lower = text.toLowerCase();
+
+  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('устал')) {
+    return i18n('reflection_stress') || "Похоже, это был напряжённый момент.";
+  }
+
+  if (lower.includes('хорош') || lower.includes('рад')) {
+    return i18n('reflection_positive') || "Звучит как хороший опыт.";
+  }
+
+  if (lower.includes('плохо') || lower.includes('грустно')) {
+    return i18n('reflection_negative') || "День был непростым.";
+  }
+
+  return i18n('reflection_neutral') || "Ты фиксируешь состояние — это важный шаг.";
+}
   }
 
   if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('тревог') || lower.includes('волнен')) {

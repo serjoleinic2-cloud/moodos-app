@@ -158,6 +158,18 @@ const SystemCore = {
           })
           break
 
+        case 'SAVE_REFLECTION':
+          if (payload?.text) {
+            const { saveReflection } = await import('./services/memory.js');
+            saveReflection({
+              text: payload.text,
+              mood: payload.mood,
+              time: payload.time
+            });
+          }
+          result = { success: true };
+          break
+
         case 'AVATAR_UPDATE':
           console.log('[AVATAR] AVATAR_UPDATE event:', payload);
           if (payload?.text) {

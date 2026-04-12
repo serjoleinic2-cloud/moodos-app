@@ -101,6 +101,31 @@ export function saveNotesHistory(history) {
   }
 }
 
+/* ---------- REFLECTIONS ---------- */
+
+export function getReflections() {
+  try {
+    return JSON.parse(localStorage.getItem("reflections")) || [];
+  } catch(e) {
+    localStorage.removeItem("reflections");
+    return [];
+  }
+}
+
+export function saveReflection(entry) {
+  const data = getReflections();
+  data.push({
+    ...entry,
+    type: 'reflection',
+    time: entry.time || Date.now()
+  });
+  try {
+    localStorage.setItem("reflections", JSON.stringify(data));
+  } catch(e) {
+    console.error('[memory] saveReflection failed:', e);
+  }
+}
+
 /* ---------- VOICE HISTORY ---------- */
 
 export function getVoiceHistory() {

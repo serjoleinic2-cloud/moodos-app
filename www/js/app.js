@@ -9,7 +9,7 @@ export function _trustedSetBillingPremium(val) {
 
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
-import { analyzeText, safeGenerateInsight } from "./ai/offline-ai.js";
+import { analyzeText } from "./ai/offline-ai.js";
 import { startVoiceRecording } from "./ai/voice.js";
 import SystemCore from "./system-core.js";
 
@@ -299,149 +299,69 @@ if (!window.__neyraAppRunning) {
       document.body.classList.toggle('recording', isRecording);
     }
     
-    const analyzeNoteBtn = document.getElementById("analyzeNoteBtn");
-    console.log('[REFLECTION] analyzeNoteBtn found:', !!analyzeNoteBtn);
-    if (analyzeNoteBtn && !analyzeNoteBtn.dataset.bound) {
-      analyzeNoteBtn.dataset.bound = 'true';
+    const confirmBtn = document.getElementById("confirmBtn");
+    if (confirmBtn && !confirmBtn.dataset.bound) {
+      confirmBtn.dataset.bound = 'true';
       
-      const noteEl = document.getElementById("dailyNote");
+      const reflectionInput = document.getElementById("reflectionInput");
       
-      if (noteEl) {
-        noteEl.addEventListener('input', () => {
-          analyzeNoteBtn.disabled = !noteEl.value.trim();
+      if (reflectionInput) {
+        reflectionInput.addEventListener('input', () => {
+          confirmBtn.disabled = !reflectionInput.value.trim();
         });
       }
       
-      analyzeNoteBtn.addEventListener("click", async (e) => {
+      confirmBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        console.log('[REFLECTION] button clicked');
         
-        if (window._reflectionBusy) return;
-        window._reflectionBusy = true;
-        const currentInsightId = Date.now();
-        window._activeInsightId = currentInsightId;
-        analyzeNoteBtn.disabled = true;
-        console.log('[REFLECTION] button disabled set, insightId:', currentInsightId);
-
-        const noteEl = document.getElementById("dailyNote");
-        const responseEl = document.getElementById("aiResponse");
-        console.log('[REFLECTION] noteEl:', !!noteEl, 'responseEl:', !!responseEl);
-        if (!noteEl || !responseEl) {
-          analyzeNoteBtn.disabled = false;
-          window._reflectionBusy = false;
-          window._activeInsightId = null;
-          return;
-        }
-
-        const text = noteEl.value.trim();
-        console.log('[REFLECTION] text value:', JSON.stringify(noteEl.value), 'trimmed:', JSON.stringify(text));
-        
-        if (!text) {
-          analyzeNoteBtn.disabled = false;
-          if (window.showAvatar) {
-            window.showAvatar({
-              text: t('reflection_prompt') || "Напиши пару слов о дне",
-              source: 'reflection',
-              force: true
-            });
-          }
-          window._reflectionBusy = false;
-          window._activeInsightId = null;
-          return;
-        }
-
-        console.log('[REFLECTION FLOW] START', currentInsightId);
-        
+        const reflectionInput = document.getElementById("reflectionInput");
+        const text = reflectionInput?.value.trim() || '';
         const mood = getMood();
-
-        if (responseEl) {
-          responseEl.textContent = t("home_ai_listening") || "Анализирую...";
-          console.log('[REFLECTION FLOW] LOADING TRUE');
+        const events = getSelectedEvents ? getSelectedEvents() : [];
+        const now = Date.now();
+        
+        if (!text && !mood && events.length === 0) {
+          return;
         }
-
+        
+        confirmBtn.disabled = true;
+        
         try {
-          SystemCore.dispatch('SAVE_NOTE', {
-            text: text,
-            type: 'reflection',
-            mood: mood,
-            time: Date.now()
-          });
-
-          const insight = await safeGenerateInsight({
-            type: 'reflection',
-            text: text,
-            mood: mood
-          });
-
-          console.log('[REFLECTION FLOW] RESPONSE', insight);
-
-          if (window._activeInsightId !== currentInsightId) {
-            console.log('[REFLECTION] stale insight, ignoring');
-            return;
-          }
-
-          if (!insight || !insight.insightText) {
-            if (window.showAvatar) {
-              window.showAvatar({
-                text: t('reflection_fallback') || "Я рядом. Попробуй сформулировать чуть иначе.",
-                source: 'reflection',
-                force: true
-              });
-            }
-            if (responseEl) responseEl.textContent = "";
-            analyzeNoteBtn.disabled = false;
-            window._reflectionBusy = false;
-            window._activeInsightId = null;
-            return;
-          }
-
-          console.log('[REFLECTION] responseEl:', !!responseEl, 'setting text to:', insight.insightText);
-          if (responseEl) {
-            const originalSetter = Object.getOwnPropertyDescriptor(
-              Element.prototype,
-              'innerText'
-            ).set;
-
-            Object.defineProperty(responseEl, 'innerText', {
-              set(value) {
-                console.log('[AI RESPONSE SET]', value);
-                console.trace();
-                originalSetter.call(this, value);
-              }
+          if (mood || events.length > 0) {
+            SystemCore.dispatch('MOOD_SUBMIT', {
+              mood,
+              events,
+              time: now
             });
-            
-            responseEl.textContent = insight.insightText || "";
-            console.log('[REFLECTION] text set, actual text:', responseEl.textContent);
-            
-            // Ensure visible
-            responseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            console.log('[REFLECTION] scrolled into view');
           }
-
-          if (window.showAvatar) {
-            window.showAvatar(t("reflection_understood") || "Я понял тебя. Вот что я вижу:", true);
-            if (insight.followup && insight.followup.type) {
-              setTimeout(() => {
-                window.showAvatar(t(insight.followup.type), true);
-              }, 1500);
-            }
+          
+          if (text) {
+            SystemCore.dispatch('SAVE_REFLECTION', {
+              text,
+              mood,
+              time: now
+            });
           }
-
-          noteEl.value = '';
-          console.log('[REFLECTION] noteEl.value NOT cleared, keeping for reference');
-        } catch (e) {
-          console.error('[Reflection]', e);
-          if (window.showAvatar) {
-            window.showAvatar(t('reflection_fallback') || "Что-то пошло не так. Попробуй ещё раз.", true);
+          
+          if (events.length > 0) {
+            SystemCore.dispatch('GENERATE_INSIGHT', {
+              mood,
+              events
+            });
           }
-          if (responseEl) responseEl.textContent = "";
+          
+          if (reflectionInput) {
+            reflectionInput.value = '';
+          }
+          
+          if (typeof clearEventsUI === 'function') {
+            clearEventsUI();
+          }
+          
+        } catch (err) {
+          console.error('[HOME] confirmBtn error:', err);
         } finally {
-          if (window._activeInsightId === currentInsightId) {
-            analyzeNoteBtn.disabled = false;
-            console.log('[REFLECTION FLOW] LOADING FALSE');
-            window._reflectionBusy = false;
-            window._activeInsightId = null;
-          }
+          confirmBtn.disabled = false;
         }
       });
     }
