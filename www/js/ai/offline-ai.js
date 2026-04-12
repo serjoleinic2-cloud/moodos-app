@@ -219,6 +219,8 @@ function findBestPatterns(patterns, limit = 1) {
 
 // Что помогало этому пользователю когда было плохо
 function getRecommendationForLowMood(history) {
+  const NEVER_RECOMMEND = ['stress', 'work'];
+
   const baseline = calculateBaseline(history);
   const lowEntries = history.filter(e => (e.value || 0) < baseline - 5);
   if (lowEntries.length < 3) return null;
@@ -234,6 +236,7 @@ function getRecommendationForLowMood(history) {
     if (nextMood <= currMood) continue;
     const events = (next.events || []);
     events.forEach(ev => {
+      if (NEVER_RECOMMEND.includes(ev)) return;
       if (!improvements[ev]) improvements[ev] = { count: 0, totalLift: 0 };
       improvements[ev].count++;
       improvements[ev].totalLift += (nextMood - currMood);
@@ -302,7 +305,8 @@ function buildPatternInsight(pattern, currentMood) {
       return null;
     }
   } else if (moodIsLow) {
-    if (pattern.score > 5) {
+    const NEVER_RECOMMEND = ['stress', 'work'];
+    if (pattern.score > 5 && !NEVER_RECOMMEND.includes(pattern.event)) {
       type = 'pattern_recommend_low';
     } else if (pattern.score < -5) {
       type = humanizePattern(pattern) || 'pattern_negative';
