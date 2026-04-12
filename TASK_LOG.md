@@ -51,6 +51,8 @@
 - system-core.js: case 'SAVE_REFLECTION'
 - i18n: reflection_placeholder, reflection_stress, reflection_positive, reflection_neutral
 - analyzeReflection() экспортирована для истории
+- history.js: reflections в buildTimeline(), renderCard(), renderDetail(), deleteItem()
+- i18n: hist_reflection
 
 ---
 
