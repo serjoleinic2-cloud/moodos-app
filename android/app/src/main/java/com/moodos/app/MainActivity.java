@@ -21,28 +21,25 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        Log.d("MAIN", "=== ON CREATE START ===");
+        android.util.Log.i("TAG", "=== ON CREATE START ===");
         
         new android.os.Handler().postDelayed(() -> {
             try {
-                webView = (WebView) findViewById(android.R.id.content);
-                if (webView == null) {
-                    webView = getBridge().getWebView();
-                }
+                webView = getBridge().getWebView();
                 
                 if (webView != null) {
                     webView.getSettings().setJavaScriptEnabled(true);
                     webView.addJavascriptInterface(new FirebaseBridge(), "Android");
-                    Log.d("BRIDGE", "=== Android bridge registered ===");
+                    android.util.Log.i("TAG", "=== Android bridge registered ===");
                 } else {
-                    Log.e("BRIDGE", "WebView is null!");
+                    android.util.Log.e("TAG", "WebView is null!");
                 }
             } catch (Exception e) {
-                Log.e("BRIDGE", "Error: " + e.getMessage());
+                android.util.Log.e("TAG", "Error: " + e.getMessage());
             }
         }, 1000);
         
-        Log.d("MAIN", "=== ON CREATE END ===");
+        android.util.Log.i("TAG", "=== ON CREATE END ===");
     }
 
     public class FirebaseBridge {
