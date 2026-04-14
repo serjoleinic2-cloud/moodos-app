@@ -4,8 +4,9 @@ import android.util.Log;
 
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.getcapacitor.annotation.PluginMethod;
+import com.getcapacitor.JSObject;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -34,7 +35,9 @@ public class FirebasePlugin extends Plugin {
         .add(map)
         .addOnSuccessListener(doc -> {
           Log.d("FIREBASE_PLUGIN", "SUCCESS WRITE - doc: " + doc.getId());
-          call.resolve();
+          JSObject result = new JSObject();
+          result.put("id", doc.getId());
+          call.resolve(result);
         })
         .addOnFailureListener(e -> {
           Log.e("FIREBASE_PLUGIN", "ERROR WRITE: " + e.getMessage());
