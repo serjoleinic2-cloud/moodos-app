@@ -1,6 +1,6 @@
 // =====================================
 // Neyra Cloud Sync Service
-// Syncs local data to Firebase via Android bridge
+// Syncs local data to Firebase via Capacitor Plugin
 // =====================================
 
 let _syncTimeout = null;
@@ -23,16 +23,16 @@ function getPhotoHistory() {
 
 export function syncToCloud() {
   console.log('[CLOUD] syncToCloud called');
-  console.log('[CLOUD] window.Android:', window.Android);
-  console.log('[CLOUD] window.Android?.saveToCloud:', window.Android?.saveToCloud);
+  console.log('[CLOUD] Capacitor.Plugins:', window.Capacitor?.Plugins);
+  console.log('[CLOUD] FirebasePlugin:', window.Capacitor?.Plugins?.FirebasePlugin);
   
-  if (!window.Android?.saveToCloud) {
-    console.log('[CLOUD] Bridge not available');
+  const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
+  if (!plugin?.saveToCloud) {
+    console.log('[CLOUD] FirebasePlugin not available');
     return;
   }
 
   try {
-    // Strip base64 data from voice/photo to reduce payload size
     const voiceHistory = getVoiceHistory().map(v => ({
       ...v,
       audio: null
@@ -55,9 +55,14 @@ export function syncToCloud() {
       updatedAt: Date.now()
     };
 
-    console.log('[CLOUD] Calling Android.saveToCloud...');
-    window.Android.saveToCloud(JSON.stringify(payload));
-    console.log('[CLOUD] Android.saveToCloud called successfully');
+    console.log('[CLOUD] Calling FirebasePlugin.saveToCloud...');
+    plugin.saveToCloud({ data: JSON.stringify(payload) })
+      .then(() => {
+        console.log('[CLOUD] FirebasePlugin.saveToCloud resolved');
+      })
+      .catch(err => {
+        console.error('[CLOUD] FirebasePlugin.saveToCloud error:', err);
+      });
   } catch (e) {
     console.error('[CLOUD ERROR]', e);
   }
