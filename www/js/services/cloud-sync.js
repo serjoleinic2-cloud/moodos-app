@@ -3,7 +3,7 @@
 // Android Bridge → Firebase Firestore
 // =====================================
 
-export async function syncToCloud(data) {
+export function syncToCloud(data) {
   try {
     if (!window.Android) {
       console.warn('[CLOUD] Android bridge not available');
@@ -67,6 +67,12 @@ export function collectLocalData() {
     profile: localStorage.getItem('user_profile'),
     syncedAt: Date.now()
   };
+}
+
+export function scheduleCloudSync() {
+  console.log('[CLOUD] scheduleCloudSync called');
+  const data = collectLocalData();
+  syncToCloud(data);
 }
 
 // Test function
