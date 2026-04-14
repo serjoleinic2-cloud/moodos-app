@@ -6,6 +6,7 @@ import android.webkit.WebView;
 import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Bridge;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -15,45 +16,64 @@ import java.util.Map;
 
 public class MainActivity extends BridgeActivity {
 
-    private static WebView sWebView;
+    private WebView webView;
+    private boolean bridgeRegistered = false;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onStart() {
+        super.onStart();
+        Log.i("TAG", "=== onStart ===");
+        registerBridge();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("TAG", "=== onResume ===");
+        registerBridge();
+    }
+
+    private void registerBridge() {
+        if (bridgeRegistered) {
+            Log.i("TAG", "Bridge already registered");
+            return;
+        }
         
-        Log.i("TAG", "=== ON CREATE START ===");
-        
-        new android.os.Handler().postDelayed(() -> {
-            try {
-                WebView webView = getBridge().getWebView();
+        try {
+            Log.i("TAG", "Trying to get bridge...");
+            Bridge bridge = getBridge();
+            
+            if (bridge != null) {
+                Log.i("TAG", "Bridge found: " + bridge);
+                webView = bridge.getWebView();
                 
                 if (webView != null) {
-                    sWebView = webView;
+                    Log.i("TAG", "WebView found: " + webView);
                     webView.getSettings().setJavaScriptEnabled(true);
                     webView.addJavascriptInterface(new FirebaseBridge(), "Android");
-                    Log.i("TAG", "=== Android bridge registered ===");
-                    Log.i("TAG", "=== WebView: " + webView + " ===");
+                    bridgeRegistered = true;
+                    Log.i("TAG", "=== Android bridge REGISTERED ===");
                 } else {
                     Log.e("TAG", "WebView is null!");
                 }
-            } catch (Exception e) {
-                Log.e("TAG", "Error: " + e.getMessage());
+            } else {
+                Log.e("TAG", "Bridge is null!");
             }
-        }, 2000);
-        
-        Log.i("TAG", "=== ON CREATE END ===");
+        } catch (Exception e) {
+            Log.e("TAG", "Error: " + e.getMessage(), e);
+        }
     }
 
     public static class FirebaseBridge {
         
-        @JavascriptInterface
+        @android.webkit.JavascriptInterface
         public void saveToCloud(String jsonData) {
             Log.d("FIREBASE", "BRIDGE CALLED: saveToCloud");
-            Log.d("FIREBASE", "WebView ref: " + sWebView);
+            Log.d("FIREBASE", "Data length: " + (jsonData != null ? jsonData.length() : 0));
             
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
-                Log.e("FIREBASE", "Not authenticated - trying anonymous");
+                Log.e("FIREBASE", "Not authenticated - signing in anonymously");
                 signInAndSave(jsonData);
                 return;
             }
