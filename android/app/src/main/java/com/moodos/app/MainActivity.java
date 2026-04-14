@@ -10,7 +10,9 @@ public class MainActivity extends BridgeActivity {
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    Log.d("MAIN", "=== ON CREATE START ===");
     super.onCreate(savedInstanceState);
+    Log.d("MAIN", "=== ON CREATE AFTER SUPER ===");
 
     registerPlugin(FirebasePlugin.class);
 
