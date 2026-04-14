@@ -22,6 +22,7 @@ import { showAvatarForMood, showAvatar } from './avatar.js'
 import { t } from './i18n.js'
 import { analyzeText } from './ai/offline-ai.js'
 import { saveVoiceNote } from './services/memory.js'
+import { scheduleCloudSync } from './services/cloud-sync.js'
 
 const SystemCore = {
 
@@ -150,6 +151,7 @@ const SystemCore = {
           const moodValue = typeof payload === 'object' ? payload.mood : payload;
           result = await this.handleMoodFlow(payload)
           showAvatarForMood(moodValue)
+          scheduleCloudSync()
           break
 
         case 'SAVE_NOTE':
@@ -180,6 +182,7 @@ const SystemCore = {
             });
           }
           result = { success: true };
+          scheduleCloudSync()
           break
 
         case 'AVATAR_UPDATE':
@@ -232,6 +235,7 @@ const SystemCore = {
           } else {
             result = { success: false, error: 'No audio data' };
           }
+          scheduleCloudSync()
           break
 
         case 'REFLECTION_START':
@@ -314,7 +318,8 @@ const SystemCore = {
       ru: ['Я здесь', 'Можешь продолжить', 'Попробуй ещё раз зафиксировать состояние'],
       en: ["I'm here", "You can continue", "Try to note your state again"],
       es: ["Estoy aquí", "Puedes continuar", "Intenta notar tu estado de nuevo"],
-      uk: ["Я тут", "Можеш продовжити", "Спробуй ще раз зафіксувати стан"]
+      uk: ["Я тут", "Можеш продовжити", "Спробуй ще раз зафіксувати стан"],
+      hi: ["मैं यहां हूं", "आप जारी रख सकते हैं", "अपनी स्थिति फिर से नोट करने की कोशिश करें"]
     };
     const langMsgs = msgs[lang] || msgs.ru;
     return langMsgs[Math.floor(Math.random() * langMsgs.length)];
@@ -326,7 +331,8 @@ const SystemCore = {
       ru: ['Я рядом, если что', 'Ты давно не заходил', 'Можешь зафиксировать состояние'],
       en: ["I'm here if you need", "You haven't been here for a while", "You can note your state"],
       es: ["Estoy aquí si necesitas", "Hace tiempo que no vienes", "Puedes anotar tu estado"],
-      uk: ["Я поруч, якщо що", "Ти давно не заходив", "Можеш зафіксувати стан"]
+      uk: ["Я поруч, якщо що", "Ти давно не заходив", "Можеш зафіксувати стан"],
+      hi: ["ज़रूरत पड़ने पर मैं यहां हूं", "आप काफी समय से यहां नहीं आए", "आप अपनी स्थिति नोट कर सकते हैं"]
     };
     const langMsgs = msgs[lang] || msgs.ru;
     return langMsgs[Math.floor(Math.random() * langMsgs.length)];

@@ -7,6 +7,7 @@ import { showAvatarForMood } from "../avatar.js";
 import { AppRuntime } from "../core/appRuntime.js";
 import { t } from "../i18n.js";
 import { setAvatarMood, avatarReact, initAvatarController } from "../ui/avatar-controller.js";
+import { safeGenerateInsight } from "../ai/offline-ai.js";
 
 function getTimeBucket() {
   const h = new Date().getHours();
@@ -17,6 +18,18 @@ function getTimeBucket() {
 }
 
 const STORAGE_KEY = 'neyra_last_insight';
+
+function saveInsightToStorage(insight) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      moodLevel: insight.moodLevel,
+      events: insight.events,
+      pattern: insight.pattern,
+      insightText: insight.insightText,
+      timestamp: Date.now()
+    }));
+  } catch (e) {}
+}
 
 function getLastInsight() {
   try {
@@ -157,6 +170,28 @@ export function onEnter() {
       
       showAvatarForMood(moodValue);
       avatarReact();
+      
+      if (selectedEvents.length > 0) {
+        console.log('[INSIGHT PAYLOAD]', {
+          mood: moodValue,
+          events: selectedEvents
+        });
+        
+        const insight = await safeGenerateInsight({
+          mood: moodValue,
+          events: selectedEvents,
+          type: 'events'
+        });
+        
+        console.log('[INSIGHT RESULT]', insight);
+        
+        if (insight && insight.insightText) {
+          saveInsightToStorage(insight);
+          showInsightCard(insight);
+        } else {
+          console.warn('[INSIGHT] Empty result', insight);
+        }
+      }
       
       AppRuntime.setState('home', { selectedEvents: [] });
       document.querySelectorAll('.event-item').forEach(el => {

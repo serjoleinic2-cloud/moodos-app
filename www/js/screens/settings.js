@@ -130,16 +130,16 @@ function renderSettings() {
       .modal-option.selected{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff;color:#7eb8d4;font-weight:600}
       .modal-save-btn{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#7eb8d4;cursor:pointer;display:block;box-sizing:border-box}
       .modal-cancel{width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:16px;font-weight:700;color:#aaa;cursor:pointer;display:block;box-sizing:border-box;text-align:center;margin-top:8px}
-      .backup-card{background:rgba(232,237,230,0.9);border-radius:18px;padding:18px;box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;margin-bottom:10px}
-      .backup-status{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-      .backup-status-icon{font-size:18px}
-      .backup-status-text{font-size:13px;color:#555}
-      .backup-last{font-size:12px;color:#888;margin-bottom:14px}
-      .backup-btn{width:100%;padding:12px;border:none;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;box-sizing:border-box;text-align:center}
-      .backup-btn:active{box-shadow:inset 3px 3px 7px #b8c4b4,inset -3px -3px 7px #ffffff}
-      .backup-btn-primary{background:linear-gradient(145deg,#4caf87,#45a070);color:#fff;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff}
-      .backup-btn-secondary{background:linear-gradient(145deg,#7eb8d4,#6aa8c4);color:#fff;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff}
-      .backup-limit{font-size:11px;color:#aaa;text-align:center;margin-top:10px}
+      .backup-card{background:rgba(210,220,210,0.7);border-radius:16px;padding:16px;margin-bottom:10px}
+      .backup-card-title{font-size:14px;font-weight:600;color:#555;margin-bottom:12px}
+      .backup-card-btns{display:flex;gap:8px}
+      .backup-card-btn{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;box-sizing:border-box}
+      .backup-card-btn:active{opacity:0.8}
+      .backup-card-btn.save{background:linear-gradient(145deg,#4caf87,#45a070);color:#fff}
+      .backup-card-btn.restore{background:rgba(232,237,230,0.9);color:#555;box-shadow:2px 2px 6px #b8c4b4,-2px -2px 6px #ffffff}
+      .backup-card-btn:disabled{opacity:0.5;cursor:not-allowed}
+      .backup-card-premium{background:rgba(200,190,220,0.5);border:1px dashed rgba(159,122,234,0.4)}
+      .backup-card-premium .backup-card-title{color:#805ad5}
     </style>
     <div class="settings-wrap">
       <div class="settings-title">${t("settings_title")}</div>
@@ -206,40 +206,58 @@ function renderSettings() {
           </div>
           <span class="neo-row-arrow">›</span>
         </div>
-        <div class="neo-row" id="settingRestore">
-          <div class="neo-row-content">
-            <span class="neo-row-icon">📥</span>
-            <div class="neo-row-text">
-              <div class="neo-row-label">${t("settings_restore_label")}</div>
-              <div class="neo-row-sub">${t("settings_restore_hint")}</div>
-            </div>
-          </div>
-          <span class="neo-row-arrow">›</span>
-        </div>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
       </div>
 
+      ${(() => {
+        const ENABLE_GOOGLE_AUTH = false;
+        if (!ENABLE_GOOGLE_AUTH) return '';
+        return `
+      <div class="settings-section">
+        <div class="settings-section-label">🔐 ${t("cloud_section") || "Облако"}</div>
+        <div id="cloudLoginSection">
+          <div class="neo-row" id="btnGoogleLogin">
+            <div class="neo-row-content">
+              <span class="neo-row-icon">🔵</span>
+              <div class="neo-row-text">
+                <div class="neo-row-label" id="cloudLoginLabel">${t("cloud_login") || "Войти через Google"}</div>
+                <div class="neo-row-sub" id="cloudLoginStatus">${t("cloud_not_connected") || "Не подключено"}</div>
+              </div>
+            </div>
+            <span class="neo-row-arrow">›</span>
+          </div>
+          <div id="cloudSyncInfo" style="display:none;font-size:11px;color:#888;padding:8px 16px;">
+            <span id="cloudSyncStatus">☁️ ${t("cloud_syncing") || "Синхронизация..."}</span>
+          </div>
+          <div class="cloud-data-info" style="font-size:10px;color:#aaa;padding:8px 16px 4px;line-height:1.4;">
+            <div>📱 ${t("cloud_data_local") || "Ваши данные хранятся локально"}</div>
+            <div>☁️ ${t("cloud_data_firebase") || "При входе: синхронизация через Firebase (Google)"}</div>
+            <div style="margin-top:6px;">
+              <a href="#" id="btnPrivacyPolicy" style="color:#7eb8d4;font-size:10px;">${t("privacy_policy") || "Политика конфиденциальности"} →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+        `;
+      })()}
+
       <div class="settings-section">
         <div class="settings-section-label">📦 ${t("backup_section") || "Резервное копирование"}</div>
-        <div class="backup-card" id="backupCard">
-          <div class="backup-status">
-            <span class="backup-status-icon" style="color:${statusColor};">${statusIcon}</span>
-            <span class="backup-status-text">${statusIcon === '⏳' ? (t("settings_backup_pending") || "есть изменения") : (t("settings_backup_saved") || "сохранено")}</span>
+        
+        <div class="backup-card">
+          <div class="backup-card-title">${t("backup_data_7days")}</div>
+          <div class="backup-card-btns">
+            <button class="backup-card-btn save" id="btnCreateBackup">${t("btn_backup_save")}</button>
+            <button class="backup-card-btn restore" id="btnRestore7days">${t("btn_backup_restore")}</button>
           </div>
-          <div class="backup-last">${t("backup_last") || "Последний backup"}: ${lastBackupText}</div>
-          ${backupRangeText ? `<div style="font-size:11px;color:#4caf87;margin-bottom:8px;">${backupRangeText}</div>` : ''}
-          
-          <button class="backup-btn" id="btnCreateBackup">
-            📋 ${t("btn_create_backup") || "Создать backup"}
-          </button>
-          
-          <button class="backup-btn backup-btn-secondary" id="btnShareBackup">
-            ☁️ ${t("btn_share_backup") || "Сохранить в облако"}
-          </button>
-          
-          ${autoBackupNote}
-          
-          <div class="backup-limit">${t("backup_limit_info") || "Хранится"}: ${backupState.totalBackups}/${backupState.maxBackups}</div>
+        </div>
+        
+        <div class="backup-card ${!premiumInfo.isPremium ? 'backup-card-premium' : ''}">
+          <div class="backup-card-title">${t("backup_full_period")}</div>
+          <div class="backup-card-btns">
+            <button class="backup-card-btn save" id="btnCloudSave" ${!premiumInfo.isPremium ? 'disabled' : ''}>${t("btn_backup_save")}</button>
+            <button class="backup-card-btn restore" id="btnCloudRestore" ${!premiumInfo.isPremium ? 'disabled' : ''}>${t("btn_backup_restore")}</button>
+          </div>
         </div>
       </div>
 
@@ -317,8 +335,9 @@ function bindEvents(el) {
 
   el.querySelector("#settingTheme")?.addEventListener("click", () => showThemeModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
-
-  el.querySelector("#settingRestore")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
+  el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
+    if (window.navigateTo) window.navigateTo("howItWorks");
+  });
   el.querySelector("#restoreFileInput")?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -328,15 +347,11 @@ function bindEvents(el) {
 
   el.querySelector("#btnCreateBackup")?.addEventListener("click", async () => {
     const btn = el.querySelector("#btnCreateBackup");
-    if (btn) { btn.textContent = "⏳..."; btn.disabled = true; }
+    if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
     try {
       const result = await createBackup();
       if (result.success) {
-        const backupState = getSystemBackupState();
-        const rangeText = backupState.isPremium 
-          ? "full history" 
-          : "last 7 days";
-        showToast("✅ Backup saved: " + rangeText);
+        showToast("✅ " + (t("settings_backup_saved") || "Сохранено"));
         setTimeout(() => refresh(), 1000);
       } else {
         showToast("❌ " + (t("backup_error") || "Ошибка"));
@@ -344,25 +359,45 @@ function bindEvents(el) {
     } catch(e) {
       showToast("❌ " + t("backup_error"));
     }
-    if (btn) { btn.textContent = "📋 " + t("btn_create_backup"); btn.disabled = false; }
+    if (btn) { btn.textContent = t("btn_backup_save"); btn.disabled = false; }
   });
 
-  el.querySelector("#btnShareBackup")?.addEventListener("click", async () => {
-    const btn = el.querySelector("#btnShareBackup");
-    if (btn) { btn.textContent = "⏳..."; btn.disabled = true; }
-    try {
-      const result = await shareBackup();
-      if (result.message === "cancelled") {
-        showToast(t("backup_cancelled") || "Отменено");
-      } else if (result.success) {
-        showToast("✅ " + (result.message === "shared" ? (t("backup_shared") || "Отправлено") : (t("backup_downloaded") || "Скачано")));
-      } else {
-        showToast("❌ " + (t("backup_error") || "Ошибка"));
+  el.querySelector("#btnRestore7days")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
+
+  el.querySelector("#btnCloudSave")?.addEventListener("click", async () => {
+    const doCloudSave = async () => {
+      const btn = el.querySelector("#btnCloudSave");
+      if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
+      try {
+        const result = await shareBackup();
+        if (result.message === "cancelled") {
+          showToast(t("backup_cancelled") || "Отменено");
+        } else if (result.success) {
+          showToast("✅ " + (result.message === "shared" ? (t("backup_shared") || "Отправлено") : (t("backup_downloaded") || "Скачано")));
+        } else {
+          showToast("❌ " + (t("backup_error") || "Ошибка"));
+        }
+      } catch(e) {
+        showToast("❌ " + t("backup_error"));
       }
-    } catch(e) {
-      showToast("❌ " + t("backup_error"));
+      if (btn) { btn.textContent = t("btn_backup_save"); btn.disabled = false; }
+    };
+    if (localStorage.getItem('cloud_consent') === 'true') {
+      doCloudSave();
+    } else {
+      showCloudConsentModal(doCloudSave);
     }
-    if (btn) { btn.textContent = "☁️ " + t("btn_share_backup"); btn.disabled = false; }
+  });
+
+  el.querySelector("#btnCloudRestore")?.addEventListener("click", async () => {
+    const doCloudRestore = async () => {
+      showToast("☁️ " + (t("cloud_coming_soon") || "Скоро в Premium"));
+    };
+    if (localStorage.getItem('cloud_consent') === 'true') {
+      doCloudRestore();
+    } else {
+      showCloudConsentModal(doCloudRestore);
+    }
   });
 
   const getPremiumBtn = el.querySelector("#getPremiumBtn");
@@ -374,9 +409,46 @@ function bindEvents(el) {
     });
   }
 
-  el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
-    openScreen("howItWorks");
+  el.querySelector("#btnPrivacyPolicy")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    showPrivacyModal();
   });
+}
+
+function showPrivacyModal() {
+  const overlay = document.createElement("div");
+  overlay.className = "health-modal-overlay";
+  overlay.innerHTML = `
+    <div class="health-modal" style="max-height:85vh;overflow-y:auto;">
+      <div class="modal-title">🔐 ${t("privacy_policy") || "Политика конфиденциальности"}</div>
+      <div style="font-size:12px;color:#666;line-height:1.6;padding:0 4px 16px;">
+        <p style="margin:0 0 12px;"><strong>${t("privacy_local_title") || "Локальное хранение"}</strong><br>
+        ${t("privacy_local_text") || "По умолчанию все данные хранятся локально на вашем устройстве."}</p>
+        
+        <p style="margin:0 0 12px;"><strong>☁️ ${t("privacy_cloud_title") || "Облачная синхронизация"}</strong><br>
+        ${t("privacy_cloud_text") || "При входе через Google данные синхронизируются через Firebase (Google). Это позволяет восстановить данные на новом устройстве."}</p>
+        
+        <p style="margin:0 0 12px;"><strong>📋 ${t("privacy_data_title") || "Какие данные"}</strong><br>
+        ${t("privacy_data_text") || "Записи настроения, заметки, история практик, настройки приложения."}</p>
+        
+        <p style="margin:0 0 12px;"><strong>🔒 ${t("privacy_rights_title") || "Ваши права"}</strong><br>
+        ${t("privacy_rights_text") || "Вы можете отключить синхронизацию и удалить данные в любой момент."}</p>
+        
+        <p style="margin:0;font-size:11px;color:#888;"><a href="#" id="btnPrivacyFull" style="color:#7eb8d4;">${t("privacy_full_policy") || "Читать полностью →"}</a></p>
+      </div>
+      <div class="modal-cancel" id="privacyClose">${t("close") || "Закрыть"}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector("#privacyClose").addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#btnPrivacyFull")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    window.open("docs/PRIVACY.md", "_blank");
+  });
+  overlay.addEventListener("click", (ev) => { if (ev.target === overlay) overlay.remove(); });
+}
+
+function initCloudLoginUI() {
+  console.log('[Cloud] UI disabled (native setup phase)');
 }
 
 function refresh() {
@@ -422,6 +494,26 @@ function showRestoreConfirmModal(file) {
     }
   });
   overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function showCloudConsentModal(onConfirm) {
+  const overlay = document.createElement("div");
+  overlay.className = "health-modal-overlay";
+  overlay.innerHTML = `
+    <div class="health-modal">
+      <div class="modal-title">☁️ ${t("cloud_consent_title")}</div>
+      <div class="modal-subtitle" style="font-size:13px;line-height:1.5;margin-bottom:20px;">${t("cloud_consent_text")}</div>
+      <button class="modal-save-btn" id="cloudConsentContinue">${t("cloud_consent_continue")}</button>
+      <div class="modal-cancel" id="cloudConsentCancel">${t("cloud_consent_cancel")}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector("#cloudConsentContinue").addEventListener("click", () => {
+    localStorage.setItem('cloud_consent', 'true');
+    overlay.remove();
+    if (onConfirm) onConfirm();
+  });
+  overlay.querySelector("#cloudConsentCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
 }
 

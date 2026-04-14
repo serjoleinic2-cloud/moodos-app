@@ -5,6 +5,7 @@ import { ru } from "./i18n/ru.js";
 import { en } from "./i18n/en.js";
 import { es } from "./i18n/es.js";
 import { uk } from "./i18n/uk.js";
+import { hi } from "./i18n/hi.js";
 
 const LANG_KEY = "app_language";
 
@@ -22,7 +23,7 @@ export function setLang(lang) {
   document.dispatchEvent(new CustomEvent('languageChanged'));
 }
 
-const TRANSLATIONS = { ru, en, es, uk };
+const TRANSLATIONS = { ru, en, es, uk, hi };
 
 export function t(key) {
   const lang = getLang();
@@ -60,6 +61,7 @@ export const LANG_OPTIONS = [
   { code: "en", label: "English",    flag: "🇺🇸" },
   { code: "es", label: "Español",    flag: "🇪🇸" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
+  { code: "hi", label: "हिन्दी",      flag: "🇮🇳" },
 ];
 
 window._i18nReady = true;

@@ -128,6 +128,7 @@ export function initNavigation() {
     loadScreen(name);
   }
   window.openScreen = openScreen;
+  window.navigateTo = openScreen; // alias for compatibility
 
   hamburgerBtn.addEventListener("click", () => {
     closeAllOverlays();

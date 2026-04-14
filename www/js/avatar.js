@@ -63,7 +63,7 @@ function clampY(y) { return Math.max(SAFE_TOP,  Math.min(y, vh() - AVATAR_SIZE -
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getLang()        { return localStorage.getItem('app_language') || 'ru'; }
+function getLang()        { const l = localStorage.getItem('app_language'); return l && ['ru','en','es','uk','hi'].includes(l) ? l : 'ru'; }
 function pickRandom(arr)  { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function getMoodType(mood) {
@@ -79,6 +79,7 @@ function getMoodLabel(mood) {
     en: { low: 'when anxious', mid: 'in a neutral state', high: 'in a good mood' },
     es: { low: 'cuando ansioso', mid: 'en estado neutro', high: 'de buen humor' },
     uk: { low: 'при тривозі', mid: 'у нейтральному стані', high: 'у гарному настрої' },
+    hi: { low: 'चिंता के समय', mid: 'तटस्थ स्थिति में', high: 'अच्छे मूड में' },
   };
   return (map[lang] || map.ru)[getMoodType(mood)];
 }
@@ -178,6 +179,18 @@ const MSG = {
         high: ['Окей, спробуємо інший варіант', 'Нічого, знайдемо що підходить'],
       },
     },
+    hi: {
+      positive: {
+        low : ['मैं देखता/देखती हूं {practice} चिंता में आपकी मदद करता है', 'यह काम करता है — खासकर जब कठिन होता है'],
+        mid : ['इस पल के लिए अच्छी पसंद', 'आपने वो खोज लिया जो आपके लिए काम करता है'],
+        high: ['बहुत बढ़िया, आप संसाधन में हैं', 'इस स्थिति को याद रखना worth है'],
+      },
+      negative: {
+        low : ['ऐसा लगता है कि उदासी के समय यह सबसे अच्छा विकल्प नहीं', 'कुछ और आज़माते हैं?'],
+        mid : ['हमेशा एक ही काम नहीं करता', 'आइए कोई अलग तरीका आज़माएं'],
+        high: ['ठीक है, कोई और विकल्प आज़माते हैं', 'कोई बात नहीं, हम वो खोज लेंगे जो फिट बैठता है'],
+      },
+    },
   },
 
   memory: {
@@ -201,6 +214,11 @@ const MSG = {
       'Помічаю паттерн: тобі допомагає цей підхід',
       'Ти знайшов своє — це добре',
     ],
+    hi: [
+      'आप अक्सर यह चुनते/चुनती हैं — ऐसा लगता है यह आपके लिए काम करता है',
+      'मैं एक पैटर्न देखता/देखती हूं: यह तरीका आपकी मदद करता है',
+      'आपने अपना रास्ता खोज लिया — यह बढ़िया है',
+    ],
   },
 
   insight: {
@@ -208,6 +226,7 @@ const MSG = {
     en : ['Interesting, right?', 'Worth remembering', 'Useful finding'],
     es : ['Interesante, ¿verdad?', 'Vale la pena recordarlo', 'Hallazgo útil'],
     uk : ['Цікаво, правда?', 'Це варто запам\'ятати', 'Корисна знахідка'],
+    hi : ['दिलचस्प, है ना?', 'याद रखना worth है', 'उपयोगी खोज'],
   },
 
   returnApp: {
@@ -215,6 +234,7 @@ const MSG = {
     en : ['Glad you\'re back', 'Here again — good', 'Nice to see you again'],
     es : ['Me alegra que hayas vuelto', 'Aquí de nuevo — bien', 'Qué bueno verte de nuevo'],
     uk : ['Радий, що ти повернувся', 'Знову тут — добре', 'Приємно бачити тебе знову'],
+    hi : ['वापस आने पर खुशी', 'फिर से यहां — अच्छा', 'आपको फिर से देखकर अच्छा लगा'],
   },
 
   idle: {
@@ -222,6 +242,7 @@ const MSG = {
     en : ['Want to continue?', 'I\'m here if needed', 'Want to try a practice?'],
     es : ['¿Quieres continuar?', 'Estoy aquí si lo necesitas', '¿Quieres probar una práctica?'],
     uk : ['Хочеш продовжити?', 'Я поруч, якщо потрібно', 'Хочеш спробувати практику?'],
+    hi : ['जारी रखना चाहते हैं?', 'ज़रूरत पड़ने पर मैं यहां हूं', 'अभ्यास आज़माना चाहेंगे?'],
   },
 
   tap: {
@@ -253,6 +274,13 @@ const MSG = {
       idle             : ['Я поруч, якщо потрібно', 'Все добре?', 'Як ти зараз?'],
       default          : ['Я тут', 'Ти справляєшся', 'Як ти зараз?', 'Продовжуй'],
     },
+    hi: {
+      practice_positive: ['आपने अच्छा किया', 'इसने मदद की — याद रखें', 'बढ़िया चुनाव'],
+      practice_negative: ['ज़रूरत पड़ने पर मैं यहां हूं', 'कोई और तरीका आज़माना चाहेंगे?', 'कोई बात नहीं'],
+      insight          : ['यह उपयोगी है, है ना?', 'इस पर वापस आना worth है', 'दिलचस्प खोज'],
+      idle             : ['ज़रूरत पड़ने पर मैं यहां हूं', 'सब ठीक है?', 'अभी कैसे हैं?'],
+      default          : ['मैं यहां हूं', 'आप अच्छा कर रहे हैं', 'अभी कैसे हैं?', 'जारी रखें'],
+    },
   },
 
   mood: {
@@ -260,6 +288,7 @@ const MSG = {
     en: { low:["Seems tough right now","I'm here, no rush","You can slow down"], mid:["You're holding balance","Not bad","You can note this"], high:["Good moment","You're resourced","This state is worth remembering"] },
     es: { low:['Parece difícil ahora','Estoy aquí, sin prisa','Puedes ralentizar'], mid:['Mantienes el equilibrio','No está mal','Puedes anotar esto'], high:['Buen momento','Estás con recursos','Este estado vale la pena recordar'] },
     uk: { low:['Схоже, зараз непросто','Я поруч, не квапся','Ти можеш трохи сповільнитись'], mid:['Ти тримаєш баланс','Непоганий стан','Можна зафіксувати це'], high:['Гарний момент','Ти зараз у ресурсі','Цей стан можна запам\'ятати'] },
+    hi: { low:['ऐसा लगता है अभी कठिन है','मैं यहां हूं, जल्दी नहीं','आप थोड़ा धीमे हो सकते हैं'], mid:['आप संतुलन बनाए हुए हैं','बुरा नहीं','आप इसे नोट कर सकते हैं'], high:['अच्छा पल','आप संसाधन में हैं','यह स्थिति याद रखने योग्य है'] },
   },
 
   trend: {
@@ -267,6 +296,7 @@ const MSG = {
     en: { up:['Feeling lighter','Moving upward','You\'re a bit up'], down:['Seems a bit harder','Small dip — that\'s normal','You can slow down'] },
     es: { up:['Te sientes más ligero','Hay movimiento hacia arriba','Has subido un poco'], down:['Parece un poco más difícil','Pequeña caída — es normal','Puedes ralentizar'] },
     uk: { up:['Стало легше','Є рух вгору','Ти трохи піднявся'], down:['Схоже, стало важче','Невеликий спад — це нормально','Ти можеш трохи сповільнитись'] },
+    hi: { up:['हल्का महसूस हो रहा है','ऊपर की ओर गति','आप थोड़े ऊपर हैं'], down:['थोड़ा कठिन लग रहा है','छोटी गिरावट — यह सामान्य है','आप धीमे हो सकते हैं'] },
   },
 
   proactive: {
@@ -274,6 +304,7 @@ const MSG = {
     en: { inactive:["You haven't been here for a while","You can note your state"], noEntry:['No entry today yet','How are you now?'], decline:['These days have been tough','Want to note your state?'] },
     es: { inactive:['Hace tiempo que no vienes','Puedes anotar tu estado'], noEntry:['Aún no hay registro hoy','¿Cómo estás ahora?'], decline:['Últimamente ha sido difícil','¿Quieres anotar tu estado?'] },
     uk: { inactive:['Ти давно не заходив','Можеш зафіксувати стан'], noEntry:['Сьогодні ще немає запису','Як ти зараз?'], decline:['Останнім часом важкувато','Хочеш зафіксувати стан?'] },
+    hi: { inactive:['आप काफी समय से यहां नहीं आए','आप अपनी स्थिति नोट कर सकते हैं'], noEntry:['आज अभी तक कोई प्रविष्टि नहीं','अभी कैसे हैं?'], decline:['पिछले दिनों कठिन रहा','अपनी स्थिति नोट करना चाहेंगे?'] },
   },
 
   afterSave: {
@@ -340,6 +371,22 @@ const MSG = {
       },
       noEvents: ['Зафіксував — вже добре','Відзначай, що відчуваєш','Цей момент важливий'],
       multiple: ['Цікаве поєднання!','Здається, сьогодні було насичено']
+    },
+    hi: {
+      withEvents: {
+        walk:    ['सैर — बढ़िया चुनाव!','एक छोटी सैर भी काम करती है'],
+        coffee:  ['कॉफी + ट्रैकिंग = जागरूकता','यह पल मायने रखता है'],
+        work:    ['फोकस में काम — यह ताकत है','यह नोट करना अच्छा है'],
+        sport:   ['खेल अपने आप में निवेश है','आपका शरीर धन्यवाद देता है'],
+        social:  ['रिश्ते मूड के लिए मायने रखते हैं','सामाजिकता आपको ऊर्जा देती है'],
+        rest:    ['आराम उत्पादक है','सही चुनाव'],
+        music:   ['संगीत ठीक करता है','आपकी स्थिति के लिए बढ़िया चुनाव'],
+        food:    ['देखभाल में पोषण शामिल है','यह नोट करना अच्छा है'],
+        sleep:   ['नींद आधार है','यह एक महत्वपूर्ण पल है'],
+        stress:  ['तनाव होता है। आप इसे नोट करते हैं — यह महत्वपूर्ण है','आप इसे संभाल रहे हैं']
+      },
+      noEvents: ['ट्रैक किया — यह पहले से अच्छा है','नोट करें कि आप क्या महसूस करते हैं','यह पल मायने रखता है'],
+      multiple: ['दिलचस्प संयोजन!','ऐसा लगता है आज काफी व्यस्त था']
     }
   },
 
@@ -347,42 +394,48 @@ const MSG = {
     ru: ['Ты уже {n} дней подряд — это важно','Серия растёт! {n} дней','Продолжай в том же духе'],
     en: ['You\'ve been tracking for {n} days — that matters','Streak growing! {n} days','Keep it up'],
     es: ['Llevas {n} días seguidos — eso importa','¡La racha crece! {n} días','Sigue así'],
-    uk: ['Ти вже {n} днів поспіль — це важливо','Серія росте! {n} днів','Продовжуй у тому ж дусі']
+    uk: ['Ти вже {n} днів поспіль — це важливо','Серія росте! {n} днів','Продовжуй у тому ж дусі'],
+    hi: ['आप {n} दिनों से ट्रैक कर रहे हैं — यह मायने रखता है','स्ट्रीक बढ़ रही है! {n} दिन','इसे जारी रखें']
   },
 
   improvement: {
     ru: ['Вижу, что стало легче','Настроение подросло — это хороший знак','Ты молодец, что отмечаешь','Есть движение вверх'],
     en: ['I see it got easier','Mood improved — that\'s a good sign','Good job tracking','There\'s upward movement'],
     es: ['Veo que se puso más fácil','El ánimo mejoró — buena señal','Buen trabajo registrando','Hay movimiento hacia arriba'],
-    uk: ['Бачу, що стало легше','Настрій підріс — це хороший знак','Ти молодець, що відзначаєш','Є рух вгору']
+    uk: ['Бачу, що стало легше','Настрій підріс — це хороший знак','Ти молодець, що відзначаєш','Є рух вгору'],
+    hi: ['मैं देखता/देखती हूं कि आसान हो गया','मूड में सुधार — यह एक अच्छा संकेत है','ट्रैक करने पर बधाई','ऊपर की ओर गति है']
   },
 
   lowMood: {
     ru: ['Сегодня тяжелее — это нормально','Ты держишься, и это важно','Разреши себе отдохнуть'],
     en: ['Today is harder — that\'s normal','You\'re holding on, and that matters','Give yourself permission to rest'],
     es: ['Hoy es más difícil — eso es normal','Te sostienes, y eso importa','Date permiso para descansar'],
-    uk: ['Сьогодні важче — це нормально','Ти тримаєшся, і це важливо','Дозволь собі відпочити']
+    uk: ['Сьогодні важче — це нормально','Ти тримаєшся, і це важливо','Дозволь собі відпочити'],
+    hi: ['आज कठिन है — यह सामान्य है','आप बने हुए हैं, और यह मायने रखता है','खुद को आराम करने की अनुमति दें']
   },
 
   returnPause: {
     ru: ['Рад, что ты вернулся после паузы','Снова здесь — это важно','Продолжаем с того места'],
     en: ['Glad you\'re back after a pause','Here again — that matters','Picking up where we left off'],
     es: ['Me alegra que hayas vuelto después de una pausa','Aquí de nuevo — eso importa','Continuamos desde donde quedamos'],
-    uk: ['Радий, що ти повернувся після паузи','Знову тут — це важливо','Продовжуємо з того місця']
+    uk: ['Радий, що ти повернувся після паузи','Знову тут — це важливо','Продовжуємо з того місця'],
+    hi: ['एक विराम के बाद वापस आने पर खुशी','फिर से यहां — यह मायने रखता है','जहां छोड़ा था वहां से जारी रखते हैं']
   },
 
   patternPositive: {
     ru: ['Похоже, ты нашёл что тебе помогает','Это важное наблюдение','Ты начинаешь понимать себя'],
     en: ['Looks like you found something that helps','This is an important observation','You\'re starting to understand yourself'],
     es: ['Parece que encontraste algo que te ayuda','Esta es una observación importante','Estás empezando a entenderte'],
-    uk: ['Схоже, ти знайшов що тобі допомагає','Це важливе спостереження','Ти починаєш розуміти себе']
+    uk: ['Схоже, ти знайшов що тобі допомагає','Це важливе спостереження','Ти починаєш розуміти себе'],
+    hi: ['ऐसा लगता है आपने कुछ खोज लिया जो मदद करता है','यह एक महत्वपूर्ण अवलोकन है','आप खुद को समझना शुरू कर रहे हैं']
   },
 
   patternNegative: {
     ru: ['Есть повторяющийся фактор — давай разберёмся','Интересная закономерность','Это стоит обдумать'],
     en: ['There\'s a repeating factor — let\'s figure it out','Interesting pattern','This is worth thinking about'],
     es: ['Hay un factor que se repite — analicemos','Patrón interesante','Esto vale la pena pensar'],
-    uk: ['Є повторюваний фактор — давай розберемося','Цікава закономірність','Це варто обдумати']
+    uk: ['Є повторюваний фактор — давай розберемося','Цікава закономірність','Це варто обдумати'],
+    hi: ['एक दोहरावदार कारक है — चलो समझते हैं','दिलचस्प पैटर्न','यह सोचने योग्य है']
   },
 
   actions: {
@@ -390,6 +443,7 @@ const MSG = {
     en: { low:[{label:'Breathe',action:'breathing'},{label:'Mind dump',action:'mind-dump'}], high:[{label:'Save this',action:'home'}] },
     es: { low:[{label:'Respirar',action:'breathing'},{label:'Vaciar mente',action:'mind-dump'}], high:[{label:'Guardar',action:'home'}] },
     uk: { low:[{label:'Подихати',action:'breathing'},{label:'Вивантажити',action:'mind-dump'}], high:[{label:'Зберегти',action:'home'}] },
+    hi: { low:[{label:'श्वास लें',action:'breathing'},{label:'मन खाली करें',action:'mind-dump'}], high:[{label:'सहेजें',action:'home'}] },
   },
 };
 

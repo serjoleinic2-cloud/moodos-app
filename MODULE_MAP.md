@@ -189,6 +189,8 @@ d:\moodos-app\
 - www/js/services/daily-snapshots.js
 - www/js/services/billing-service.js
 - www/js/services/drive-backup.js
+- www/js/services/storage-wrapper.js
+- www/js/services/userId.js
 
 ---
 
@@ -255,10 +257,18 @@ www/js/services/
 - resilience-engine.js
 - session-analytics.js
 - state-engine.js
+- storage-wrapper.js  # Cloud-ready abstraction
+- userId.js           # User identification
 - user-profile.js
 - voice-service.js
 - weekly-analytics.js
 - year-comparison.js
+
+## CLOUD
+www/js/cloud/
+- firebase-init.js
+- auth.js
+- cloud-sync.js
 
 ## I18N
 www/js/i18n/

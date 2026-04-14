@@ -14,6 +14,13 @@ import { startVoiceRecording } from "./ai/voice.js";
 import SystemCore from "./system-core.js";
 
 window.SystemCore = SystemCore;
+import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
+
+// Cloud restore callback (called from Android)
+window.onCloudData = function(data) {
+  restoreFromCloudIfEmpty(data);
+};
+
 import {
   getMoodHistory, getNotesHistory
 } from "./services/memory.js";
@@ -308,6 +315,10 @@ if (!window.__neyraAppRunning) {
     }
   });
 
+  function initCloudAuth() {
+    console.log('[Cloud] Auth disabled (native setup phase)');
+  }
+
   function startApp() {
     console.log('[APP] startApp called');
     
@@ -317,6 +328,8 @@ if (!window.__neyraAppRunning) {
     stateGovernance.enable();
     
     initBilling();
+    
+    initCloudAuth();
     
     initCheckpointRecovery();
     
@@ -414,6 +427,8 @@ if (!window.__neyraAppRunning) {
           const hasText = text && text.trim().length > 0;
           const hasEvents = events && events.length > 0;
           
+          console.log('[APP] confirmBtn | hasText:', hasText, '| hasEvents:', hasEvents, '| events:', events);
+          
           let insight;
           
           if (hasText) {
@@ -447,6 +462,9 @@ if (!window.__neyraAppRunning) {
           
           if (typeof clearEventsUI === 'function') {
             clearEventsUI();
+          } else {
+            const { clearSelectedEvents } = await import('./events.js');
+            clearSelectedEvents();
           }
           
         } catch (err) {

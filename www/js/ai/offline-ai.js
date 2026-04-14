@@ -448,6 +448,8 @@ function buildFollowUp(pattern) {
 
 // ---- SAFE GENERATE INSIGHT ----
 export async function safeGenerateInsight(payload) {
+  console.log('[INSIGHT PAYLOAD]', JSON.stringify(payload));
+  
   let resolved = false;
 
   const timeout = new Promise(resolve => {
@@ -489,10 +491,15 @@ function humanizePattern(pattern) {
 
 // ---- GENERATE INSIGHT (i18n-based) ----
 export function generateInsight(data) {
+  console.log('[INSIGHT TYPE]', data.type, '| text:', !!data.text, '| events:', data.events?.length);
+  
   // SAFETY: reflection type = HARD RETURN (no fallback)
   if (data.type === 'reflection' || (data.text && data.text.trim().length > 0)) {
+    console.log('[INSIGHT ROUTING] → generateReflectionInsight');
     return generateReflectionInsight(data);
   }
+  
+  console.log('[INSIGHT ROUTING] → generatePatternInsight');
 
   // Events only
   if (data.events && data.events.length) {
@@ -556,6 +563,8 @@ export function analyzeReflection(text) {
 }
 
 function generatePatternInsight({ mood, events = [] }) {
+  console.log('[PATTERN] generatePatternInsight called | mood:', mood, '| events:', events);
+  
   const moodLevel = getMoodLevel(mood);
   const recentHistory = getRecentHistory(14);
 

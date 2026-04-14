@@ -151,6 +151,11 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
+  const DEV_FORCE_PREMIUM = true;
+  if (DEV_FORCE_PREMIUM) {
+    console.log('[DEV] Premium forced ON');
+    return true;
+  }
   if (window._billingPremium === true) return true;
   if (window._billingInitializing) {
     const status = getPremiumStatus();
