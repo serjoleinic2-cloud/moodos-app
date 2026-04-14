@@ -8,8 +8,8 @@ Neyra is a mobile mood tracking & self-discovery app built with Vanilla JS + Cap
 - **Mobile**: Capacitor (Android/iOS WebView)
 - **Charts**: Chart.js
 - **PDF**: jsPDF
-- **Storage**: localStorage (with Google Drive backup)
-- **i18n**: 4 languages (ru, en, es, uk)
+- **Storage**: localStorage (with Firebase cloud backup)
+- **i18n**: 5 languages (ru, en, es, uk, hi)
 
 ## Project Structure
 
@@ -34,8 +34,8 @@ www/
 │   ├── core/              # Architectural layer (ARL)
 │   │   └── appRuntime.js # Global state management, event delegation helpers
 │   │
-│   ├── i18n/            # Translations (4 languages)
-│   │   ├── en.js, es.js, ru.js, uk.js
+│   ├── i18n/            # Translations (5 languages)
+│   │   ├── en.js, es.js, ru.js, uk.js, hi.js
 │   │
 │   ├── ai/              # AI services (offline-first)
 │   │   ├── offline-ai.js      # Text sentiment analysis
@@ -77,7 +77,8 @@ www/
 │       ├── voice-service.js    # Voice processing
 │       ├── daily-snapshots.js  # Daily mood snapshots
 │       ├── billing-service.js  # In-app purchases
-│       └── drive-backup.js     # Google Drive backup/restore
+│       ├── cloud-sync.js       # Firebase cloud sync (Android bridge)
+│       └── cloud-restore.js    # Firebase cloud restore
 ```
 
 ## Key Patterns
@@ -89,7 +90,7 @@ Screens are loaded via `navigation.js`. Each screen module exports `onEnter(cont
 Global state in `state.js` — `getMood()`, `setMood()`, `getAvatarState()`, `setAvatarState()`. Profile/premium in `user-profile.js`.
 
 ### i18n
-`t("key")` for translations. Languages: ru, en, es, uk. `setLang(code)` persists choice.
+`t("key")` for translations. Languages: ru, en, es, uk, hi. `setLang(code)` persists choice.
 
 ### Theme system
 Themes stored as `profile.colorTheme` in localStorage. Apply via `document.body.setAttribute("data-theme", theme)`. CSS uses `body[data-theme="..."]` selectors. Available themes: `default`, `purple-blue`, `purple-pink`, `ocean-blue` (premium), `warm-sunset` (premium).

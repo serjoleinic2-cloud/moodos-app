@@ -98,7 +98,7 @@ SYSTEM       navigation.js, state.js, system-core.js, i18n.js
 - Кастомные аудио-треки в медитации (до 5 штук)
 - Премиум темы оформления
 - Расширенная аналитика
-- Google Drive бэкап
+- Firebase Cloud бэкап
 
 ### При истечении entitlement (deactivateExpiredPremium)
 

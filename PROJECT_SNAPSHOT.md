@@ -34,14 +34,12 @@
 - `analytics.js` — stability, trend, golden hour
 - `user-profile.js` — premium, theme, language
 - `billing-service.js` — Google Play integration
-- `drive-backup.js` — Google Drive backup
-- `storage-wrapper.js` — cloud-ready abstraction
-- `userId.js` — user identification
+- `cloud-sync.js` — Firebase sync via Android bridge
+- `cloud-restore.js` — Firebase restore
 
-### Cloud (`cloud/`)
-- `firebase-init.js` — Firebase configuration
-- `auth.js` — Google Sign-In
-- `cloud-sync.js` — Firestore backup/restore
+### Cloud Services (`services/`)
+- `cloud-sync.js` — Firebase Firestore sync via Android bridge
+- `cloud-restore.js` — Firebase Firestore restore
 
 ---
 
@@ -172,6 +170,19 @@ if (data.type === 'events')
 
 ## 8. LAST COMPLETED TASKS
 
+### TASK 144-G — Firebase Android Bridge ✅
+**Date:** 2026-04-14
+**Status:** ✅ WORKING!
+- MainActivity: JavascriptInterface registered via onStart()/onResume()
+- FirebaseBridge: static nested class with Anonymous Auth
+- Collection: `test` (change to `user_data/{uid}` for production)
+- JS: window.Android.saveToCloud()
+
+### TASK 143 — Premium UX Fixes
+**Date:** 2026-04-14
+- Paywall: minimal screen without features list
+- Premium: features with icons and descriptions
+
 ### TASK 132 — Privacy Policy & User Consent
 **Date:** 2026-04-13
 - Created docs/PRIVACY.md (GDPR/CCPA compliant)
@@ -202,7 +213,7 @@ if (data.type === 'events')
 
 ## 10. I18N
 
-4 languages: ru, en, es, uk
+5 languages: ru, en, es, uk, hi
 Keys: `event_*`, `insight_*`, `pattern_*`, `reflection_*`, `time_*`, `privacy_*`, `cloud_*`
 
 ---
