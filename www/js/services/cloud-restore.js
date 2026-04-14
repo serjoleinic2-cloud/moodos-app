@@ -48,18 +48,42 @@ export function restoreFromCloud(data) {
 }
 
 export function hasLocalData() {
-  return !!(
-    localStorage.getItem("mood_history") ||
-    localStorage.getItem("notes_history") ||
-    localStorage.getItem("reflections")
-  );
+  return [
+    "mood_history",
+    "notes_history",
+    "reflections",
+    "voice_history",
+    "photo_history"
+  ].some(k => {
+    try {
+      const v = JSON.parse(localStorage.getItem(k) || "[]");
+      return Array.isArray(v) && v.length > 0;
+    } catch {
+      return false;
+    }
+  });
 }
 
 export function restoreFromCloudIfEmpty(data) {
+  if (!data) return false;
+
+  const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+  
+  // Time-based protection: skip if local is newer
+  const cloudTs = parsed.updatedAt || 0;
+  const localProfile = JSON.parse(localStorage.getItem("neyra_profile") || "{}");
+  const localTs = localProfile.updatedAt || 0;
+
+  if (localTs > cloudTs) {
+    console.warn('[RESTORE] Local newer → skip');
+    return false;
+  }
+
   if (hasLocalData()) {
     console.log('[CLOUD] Skip restore — local data exists');
     return false;
   }
+  
   restoreFromCloud(data);
   return true;
 }

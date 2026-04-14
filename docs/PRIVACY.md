@@ -50,6 +50,25 @@ The App may optionally store your data in the cloud using Firebase (Google LLC) 
 ### Third-party:
 - Firebase (Google LLC) may process data according to their Privacy Policy: https://policies.google.com/privacy
 
+### Cloud Storage (Premium)
+
+If you enable Premium features:
+
+- Your data may be stored in secure cloud storage (Firebase Firestore)
+- This includes:
+  - Mood history
+  - Reflections
+  - Notes
+  - Metadata (timestamps, patterns)
+
+Media files:
+- Photos and voice recordings are NOT stored in full resolution in the cloud
+- Only metadata or reduced data may be synced
+
+Data is associated with an anonymous user ID and is not publicly accessible.
+
+You can stop cloud sync at any time by disabling Premium features.
+
 ---
 
 ## 4. User Consent

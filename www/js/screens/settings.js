@@ -403,8 +403,10 @@ function bindEvents(el) {
   const getPremiumBtn = el.querySelector("#getPremiumBtn");
   if (getPremiumBtn) {
     getPremiumBtn.addEventListener("click", () => {
-      if (window.navigateTo) {
-        window.navigateTo("paywall");
+      if (window.openScreen) {
+        window.openScreen("paywall");
+      } else {
+        console.error("Navigation not ready");
       }
     });
   }

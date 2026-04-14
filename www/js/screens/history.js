@@ -45,6 +45,10 @@ function buildShareText(item) {
   if (item.type === "photo") {
     return `📷 ${t("hist_photo")}\n${item.note || t("hist_photo_mood")}\n📅 ${date} ${time}\n— Neyra`;
   }
+  if (item.type === "reflection") {
+    const moodText = item.mood ? ` (${item.mood}%)` : "";
+    return `📝 ${t("hist_reflection") || "Рефлексия"}${moodText}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— Neyra`;
+  }
   return null;
 }
 
@@ -261,6 +265,16 @@ function renderHistory(filterDate=null) {
     });
   });
 
+  container.querySelectorAll(".hist-share-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const ts = parseInt(btn.dataset.ts);
+      const type = btn.dataset.type;
+      const item = allItemsCache.find(i => i.ts === ts && i.type === type);
+      if (item) shareItem(item);
+    });
+  });
+
   // Аудиоплееры
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
     btn.addEventListener("click", e => {
@@ -368,6 +382,7 @@ function renderCard(item) {
   const time = formatTime(item.ts);
   const meta = SESSION_META();
   const delBtn = (type) => `<div class="hist-delete-btn" data-ts="${item.ts}" data-type="${type}" style="padding:6px 10px;border-radius:10px;background:rgba(224,85,85,0.1);color:#e05555;font-size:16px;cursor:pointer;flex-shrink:0;">🗑</div>`;
+  const shareBtn = (item) => `<div class="hist-share-btn" data-ts="${item.ts}" data-type="${item.type}" style="padding:6px 10px;border-radius:10px;background:rgba(76,175,135,0.1);color:#4caf87;font-size:16px;cursor:pointer;flex-shrink:0;">📤</div>`;
 
   if (item.type==="mood") {
     const col=moodColor(item.value), emo=moodEmoji(item.value);
@@ -452,7 +467,7 @@ function renderDetail(item, filterDate) {
   const container=document.getElementById("history-content");
   const meta=SESSION_META();
   const time=formatTime(item.ts), date=formatDate(item.ts);
-  const canShare = ["mood","note","session","photo"].includes(item.type);
+  const canShare = ["mood","note","session","photo","reflection"].includes(item.type);
   let body="";
 
   if (item.type==="mood") {

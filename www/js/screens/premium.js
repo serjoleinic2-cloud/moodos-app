@@ -6,12 +6,35 @@ import { getPremiumInfo } from "../services/user-profile.js";
 import { t } from "../i18n.js";
 
 export function onEnter() {
-  const container = document.getElementById("premium-content");
-  if (!container) return;
-  
-  container.innerHTML = renderPremium();
-  bindEvents();
+  console.log('[PREMIUM] onEnter called');
+  try {
+    const container = document.getElementById("premium-content");
+    if (!container) {
+      console.error('[PREMIUM] Container not found');
+      return;
+    }
+    
+    container.innerHTML = renderPremium();
+    bindEvents();
+    console.log('[PREMIUM] Rendered successfully');
+  } catch(e) {
+    console.error('[PREMIUM] Render error:', e);
+    const container = document.getElementById("premium-content");
+    if (container) {
+      container.innerHTML = `<div style="padding:40px;text-align:center;color:#e05555;">Error: ${e.message}</div>`;
+    }
+  }
 }
+
+const features = [
+  { icon: "☁️", title: "Облачное сохранение", desc: "Синхронизация между устройствами" },
+  { icon: "📊", title: "Полная история", desc: "Доступ к старым данным" },
+  { icon: "🧘", title: "Медитации", desc: "Расширенная библиотека практик" },
+  { icon: "🎵", title: "Музыка и звуки", desc: "Фоновые треки и атмосфера" },
+  { icon: "🎨", title: "Темы оформления", desc: "Цветовые схемы интерфейса" },
+  { icon: "📈", title: "Аналитика", desc: "Глубокий анализ состояния" },
+  { icon: "🔒", title: "Без рекламы", desc: "Чистый интерфейс" }
+];
 
 function renderPremium() {
   const premiumInfo = getPremiumInfo();
@@ -20,63 +43,63 @@ function renderPremium() {
   
   let statusText = "";
   if (premiumInfo.status === "premium") {
-    statusText = "👑 " + t("premium_status_active");
+    statusText = "👑 " + (t("premium_status_active") || "Активен");
   } else {
-    statusText = t("premium_status_free");
+    statusText = t("premium_status_free") || "Бесплатная версия";
   }
   
   return `
     <style>
       .premium-screen {
-        padding: var(--neyra-space-lg) var(--neyra-space-lg) 80px;
+        padding: 20px 16px 80px;
         text-align: center;
       }
       .premium-icon {
         font-size: 64px;
-        margin-bottom: var(--neyra-space-xl);
+        margin-bottom: 24px;
       }
       .premium-title {
-        font-size: var(--neyra-font-size-2xl);
-        font-weight: var(--neyra-font-weight-bold);
-        color: var(--neyra-color-text-primary);
-        margin-bottom: var(--neyra-space-xl);
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 24px;
       }
       .premium-features {
         text-align: left;
         background: rgba(232,237,230,0.9);
-        border-radius: var(--neyra-radius-xl);
-        padding: var(--neyra-space-lg);
-        margin-bottom: var(--neyra-space-xl);
-        box-shadow: var(--neyra-shadow-card);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
       }
       .premium-feature {
         display: flex;
         align-items: center;
-        padding: var(--neyra-space-md) 0;
+        padding: 12px 0;
         border-bottom: 1px solid rgba(0,0,0,0.05);
-        font-size: var(--neyra-font-size-base);
-        color: var(--neyra-color-text-secondary);
+        font-size: 14px;
+        color: #666;
       }
       .premium-feature:last-child {
         border-bottom: none;
       }
       .premium-feature-icon {
-        font-size: var(--neyra-font-size-xl);
-        margin-right: var(--neyra-space-md);
+        font-size: 20px;
+        margin-right: 12px;
         flex-shrink: 0;
       }
       .premium-btn {
         width: 100%;
-        padding: var(--neyra-space-lg);
+        padding: 16px;
         border: none;
-        border-radius: var(--neyra-radius-lg);
-        background: linear-gradient(145deg, var(--neyra-color-purple), #805ad5);
-        color: var(--neyra-color-text-inverse);
-        font-size: var(--neyra-font-size-md);
-        font-weight: var(--neyra-font-weight-bold);
+        border-radius: 14px;
+        background: linear-gradient(145deg, #9f7aea, #805ad5);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
         cursor: pointer;
-        box-shadow: var(--neyra-shadow-card);
-        transition: transform var(--neyra-transition-fast);
+        box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
+        transition: transform 0.15s;
       }
       .premium-btn:active {
         transform: scale(0.97);
@@ -87,24 +110,24 @@ function renderPremium() {
       }
       .premium-status-badge {
         display: inline-block;
-        padding: var(--neyra-space-sm) var(--neyra-space-lg);
-        border-radius: var(--neyra-radius-full);
-        font-size: var(--neyra-font-size-sm);
-        font-weight: var(--neyra-font-weight-semibold);
-        margin-bottom: var(--neyra-space-xl);
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 24px;
       }
       .premium-free .premium-status-badge {
         background: rgba(136,136,136,0.2);
         color: #888;
       }
       .premium-active .premium-status-badge {
-        background: var(--neyra-color-primary-light);
-        color: var(--neyra-color-primary);
+        background: rgba(76,175,135,0.2);
+        color: #4caf87;
       }
       .premium-desc {
-        font-size: var(--neyra-font-size-xs);
-        color: var(--neyra-color-text-muted);
-        margin-top: var(--neyra-space-xs);
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
       }
     </style>
     
@@ -114,55 +137,21 @@ function renderPremium() {
       <h2 class="premium-title">${t("premium_title")}</h2>
       
       <div class="premium-features">
-        <div class="premium-feature">
-          <span class="premium-feature-icon">🎨</span>
-          <span>${t("premium_feature_themes")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">🧘</span>
-          <div>
-            <span>${t("premium_feature_practices")}</span>
-            <div class="premium-desc">${t("premium_feature_practices_desc")}</div>
+        ${features.map(f => `
+          <div class="premium-feature">
+            <span class="premium-feature-icon">${f.icon}</span>
+            <div>
+              <div>${f.title}</div>
+              <div class="premium-desc">${f.desc}</div>
+            </div>
           </div>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">🎵</span>
-          <span>${t("premium_feature_custom_tracks")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">📊</span>
-          <span>${t("premium_feature_history")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">💡</span>
-          <span>${t("premium_feature_ai")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">☁️</span>
-          <span>${t("premium_feature_auto")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">🔄</span>
-          <span>${t("premium_feature_restore")}</span>
-        </div>
-        <div class="premium-feature">
-          <span class="premium-feature-icon">📅</span>
-          <div>
-            <span>${t("premium_feature_yearly")}</span>
-            <div class="premium-desc">${t("premium_feature_yearly_desc")}</div>
-          </div>
-        </div>
+        `).join("")}
       </div>
       
       ${!isActive ? `
         <button id="premiumBtn" class="premium-btn">
           ${t("premium_open_btn")}
         </button>
-        ${window.store ? `
-          <button id="restoreBtn" class="neyra-btn neyra-btn-ghost" style="margin-top: var(--neyra-space-sm);">
-            ${t("restore_purchases")}
-          </button>
-        ` : ""}
       ` : `
         <button id="premiumBtn" class="premium-btn" disabled>
           ✓ ${t("premium_unlimited")}
@@ -174,25 +163,17 @@ function renderPremium() {
 
 function bindEvents() {
   const btn = document.getElementById("premiumBtn");
-  const restoreBtn = document.getElementById("restoreBtn");
-  
   const premiumInfo = getPremiumInfo();
   
-  if (!premiumInfo.isPremium && btn) {
+  if (btn) {
     btn.addEventListener("click", () => {
-      if (window.navigateTo) {
-        window.navigateTo("paywall");
+      if (premiumInfo.isPremium) {
+        alert("У тебя уже активирован Premium");
+        return;
       }
-    });
-  }
-  
-  if (restoreBtn) {
-    restoreBtn.addEventListener("click", async () => {
-      try {
-        const { restorePurchases } = await import("../services/billing-service.js");
-        restorePurchases();
-      } catch(e) {
-        console.warn("restorePurchases not available:", e);
+
+      if (window.openScreen) {
+        window.openScreen("paywall");
       }
     });
   }

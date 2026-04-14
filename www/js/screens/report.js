@@ -94,7 +94,7 @@ function renderReport() {
   const periodLabel = currentPeriod > 3650 ? t("report_all_time") : `${currentPeriod} ${t("report_days")}`;
 
   let yearComparisonHTML = "";
-  if (isPremium()) {
+  if (window.isPremium && window.isPremium()) {
     const comparison = getYearComparison();
     if (comparison) {
       const arrow = comparison.trend === "up" ? "↑" : comparison.trend === "down" ? "↓" : "→";

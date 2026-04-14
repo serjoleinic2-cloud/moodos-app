@@ -169,6 +169,7 @@ const SystemCore = {
               ...payload
             })
           }
+          scheduleCloudSync()
           break
 
         case 'SAVE_REFLECTION':

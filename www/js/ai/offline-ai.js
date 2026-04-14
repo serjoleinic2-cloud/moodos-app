@@ -140,7 +140,9 @@ function mergePatterns(newPatterns) {
     }
   });
 
-  return Object.values(map);
+  return Object.values(map)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20);
 }
 
 function isRelevant(pattern, history) {

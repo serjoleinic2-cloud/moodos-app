@@ -151,18 +151,19 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  const DEV_FORCE_PREMIUM = true;
-  if (DEV_FORCE_PREMIUM) {
-    console.log('[DEV] Premium forced ON');
-    return true;
+  if (window.__internalPremium === true) return true;
+
+  const info = getPremiumInfo();
+
+  if (info?.isExpired) {
+    deactivateExpiredPremium();
+    return false;
   }
-  if (window._billingPremium === true) return true;
-  if (window._billingInitializing) {
-    const status = getPremiumStatus();
-    return status === "premium";
-  }
-  return false;
+
+  return info?.isPremium === true;
 }
+
+window.isPremium = isPremium;
 
 export function setBillingPremium(value) {
   window._billingPremium = value === true;

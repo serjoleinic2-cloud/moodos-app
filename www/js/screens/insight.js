@@ -549,7 +549,7 @@ export async function onEnter() {
 
   let yearComparisonHTML = '';
   if (selectedTimeRange === 'year') {
-    if (isPremium()) {
+    if (window.isPremium && window.isPremium()) {
       yearComparisonHTML = buildYearComparisonBlock();
     } else {
       yearComparisonHTML = 

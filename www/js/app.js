@@ -7,6 +7,10 @@ export function _trustedSetBillingPremium(val) {
   window.__NEYRA_SECURITY__.billingPremium = val === true;
 }
 
+// Cloud restore flags
+window._appReady = false;
+window._pendingCloudData = null;
+
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
@@ -18,7 +22,13 @@ import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
 
 // Cloud restore callback (called from Android)
 window.onCloudData = function(data) {
-  restoreFromCloudIfEmpty(data);
+  console.log('[CLOUD] DATA RECEIVED');
+
+  if (window._appReady) {
+    restoreFromCloudIfEmpty(data);
+  } else {
+    window._pendingCloudData = data;
+  }
 };
 
 import {
@@ -38,6 +48,9 @@ import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity 
 import { showPremiumModal } from "./premium-modal.js";
 import { safeGenerateInsight, generateInsight } from "./ai/offline-ai.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
+
+// Make isPremium globally accessible
+window.isPremium = isPremium;
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
@@ -68,9 +81,17 @@ if (!window.__neyraAppRunning) {
   }
 
   // ✅ TRUSTED SETTER на window
-  window._trustedSetBillingPremium = function(val) {
-    window.__NEYRA_SECURITY__.billingPremium = val === true;
+  window._trustedSetBillingPremium = function(value) {
+    console.log("[SECURITY] trusted premium set:", value);
+    window.__NEYRA_SECURITY__.billingPremium = value === true;
+    window.__internalPremium = value === true;
   };
+
+  // TEMP TEST MODE
+  window._billingPremium = true;
+  console.log("IS PREMIUM:", window.isPremium && window.isPremium());
+
+
 
   /* ---------- ИНСАЙТ ДНЯ ---------- */
   function buildDayInsight() {
@@ -545,6 +566,13 @@ if (!window.__neyraAppRunning) {
     
     initAvatar();
     console.log('[BOOT] startApp done');
+    
+    // Cloud restore: process pending data
+    window._appReady = true;
+    if (window._pendingCloudData) {
+      restoreFromCloudIfEmpty(window._pendingCloudData);
+      window._pendingCloudData = null;
+    }
   }
 
   window.addEventListener("resize", () => {

@@ -50,6 +50,7 @@ export function initNavigation() {
       if (module && module.onEnter) module.onEnter();
     } catch (err) {
       console.error(`[nav] loadScreen error for "${name}":`, err);
+      console.error(`[nav] Error stack:`, err.stack);
       delete loadedScreens[name];
       if (!loadScreen._retried) loadScreen._retried = new Set();
       if (!loadScreen._retried.has(name)) {
