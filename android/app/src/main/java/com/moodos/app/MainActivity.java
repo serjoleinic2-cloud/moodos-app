@@ -15,47 +15,67 @@ import java.util.Map;
 
 public class MainActivity extends BridgeActivity {
 
-    private WebView webView;
+    private static WebView sWebView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        android.util.Log.i("TAG", "=== ON CREATE START ===");
+        Log.i("TAG", "=== ON CREATE START ===");
         
         new android.os.Handler().postDelayed(() -> {
             try {
-                webView = getBridge().getWebView();
+                WebView webView = getBridge().getWebView();
                 
                 if (webView != null) {
+                    sWebView = webView;
                     webView.getSettings().setJavaScriptEnabled(true);
                     webView.addJavascriptInterface(new FirebaseBridge(), "Android");
-                    android.util.Log.i("TAG", "=== Android bridge registered ===");
+                    Log.i("TAG", "=== Android bridge registered ===");
+                    Log.i("TAG", "=== WebView: " + webView + " ===");
                 } else {
-                    android.util.Log.e("TAG", "WebView is null!");
+                    Log.e("TAG", "WebView is null!");
                 }
             } catch (Exception e) {
-                android.util.Log.e("TAG", "Error: " + e.getMessage());
+                Log.e("TAG", "Error: " + e.getMessage());
             }
-        }, 1000);
+        }, 2000);
         
-        android.util.Log.i("TAG", "=== ON CREATE END ===");
+        Log.i("TAG", "=== ON CREATE END ===");
     }
 
-    public class FirebaseBridge {
+    public static class FirebaseBridge {
+        
         @JavascriptInterface
         public void saveToCloud(String jsonData) {
             Log.d("FIREBASE", "BRIDGE CALLED: saveToCloud");
+            Log.d("FIREBASE", "WebView ref: " + sWebView);
             
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
-                Log.e("FIREBASE", "Not authenticated");
+                Log.e("FIREBASE", "Not authenticated - trying anonymous");
+                signInAndSave(jsonData);
                 return;
             }
             
             String uid = user.getUid();
             Log.d("FIREBASE", "UID: " + uid);
-            
+            saveToFirestore(uid, jsonData);
+        }
+        
+        private void signInAndSave(String jsonData) {
+            FirebaseAuth.getInstance().signInAnonymously()
+                .addOnSuccessListener(authResult -> {
+                    String uid = authResult.getUser().getUid();
+                    Log.d("FIREBASE", "Anonymous auth OK: " + uid);
+                    saveToFirestore(uid, jsonData);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FIREBASE", "Anonymous auth FAILED: " + e.getMessage());
+                });
+        }
+        
+        private void saveToFirestore(String uid, String jsonData) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             Map<String, Object> data = new HashMap<>();
             data.put("payload", jsonData);
