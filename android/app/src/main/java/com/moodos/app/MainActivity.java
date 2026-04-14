@@ -20,14 +20,14 @@ public class MainActivity extends BridgeActivity {
     private boolean bridgeRegistered = false;
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         Log.i("TAG", "=== onStart ===");
         registerBridge();
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         Log.i("TAG", "=== onResume ===");
         registerBridge();
@@ -60,16 +60,15 @@ public class MainActivity extends BridgeActivity {
                 Log.e("TAG", "Bridge is null!");
             }
         } catch (Exception e) {
-            Log.e("TAG", "Error: " + e.getMessage(), e);
+            Log.e("TAG", "Error: " + e.getMessage());
         }
     }
 
     public static class FirebaseBridge {
         
-        @android.webkit.JavascriptInterface
+        @JavascriptInterface
         public void saveToCloud(String jsonData) {
             Log.d("FIREBASE", "BRIDGE CALLED: saveToCloud");
-            Log.d("FIREBASE", "Data length: " + (jsonData != null ? jsonData.length() : 0));
             
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
