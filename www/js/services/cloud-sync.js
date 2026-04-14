@@ -1,96 +1,80 @@
 // =====================================
 // Neyra Cloud Sync Service
-// Syncs local data to Firebase via Capacitor Plugin
+// Android Bridge → Firebase Firestore
 // =====================================
 
-let _syncTimeout = null;
-
-function getVoiceHistory() {
+export async function syncToCloud(data) {
   try {
-    return JSON.parse(localStorage.getItem("voice_history") || "[]");
-  } catch {
-    return [];
+    if (!window.Android) {
+      console.warn('[CLOUD] Android bridge not available');
+      console.log('[CLOUD] window.Android:', window.Android);
+      return { success: false, error: 'no_bridge' };
+    }
+
+    window.Android.saveToCloud(JSON.stringify(data));
+    console.log('[CLOUD] Sent to Android bridge');
+    return { success: true };
+
+  } catch (error) {
+    console.error('[CLOUD] Error:', error);
+    return { success: false, error: error.message };
   }
 }
 
-function getPhotoHistory() {
-  try {
-    return JSON.parse(localStorage.getItem("photo_history") || "[]");
-  } catch {
-    return [];
-  }
+export async function loadFromCloud() {
+  console.log('[CLOUD] Load handled by MainActivity on startup');
+  return null;
 }
 
-export async function testFirebasePlugin() {
-  console.log('[CLOUD] Testing FirebasePlugin...');
-  
-  const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
-  if (!plugin) {
-    console.error('[CLOUD] FirebasePlugin NOT FOUND');
-    console.log('[CLOUD] Available plugins:', Object.keys(window.Capacitor?.Plugins || {}));
-    return;
-  }
-  
-  console.log('[CLOUD] FirebasePlugin found:', plugin);
-  
-  try {
-    const result = await plugin.saveToCloud({ data: 'test' });
-    console.log('[CLOUD] SUCCESS:', result);
-  } catch (e) {
-    console.error('[CLOUD] ERROR:', e);
-  }
+export async function mergeData(cloudData) {
+  if (!cloudData) return;
+
+  const keyMap = {
+    mood: 'mood_history',
+    notes: 'notes_history',
+    reflections: 'reflections_history',
+    voice: 'voice_history',
+    sessions: 'session_history'
+  };
+
+  Object.keys(cloudData).forEach(key => {
+    const storageKey = keyMap[key] || key;
+    if (cloudData[key]) {
+      try {
+        localStorage.setItem(storageKey, cloudData[key]);
+        console.log('[CLOUD] Merged:', storageKey);
+      } catch (e) {
+        console.warn('[CLOUD] Failed to merge:', storageKey, e);
+      }
+    }
+  });
+
+  console.log('[CLOUD] Merge complete');
 }
 
-export function syncToCloud() {
-  console.log('[CLOUD] syncToCloud called');
-
-  const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
-  if (!plugin?.saveToCloud) {
-    console.log('[CLOUD] FirebasePlugin not available');
-    return;
-  }
-
-  try {
-    const voiceHistory = getVoiceHistory().map(v => ({
-      ...v,
-      audio: null
-    }));
-
-    const photoHistory = getPhotoHistory().map(p => ({
-      ...p,
-      dataUrl: null
-    }));
-
-    const payload = {
-      mood_history: JSON.parse(localStorage.getItem("mood_history") || "[]"),
-      notes_history: JSON.parse(localStorage.getItem("notes_history") || "[]"),
-      reflections: JSON.parse(localStorage.getItem("reflections") || "[]"),
-      voice_history: voiceHistory,
-      photo_history: photoHistory,
-      practice_history: JSON.parse(localStorage.getItem("practice_history") || "[]"),
-      neyra_patterns: JSON.parse(localStorage.getItem("neyra_patterns") || "[]"),
-      profile: JSON.parse(localStorage.getItem("neyra_profile") || "{}"),
-      updatedAt: Date.now()
-    };
-
-    plugin.saveToCloud({ data: JSON.stringify(payload) })
-      .then(res => {
-        console.log('[CLOUD] FirebasePlugin.saveToCloud SUCCESS');
-      })
-      .catch(err => {
-        console.error('[CLOUD] FirebasePlugin.saveToCloud ERROR:', err);
-      });
-  } catch (e) {
-    console.error('[CLOUD ERROR]', e);
-  }
+export async function fullSync() {
+  const data = collectLocalData();
+  return await syncToCloud(data);
 }
 
-export function scheduleCloudSync() {
-  clearTimeout(_syncTimeout);
-  _syncTimeout = setTimeout(() => {
-    syncToCloud();
-  }, 2000);
+export function collectLocalData() {
+  return {
+    mood: localStorage.getItem('mood_history'),
+    notes: localStorage.getItem('notes_history'),
+    reflections: localStorage.getItem('reflections_history'),
+    voice: localStorage.getItem('voice_history'),
+    sessions: localStorage.getItem('session_history'),
+    profile: localStorage.getItem('user_profile'),
+    syncedAt: Date.now()
+  };
 }
 
-// TEST: Call this in browser console
-window.testFirebasePlugin = testFirebasePlugin;
+// Test function
+window.testAndroidBridge = function() {
+  console.log('Testing Android bridge...');
+  console.log('window.Android:', window.Android);
+  if (window.Android?.saveToCloud) {
+    window.Android.saveToCloud('test');
+    console.log('Called saveToCloud');
+  }
+};
