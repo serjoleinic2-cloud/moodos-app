@@ -22,6 +22,10 @@ function getPhotoHistory() {
 }
 
 export function syncToCloud() {
+  console.log('[CLOUD] syncToCloud called');
+  console.log('[CLOUD] window.Android:', window.Android);
+  console.log('[CLOUD] window.Android?.saveToCloud:', window.Android?.saveToCloud);
+  
   if (!window.Android?.saveToCloud) {
     console.log('[CLOUD] Bridge not available');
     return;
@@ -51,8 +55,9 @@ export function syncToCloud() {
       updatedAt: Date.now()
     };
 
+    console.log('[CLOUD] Calling Android.saveToCloud...');
     window.Android.saveToCloud(JSON.stringify(payload));
-    console.log('[CLOUD] Synced');
+    console.log('[CLOUD] Android.saveToCloud called successfully');
   } catch (e) {
     console.error('[CLOUD ERROR]', e);
   }
