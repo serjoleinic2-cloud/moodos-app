@@ -17,12 +17,12 @@ import java.util.Map;
 public class FirebasePlugin extends Plugin {
 
     @Override
-    protected void load() {
+    public void load() {
         super.load();
         Log.d("FIREBASE_PLUGIN", "LOADED");
-        Log.d("FIREBASE_PLUGIN", "Plugins: " + getBridge().getPlugins().keySet().toString());
     }
 
+    @SuppressWarnings("unused")
     @PluginMethod
     public void saveToCloud(PluginCall call) {
         Log.d("FIREBASE_PLUGIN", "CALLED");
