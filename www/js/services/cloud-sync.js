@@ -21,25 +21,23 @@ function getPhotoHistory() {
   }
 }
 
-export async function saveToCloud(data) {
+export async function testFirebasePlugin() {
+  console.log('[CLOUD] Testing FirebasePlugin...');
+  
+  const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
+  if (!plugin) {
+    console.error('[CLOUD] FirebasePlugin NOT FOUND');
+    console.log('[CLOUD] Available plugins:', Object.keys(window.Capacitor?.Plugins || {}));
+    return;
+  }
+  
+  console.log('[CLOUD] FirebasePlugin found:', plugin);
+  
   try {
-    const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
-
-    console.log("[CLOUD] Plugin:", plugin);
-
-    if (!plugin) {
-      console.error("[CLOUD] FirebasePlugin NOT FOUND");
-      return;
-    }
-
-    const res = await plugin.saveToCloud({
-      data: JSON.stringify(data)
-    });
-
-    console.log("[CLOUD] SUCCESS", res);
-
+    const result = await plugin.saveToCloud({ data: 'test' });
+    console.log('[CLOUD] SUCCESS:', result);
   } catch (e) {
-    console.error("[CLOUD] ERROR", e);
+    console.error('[CLOUD] ERROR:', e);
   }
 }
 
@@ -93,3 +91,6 @@ export function scheduleCloudSync() {
     syncToCloud();
   }, 2000);
 }
+
+// TEST: Call this in browser console
+window.testFirebasePlugin = testFirebasePlugin;
