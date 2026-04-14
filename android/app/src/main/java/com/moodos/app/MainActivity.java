@@ -1,16 +1,20 @@
 package com.moodos.app;
 
-import com.getcapacitor.BridgeActivity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+
+import com.getcapacitor.BridgeActivity;
+import com.moodos.app.FirebasePlugin;
 
 public class MainActivity extends BridgeActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("BRIDGE", "MainActivity onCreate");
-    }
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    registerPlugin(FirebasePlugin.class);
+
+    Log.d("BRIDGE", "MainActivity onCreate");
+    Log.d("BRIDGE", "FirebasePlugin registered");
+  }
 }

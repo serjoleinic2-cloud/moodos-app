@@ -1,9 +1,11 @@
 package com.moodos.app;
 
+import android.util.Log;
+
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.PluginMethod;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -13,27 +15,35 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebasePlugin")
 public class FirebasePlugin extends Plugin {
 
-    @PluginMethod
-    public void saveToCloud(PluginCall call) {
-        String payload = call.getString("data");
-        
-        android.util.Log.d("FIREBASE_PLUGIN", "saveToCloud called with data length: " + (payload != null ? payload.length() : 0));
+  @PluginMethod
+  public void saveToCloud(PluginCall call) {
+    Log.d("FIREBASE_PLUGIN", "saveToCloud CALLED");
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+    try {
+      String data = call.getString("data", "no-data");
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("payload", payload);
-        data.put("timestamp", System.currentTimeMillis());
+      Log.d("FIREBASE_PLUGIN", "DATA length: " + (data != null ? data.length() : 0));
 
-        db.collection("test")
-            .add(data)
-            .addOnSuccessListener(documentReference -> {
-                android.util.Log.d("FIREBASE_PLUGIN", "SAVE OK - doc: " + documentReference.getId());
-                call.resolve();
-            })
-            .addOnFailureListener(e -> {
-                android.util.Log.e("FIREBASE_PLUGIN", "SAVE ERROR: " + e.getMessage());
-                call.reject("ERROR", e);
-            });
+      FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+      Map<String, Object> map = new HashMap<>();
+      map.put("data", data);
+      map.put("timestamp", System.currentTimeMillis());
+
+      db.collection("test")
+        .add(map)
+        .addOnSuccessListener(doc -> {
+          Log.d("FIREBASE_PLUGIN", "SUCCESS WRITE - doc: " + doc.getId());
+          call.resolve();
+        })
+        .addOnFailureListener(e -> {
+          Log.e("FIREBASE_PLUGIN", "ERROR WRITE: " + e.getMessage());
+          call.reject(e.getMessage());
+        });
+
+    } catch (Exception e) {
+      Log.e("FIREBASE_PLUGIN", "EXCEPTION: " + e.getMessage());
+      call.reject("exception");
     }
+  }
 }

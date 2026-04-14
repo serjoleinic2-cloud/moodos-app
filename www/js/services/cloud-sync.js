@@ -21,11 +21,31 @@ function getPhotoHistory() {
   }
 }
 
+export async function saveToCloud(data) {
+  try {
+    const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
+
+    console.log("[CLOUD] Plugin:", plugin);
+
+    if (!plugin) {
+      console.error("[CLOUD] FirebasePlugin NOT FOUND");
+      return;
+    }
+
+    const res = await plugin.saveToCloud({
+      data: JSON.stringify(data)
+    });
+
+    console.log("[CLOUD] SUCCESS", res);
+
+  } catch (e) {
+    console.error("[CLOUD] ERROR", e);
+  }
+}
+
 export function syncToCloud() {
   console.log('[CLOUD] syncToCloud called');
-  console.log('[CLOUD] Capacitor.Plugins:', window.Capacitor?.Plugins);
-  console.log('[CLOUD] FirebasePlugin:', window.Capacitor?.Plugins?.FirebasePlugin);
-  
+
   const plugin = window.Capacitor?.Plugins?.FirebasePlugin;
   if (!plugin?.saveToCloud) {
     console.log('[CLOUD] FirebasePlugin not available');
@@ -55,13 +75,12 @@ export function syncToCloud() {
       updatedAt: Date.now()
     };
 
-    console.log('[CLOUD] Calling FirebasePlugin.saveToCloud...');
     plugin.saveToCloud({ data: JSON.stringify(payload) })
-      .then(() => {
-        console.log('[CLOUD] FirebasePlugin.saveToCloud resolved');
+      .then(res => {
+        console.log('[CLOUD] FirebasePlugin.saveToCloud SUCCESS');
       })
       .catch(err => {
-        console.error('[CLOUD] FirebasePlugin.saveToCloud error:', err);
+        console.error('[CLOUD] FirebasePlugin.saveToCloud ERROR:', err);
       });
   } catch (e) {
     console.error('[CLOUD ERROR]', e);
