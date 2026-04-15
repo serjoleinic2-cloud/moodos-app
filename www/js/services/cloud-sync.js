@@ -47,6 +47,16 @@ function sendToCloud(payload, retries = 2) {
   }
 }
 
+window._cloudSyncPending = null;
+
+export function setCloudSyncPending(data) {
+  window._cloudSyncPending = data;
+}
+
+export function getCloudSyncPending() {
+  return window._cloudSyncPending;
+}
+
 export async function loadFromCloud() {
   return null;
 }

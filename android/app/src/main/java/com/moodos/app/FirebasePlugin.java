@@ -49,6 +49,8 @@ public class FirebasePlugin extends Plugin {
 
             db.collection("neyra_users")
                 .document(uid)
+                .collection("core")
+                .document("main")
                 .set(map)
                 .addOnSuccessListener(v -> {
                     Log.d("FIREBASE_PLUGIN", "SUCCESS WRITE");
