@@ -2,3 +2,12 @@ node_modules
 dist
 build
 .env
+
+# Sensitive - Android
+google-services.json
+*.keystore
+*.jks
+
+# Sensitive - Credentials
+credentials.json
+config.prod.js
