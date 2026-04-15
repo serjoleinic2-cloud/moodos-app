@@ -19,6 +19,9 @@ public class MainActivity extends BridgeActivity {
 
     private WebView webView;
     private boolean bridgeRegistered = false;
+    private FirebaseBridge firebaseBridge = null;
+    private long lastSyncTime = 0;
+    private static final long SYNC_THROTTLE_MS = 2000;
 
     @Override
     public void onStart() {
@@ -32,6 +35,14 @@ public class MainActivity extends BridgeActivity {
         super.onResume();
         Log.i("TAG", "=== onResume ===");
         registerBridge();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.i("TAG", "=== onDestroy ===");
+        bridgeRegistered = false;
+        firebaseBridge = null;
+        super.onDestroy();
     }
 
     private void registerBridge() {
@@ -51,7 +62,8 @@ public class MainActivity extends BridgeActivity {
                 if (webView != null) {
                     Log.i("TAG", "WebView found: " + webView);
                     webView.getSettings().setJavaScriptEnabled(true);
-                    webView.addJavascriptInterface(new FirebaseBridge(), "Android");
+                    firebaseBridge = new FirebaseBridge();
+                    webView.addJavascriptInterface(firebaseBridge, "Android");
                     bridgeRegistered = true;
                     Log.i("TAG", "=== Android bridge REGISTERED ===");
                 } else {
@@ -65,7 +77,7 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    public static class FirebaseBridge {
+    public class FirebaseBridge {
         
         @JavascriptInterface
         public void saveToCloud(String jsonData) {
@@ -110,6 +122,13 @@ public class MainActivity extends BridgeActivity {
         }
         
         private void saveToFirestore(String uid, String jsonData) {
+            long now = System.currentTimeMillis();
+            if (now - lastSyncTime < SYNC_THROTTLE_MS) {
+                Log.d("FIREBASE", "Sync throttled");
+                return;
+            }
+            lastSyncTime = now;
+            
             if (uid == null || uid.isEmpty()) {
                 Log.e("FIREBASE", "NO UID — ABORT SAVE");
                 return;
@@ -127,7 +146,10 @@ public class MainActivity extends BridgeActivity {
                 .document("main")
                 .set(data)
                 .addOnSuccessListener(v -> Log.d("FIREBASE", "SAVE OK"))
-                .addOnFailureListener(e -> Log.e("FIREBASE", "SAVE ERROR: " + e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e("FIREBASE", "SAVE ERROR: " + e.getMessage());
+                    lastSyncTime = 0;
+                });
         }
 
         private void loadFromFirestore(String uid, String callback) {
@@ -147,39 +169,83 @@ public class MainActivity extends BridgeActivity {
                     if (doc.exists() && doc.contains("payload")) {
                         String payload = doc.getString("payload");
                         Log.d("FIREBASE", "LOAD OK");
-                        sendCloudDataToJS(callback, payload);
+                        if (webView != null) {
+                            sendCloudDataToJS(callback, payload);
+                        }
                     } else {
                         Log.d("FIREBASE", "No data found");
-                        sendCloudDataToJS(callback, null);
+                        if (webView != null) {
+                            sendCloudDataToJS(callback, null);
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("FIREBASE", "LOAD ERROR: " + e.getMessage());
-                    sendCloudDataToJS(callback, null);
+                    if (webView != null) {
+                        sendCloudDataToJS(callback, null);
+                    }
                 });
         }
 
         private void sendCloudDataToJS(String callback, String data) {
             if (callback == null || callback.isEmpty()) return;
+            if (webView == null) return;
             
             webView.post(() -> {
-                String js = callback + "(" + (data != null ? data : "null") + ")";
-                webView.evaluateJavascript(js, null);
+                if (webView == null) return;
+                try {
+                    String jsonData = data != null ? data : "null";
+                    String escaped = jsonData
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                        .replace("\t", "\\t");
+                    String js = callback + "(\"" + escaped + "\")";
+                    webView.evaluateJavascript(js, null);
+                } catch (Exception e) {
+                    Log.e("FIREBASE", "JS call error: " + e.getMessage());
+                }
             });
         }
 
         private void sendCloudDataWithRetry(String data, int retries) {
             if (retries <= 0) return;
+            if (data == null || data.isEmpty()) return;
+            if (webView == null) return;
 
-            webView.post(() -> webView.evaluateJavascript(
-                "if (window.onCloudData) { window.onCloudData(" + data + "); } else { 'NO_HANDLER'; }",
-                value -> {
-                    if (value != null && value.contains("NO_HANDLER")) {
-                        new Handler().postDelayed(() -> 
-                            sendCloudDataWithRetry(data, retries - 1), 300);
-                    }
+            webView.post(() -> {
+                if (webView == null) return;
+                try {
+                    String escaped = data
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                        .replace("\t", "\\t");
+                    webView.evaluateJavascript(
+                        "if (window.onCloudData && window._appReady) { window.onCloudData(\"" + escaped + "\"); } else { 'NOT_READY'; }",
+                        value -> {
+                            if (value != null && value.contains("NOT_READY")) {
+                                Log.d("FIREBASE", "JS not ready, scheduling retry");
+                                new Handler().postDelayed(() -> 
+                                    sendCloudDataWithRetry(data, retries - 1), 500);
+                            }
+                        }
+                    );
+                } catch (Exception e) {
+                    Log.e("FIREBASE", "JS retry error: " + e.getMessage());
                 }
-            ));
+            });
+        }
+
+        @Override
+        public void onTrimMemory(int level) {
+            super.onTrimMemory(level);
+            if (level >= TRIM_MEMORY_MODERATE && webView != null) {
+                Log.i("TAG", "WebView memory pressure - clearing cache");
+                webView.clearCache(true);
+            }
         }
 
         @JavascriptInterface

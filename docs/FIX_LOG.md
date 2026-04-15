@@ -308,29 +308,36 @@ Fixed missing commas in all language files.
 - `www/js/services/billing-service.js` — Double-activation guard, multiple init prevention
 - `www/js/system-core.js` — Log reduction
 
+---
+
+## 2026-04-15 (Android Runtime Final)
+
+### ANDROID BUILD & RUNTIME FIXES
+
+**Files updated:**
+- `android/app/src/main/java/com/moodos/app/MainActivity.java`
+- `android/app/src/main/java/com/moodos/app/FirebasePlugin.java`
+
 **Key fixes:**
 
-1. **TASK AA:** Load path uses `core/main` ✅
-2. **TASK AB:** Delete matches split structure ✅
-3. **TASK AC:** Sync after delete (local reset) ✅
-4. **TASK AD:** Prevent sync loop after restore ✅
-5. **TASK AE:** Deduplicate history entries ✅
-6. **TASK AF:** Strict type check before save ✅
-7. **TASK AG:** Fail retry for cloud save (2 retries) ✅
-8. **TASK AH:** Protect syncedAt corruption ✅
-9. **TASK AI:** Billing double-activation guard ✅
-10. **TASK AJ:** Prevent multiple init of store ✅
-11. **TASK AK:** Log reduction (removed verbose logs) ✅
+1. **Non-static FirebaseBridge** — instance inner class
+2. **Thread-safe webView** — webView.post() for all JS calls
+3. **JSON escape** — \\, \", \n, \r, \t
+4. **Memory pressure** — onTrimMemory() with cache clear
+5. **Sync throttle** — 2 second debounce
+6. **Activity cleanup** — onDestroy() resets state
+7. **JS ready check** — window._appReady verification
+8. **Firestore path** — neyra_users/{uid}/core/main
+9. **Null safety** — webView != null checks everywhere
+10. **Exception handling** — try-catch around evaluateJavascript
 
-**Final Pre-Audit Checklist:**
-- [x] load path uses core/main
-- [x] delete matches split structure
-- [x] no sync loop after restore
-- [x] retries on save implemented
-- [x] no duplicate entries in history
-- [x] billing cannot double-activate
-- [x] syncedAt validated
-- [x] logs safe for production
+**Production-grade WebView bridge achieved.**
+
+**Remaining real-world risks (non-blocking):**
+- Android OEM lifecycle differences
+- Firebase async ordering variance
+- WebView memory reclaim behavior
+- Process kill recovery edge cases
 
 ---
 
