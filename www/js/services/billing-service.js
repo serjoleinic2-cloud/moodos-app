@@ -74,7 +74,7 @@ export async function verifyPurchaseWithServer(token) {
     return { valid: false };
   }
 
-  return { valid: true }; // MVP fallback
+  return { valid: false };
 }
 
 function onOwned(product) {

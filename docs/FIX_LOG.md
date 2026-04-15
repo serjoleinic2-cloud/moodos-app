@@ -4,6 +4,53 @@ Quick reference for recent fixes.
 
 ---
 
+## 2026-04-15
+
+### TASK CRITICAL 1-10 — Firebase Security & Premium Fixes
+
+**Files updated:**
+- `android/app/src/main/java/com/moodos/app/MainActivity.java` — Full user isolation
+- `android/app/src/main/java/com/moodos/app/FirebasePlugin.java` — User isolation
+- `firestore.rules` — Secure rules for neyra_users collection
+- `www/js/cloud/cloud-sync.js` — safeMerge with timestamp, fixed keys
+- `www/js/services/cloud-restore.js` — Fixed key names
+- `www/js/app.js` — Removed test hacks
+- `www/js/screens/paywall.js` — Real billing call
+- `www/js/services/billing-service.js` — verifyPurchaseWithServer returns false
+- `www/js/services/user-profile.js` — Premium expiration (30 days)
+- `www/js/services/memory.js` — Storage limits + safeParse
+- `www/js/ai/offline-ai.js` — AI patterns TTL (30 days)
+
+**Key fixes:**
+
+1. **Firebase User Isolation:**
+   - `collection("test")` → `collection("neyra_users").document(uid)`
+   - Rules: `request.auth.uid == userId`
+
+2. **Cloud Sync:**
+   - Deleted duplicate `services/cloud-sync.js`
+   - Fixed key: `reflections: 'reflections'` (not 'reflections_history')
+   - Added `safeMerge()` with timestamp check
+
+3. **Premium Security:**
+   - Removed `window._billingPremium = true`
+   - Removed `window._trustedSetBillingPremium` hack
+   - `verifyPurchaseWithServer` returns `{ valid: false }`
+   - Paywall calls real `billing-service.js`
+
+4. **Storage:**
+   - Added MAX limits: session_history (100), activity_history (100)
+   - Added safeParse for JSON errors
+   - Added AI patterns TTL (30 days)
+
+5. **Android Bridge:**
+   - Added loadFromCloud + retry logic in MainActivity
+
+**Files deleted:**
+- `www/js/services/cloud-sync.js`
+
+---
+
 ## 2026-04-13
 
 ### TASK 132 — Privacy Policy & User Consent

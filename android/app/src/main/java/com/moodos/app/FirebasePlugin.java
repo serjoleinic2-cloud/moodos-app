@@ -9,6 +9,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.JSObject;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,19 +33,26 @@ public class FirebasePlugin extends Plugin {
             String data = call.getString("data", "no-data");
             Log.d("FIREBASE_PLUGIN", "DATA length: " + (data != null ? data.length() : 0));
 
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Log.e("FIREBASE_PLUGIN", "Not authenticated");
+                call.reject("not_authenticated");
+                return;
+            }
+
+            String uid = user.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             Map<String, Object> map = new HashMap<>();
-            map.put("data", data);
-            map.put("timestamp", System.currentTimeMillis());
+            map.put("payload", data);
+            map.put("updatedAt", System.currentTimeMillis());
 
-            db.collection("test")
-                .add(map)
-                .addOnSuccessListener(doc -> {
-                    Log.d("FIREBASE_PLUGIN", "SUCCESS WRITE - doc: " + doc.getId());
-                    JSObject result = new JSObject();
-                    result.put("id", doc.getId());
-                    call.resolve(result);
+            db.collection("neyra_users")
+                .document(uid)
+                .set(map)
+                .addOnSuccessListener(v -> {
+                    Log.d("FIREBASE_PLUGIN", "SUCCESS WRITE");
+                    call.resolve();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("FIREBASE_PLUGIN", "ERROR: " + e.getMessage());

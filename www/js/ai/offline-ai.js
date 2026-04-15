@@ -116,12 +116,18 @@ function getEventKey(events) {
 }
 
 function savePatterns(patterns) {
-  localStorage.setItem('neyra_patterns', JSON.stringify(patterns));
+  const TTL = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const filtered = patterns.filter(p => now - (p.updatedAt || 0) < TTL);
+  localStorage.setItem('neyra_patterns', JSON.stringify(filtered));
 }
 
 function getStoredPatterns() {
+  const TTL = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
   try {
-    return JSON.parse(localStorage.getItem('neyra_patterns') || '[]');
+    const patterns = JSON.parse(localStorage.getItem('neyra_patterns') || '[]');
+    return patterns.filter(p => now - (p.updatedAt || 0) < TTL);
   } catch(e) {
     return [];
   }

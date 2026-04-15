@@ -86,12 +86,28 @@ export async function mergeData(cloudData) {
   const keyMap = {
     mood: 'mood_history',
     notes: 'notes_history',
-    reflections: 'reflections_history',
+    reflections: 'reflections',
     voice: 'voice_history',
     sessions: 'session_history'
   };
   
+  safeMerge(cloudData, keyMap);
+  
+  console.log('[CLOUD] Merge complete');
+}
+
+export function safeMerge(cloudData, keyMap) {
+  const localSyncedAt = parseInt(localStorage.getItem('syncedAt') || '0', 10);
+  const cloudSyncedAt = cloudData.syncedAt || 0;
+
+  if (cloudSyncedAt <= localSyncedAt) {
+    console.log('[CLOUD] Skip merge — local newer');
+    return;
+  }
+
   Object.keys(cloudData).forEach(key => {
+    if (key === 'syncedAt') return;
+
     const storageKey = keyMap[key] || key;
     if (cloudData[key]) {
       try {
@@ -102,8 +118,8 @@ export async function mergeData(cloudData) {
       }
     }
   });
-  
-  console.log('[CLOUD] Merge complete');
+
+  localStorage.setItem('syncedAt', cloudSyncedAt);
 }
 
 export async function fullSync() {
@@ -126,7 +142,7 @@ export function collectLocalData() {
   return {
     mood: localStorage.getItem('mood_history'),
     notes: localStorage.getItem('notes_history'),
-    reflections: localStorage.getItem('reflections_history'),
+    reflections: localStorage.getItem('reflections'),
     voice: localStorage.getItem('voice_history'),
     sessions: localStorage.getItem('session_history'),
     profile: localStorage.getItem('user_profile'),

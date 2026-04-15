@@ -52,20 +52,12 @@ function bindEvents() {
   const backBtn = document.getElementById("backBtn");
 
   if (buyBtn) {
-    buyBtn.addEventListener("click", () => {
-      alert("TEST: Premium активирован");
-      if (window._trustedSetBillingPremium) {
-        window._trustedSetBillingPremium(true);
-      } else {
-        console.warn("trusted premium setter not found");
-      }
-
-      setTimeout(() => {
-        console.log("Premium status after activation:", window.isPremium && window.isPremium());
-      }, 300);
-
-      if (window.openScreen) {
-        window.openScreen("premium");
+    buyBtn.addEventListener("click", async () => {
+      try {
+        const { buyMonthly } = await import("../services/billing-service.js");
+        await buyMonthly();
+      } catch (e) {
+        console.error('[PAYWALL] Buy error:', e);
       }
     });
   }

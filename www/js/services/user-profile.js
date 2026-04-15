@@ -172,10 +172,12 @@ export function setBillingPremium(value) {
 export function activatePremiumPaid() {
   try {
     const profile = getProfile() || {};
+    const now = Date.now();
 
     profile.premium = true;
     profile.premium_type = "paid";
-    profile.premium_since = Date.now();
+    profile.premium_since = now;
+    profile.premiumExpiresAt = now + 30 * 24 * 60 * 60 * 1000;
 
     saveProfile(profile);
 

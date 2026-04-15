@@ -192,7 +192,21 @@ export function getSessionHistory() {
   }
 }
 
+function safeParse(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || [];
+  } catch (e) {
+    console.warn('Parse fail', key);
+    localStorage.removeItem(key);
+    return [];
+  }
+}
+
 export function saveSessionHistory(history) {
+  const MAX_SESSIONS = 100;
+  if (history.length > MAX_SESSIONS) {
+    history = history.slice(-MAX_SESSIONS);
+  }
   try {
     localStorage.setItem("session_history", JSON.stringify(history));
   } catch(e) {
@@ -214,11 +228,16 @@ export function addSessionEntry(entry) {
 
 /* ---------- ACTIVITY HISTORY ---------- */
 
+const MAX_ACTIVITY = 100;
+
 export function getActivityHistory() {
-  return JSON.parse(localStorage.getItem("activity_history")) || [];
+  return safeParse("activity_history");
 }
 
 export function saveActivityHistory(history) {
+  if (history.length > MAX_ACTIVITY) {
+    history = history.slice(-MAX_ACTIVITY);
+  }
   localStorage.setItem("activity_history", JSON.stringify(history));
 }
 

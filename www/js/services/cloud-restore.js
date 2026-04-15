@@ -53,7 +53,8 @@ export function hasLocalData() {
     "notes_history",
     "reflections",
     "voice_history",
-    "photo_history"
+    "photo_history",
+    "session_history"
   ].some(k => {
     try {
       const v = JSON.parse(localStorage.getItem(k) || "[]");

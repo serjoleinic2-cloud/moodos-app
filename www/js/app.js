@@ -68,29 +68,6 @@ if (!window.__neyraAppRunning) {
     billingPremium: false
   };
 
-  // ❗ defineProperty ТОЛЬКО ОДИН РАЗ
-  if (!Object.getOwnPropertyDescriptor(window, '_billingPremium')) {
-    Object.defineProperty(window, '_billingPremium', {
-      get: () => window.__NEYRA_SECURITY__.billingPremium,
-      set: () => {
-        console.warn('[SECURITY] BLOCKED direct write to _billingPremium');
-      },
-      configurable: false
-    });
-    console.log('[SECURITY] billingPremium LOCKED');
-  }
-
-  // ✅ TRUSTED SETTER на window
-  window._trustedSetBillingPremium = function(value) {
-    console.log("[SECURITY] trusted premium set:", value);
-    window.__NEYRA_SECURITY__.billingPremium = value === true;
-    window.__internalPremium = value === true;
-  };
-
-  // TEMP TEST MODE
-  window._billingPremium = true;
-  console.log("IS PREMIUM:", window.isPremium && window.isPremium());
-
 
 
   /* ---------- ИНСАЙТ ДНЯ ---------- */

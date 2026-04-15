@@ -1,6 +1,7 @@
 package com.moodos.app;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.JavascriptInterface;
@@ -81,6 +82,20 @@ public class MainActivity extends BridgeActivity {
             Log.d("FIREBASE", "UID: " + uid);
             saveToFirestore(uid, jsonData);
         }
+
+        @JavascriptInterface
+        public void loadFromCloud(String callback) {
+            Log.d("FIREBASE", "BRIDGE CALLED: loadFromCloud");
+            
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Log.e("FIREBASE", "Not authenticated");
+                return;
+            }
+            
+            String uid = user.getUid();
+            loadFromFirestore(uid, callback);
+        }
         
         private void signInAndSave(String jsonData) {
             FirebaseAuth.getInstance().signInAnonymously()
@@ -95,19 +110,72 @@ public class MainActivity extends BridgeActivity {
         }
         
         private void saveToFirestore(String uid, String jsonData) {
+            if (uid == null || uid.isEmpty()) {
+                Log.e("FIREBASE", "NO UID — ABORT SAVE");
+                return;
+            }
+
             FirebaseFirestore db = FirebaseFirestore.getInstance();
+
             Map<String, Object> data = new HashMap<>();
             data.put("payload", jsonData);
-            data.put("timestamp", System.currentTimeMillis());
-            
-            db.collection("test")
-                .add(data)
+            data.put("updatedAt", System.currentTimeMillis());
+
+            db.collection("neyra_users")
+                .document(uid)
+                .set(data)
+                .addOnSuccessListener(v -> Log.d("FIREBASE", "SAVE OK"))
+                .addOnFailureListener(e -> Log.e("FIREBASE", "SAVE ERROR: " + e.getMessage()));
+        }
+
+        private void loadFromFirestore(String uid, String callback) {
+            if (uid == null || uid.isEmpty()) {
+                Log.e("FIREBASE", "NO UID — ABORT LOAD");
+                return;
+            }
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("neyra_users")
+                .document(uid)
+                .get()
                 .addOnSuccessListener(doc -> {
-                    Log.d("FIREBASE", "BRIDGE SAVE OK - doc: " + doc.getId());
+                    if (doc.exists() && doc.contains("payload")) {
+                        String payload = doc.getString("payload");
+                        Log.d("FIREBASE", "LOAD OK");
+                        sendCloudDataToJS(callback, payload);
+                    } else {
+                        Log.d("FIREBASE", "No data found");
+                        sendCloudDataToJS(callback, null);
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("FIREBASE", "BRIDGE SAVE ERROR: " + e.getMessage());
+                    Log.e("FIREBASE", "LOAD ERROR: " + e.getMessage());
+                    sendCloudDataToJS(callback, null);
                 });
+        }
+
+        private void sendCloudDataToJS(String callback, String data) {
+            if (callback == null || callback.isEmpty()) return;
+            
+            webView.post(() -> {
+                String js = callback + "(" + (data != null ? data : "null") + ")";
+                webView.evaluateJavascript(js, null);
+            });
+        }
+
+        private void sendCloudDataWithRetry(String data, int retries) {
+            if (retries <= 0) return;
+
+            webView.post(() -> webView.evaluateJavascript(
+                "if (window.onCloudData) { window.onCloudData(" + data + "); } else { 'NO_HANDLER'; }",
+                value -> {
+                    if (value != null && value.contains("NO_HANDLER")) {
+                        new Handler().postDelayed(() -> 
+                            sendCloudDataWithRetry(data, retries - 1), 300);
+                    }
+                }
+            ));
         }
     }
 }
