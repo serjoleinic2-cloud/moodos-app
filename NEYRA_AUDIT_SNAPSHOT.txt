@@ -1,0 +1,2931 @@
+NEYRA APP — AUDIT SNAPSHOT
+Date: 2026-04-14
+Platform: Android WebView + Firebase
+State:
+- Cloud Sync: ENABLED
+- Firebase Auth: Anonymous
+- Premium: TEST MODE
+- Offline AI: ENABLED
+
+=======================
+FILE: www/js/app.js
+=======================
+// app.js — Neyra boot
+// ⚠️ IMPORTS ДОЛЖНЫ быть в начале файла (ES modules requirement)
+
+// ✅ Export для импорта из других модулей
+export function _trustedSetBillingPremium(val) {
+  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || { billingPremium: false };
+  window.__NEYRA_SECURITY__.billingPremium = val === true;
+}
+
+// Cloud restore flags
+window._appReady = false;
+window._pendingCloudData = null;
+
+import { initNavigation } from "./navigation.js";
+import { initUI } from "./ui-controller.js";
+import { analyzeText } from "./ai/offline-ai.js";
+import { startVoiceRecording } from "./ai/voice.js";
+import SystemCore from "./system-core.js";
+
+window.SystemCore = SystemCore;
+import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
+
+// Cloud restore callback (called from Android)
+window.onCloudData = function(data) {
+  console.log('[CLOUD] DATA RECEIVED');
+
+  if (window._appReady) {
+    restoreFromCloudIfEmpty(data);
+  } else {
+    window._pendingCloudData = data;
+  }
+};
+
+import {
+  getMoodHistory, getNotesHistory
+} from "./services/memory.js";
+import {
+  calculateStabilityScore, calculateTrend, calculateGoldenHour
+} from "./services/analytics.js";
+import {
+  initState, getUsageDays, getMood, setMood, getAvatarState, setAvatarState
+} from "./state.js";
+import { isOnboardingDone, canMakeGeminiRequest, incrementGeminiCounter, getTheme, applyTheme } from "./services/user-profile.js";
+import { initOnboarding } from "./onboarding.js";
+import { t, getDaysLabel, getLang, setLang } from "./i18n.js";
+import { getSelectedEvents } from "./events.js";
+import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
+import { showPremiumModal } from "./premium-modal.js";
+import { safeGenerateInsight, generateInsight } from "./ai/offline-ai.js";
+import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
+
+// Make isPremium globally accessible
+window.isPremium = isPremium;
+import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
+import { refreshBilling, initBilling } from "./services/billing-service.js";
+import { stateGovernance } from "./core/state-governance.js";
+import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
+import { runReconciliation } from "./core/state-execution-engine.js";
+
+// =====================================
+// 🛡️ MULTI INIT GUARD
+// =====================================
+if (!window.__neyraAppRunning) {
+  window.__neyraAppRunning = true;
+
+  // 🔐 GLOBAL SINGLETON STORAGE
+  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || {
+    billingPremium: false
+  };
+
+  // ❗ defineProperty ТОЛЬКО ОДИН РАЗ
+  if (!Object.getOwnPropertyDescriptor(window, '_billingPremium')) {
+    Object.defineProperty(window, '_billingPremium', {
+      get: () => window.__NEYRA_SECURITY__.billingPremium,
+      set: () => {
+        console.warn('[SECURITY] BLOCKED direct write to _billingPremium');
+      },
+      configurable: false
+    });
+    console.log('[SECURITY] billingPremium LOCKED');
+  }
+
+  // ✅ TRUSTED SETTER на window
+  window._trustedSetBillingPremium = function(value) {
+    console.log("[SECURITY] trusted premium set:", value);
+    window.__NEYRA_SECURITY__.billingPremium = value === true;
+    window.__internalPremium = value === true;
+  };
+
+  // TEMP TEST MODE
+  window._billingPremium = true;
+  console.log("IS PREMIUM:", window.isPremium && window.isPremium());
+
+
+
+  /* ---------- ИНСАЙТ ДНЯ ---------- */
+  function buildDayInsight() {
+    const today = new Date();
+    const todayStr = today.toDateString();
+    const moodHistory = getMoodHistory();
+    const notesHistory = getNotesHistory();
+    const todayMoods = moodHistory.filter(h => new Date(h.time).toDateString() === todayStr);
+    const todayNotes = notesHistory.filter(n => new Date(n.time || n.timestamp).toDateString() === todayStr);
+
+    if (todayMoods.length === 0 && todayNotes.length === 0) return t("insight_first");
+
+    const parts = [];
+    const total = todayMoods.length + todayNotes.length;
+    if (total === 1) parts.push(t("insight_entries_1"));
+    else parts.push(t("insight_entries_many").replace("{n}", total));
+
+    if (todayMoods.length >= 2) {
+      const first = todayMoods[0].value;
+      const last  = todayMoods[todayMoods.length - 1].value;
+      const diff  = last - first;
+      if (diff > 5)       parts.push(t("insight_mood_up").replace("{a}", first).replace("{b}", last));
+      else if (diff < -5) parts.push(t("insight_mood_down").replace("{a}", first).replace("{b}", last));
+      else                parts.push(t("insight_mood_stable").replace("{v}", last));
+    } else if (todayMoods.length === 1) {
+      parts.push(t("insight_mood_now").replace("{v}", todayMoods[0].value));
+    }
+
+    if (todayNotes.length > 0) {
+      const lastNote = todayNotes[todayNotes.length - 1];
+      if (lastNote.result && lastNote.result.state) {
+        parts.push(t("insight_topic").replace("{s}", lastNote.result.state));
+      }
+    }
+
+    return parts.join(" ");
+  }
+
+  /* ---------- RENDER ----------- */
+  function render() {
+    const mood = getMood();
+
+    const daysEl = document.getElementById("daysTogether");
+    if (daysEl) {
+      const days = getUsageDays ? getUsageDays() : getDaysFromStorage();
+      daysEl.textContent = `${t("home_days")} ${days} ${getDaysLabel(days)}`;
+    }
+
+    const moodValue = document.getElementById("moodValue");
+    if (moodValue) moodValue.textContent = mood + "%";
+
+    const insightEl = document.getElementById("todayInsight");
+    if (insightEl) {
+      insightEl.textContent = buildDayInsight();
+      insightEl.removeAttribute("data-user-set");
+    }
+
+    const history = getMoodHistory();
+    const stability = calculateStabilityScore(history);
+    const trend     = calculateTrend(history);
+    const valueEl   = document.getElementById("stabilityValue");
+    const trendEl   = document.getElementById("stabilityTrend");
+    if (valueEl) valueEl.textContent = stability !== null ? stability + "%" : "—";
+    if (trendEl) trendEl.textContent = trend;
+
+    const goldenEl = document.getElementById("goldenHours");
+    if (goldenEl) {
+      const g = calculateGoldenHour(history);
+      if (g === null) goldenEl.textContent = t("golden_studying");
+      else goldenEl.textContent = t("golden_peak").replace("{start}", g.start).replace("{end}", g.end);
+    }
+  }
+
+  // ✅ Export render на window для других модулей
+  window.__neyraRender = render;
+
+  function getDaysFromStorage() {
+    try {
+      const history = JSON.parse(localStorage.getItem("mood_history") || "[]");
+      
+      if (history && history.length > 0) {
+        const validHistory = history.filter(e => e.time || e.date);
+        if (validHistory.length > 0) {
+          const sorted = [...validHistory].sort((a, b) => (a.time || a.date) - (b.time || a.date));
+          const firstEntry = sorted[0];
+          const firstDate = firstEntry?.time || firstEntry?.date;
+          
+          if (firstDate) {
+            const start = new Date(parseInt(firstDate));
+            const diff = Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24)) + 1;
+            return Math.max(1, diff);
+          }
+        }
+      }
+      
+      const start = localStorage.getItem("startDate");
+      if (!start) { localStorage.setItem("startDate", Date.now()); return 1; }
+      return Math.max(1, Math.ceil((Date.now() - parseInt(start)) / 86400000));
+    } catch(e) { return 1; }
+  }
+
+  /* ---------- DOM TRANSLATIONS ---------- */
+  function applyDomTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      if (el.getAttribute("data-user-set") === "true") return;
+      const val = t(el.getAttribute('data-i18n'));
+      if (val) el.textContent = val;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const val = t(el.getAttribute('data-i18n-placeholder'));
+      if (val) el.placeholder = val;
+    });
+  }
+
+  /* ---------- INSIGHT CARD ---------- */
+  const STORAGE_KEY = 'neyra_last_insight';
+  
+  function saveInsightToStorage(insight) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        moodLevel: insight.moodLevel,
+        events: insight.events,
+        pattern: insight.pattern,
+        insightText: insight.insightText,
+        timestamp: Date.now()
+      }));
+    } catch (e) {}
+  }
+  
+  function showInsightCard(insight) {
+    const card = document.getElementById("homeInsightCard");
+    const text = document.getElementById("homeInsightText");
+    const patternCard = document.getElementById("homePatternCard");
+    const patternText = document.getElementById("homePatternText");
+    
+    if (!card || !text) return;
+    
+    text.textContent = insight.insightText;
+    card.style.display = 'block';
+    card.style.opacity = '1';
+    
+    if (!insight.pattern || !patternCard || !patternText) {
+      if (patternCard) patternCard.style.display = 'none';
+      return;
+    }
+    
+    const label = t('event_' + insight.pattern.event) || insight.pattern.event;
+    if (!label || label.includes('event_') || label === insight.pattern.event) {
+      if (patternCard) patternCard.style.display = 'none';
+      return;
+    }
+    
+    const timeKey = insight.meta?.timeBucket ? 'time_' + insight.meta.timeBucket : null;
+    const timeLabel = timeKey ? t(timeKey) : null;
+    
+    if (insight.pattern.score > 0) {
+      if (timeLabel && insight.meta?.timeBucket) {
+        patternText.innerHTML = t('pattern_positive_time')?.replace('{label}', label).replace('{time}', timeLabel) || label;
+      } else {
+        patternText.innerHTML = t('pattern_positive')?.replace('{label}', label) || label;
+      }
+    } else {
+      patternText.innerHTML = t('pattern_negative')?.replace('{label}', label) || label;
+    }
+    
+    patternCard.style.display = 'block';
+    patternCard.style.opacity = '1';
+  }
+
+  /* ---------- BOOT ---------- */
+  console.log('[BOOT] DOMContentLoaded listener registered');
+
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log('[BOOT] DOMContentLoaded fired');
+    
+    // Используем trusted setter
+    window._trustedSetBillingPremium(false);
+    
+    try {
+      initState();
+      console.log('[BOOT] initState done');
+    } catch (e) {
+      console.error('[BOOT ERROR] initState:', e);
+    }
+    
+    try {
+      initUI();
+      console.log('[BOOT] initUI done');
+    } catch (e) {
+      console.error('[BOOT ERROR] initUI:', e);
+    }
+
+    // Инициализация daily snapshots
+    setTimeout(() => {
+      import("./services/daily-snapshots.js")
+        .then(m => m.initSnapshots())
+        .catch(e => console.warn("[BOOT] initSnapshots failed:", e));
+    }, 100);
+
+    // Применяем тему при запуске
+    try {
+      const theme = getTheme();
+      applyTheme(theme);
+    } catch (e) {
+      console.warn('[BOOT] theme apply failed:', e);
+    }
+
+    // Слушаем изменение темы
+    document.addEventListener("themeChanged", (e) => {
+      applyTheme(e.detail.theme);
+    });
+    
+    // Слушаем изменения entitlement
+    document.addEventListener("premiumChanged", () => {
+      enqueuePremiumChanged();
+      reconcileSystemState();
+    });
+    
+    // Reconciliation при resume приложения
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        runReconciliation();
+        refreshBilling();
+      } else {
+        if (window.systemState?.currentScreen) {
+          import("./services/checkpoint-manager.js").then(m => {
+            m.saveCheckpointOnExit(window.systemState.currentScreen, window.systemState.currentScreen);
+          });
+        }
+      }
+    });
+    
+    applyDomTranslations();
+
+    if (!isOnboardingDone()) {
+      initOnboarding(() => {
+        applyDomTranslations();
+        startApp();
+      });
+    } else {
+      startApp();
+    }
+  });
+
+  function initCloudAuth() {
+    console.log('[Cloud] Auth disabled (native setup phase)');
+  }
+
+  function startApp() {
+    console.log('[APP] startApp called');
+    
+    const detectedLang = getLang();
+    setLang(detectedLang);
+    
+    stateGovernance.enable();
+    
+    initBilling();
+    
+    initCloudAuth();
+    
+    initCheckpointRecovery();
+    
+    setTimeout(() => {
+      runReconciliation();
+      refreshBilling();
+      recoverEvents();
+    }, 500);
+    
+    try {
+      initNavigation();
+    } catch (e) {
+      console.error('[APP ERROR] initNavigation:', e);
+    }
+    
+    const initAvatar = () => {
+      try {
+        initAvatarTap();
+        showAvatar({ text: t("home_welcome"), source: 'welcome', force: true });
+        maybeShowAvatarProactive();
+      } catch (e) {
+        console.warn('[APP] Avatar init failed:', e);
+      }
+    };
+    
+    const moodSlider = document.getElementById("moodSlider");
+    if (moodSlider) {
+      moodSlider.addEventListener("input", () => {
+        trackUserActivity();
+      });
+      moodSlider.addEventListener("change", () => {
+        trackUserActivity();
+        if (confirmBtn) {
+          const reflectionInput = document.getElementById("reflectionInput");
+          const hasContent = (reflectionInput?.value.trim()) || getSelectedEvents().length > 0;
+          confirmBtn.disabled = !hasContent;
+        }
+      });
+    }
+    
+    function setRecordingUI(isRecording) {
+      document.body.classList.toggle('recording', isRecording);
+    }
+    
+    const confirmBtn = document.getElementById("confirmBtn");
+    if (confirmBtn && !confirmBtn.dataset.bound) {
+      confirmBtn.dataset.bound = 'true';
+      
+      const reflectionInput = document.getElementById("reflectionInput");
+      
+      if (reflectionInput) {
+        reflectionInput.addEventListener('input', () => {
+          const hasContent = reflectionInput.value.trim() || getSelectedEvents().length > 0;
+          confirmBtn.disabled = !hasContent;
+        });
+      }
+      
+      confirmBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        
+        const reflectionInput = document.getElementById("reflectionInput");
+        const text = reflectionInput?.value.trim() || '';
+        const mood = getMood();
+        const events = getSelectedEvents();
+        const now = Date.now();
+        
+        if (!text && !mood && events.length === 0) {
+          return;
+        }
+        
+        confirmBtn.disabled = true;
+        
+        try {
+          if (text) {
+            SystemCore.dispatch('SAVE_REFLECTION', {
+              text,
+              mood,
+              time: now
+            });
+            const savedText = t('reflection_saved_short') || 'Сохранено';
+            const responseEl = document.getElementById("aiResponse");
+            if (responseEl) {
+              responseEl.textContent = savedText;
+              setTimeout(() => { responseEl.textContent = ''; }, 2000);
+            }
+            if (window.showAvatar) {
+              window.showAvatar({
+                text: t('reflection_saved') || 'Записал. Это поможет заметить важные моменты.',
+                type: 'reflection',
+                force: true
+              });
+            }
+          }
+          
+          const hasText = text && text.trim().length > 0;
+          const hasEvents = events && events.length > 0;
+          
+          console.log('[APP] confirmBtn | hasText:', hasText, '| hasEvents:', hasEvents, '| events:', events);
+          
+          let insight;
+          
+          if (hasText) {
+            insight = await safeGenerateInsight({
+              mood,
+              events: [],
+              text,
+              type: 'reflection'
+            });
+          } else if (hasEvents) {
+            insight = await safeGenerateInsight({
+              mood,
+              events,
+              text: '',
+              type: 'events'
+            });
+          } else {
+            return;
+          }
+          
+          if (hasText && insight?.insightText) {
+            // Не показывать в avatar — уже есть feedback "Сохранено"
+          } else if (hasEvents && insight?.insightText) {
+            showInsightCard(insight);
+            saveInsightToStorage(insight);
+          }
+          
+          if (reflectionInput) {
+            reflectionInput.value = '';
+          }
+          
+          if (typeof clearEventsUI === 'function') {
+            clearEventsUI();
+          } else {
+            const { clearSelectedEvents } = await import('./events.js');
+            clearSelectedEvents();
+          }
+          
+        } catch (err) {
+          console.error('[HOME] confirmBtn error:', err);
+        } finally {
+          confirmBtn.disabled = false;
+        }
+      });
+    }
+    
+    const openHistoryBtn = document.getElementById("openHistoryBtn");
+    if (openHistoryBtn && !openHistoryBtn.dataset.bound) {
+      openHistoryBtn.dataset.bound = 'true';
+      openHistoryBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (window.openScreen) {
+          window.openScreen('history');
+        }
+      });
+    }
+    
+    const voiceBtn = document.getElementById("recordVoiceBtn");
+    if (voiceBtn) {
+      voiceBtn.addEventListener("click", () => {
+        trackUserActivity();
+        const voiceStatus = document.getElementById("voiceStatus");
+        
+        SystemCore.dispatch('VOICE_START');
+        setRecordingUI(true);
+        
+        let recordSeconds = 0;
+        const timerEl = document.createElement("div");
+        timerEl.id = "voiceRecordingTimer";
+        document.body.appendChild(timerEl);
+        
+        if (voiceStatus) {
+          voiceStatus.classList.add('recording');
+          voiceStatus.textContent = '⏺ Запись...';
+        }
+        voiceBtn.disabled = true;
+
+        const timerInterval = setInterval(() => {
+          recordSeconds++;
+          const m = String(Math.floor(recordSeconds/60)).padStart(2,'0');
+          const s = String(recordSeconds%60).padStart(2,'0');
+          timerEl.textContent = '⏺ ' + m + ':' + s;
+        }, 1000);
+
+        const cleanup = (saved = false) => {
+          clearInterval(timerInterval);
+          const existingTimer = document.getElementById("voiceRecordingTimer");
+          if (existingTimer) existingTimer.remove();
+          if (voiceStatus) {
+            voiceStatus.classList.remove('recording');
+            voiceStatus.textContent = saved ? '✓ Готово' : '';
+          }
+          voiceBtn.disabled = false;
+          setRecordingUI(false);
+        };
+
+        startVoiceRecording(voiceStatus, (data) => {
+          console.log('[VOICE] recorded', data);
+          cleanup(true);
+          if (data && data.audio) {
+            SystemCore.dispatch('VOICE_SAVE', {
+              audio: data.audio,
+              duration: data.duration,
+              mood: data.mood,
+              date: data.date
+            });
+          }
+        }).catch(() => {
+          cleanup();
+          if (voiceStatus) voiceStatus.textContent = "❌";
+        });
+      });
+    }
+    
+    initAvatar();
+    console.log('[BOOT] startApp done');
+    
+    // Cloud restore: process pending data
+    window._appReady = true;
+    if (window._pendingCloudData) {
+      restoreFromCloudIfEmpty(window._pendingCloudData);
+      window._pendingCloudData = null;
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    // debounce
+  }, { passive: true });
+}
+
+=======================
+FILE: www/js/system-core.js
+=======================
+/**
+ * SYSTEM CORE — SINGLE ENTRY POINT
+ *
+ * Все изменения state, memory и запуск engines
+ * ДОЛЖНЫ проходить только через SystemCore.
+ *
+ * Запрещено:
+ * - вызывать engines напрямую из UI
+ * - изменять state вне SystemCore
+ * - писать в memory вне SystemCore
+ */
+
+// system-core.js — Orchestrator
+
+import { update, getMood } from './state.js'
+import * as StateEngine from './services/state-engine.js'
+import * as InsightEngine from './services/insight-engine.js'
+import * as PatternEngine from './services/pattern-engine.js'
+import * as ResilienceEngine from './services/resilience-engine.js'
+import * as Memory from './services/memory.js'
+import { showAvatarForMood, showAvatar } from './avatar.js'
+import { t } from './i18n.js'
+import { analyzeText } from './ai/offline-ai.js'
+import { saveVoiceNote } from './services/memory.js'
+import { scheduleCloudSync } from './services/cloud-sync.js'
+
+const SystemCore = {
+
+  processingEvents: new Set(),
+
+  async handleMoodFlow(payload) {
+    const mood = typeof payload === 'object' ? payload.mood : payload;
+    const events = typeof payload === 'object' ? (payload.events || []) : [];
+    
+    console.log('[DEBUG EVENTS]', { mood, events });
+
+    try {
+
+      const stateResult = await StateEngine.analyze(mood)
+      const newState = update({
+        mood,
+        ...stateResult
+      })
+
+      const insights = await InsightEngine.generate(newState)
+      const patterns = await PatternEngine.detect(newState)
+      const resilience = await ResilienceEngine.evaluate(newState)
+
+      Memory.save({
+        mood,
+        state: newState,
+        insights,
+        patterns,
+        resilience,
+        events
+      })
+
+      return {
+        state: newState,
+        insights,
+        patterns,
+        resilience,
+        events
+      }
+
+    } catch (error) {
+
+      console.error('Mood flow error:', error)
+
+      return {
+        error: true,
+        message: error.message
+      }
+    }
+  },
+
+  async analyzeMood(mood) {
+    return await StateEngine.analyze(mood)
+  },
+
+  async analyzeMoodOnly(mood) {
+    try {
+      const stateResult = await StateEngine.analyze(mood)
+      return stateResult
+    } catch (error) {
+      console.error('analyzeMoodOnly error:', error)
+      return null
+    }
+  },
+
+  async getInsight(state) {
+    try {
+      return await InsightEngine.generate(state)
+    } catch (error) {
+      console.error('getInsight error:', error)
+      return null
+    }
+  },
+
+  async getPatterns(state) {
+    try {
+      return await PatternEngine.detect(state)
+    } catch (error) {
+      console.error('getPatterns error:', error)
+      return null
+    }
+  },
+
+  async getResilience(state) {
+    try {
+      return await ResilienceEngine.evaluate(state)
+    } catch (error) {
+      console.error('getResilience error:', error)
+      return null
+    }
+  },
+
+  saveEvent(data) {
+    if (data.type === 'note') {
+      const history = Memory.getNotesHistory();
+      history.push({
+        text: data.text,
+        mood: data.mood,
+        result: data.result,
+        time: Date.now(),
+        timestamp: Date.now()
+      });
+      if (history.length > 500) history.splice(0, history.length - 500);
+      Memory.saveNotesHistory(history);
+    }
+  },
+
+  async dispatch(event, payload) {
+    console.log('[SYSTEM] dispatch:', event, payload);
+
+    if (this.processingEvents.has(event)) {
+      console.warn('[SYSTEM] Blocked duplicate event:', event)
+      return { duplicate: true }
+    }
+
+    this.processingEvents.add(event)
+
+    let result = null
+
+    try {
+
+      switch (event) {
+
+        case 'MOOD_SUBMIT':
+          console.log('[AVATAR DEBUG] MOOD_SUBMIT with payload:', payload);
+          const moodValue = typeof payload === 'object' ? payload.mood : payload;
+          result = await this.handleMoodFlow(payload)
+          showAvatarForMood(moodValue)
+          scheduleCloudSync()
+          break
+
+        case 'SAVE_NOTE':
+          if (payload?.type === 'reflection') {
+            const { saveReflection } = await import('./services/memory.js');
+            saveReflection({
+              text: payload.text,
+              mood: payload.mood,
+              time: payload.time || Date.now()
+            });
+            result = { success: true };
+          } else {
+            result = await this.saveEvent({
+              type: 'note',
+              ...payload
+            })
+          }
+          scheduleCloudSync()
+          break
+
+        case 'SAVE_REFLECTION':
+          console.log('[SYSTEM] SAVE_REFLECTION payload:', payload);
+          if (payload?.text) {
+            const { saveReflection } = await import('./services/memory.js');
+            saveReflection({
+              text: payload.text,
+              mood: payload.mood,
+              time: payload.time
+            });
+          }
+          result = { success: true };
+          scheduleCloudSync()
+          break
+
+        case 'AVATAR_UPDATE':
+          console.log('[AVATAR] AVATAR_UPDATE event:', payload);
+          if (payload?.text) {
+            showAvatar({
+              text: payload.text,
+              source: payload.source || 'system',
+              force: true
+            });
+          }
+          result = { success: true };
+          break
+
+        case 'AVATAR_TEST':
+          console.log('[AVATAR DEBUG] AVATAR_TEST event');
+          showAvatar({
+            text: 'Тестовая реакция 👀',
+            source: 'test',
+            force: true
+          });
+          result = { success: true };
+          break
+
+        case 'AVATAR_TAP':
+          console.log('[AVATAR DEBUG] AVATAR_TAP event');
+          showAvatar({
+            text: this.getTapMessage(),
+            source: 'tap',
+            force: true
+          });
+          result = { success: true };
+          break
+
+        case 'VOICE_START':
+          console.log('[VOICE] Voice recording started');
+          result = { success: true };
+          break
+
+        case 'VOICE_SAVE':
+          console.log('[VOICE] Saving voice note:', payload);
+          if (payload && payload.audio) {
+            saveVoiceNote({
+              audio: payload.audio,
+              duration: payload.duration || 0,
+              mood: payload.mood || 50,
+              date: payload.date || Date.now()
+            });
+            result = { success: true, saved: true };
+          } else {
+            result = { success: false, error: 'No audio data' };
+          }
+          scheduleCloudSync()
+          break
+
+        case 'REFLECTION_START':
+          console.log('[REFLECTION] Daily reflection started');
+          showAvatar({ 
+            text: t('reflection_prompt') || 'Как твой день? Напиши несколько слов.', 
+            source: 'reflection', 
+            force: true 
+          });
+          result = { success: true };
+          break
+
+        case 'GENERATE_INSIGHT':
+          console.log('[INSIGHT] Generating insight for:', payload);
+          const mood = getMood();
+          const analysis = await StateEngine.analyze(mood);
+          let insightResult;
+          
+          if (payload.type === 'note' && payload.text) {
+            const textAnalysis = analyzeText(payload.text, payload.mood || mood);
+            insightResult = {
+              insight: textAnalysis.insight,
+              emotion: textAnalysis.emotion
+            };
+            if (insightResult?.insight) {
+              Memory.save({ lastInsight: insightResult.insight });
+            }
+          } else if (payload.type === 'reflection') {
+            return { success: true, insight: null };
+          } else {
+            insightResult = await InsightEngine.generate({
+              type: payload.type,
+              source: payload.source,
+              result: payload.result,
+              mood,
+              state: analysis?.state
+            });
+            if (insightResult?.insight) {
+              Memory.save({ lastInsight: insightResult.insight });
+              showAvatar({
+                text: insightResult.insight,
+                source: 'insight',
+                force: true
+              });
+            }
+          }
+          result = { success: true, insight: insightResult };
+          break
+
+        case 'USER_INACTIVE':
+        case 'SCREEN_ENTER':
+        case 'FIRST_OPEN_TODAY':
+          console.log('[AVATAR DEBUG]', event, 'event received');
+          showAvatar({
+            text: this.getInactivityMessage(),
+            source: event,
+            force: true
+          });
+          result = { success: true };
+          break
+
+        default:
+          console.warn('[SYSTEM] Unknown event:', event)
+      }
+
+      if (result?.error) {
+        console.warn('[SYSTEM] Handled error in event:', event)
+      }
+
+    } finally {
+      this.processingEvents.delete(event)
+    }
+
+    return result
+  },
+
+  getTapMessage() {
+    const lang = localStorage.getItem('app_language') || 'ru';
+    const msgs = {
+      ru: ['Я здесь', 'Можешь продолжить', 'Попробуй ещё раз зафиксировать состояние'],
+      en: ["I'm here", "You can continue", "Try to note your state again"],
+      es: ["Estoy aquí", "Puedes continuar", "Intenta notar tu estado de nuevo"],
+      uk: ["Я тут", "Можеш продовжити", "Спробуй ще раз зафіксувати стан"],
+      hi: ["मैं यहां हूं", "आप जारी रख सकते हैं", "अपनी स्थिति फिर से नोट करने की कोशिश करें"]
+    };
+    const langMsgs = msgs[lang] || msgs.ru;
+    return langMsgs[Math.floor(Math.random() * langMsgs.length)];
+  },
+
+  getInactivityMessage() {
+    const lang = localStorage.getItem('app_language') || 'ru';
+    const msgs = {
+      ru: ['Я рядом, если что', 'Ты давно не заходил', 'Можешь зафиксировать состояние'],
+      en: ["I'm here if you need", "You haven't been here for a while", "You can note your state"],
+      es: ["Estoy aquí si necesitas", "Hace tiempo que no vienes", "Puedes anotar tu estado"],
+      uk: ["Я поруч, якщо що", "Ти давно не заходив", "Можеш зафіксувати стан"],
+      hi: ["ज़रूरत पड़ने पर मैं यहां हूं", "आप काफी समय से यहां नहीं आए", "आप अपनी स्थिति नोट कर सकते हैं"]
+    };
+    const langMsgs = msgs[lang] || msgs.ru;
+    return langMsgs[Math.floor(Math.random() * langMsgs.length)];
+  }
+
+}
+
+export default SystemCore
+
+=======================
+FILE: www/js/services/state-engine.js
+=======================
+// ⚠️ Использовать только через SystemCore
+// js/services/state-engine.js
+
+export function detectMoodState(mood) {
+
+    if (mood === null || mood === undefined) {
+        return "NEUTRAL"
+    }
+
+    if (mood < 25) return "LOW"
+    if (mood < 40) return "STRESSED"
+    if (mood < 60) return "NEUTRAL"
+    if (mood < 80) return "GOOD"
+
+    return "HIGH"
+}
+
+export function getStateLabel(state){
+
+ switch(state){
+
+  case "LOW":
+   return "Low mood"
+
+  case "STRESSED":
+   return "Stressed"
+
+  case "NEUTRAL":
+   return "Neutral"
+
+  case "GOOD":
+   return "Good"
+
+  case "HIGH":
+   return "Very good"
+
+  default:
+   return "Unknown"
+
+ }
+
+}
+
+export async function analyze(input) {
+  const state = detectMoodState(input)
+  const label = getStateLabel(state)
+  return { state, label }
+}
+
+=======================
+FILE: www/js/ai/offline-ai.js
+=======================
+// ===============================
+// Neyra Offline AI — Coach Logic
+// 4 языка: RU, EN, ES, UK
+// ===============================
+
+import { getMoodHistory, getReflections } from "../services/memory.js";
+import { t as i18n } from "../i18n.js";
+import { isPremium } from "../services/user-profile.js";
+
+// ---- ОПРЕДЕЛЕНИЕ ЯЗЫКА ----
+function detectLang() {
+  const saved = localStorage.getItem("app_language");
+  if (saved) return saved;
+  const nav = (navigator.language || "en").toLowerCase();
+  if (nav.startsWith("uk")) return "uk";
+  if (nav.startsWith("ru")) return "ru";
+  if (nav.startsWith("es")) return "es";
+  return "en";
+}
+
+function pickRandom(arr) {
+  if (!arr || arr.length === 0) return '';
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getMoodLevel(mood) {
+  if (mood <= 30) return 'low';
+  if (mood <= 70) return 'mid';
+  return 'high';
+}
+
+function getBaseTexts(moodLevel) {
+  const keys = [
+    `insight_base_${moodLevel}_1`,
+    `insight_base_${moodLevel}_2`,
+    `insight_base_${moodLevel}_3`
+  ];
+  return keys.map(k => i18n(k)).filter(Boolean);
+}
+
+function getEventText(eventId) {
+  return i18n(`insight_event_${eventId}`);
+}
+
+function getAdvice(moodLevel) {
+  return i18n(`insight_advice_${moodLevel}`);
+}
+
+function getCombinationInsight(moodLevel, events) {
+  if (events.includes('stress') && moodLevel === 'low') {
+    return i18n('insight_combo_stress_low');
+  }
+  if (events.includes('walk') && moodLevel === 'high') {
+    return i18n('insight_combo_walk_high');
+  }
+  if (events.includes('sport') && moodLevel === 'high') {
+    return i18n('insight_combo_sport_high');
+  }
+  if (events.includes('work') && moodLevel === 'low') {
+    return i18n('insight_combo_work_low');
+  }
+  return null;
+}
+
+// ---- PATTERN ANALYSIS ----
+function mergeMoodAndReflections(moods, reflections) {
+  if (!reflections || reflections.length === 0) return moods;
+  
+  return moods.map(m => {
+    const nearestReflection = reflections.find(r => 
+      r.time && m.time && Math.abs(r.time - m.time) < 2 * 60 * 60 * 1000
+    );
+    
+    return {
+      ...m,
+      text: nearestReflection?.text || null
+    };
+  });
+}
+
+function getRecentHistory(days = 30) {
+  const all = getMoodHistory();
+  const reflections = getReflections();
+  console.log('[AI INPUT]', all.slice(-10));
+  const now = Date.now();
+  const filtered = all.filter(item => {
+    return now - item.time < days * 24 * 60 * 60 * 1000;
+  }).slice(-30);
+  
+  return mergeMoodAndReflections(filtered, reflections);
+}
+
+const EVENT_WEIGHTS = {
+  sleep: 1.2,
+  walk: 1.1,
+  sport: 1.3,
+  music: 1.0,
+  coffee: 0.9,
+  food: 0.9,
+  rest: 1.1,
+  social: 1.1,
+  work: 0.9,
+  stress: 0.8
+};
+
+function calculateBaseline(history) {
+  const recent = history.slice(-20);
+  if (recent.length === 0) return 50;
+  const sum = recent.reduce((acc, e) => acc + (e.value || e.mood || 0), 0);
+  return sum / recent.length;
+}
+
+function getEventKey(events) {
+  if (!events || events.length === 0) return null;
+  return events.slice().sort().join('+');
+}
+
+function savePatterns(patterns) {
+  localStorage.setItem('neyra_patterns', JSON.stringify(patterns));
+}
+
+function getStoredPatterns() {
+  try {
+    return JSON.parse(localStorage.getItem('neyra_patterns') || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+function mergePatterns(newPatterns) {
+  const old = getStoredPatterns();
+  const map = {};
+
+  [...old, ...newPatterns].forEach(p => {
+    if (!map[p.key]) {
+      map[p.key] = { ...p };
+    } else {
+      map[p.key].count += p.count;
+      map[p.key].score = (map[p.key].score + p.score) / 2;
+    }
+  });
+
+  return Object.values(map)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20);
+}
+
+function isRelevant(pattern, history) {
+  const recent = history.slice(-20);
+  return recent.some(entry => {
+    const key = getEventKey(entry.events);
+    return key === pattern.key;
+  });
+}
+
+function shouldUseTimeDimension(timeStats, event) {
+  if (!timeStats) return false;
+  
+  const periods = Object.keys(timeStats);
+  if (periods.length < 2) return false;
+  
+  let validPeriods = 0;
+  const avgs = [];
+  
+  for (const period of periods) {
+    const data = timeStats[period];
+    if (data.count >= 2) {
+      validPeriods++;
+      avgs.push(data.totalMood / data.count);
+    }
+  }
+  
+  if (validPeriods < 2) return false;
+  
+  const minAvg = Math.min(...avgs);
+  const maxAvg = Math.max(...avgs);
+  const diff = maxAvg - minAvg;
+  
+  console.log('[TIME DIMENSION CHECK]', { event, periods: periods.length, validPeriods, diff });
+  
+  return diff >= 15;
+}
+
+function analyzeEventImpact(history) {
+  const single = {};
+  const singleByTime = {};
+  const combo = {};
+
+  const baseline = calculateBaseline(history);
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  // Collect stats by event + timeBucket for smart decision
+  const timeStats = {};
+
+  history.forEach(entry => {
+    // Ignore entries older than 7 days
+    if (now - entry.time > 7 * DAY) return;
+
+    let mood = entry.value || entry.mood || 0;
+    const events = (entry.events || []).slice().sort();
+    
+    // BLOCK 2: Reflection affects insight - if text contains negative words and mood < 40, reduce score
+    if (entry.text && entry.text.trim().length > 0 && mood < 40) {
+      const lowerText = entry.text.toLowerCase();
+      if (lowerText.includes('плохо') || lowerText.includes('ужасно') || lowerText.includes('грустно') || lowerText.includes('тоскливо') || lowerText.includes('стресс') || lowerText.includes('устал')) {
+        mood = Math.max(0, mood - 5); // penalize
+      }
+    }
+
+    if (events.length === 0) return;
+
+    // Time weight: entries closer to now have more weight
+    const ageDays = (now - entry.time) / DAY;
+    const weight = Math.max(0.3, 1 - ageDays / 7);
+    const weightedMood = mood * weight;
+    const bucket = entry.timeBucket || 'day';
+
+    // Collect time stats per event (for smart time decision)
+    events.forEach(ev => {
+      if (!timeStats[ev]) timeStats[ev] = {};
+      if (!timeStats[ev][bucket]) timeStats[ev][bucket] = { count: 0, totalMood: 0 };
+      timeStats[ev][bucket].count++;
+      timeStats[ev][bucket].totalMood += mood;
+    });
+
+    // Use time bucket only for single events, not combos
+    events.forEach(ev => {
+      const useTime = shouldUseTimeDimension(timeStats[ev], ev);
+      const key = useTime ? ev + '_' + bucket : ev;
+      
+      if (!single[key]) single[key] = { count: 0, totalMood: 0, event: ev, timeBucket: useTime ? bucket : null };
+      single[key].count++;
+      single[key].totalMood += weightedMood;
+      
+      if (useTime) {
+        console.log('[TIME PATTERN]', { event: ev, timeBucket: bucket, used: true });
+      }
+    });
+
+    if (events.length >= 2) {
+      // NO time bucket for combos
+      const key = events.slice().sort().join('+');
+      if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: events.slice() };
+      combo[key].count++;
+      combo[key].totalMood += weightedMood;
+    }
+  });
+
+  const results = [];
+
+  Object.entries(single).forEach(([ev, data]) => {
+    if (data.count < 2) return;
+    const avgMood = data.totalMood / data.count;
+    const score = avgMood - baseline;
+    const weight = EVENT_WEIGHTS[data.event] || 1.0;
+    results.push({
+      key: ev,
+      events: [data.event],
+      event: data.event,
+      timeBucket: data.timeBucket || 'day',
+      count: data.count,
+      avgMood: Math.round(avgMood),
+      score: Math.round(score * weight),
+      isCombo: false
+    });
+  });
+
+  Object.entries(combo).forEach(([key, data]) => {
+    if (data.count < 2) return;
+    const avgMood = data.totalMood / data.count;
+    const score = avgMood - baseline;
+    const mainEvent = data.events.reduce((a, b) =>
+      (EVENT_WEIGHTS[a] || 1.0) >= (EVENT_WEIGHTS[b] || 1.0) ? a : b
+    );
+    results.push({
+      key,
+      events: data.events,
+      event: mainEvent,
+      timeBucket: data.timeBucket || 'day',
+      count: data.count,
+      avgMood: Math.round(avgMood),
+      score: Math.round(score),
+      isCombo: true
+    });
+  });
+
+  results.sort((a, b) => {
+    if (Math.abs(b.score) !== Math.abs(a.score)) {
+      return Math.abs(b.score) - Math.abs(a.score);
+    }
+    if (a.isCombo !== b.isCombo) return a.isCombo ? -1 : 1;
+    return b.count - a.count;
+  });
+
+  // Limit to max 5 patterns
+  const limited = results.slice(0, 5);
+  const merged = mergePatterns(limited);
+  savePatterns(merged);
+
+  return limited;
+}
+
+function findBestPatterns(patterns, limit = 1) {
+  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 5);
+  return filtered.slice(0, limit);
+}
+
+// Что помогало этому пользователю когда было плохо
+function getRecommendationForLowMood(history) {
+  const NEVER_RECOMMEND = ['stress', 'work'];
+
+  const baseline = calculateBaseline(history);
+  const lowEntries = history.filter(e => (e.value || 0) < baseline - 5);
+  if (lowEntries.length < 3) return null;
+
+  const improvements = {};
+  for (let i = 0; i < history.length - 1; i++) {
+    const curr = history[i];
+    const next = history[i + 1];
+    if (!curr || !next) continue;
+    const currMood = curr.value || 0;
+    const nextMood = next.value || 0;
+    if (currMood >= baseline) continue;
+    if (nextMood <= currMood) continue;
+    const events = (next.events || []);
+    events.forEach(ev => {
+      if (NEVER_RECOMMEND.includes(ev)) return;
+      if (!improvements[ev]) improvements[ev] = { count: 0, totalLift: 0 };
+      improvements[ev].count++;
+      improvements[ev].totalLift += (nextMood - currMood);
+    });
+  }
+
+  const best = Object.entries(improvements)
+    .filter(([, d]) => d.count >= 2)
+    .sort((a, b) => (b[1].totalLift / b[1].count) - (a[1].totalLift / a[1].count))[0];
+
+  if (!best) return null;
+  return { event: best[0], avgLift: Math.round(best[1].totalLift / best[1].count) };
+}
+
+// Обнаружение: стресс + плохой сон + low mood повторяется
+function detectWarningPattern(history) {
+  const recent = history.slice(-10);
+  if (recent.length < 4) return null;
+
+  let stressLowCount = 0;
+  let sleepLowCount = 0;
+
+  recent.forEach(e => {
+    const mood = e.value || 0;
+    const events = e.events || [];
+    if (mood < 45 && events.includes('stress')) stressLowCount++;
+    if (mood < 45 && events.includes('sleep')) sleepLowCount++;
+  });
+
+  const hasBoth = recent.some(e => {
+    const events = e.events || [];
+    return (e.value || 0) < 45 && events.includes('stress') && events.includes('sleep');
+  });
+
+  if (hasBoth && stressLowCount >= 2) {
+    return 'warning_stress_sleep';
+  }
+  if (stressLowCount >= 3) {
+    return 'warning_stress_repeat';
+  }
+  if (sleepLowCount >= 3) {
+    return 'warning_sleep_repeat';
+  }
+  return null;
+}
+
+function buildPatternInsight(pattern, currentMood) {
+  if (!pattern) return null;
+  if (!pattern.key || pattern.count < 2) return null;
+
+  const label = i18n(`event_${pattern.event}`) || pattern.event;
+  if (!label || label.includes('event_')) {
+    console.warn('[i18n] missing key for', pattern.event);
+    return null;
+  }
+
+  let timeLabel = null;
+  if (pattern.timeBucket) {
+    const tl = i18n('time_' + pattern.timeBucket);
+    if (tl && tl !== 'time_' + pattern.timeBucket) timeLabel = tl;
+  }
+
+  const moodIsGood = currentMood >= 65;
+  const moodIsLow  = currentMood < 45;
+
+  let type;
+
+  if (moodIsGood) {
+    if (pattern.score >= 0) {
+      type = pattern.isCombo
+        ? (timeLabel ? 'pattern_combo_positive_time' : 'pattern_combo_positive')
+        : (timeLabel ? 'pattern_positive_time' : 'pattern_positive');
+    } else {
+      return null;
+    }
+  } else if (moodIsLow) {
+    const NEVER_RECOMMEND = ['stress', 'work'];
+    if (pattern.score > 5 && !NEVER_RECOMMEND.includes(pattern.event)) {
+      type = 'pattern_recommend_low';
+    } else if (pattern.score < -5) {
+      type = humanizePattern(pattern) || 'pattern_negative';
+    } else {
+      return null;
+    }
+  } else {
+    if (pattern.score > 7) {
+      type = timeLabel ? 'pattern_positive_time' : 'pattern_positive';
+    } else if (pattern.score > 3) {
+      type = 'pattern_mild_positive';
+    } else if (pattern.score < -7) {
+      type = humanizePattern(pattern) || 'pattern_negative';
+    } else {
+      return null;
+    }
+  }
+
+  const params = { label };
+  if (timeLabel) params.time = timeLabel;
+
+  return {
+    type,
+    params,
+    meta: {
+      count: pattern.count,
+      avg: pattern.avgMood,
+      impact: pattern.score,
+      timeBucket: pattern.timeBucket
+    }
+  };
+}
+
+function buildFollowUp(pattern) {
+  if (!pattern) return null;
+  if (pattern.score > 10) {
+    return { type: 'followup_positive' };
+  }
+  if (pattern.score < -10) {
+    return { type: 'followup_negative' };
+  }
+  return { type: 'followup_neutral' };
+}
+
+// ---- SAFE GENERATE INSIGHT ----
+export async function safeGenerateInsight(payload) {
+  console.log('[INSIGHT PAYLOAD]', JSON.stringify(payload));
+  
+  let resolved = false;
+
+  const timeout = new Promise(resolve => {
+    setTimeout(() => {
+      if (!resolved) {
+        resolve({
+          insightText: "Попробуй описать чуть подробнее — я пока не смог понять.",
+          fallback: true,
+          pattern: null,
+          meta: null,
+          followup: null
+        });
+      }
+    }, 2000);
+  });
+
+  const ai = Promise.resolve(generateInsight(payload)).then(res => {
+    resolved = true;
+    return res;
+  });
+
+  return Promise.race([ai, timeout]);
+}
+
+function humanizePattern(pattern) {
+  if (!pattern) return null;
+  
+  if (pattern.score < 0) {
+    const contextKeys = {
+      food: 'pattern_food_negative',
+      work: 'pattern_work_negative',
+      stress: 'pattern_stress_negative'
+    };
+    return contextKeys[pattern.event] || 'pattern_negative';
+  }
+
+  return 'pattern_positive';
+}
+
+// ---- GENERATE INSIGHT (i18n-based) ----
+export function generateInsight(data) {
+  console.log('[INSIGHT TYPE]', data.type, '| text:', !!data.text, '| events:', data.events?.length);
+  
+  // SAFETY: reflection type = HARD RETURN (no fallback)
+  if (data.type === 'reflection' || (data.text && data.text.trim().length > 0)) {
+    console.log('[INSIGHT ROUTING] → generateReflectionInsight');
+    return generateReflectionInsight(data);
+  }
+  
+  console.log('[INSIGHT ROUTING] → generatePatternInsight');
+
+  // Events only
+  if (data.events && data.events.length) {
+    const pattern = generatePatternInsight(data);
+    if (pattern && pattern.insightText) {
+      return pattern;
+    }
+  }
+
+  return generatePatternInsight(data);
+}
+
+function generateReflectionInsight({ text, mood }) {
+  if (!text || text.trim().length < 5) {
+    return {
+      insightText: i18n('reflection_fallback') || "Попробуй описать подробнее."
+    };
+  }
+
+  const lower = text.toLowerCase();
+
+  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('тревог') || lower.includes('устал') || lower.includes('перегруж')) {
+    return {
+      insightText: i18n('reflection_stress') || "Похоже, это был напряжённый момент."
+    };
+  }
+
+  if (lower.includes('хорош') || lower.includes('рад') || lower.includes('классно') || lower.includes('отлично') || lower.includes('прекрасно')) {
+    return {
+      insightText: i18n('reflection_positive') || "Звучит как хороший опыт."
+    };
+  }
+
+  if (lower.includes('плохо') || lower.includes('ужасно') || lower.includes('грустно') || lower.includes('тоскливо')) {
+    return {
+      insightText: i18n('reflection_negative') || "День был непростым."
+    };
+  }
+
+  return {
+    insightText: i18n('reflection_neutral') || "Ты фиксируешь состояние — это важный шаг."
+  };
+}
+
+export function analyzeReflection(text) {
+  const lower = text.toLowerCase();
+
+  if (lower.includes('стресс') || lower.includes('напряж') || lower.includes('устал')) {
+    return i18n('reflection_stress') || "Похоже, это был напряжённый момент.";
+  }
+
+  if (lower.includes('хорош') || lower.includes('рад')) {
+    return i18n('reflection_positive') || "Звучит как хороший опыт.";
+  }
+
+  if (lower.includes('плохо') || lower.includes('грустно')) {
+    return i18n('reflection_negative') || "День был непростым.";
+  }
+
+  return i18n('reflection_neutral') || "Ты фиксируешь состояние — это важный шаг.";
+}
+
+function generatePatternInsight({ mood, events = [] }) {
+  console.log('[PATTERN] generatePatternInsight called | mood:', mood, '| events:', events);
+  
+  const moodLevel = getMoodLevel(mood);
+  const recentHistory = getRecentHistory(14);
+
+  const base = pickRandom(getBaseTexts(moodLevel));
+  const combo = getCombinationInsight(moodLevel, events);
+
+  let eventText = null;
+  if (!combo && events.length > 0) {
+    const randomEvent = events[Math.floor(Math.random() * events.length)];
+    eventText = getEventText(randomEvent);
+  }
+
+  const advice = getAdvice(moodLevel);
+
+  const patterns = analyzeEventImpact(recentHistory);
+  const limit = isPremium() ? 3 : 1;
+  const bestPatterns = findBestPatterns(patterns, limit);
+  let patternResult = bestPatterns.length > 0
+    ? buildPatternInsight(bestPatterns[0], mood)
+    : null;
+
+  let patternText = null;
+  if (patternResult) {
+    const template = i18n(patternResult.type) || patternResult.type;
+    if (template && patternResult.params) {
+      let text = template;
+      Object.keys(patternResult.params).forEach(key => {
+        text = text.replace(`{{${key}}}`, patternResult.params[key]);
+        text = text.replace(`{${key}}`, patternResult.params[key]);
+      });
+      patternText = text;
+    }
+  }
+
+  let recommendText = null;
+  if (moodLevel === 'low' || moodLevel === 'mid') {
+    const rec = getRecommendationForLowMood(recentHistory);
+    if (rec) {
+      const label = i18n(`event_${rec.event}`) || rec.event;
+      recommendText = i18n('pattern_recommend_low')?.replace('{event}', label)
+        || `Раньше тебе помогало — ${label}. Попробуй сейчас.`;
+    }
+  }
+
+  let warningText = null;
+  const warning = detectWarningPattern(recentHistory);
+  if (warning) {
+    warningText = i18n(warning) || null;
+  }
+
+  const parts = [
+    warningText || base,
+    combo || eventText,
+    patternText,
+    recommendText || advice
+  ].filter(Boolean);
+
+  return {
+    insightText: parts.join(' '),
+    moodLevel: moodLevel,
+    events: events,
+    pattern: bestPatterns[0] || null,
+    patterns: bestPatterns,
+    meta: patternResult?.meta || null,
+    followup: buildFollowUp(bestPatterns[0]),
+    warning
+  };
+}
+
+// ================================
+// (responses object truncated - see original file)
+// ================================
+
+export function analyzeText(text, mood) {
+  // ... see original file for full implementation
+}
+
+=======================
+FILE: www/js/services/memory.js
+=======================
+// ⚠️ Использовать только через SystemCore
+// =====================================
+// Neyra Memory Service
+// Отвечает ТОЛЬКО за localStorage
+// =====================================
+
+/* ---------- GENERIC SAVE ---------- */
+export function save(data) {
+  let needsSnapshotUpdate = false;
+  
+  const KNOWN_SAVE_FIELDS = ['mood', 'state', 'feedback', 'lastSupportInsight', 'lastInsight', 'insights', 'patterns', 'resilience', 'events', 'insight', 'timeBucket'];
+  const unknownFields = Object.keys(data).filter(k => !KNOWN_SAVE_FIELDS.includes(k));
+  if (unknownFields.length > 0) {
+    console.warn('[memory.save] Unknown fields (data may be lost):', unknownFields);
+  }
+  
+  if (data.lastInsight !== undefined) {
+    localStorage.setItem("last_insight", JSON.stringify({
+      text: data.lastInsight,
+      insight: data.insight,
+      time: Date.now()
+    }));
+  }
+  
+  if (data.mood !== undefined) {
+    const history = getMoodHistory();
+    history.push({
+      value: data.mood,
+      state: data.state,
+      events: data.events || [],
+      timeBucket: data.timeBucket || null,
+      time: Date.now()
+    });
+    if (history.length > 730) history.shift();
+    saveMoodHistory(history);
+    needsSnapshotUpdate = true;
+  }
+  if (data.feedback !== undefined) {
+    const history = getSupportFeedbackHistory();
+    history.push(data.feedback);
+    if (history.length > 100) history.shift();
+    saveSupportFeedbackHistory(history);
+  }
+  if (data.lastSupportInsight !== undefined) {
+    localStorage.setItem("last_support_insight", JSON.stringify({
+      text: data.lastSupportInsight,
+      time: Date.now()
+    }));
+  }
+  
+  if (needsSnapshotUpdate) {
+    setTimeout(() => {
+      import("./daily-snapshots.js")
+        .then(m => m.updateTodaySnapshot())
+        .catch(() => {});
+    }, 100);
+  }
+}
+
+/* ---------- MOOD HISTORY ---------- */
+
+export function getMoodHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("mood_history")) || [];
+  } catch(e) {
+    console.warn('[memory] getMoodHistory parse error, resetting:', e);
+    localStorage.removeItem("mood_history");
+    return [];
+  }
+}
+
+export function saveMoodHistory(history) {
+  try {
+    localStorage.setItem("mood_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveMoodHistory failed (quota?):', e);
+  }
+}
+
+export function addMoodEntry(entry) {
+  const history = getMoodHistory();
+  history.push(entry);
+  saveMoodHistory(history);
+}
+
+/* ---------- NOTES HISTORY ---------- */
+
+export function getNotesHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("notes_history")) || [];
+  } catch(e) {
+    localStorage.removeItem("notes_history");
+    return [];
+  }
+}
+
+export function saveNotesHistory(history) {
+  try {
+    localStorage.setItem("notes_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveNotesHistory failed:', e);
+  }
+}
+
+/* ---------- REFLECTIONS ---------- */
+
+export function getReflections() {
+  try {
+    return JSON.parse(localStorage.getItem("reflections")) || [];
+  } catch(e) {
+    localStorage.removeItem("reflections");
+    return [];
+  }
+}
+
+export function saveReflection(entry) {
+  console.log('[MEMORY] saveReflection called:', entry);
+  let data = getReflections();
+  data.push({
+    ...entry,
+    type: 'reflection',
+    time: entry.time || Date.now()
+  });
+  console.log('[MEMORY] reflections after save:', data.length);
+  const MAX_REFLECTIONS = 100;
+  if (data.length > MAX_REFLECTIONS) {
+    data = data.slice(-MAX_REFLECTIONS);
+  }
+  try {
+    localStorage.setItem("reflections", JSON.stringify(data));
+    console.log('[MEMORY] reflections saved to localStorage');
+  } catch(e) {
+    console.error('[memory] saveReflection failed:', e);
+  }
+}
+
+/* ---------- VOICE HISTORY ---------- */
+
+export function getVoiceHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("voice_history")) || [];
+  } catch(e) {
+    localStorage.removeItem("voice_history");
+    return [];
+  }
+}
+
+export function saveVoiceHistory(history) {
+  try {
+    localStorage.setItem("voice_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveVoiceHistory failed:', e);
+  }
+}
+
+export function saveVoiceNote(note) {
+  try {
+    const history = getVoiceHistory();
+    history.push({
+      type: 'voice_note',
+      audio: note.audio,
+      duration: note.duration,
+      mood: note.mood,
+      date: note.date || Date.now()
+    });
+    if (history.length > 30) history.splice(0, history.length - 30);
+    localStorage.setItem("voice_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveVoiceNote failed:', e);
+  }
+}
+
+/* ---------- SESSION HISTORY ---------- */
+
+export function getSessionHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("session_history")) || [];
+  } catch(e) {
+    console.warn('[memory] getSessionHistory parse error, resetting:', e);
+    localStorage.removeItem("session_history");
+    return [];
+  }
+}
+
+export function saveSessionHistory(history) {
+  try {
+    localStorage.setItem("session_history", JSON.stringify(history));
+  } catch(e) {
+    console.error('[memory] saveSessionHistory failed (quota?):', e);
+  }
+}
+
+export function addSessionEntry(entry) {
+  const history = getSessionHistory();
+  history.push(entry);
+  saveSessionHistory(history);
+  
+  setTimeout(() => {
+    import("./daily-snapshots.js")
+      .then(m => m.updateTodaySnapshot())
+      .catch(() => {});
+  }, 100);
+}
+
+=======================
+FILE: www/js/services/cloud-sync.js
+=======================
+// =====================================
+// Neyra Cloud Sync Service
+// Android Bridge → Firebase Firestore
+// =====================================
+
+export function syncToCloud(data) {
+  try {
+    if (!window.Android) {
+      console.warn('[CLOUD] Android bridge not available');
+      console.log('[CLOUD] window.Android:', window.Android);
+      return { success: false, error: 'no_bridge' };
+    }
+
+    window.Android.saveToCloud(JSON.stringify(data));
+    console.log('[CLOUD] Sent to Android bridge');
+    return { success: true };
+
+  } catch (error) {
+    console.error('[CLOUD] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function loadFromCloud() {
+  console.log('[CLOUD] Load handled by MainActivity on startup');
+  return null;
+}
+
+export async function mergeData(cloudData) {
+  if (!cloudData) return;
+
+  const keyMap = {
+    mood: 'mood_history',
+    notes: 'notes_history',
+    reflections: 'reflections_history',
+    voice: 'voice_history',
+    sessions: 'session_history'
+  };
+
+  Object.keys(cloudData).forEach(key => {
+    const storageKey = keyMap[key] || key;
+    if (cloudData[key]) {
+      try {
+        localStorage.setItem(storageKey, cloudData[key]);
+        console.log('[CLOUD] Merged:', storageKey);
+      } catch (e) {
+        console.warn('[CLOUD] Failed to merge:', storageKey, e);
+      }
+    }
+  });
+
+  console.log('[CLOUD] Merge complete');
+}
+
+export async function fullSync() {
+  const data = collectLocalData();
+  return await syncToCloud(data);
+}
+
+export function collectLocalData() {
+  return {
+    mood: localStorage.getItem('mood_history'),
+    notes: localStorage.getItem('notes_history'),
+    reflections: localStorage.getItem('reflections_history'),
+    voice: localStorage.getItem('voice_history'),
+    sessions: localStorage.getItem('session_history'),
+    profile: localStorage.getItem('user_profile'),
+    syncedAt: Date.now()
+  };
+}
+
+export function scheduleCloudSync() {
+  console.log('[CLOUD] scheduleCloudSync called');
+  const data = collectLocalData();
+  syncToCloud(data);
+}
+
+// Test function
+window.testAndroidBridge = function() {
+  console.log('Testing Android bridge...');
+  console.log('window.Android:', window.Android);
+  if (window.Android?.saveToCloud) {
+    window.Android.saveToCloud('test');
+    console.log('Called saveToCloud');
+  }
+};
+
+=======================
+FILE: www/js/services/cloud-restore.js
+=======================
+// =====================================
+// Neyra Cloud Restore Service
+// Restores local data from Firebase
+// =====================================
+
+export function restoreFromCloud(data) {
+  try {
+    if (!data) return;
+
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+
+    if (parsed.mood_history) {
+      localStorage.setItem("mood_history", JSON.stringify(parsed.mood_history));
+    }
+
+    if (parsed.notes_history) {
+      localStorage.setItem("notes_history", JSON.stringify(parsed.notes_history));
+    }
+
+    if (parsed.reflections) {
+      localStorage.setItem("reflections", JSON.stringify(parsed.reflections));
+    }
+
+    if (parsed.voice_history) {
+      localStorage.setItem("voice_history", JSON.stringify(parsed.voice_history));
+    }
+
+    if (parsed.photo_history) {
+      localStorage.setItem("photo_history", JSON.stringify(parsed.photo_history));
+    }
+
+    if (parsed.practice_history) {
+      localStorage.setItem("practice_history", JSON.stringify(parsed.practice_history));
+    }
+
+    if (parsed.neyra_patterns) {
+      localStorage.setItem("neyra_patterns", JSON.stringify(parsed.neyra_patterns));
+    }
+
+    if (parsed.profile) {
+      localStorage.setItem("neyra_profile", JSON.stringify(parsed.profile));
+    }
+
+    console.log('[CLOUD] Restored from cloud');
+  } catch (e) {
+    console.error('[RESTORE ERROR]', e);
+  }
+}
+
+export function hasLocalData() {
+  return [
+    "mood_history",
+    "notes_history",
+    "reflections",
+    "voice_history",
+    "photo_history"
+  ].some(k => {
+    try {
+      const v = JSON.parse(localStorage.getItem(k) || "[]");
+      return Array.isArray(v) && v.length > 0;
+    } catch {
+      return false;
+    }
+  });
+}
+
+export function restoreFromCloudIfEmpty(data) {
+  if (!data) return false;
+
+  const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+  
+  // Time-based protection: skip if local is newer
+  const cloudTs = parsed.updatedAt || 0;
+  const localProfile = JSON.parse(localStorage.getItem("neyra_profile") || "{}");
+  const localTs = localProfile.updatedAt || 0;
+
+  if (localTs > cloudTs) {
+    console.warn('[RESTORE] Local newer → skip');
+    return false;
+  }
+
+  if (hasLocalData()) {
+    console.log('[CLOUD] Skip restore — local data exists');
+    return false;
+  }
+  
+  restoreFromCloud(data);
+  return true;
+}
+
+=======================
+FILE: www/js/services/user-profile.js
+=======================
+// =====================================
+// Neyra User Profile Service
+// Профиль юзера — база для калибровки
+// =====================================
+
+import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
+
+const PROFILE_KEY      = "user_profile";
+const ONBOARDING_KEY   = "onboarding_done";
+const MED_REMINDER_KEY = "med_reminder";
+const MED_CHECK_KEY    = "med_monthly_check";
+
+// ---- ПРОФИЛЬ ----
+
+export function getProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null;
+  } catch(e) {
+    console.warn('[user-profile] getProfile parse error:', e);
+    return null;
+  }
+}
+
+export function saveProfile(profile) {
+  profile.updatedAt = Date.now();
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch(e) {
+    console.error('[user-profile] saveProfile failed (quota?):', e);
+  }
+}
+
+export function isOnboardingDone() {
+  return localStorage.getItem(ONBOARDING_KEY) === "true";
+}
+
+export function markOnboardingDone() {
+  localStorage.setItem(ONBOARDING_KEY, "true");
+}
+
+// ---- PREMIUM ----
+
+export const BASE_THEME = "default";
+
+const PREMIUM_KEY = "premium_status";
+const GEMINI_COUNTER_KEY = "gemini_daily_counter";
+const GEMINI_COUNTER_DATE_KEY = "gemini_counter_date";
+const FREE_GEMINI_LIMIT = 5;
+
+export function getPremiumStatus() {
+  const profile = getProfile();
+  if (!profile) return "free";
+  if (profile.premium_type === "paid") return "premium";
+  if (profile.isPremium) return "premium";
+  return "free";
+}
+
+export function getPremiumInfo() {
+  const profile = getProfile();
+  const status = getPremiumStatus();
+  let plan = null;
+  let expiresAt = null;
+  let isExpired = false;
+  
+  if (status === "premium") {
+    plan = profile?.premiumPlan || "monthly";
+    expiresAt = profile?.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
+    if (expiresAt && Date.now() > expiresAt.getTime()) {
+      isExpired = true;
+    }
+  }
+  
+  return {
+    status,
+    plan,
+    expiresAt,
+    isExpired,
+    isPremium: status === "premium" && !isExpired
+  };
+}
+
+export function isPremium() {
+  if (window.__internalPremium === true) return true;
+
+  const info = getPremiumInfo();
+
+  if (info?.isExpired) {
+    deactivateExpiredPremium();
+    return false;
+  }
+
+  return info?.isPremium === true;
+}
+
+window.isPremium = isPremium;
+
+export function setBillingPremium(value) {
+  window._billingPremium = value === true;
+}
+
+export function activatePremiumPaid() {
+  try {
+    const profile = getProfile() || {};
+
+    profile.premium = true;
+    profile.premium_type = "paid";
+    profile.premium_since = Date.now();
+
+    saveProfile(profile);
+
+    window.systemState.premium = true;
+
+    document.dispatchEvent(new Event("premiumChanged"));
+  } catch (e) {
+    console.error('[premium] activation failed', e);
+  }
+}
+
+export function activatePremium(plan = "monthly") {
+  const profile = getProfile() || {};
+  const durationMs = plan === "yearly" ? 365 : 30;
+  const expiresAt = new Date(Date.now() + durationMs * 24 * 60 * 60 * 1000);
+  
+  profile.isPremium = true;
+  profile.premiumTrial = { active: false };
+  profile.premiumPlan = plan;
+  profile.premiumExpiresAt = expiresAt.getTime();
+  saveProfile(profile);
+  if (window.systemState) {
+    window.systemState.premium = true;
+  }
+  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'premium', plan } }));
+}
+
+export function checkPremiumExpiry() {
+  const info = getPremiumInfo();
+  return info.isExpired;
+}
+
+export function deactivateExpiredPremium() {
+  const info = getPremiumInfo();
+  if (info.isExpired) {
+    const profile = getProfile() || {};
+    profile.isPremium = false;
+    profile.premiumExpiresAt = null;
+    saveProfile(profile);
+    localStorage.removeItem('med_custom_tracks');
+    resetThemeToDefault();
+    document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
+    return true;
+  }
+  return false;
+}
+
+export function resetThemeToDefault() {
+  const profile = getProfile() || {};
+  profile.colorTheme = BASE_THEME;
+  saveProfile(profile);
+  applyTheme(BASE_THEME);
+  document.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme: BASE_THEME } }));
+}
+
+// ---- ТЕМА ----
+
+export function getTheme() {
+  const profile = getProfile();
+  return profile?.colorTheme || "default";
+}
+
+export function saveTheme(theme) {
+  const profile = getProfile() || {};
+  profile.colorTheme = theme;
+  saveProfile(profile);
+}
+
+export function setTheme(theme) {
+  const profile = getProfile() || {};
+  profile.colorTheme = theme;
+  saveProfile(profile);
+  applyTheme(theme);
+  document.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
+}
+
+export function applyTheme(theme) {
+  document.body.setAttribute("data-theme", theme);
+}
+
+export function reconcileSystemState() {
+  const currentPremium = isPremium();
+  
+  if (window.systemState) {
+    window.systemState.premium = currentPremium;
+  }
+  
+  document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: currentPremium } }));
+}
+
+=======================
+FILE: www/js/services/billing-service.js
+=======================
+import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState } from "./user-profile.js";
+import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
+import { enqueueBillingStateUpdate } from "../core/event-queue.js";
+
+let storeReady = false;
+
+export function initBilling() {
+  // FIX 2: Guard flag for timing risk
+  window._billingInitializing = true;
+  
+  if (!window.store) {
+    console.warn('[billing] not available');
+    window._billingInitializing = false;
+    return;
+  }
+
+  const store = window.store;
+
+  store.register([
+    { id: "premium_monthly", type: store.PAID_SUBSCRIPTION },
+    { id: "premium_yearly", type: store.PAID_SUBSCRIPTION }
+  ]);
+
+  store.when("premium_monthly").approved(onPurchaseApproved);
+  store.when("premium_yearly").approved(onPurchaseApproved);
+  store.when("premium_monthly").owned(onOwned);
+  store.when("premium_yearly").owned(onOwned);
+  store.when("premium_monthly").cancelled(onCancelled);
+  store.when("premium_yearly").cancelled(onCancelled);
+  store.when("premium_monthly").expired(onExpired);
+  store.when("premium_yearly").onExpired(onExpired);
+
+  store.error(function(err) {
+    console.error('[billing] error:', err);
+  });
+
+  store.refresh();
+  storeReady = true;
+  
+  // FIX 2: Set flag to false after initial sync
+  getPremiumFromBilling();
+  window._billingInitializing = false;
+}
+
+async function onPurchaseApproved(order) {
+  try {
+    if (!order || !order.productId) {
+      console.error('[billing] invalid order');
+      return;
+    }
+
+    const token = order?.transaction?.token || order?.id;
+
+    const verification = await verifyPurchaseWithServer(token);
+
+    if (!verification || verification.valid !== true) {
+      console.error('[billing] verification failed');
+      return;
+    }
+
+    order.finish();
+    activatePremiumPaid();
+    enqueueBillingStateUpdate(true);
+    logPremiumGranted('billing', { productId: order.productId });
+  } catch (e) {
+    console.error('[billing] approve error', e);
+  }
+}
+
+export async function verifyPurchaseWithServer(token) {
+  console.warn('[billing] server verification not implemented');
+
+  if (!token) {
+    return { valid: false };
+  }
+
+  return { valid: true }; // MVP fallback
+}
+
+function onOwned(product) {
+  activatePremiumPaid();
+  enqueueBillingStateUpdate(true);
+  logPremiumGranted('billing_own', { productId: product?.id });
+}
+
+function onCancelled(product) {
+  enqueueBillingStateUpdate(false);
+  deactivateExpiredPremium();
+  reconcileSystemState();
+}
+
+function onExpired(product) {
+  enqueueBillingStateUpdate(false);
+  deactivateExpiredPremium();
+  reconcileSystemState();
+}
+
+export function getPremiumFromBilling() {
+  if (!window.store || !storeReady) return false;
+  
+  try {
+    const monthly = window.store.get("premium_monthly");
+    const yearly = window.store.get("premium_yearly");
+    
+    const isPremiumBilling = 
+      monthly?.owned || yearly?.owned ||
+      monthly?.state === "APPROVED" || yearly?.state === "APPROVED" ||
+      monthly?.state === "VALID" || yearly?.state === "VALID";
+    
+    enqueueBillingStateUpdate(isPremiumBilling);
+    return isPremiumBilling;
+  } catch(e) {
+    console.warn('[billing] getPremiumFromBilling error:', e);
+    enqueueBillingStateUpdate(false);
+    return false;
+  }
+}
+
+export function refreshBilling() {
+  if (!window.store) return;
+  window.store.refresh();
+}
+
+=======================
+FILE: www/js/screens/home.js
+=======================
+import { getMood } from "../state.js";
+import SystemCore from "../system-core.js";
+import { showAvatarHint, showAvatarAfterSave, showAvatar } from "../avatar.js";
+import { initEventsModule, renderEventsGrid, getSelectedEvents, clearSelectedEvents, updateEventsUI, cleanupEventsListener } from "../events.js";
+
+import { showAvatarForMood } from "../avatar.js";
+import { AppRuntime } from "../core/appRuntime.js";
+import { t } from "../i18n.js";
+import { setAvatarMood, avatarReact, initAvatarController } from "../ui/avatar-controller.js";
+import { safeGenerateInsight } from "../ai/offline-ai.js";
+
+function getTimeBucket() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return 'morning';
+  if (h >= 11 && h < 17) return 'day';
+  if (h >= 17 && h < 23) return 'evening';
+  return 'night';
+}
+
+const STORAGE_KEY = 'neyra_last_insight';
+
+function saveInsightToStorage(insight) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      moodLevel: insight.moodLevel,
+      events: insight.events,
+      pattern: insight.pattern,
+      insightText: insight.insightText,
+      timestamp: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function getLastInsight() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {}
+  return null;
+}
+
+function getPatternEventLabel(eventId) {
+  return t('event_' + eventId) || eventId;
+}
+
+function renderInsightCard(state) {
+  const card = document.getElementById("homeInsightCard");
+  const text = document.getElementById("homeInsightText");
+  const patternCard = document.getElementById("homePatternCard");
+  const patternText = document.getElementById("homePatternText");
+  if (!card || !text) return;
+
+  const stored = getLastInsight();
+  if (stored && stored.insightText) {
+    // Показываем сохранённый текст (не генерируем новый!)
+    text.textContent = stored.insightText;
+    card.style.display = 'block';
+    card.style.opacity = '1';
+    
+    if (stored.pattern && patternCard && patternText) {
+      const label = getPatternEventLabel(stored.pattern.event);
+      if (!label || label.includes('event_') || label === stored.pattern.event) {
+        if (patternCard) patternCard.style.display = 'none';
+      } else {
+        if (stored.pattern.type === 'positive') {
+          patternText.textContent = t('pattern_positive').replace('{label}', label);
+        } else {
+          patternText.textContent = t('pattern_negative').replace('{label}', label);
+        }
+        patternCard.style.display = 'block';
+        patternCard.style.opacity = '1';
+      }
+    } else if (patternCard) {
+      patternCard.style.display = 'none';
+    }
+  } else {
+    card.style.display = 'none';
+    if (patternCard) patternCard.style.display = 'none';
+  }
+}
+
+export function onEnter() {
+  console.log('home.onEnter() called');
+  
+  initEventsModule();
+  
+  // Update app-level values (days, stability, golden hours, insight)
+  setTimeout(() => {
+    if (window.__neyraRender) window.__neyraRender();
+  }, 0);
+  
+  const slider = document.getElementById("moodSlider");
+  const valueLabel = document.getElementById("moodValue");
+  const savedLabel = document.getElementById("moodSavedLabel");
+  const eventsContainer = document.getElementById("eventsContainer");
+
+  if (!slider) {
+    console.error('home.onEnter: slider not found');
+    return;
+  }
+
+  const currentMood = getMood();
+  valueLabel.textContent = currentMood + "%";
+
+  // Clone slider to remove old listeners
+  const newSlider = slider.cloneNode(true);
+  slider.parentNode.replaceChild(newSlider, slider);
+  newSlider.id = "moodSlider";
+  newSlider.value = currentMood;
+  showAvatarHint(Number(currentMood));
+  
+  if (eventsContainer) {
+    renderEventsGrid(eventsContainer);
+  }
+  
+  renderInsightCard();
+  initAvatarController();
+
+  newSlider.addEventListener("input", () => {
+    valueLabel.textContent = newSlider.value + "%";
+    showAvatarHint(Number(newSlider.value));
+    setAvatarMood(Number(newSlider.value));
+  });
+
+  const confirmBtn = document.getElementById("moodConfirmBtn");
+  if (!confirmBtn) {
+    console.error('home.onEnter: confirmBtn not found');
+    return;
+  }
+  
+  const newBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+  newBtn.id = "moodConfirmBtn";
+
+  newBtn.addEventListener("click", async () => {
+    console.log('MOOD_SUBMIT clicked');
+    if (newBtn.disabled) return;
+    newBtn.disabled = true;
+
+    const moodValue = Number(newSlider.value);
+    const selectedEvents = getSelectedEvents();
+    const timeBucket = getTimeBucket();
+    
+    try {
+      const result = await SystemCore.dispatch('MOOD_SUBMIT', { 
+        mood: moodValue, 
+        events: selectedEvents,
+        timeBucket: timeBucket
+      });
+
+      if (!result || result.error) {
+        console.warn('UI received error or duplicate:', result);
+        newBtn.disabled = false;
+        return;
+      }
+
+      const savedMood = moodValue;
+      newSlider.value = savedMood;
+      valueLabel.textContent = savedMood + '%';
+
+      const lang = localStorage.getItem('app_language') || 'ru';
+      const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
+      const locale = localeMap[lang] || 'ru-RU';
+      const now  = new Date();
+      const time = now.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit" });
+      const date = now.toLocaleDateString(locale, { day:"2-digit", month:"2-digit", year:"numeric" });
+      if (savedLabel) savedLabel.textContent = `${time} (${date})`;
+      
+      showAvatarForMood(moodValue);
+      avatarReact();
+      
+      if (selectedEvents.length > 0) {
+        console.log('[INSIGHT PAYLOAD]', {
+          mood: moodValue,
+          events: selectedEvents
+        });
+        
+        const insight = await safeGenerateInsight({
+          mood: moodValue,
+          events: selectedEvents,
+          type: 'events'
+        });
+        
+        console.log('[INSIGHT RESULT]', insight);
+        
+        if (insight && insight.insightText) {
+          saveInsightToStorage(insight);
+          showInsightCard(insight);
+        } else {
+          console.warn('[INSIGHT] Empty result', insight);
+        }
+      }
+      
+      AppRuntime.setState('home', { selectedEvents: [] });
+      document.querySelectorAll('.event-item').forEach(el => {
+        el.classList.remove('active');
+      });
+
+    } finally {
+      newBtn.disabled = false;
+    }
+  });
+}
+
+function showInsightCard(insight) {
+  const card = document.getElementById("homeInsightCard");
+  const text = document.getElementById("homeInsightText");
+  const patternCard = document.getElementById("homePatternCard");
+  const patternText = document.getElementById("homePatternText");
+  
+  if (!card || !text) return;
+  
+  text.textContent = insight.insightText;
+  card.style.display = 'block';
+  card.style.opacity = '1';
+  
+  if (!insight.pattern || !patternCard || !patternText) {
+    if (patternCard) patternCard.style.display = 'none';
+    return;
+  }
+  
+  const label = getPatternEventLabel(insight.pattern.event);
+  if (!label || label.includes('event_') || label === insight.pattern.event) {
+    console.warn('[PATTERN] label not found for event:', insight.pattern.event);
+    if (patternCard) patternCard.style.display = 'none';
+    return;
+  }
+  
+  const timeKey = insight.meta?.timeBucket ? 'time_' + insight.meta.timeBucket : null;
+  const timeLabel = timeKey ? t(timeKey) : null;
+  
+  if (insight.pattern.score > 0) {
+    if (timeLabel && insight.meta?.timeBucket) {
+      patternText.innerHTML = t('pattern_positive_time').replace('{label}', label).replace('{time}', timeLabel);
+    } else {
+      patternText.innerHTML = t('pattern_positive').replace('{label}', label);
+    }
+  } else {
+    patternText.innerHTML = t('pattern_negative').replace('{label}', label);
+  }
+  
+  if (insight.meta) {
+    const metaEl = document.createElement('div');
+    metaEl.style.cssText = 'font-size:10px;color:#888;margin-top:4px;';
+    metaEl.textContent = `Основано на ${insight.meta.count} записях • влияние ${insight.meta.impact > 0 ? '+' : ''}${insight.meta.impact}`;
+    patternText.appendChild(metaEl);
+  }
+  
+  patternCard.style.display = 'block';
+  patternCard.style.opacity = '1';
+}
+
+export function onExit() {
+  const container = document.getElementById('eventsContainer');
+  if (container) {
+    cleanupEventsListener(container);
+  }
+}
+
+document.addEventListener("languageChanged", () => {
+  renderInsightCard();
+});
+
+=======================
+FILE: www/js/screens/history.js
+=======================
+import { getMoodHistory, getNotesHistory, getVoiceHistory, getSessionHistory, getReflections } from "../services/memory.js";
+import { t } from "../i18n.js";
+
+export function onEnter() { renderHistory(); }
+
+// Timeline, cards, detail view, voice playback, photo capture, share
+// Full implementation in original file
+
+=======================
+FILE: www/js/screens/premium.js
+=======================
+// ===============================
+// Neyra Premium Screen
+// Status screen (not paywall)
+// ===============================
+import { getPremiumInfo } from "../services/user-profile.js";
+import { t } from "../i18n.js";
+
+const features = [
+  { icon: "☁️", title: "Облачное сохранение", desc: "Синхронизация между устройствами" },
+  { icon: "📊", title: "Полная история", desc: "Доступ к старым данным" },
+  { icon: "🧘", title: "Медитации", desc: "Расширенная библиотека практик" },
+  { icon: "🎵", title: "Музыка и звуки", desc: "Фоновые треки и атмосфера" },
+  { icon: "🎨", title: "Темы оформления", desc: "Цветовые схемы интерфейса" },
+  { icon: "📈", title: "Аналитика", desc: "Глубокий анализ состояния" },
+  { icon: "🔒", title: "Без рекламы", desc: "Чистый интерфейс" }
+];
+
+export function onEnter() {
+  const container = document.getElementById("premium-content");
+  if (!container) return;
+  
+  container.innerHTML = renderPremium();
+  bindEvents();
+}
+
+function renderPremium() {
+  const premiumInfo = getPremiumInfo();
+  const isActive = premiumInfo.isPremium;
+  // ... full render logic
+}
+
+function bindEvents() {
+  const btn = document.getElementById("premiumBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      if (window.openScreen) {
+        window.openScreen("paywall");
+      }
+    });
+  }
+}
+
+=======================
+FILE: www/js/screens/paywall.js
+=======================
+// ===============================
+// Neyra Paywall Screen (Minimal)
+// ===============================
+
+export function onEnter() {
+  const container = document.getElementById("paywall-content");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="padding:24px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">👑</div>
+      <h2 style="font-size:22px;margin-bottom:12px;">Полный доступ к себе</h2>
+      <p style="font-size:14px;color:#666;margin-bottom:24px;">Разблокируй все функции приложения</p>
+      <button id="buyBtn" style="width:100%;padding:16px;border:none;border-radius:12px;background:#805ad5;color:#fff;font-size:16px;font-weight:600;">Открыть доступ</button>
+      <button id="backBtn" style="margin-top:12px;background:none;border:none;color:#888;">Назад</button>
+    </div>
+  `;
+
+  bindEvents();
+}
+
+function bindEvents() {
+  const buyBtn = document.getElementById("buyBtn");
+  const backBtn = document.getElementById("backBtn");
+
+  if (buyBtn) {
+    buyBtn.addEventListener("click", () => {
+      if (window._trustedSetBillingPremium) {
+        window._trustedSetBillingPremium(true);
+      }
+      if (window.openScreen) {
+        window.openScreen("premium");
+      }
+    });
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      if (window.openScreen) {
+        window.openScreen("premium");
+      }
+    });
+  }
+}
+
+=======================
+FILE: www/js/screens/settings.js
+=======================
+// =====================================
+// Neyra Settings Screen
+// =====================================
+
+import {
+  getProfile, saveProfile, saveMedReminder, removeMedReminder, getMedReminder,
+  getPremiumInfo, getTheme, saveTheme, setTheme, applyTheme, isPremium,
+} from "../services/user-profile.js";
+import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
+
+// Settings sections: Health, App, Data, Backup, Premium
+// Full implementation in original file
+
+=======================
+FILE: android/.../MainActivity.java
+=======================
+package com.moodos.app;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.webkit.WebView;
+import android.webkit.JavascriptInterface;
+
+import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Bridge;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MainActivity extends BridgeActivity {
+
+    private WebView webView;
+    private boolean bridgeRegistered = false;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        registerBridge();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerBridge();
+    }
+
+    private void registerBridge() {
+        if (bridgeRegistered) return;
+        
+        try {
+            Bridge bridge = getBridge();
+            if (bridge != null) {
+                webView = bridge.getWebView();
+                if (webView != null) {
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    webView.addJavascriptInterface(new FirebaseBridge(), "Android");
+                    bridgeRegistered = true;
+                }
+            }
+        } catch (Exception e) {
+            Log.e("TAG", "Error: " + e.getMessage());
+        }
+    }
+
+    public static class FirebaseBridge {
+        
+        @JavascriptInterface
+        public void saveToCloud(String jsonData) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                signInAndSave(jsonData);
+                return;
+            }
+            saveToFirestore(user.getUid(), jsonData);
+        }
+        
+        private void signInAndSave(String jsonData) {
+            FirebaseAuth.getInstance().signInAnonymously()
+                .addOnSuccessListener(authResult -> {
+                    saveToFirestore(authResult.getUser().getUid(), jsonData);
+                });
+        }
+        
+        private void saveToFirestore(String uid, String jsonData) {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            Map<String, Object> data = new HashMap<>();
+            data.put("payload", jsonData);
+            data.put("timestamp", System.currentTimeMillis());
+            
+            db.collection("test").add(data);
+        }
+    }
+}
+
+=======================
+FILE: www/js/i18n/ru.js (sample)
+=======================
+// Neyra i18n — ru
+export const ru = {
+    app_name: "Neyra",
+    home_welcome: "Привет! Как дела?",
+    reflection_stress: "Похоже, это был напряжённый момент. Важно дать себе восстановиться.",
+    reflection_positive: "Звучит как хороший опыт. Стоит закрепить такие моменты.",
+    reflection_neutral: "Ты фиксируешь состояние — это уже важный шаг.",
+    premium_title: "Полный доступ к себе",
+    // ... 600+ keys
+};
+
+=======================
+FILE: docs/PRIVACY.md
+=======================
+# Privacy Policy
+
+## 1. Overview
+
+* App Neyra is an offline-first mood tracking application
+* By default, all data is stored locally on the user's device
+
+---
+
+## 2. Local Data Storage
+
+* Mood entries, reflections, and history are stored on-device
+* No data is sent to servers unless user enables cloud features
+
+---
+
+## 3. Cloud Storage (Firebase)
+
+The App may optionally store your data in the cloud using Firebase (Google LLC) if you enable cloud backup.
+
+### What data is stored in the cloud:
+- Mood entries (mood history)
+- Reflections and notes
+- Voice recordings (if used)
+- Photos (if used)
+- Pattern analysis data
+- Practice session history
+
+### When data is sent:
+- Data is automatically synced after user actions
+- Sync occurs only if cloud features are enabled with your consent
+
+### Security:
+- Data is transmitted over secure HTTPS connections
+- Access is restricted to your account
+
+### User control:
+- You can disable cloud sync at any time
+- You can request deletion of your cloud data
+
+### Third-party:
+- Firebase (Google LLC) may process data according to their Privacy Policy
+
+---
+
+## 4. User Consent
+
+By enabling cloud features, you consent to storing your data in Firebase (Google LLC).
+
+---
+
+## 5. User Rights
+
+* Access your data
+* Delete your data
+* Export your data
+* Revoke consent at any time
+
+---
+
+## 6. Data Security
+
+* Local storage is protected by device security
+* Cloud data is handled by Firebase security standards
+
+---
+
+## 7. Children's Privacy
+
+* Not intended for children under 13
+
+---
+
+## 8. Changes
+
+* Policy may be updated
+* Users will be informed via app updates
+
+=== DEBUG NOTES ===
+- Firebase writes working
+- Bridge working (window.Android)
+- Premium working (internal flag)
+- Known issue: no user isolation yet
