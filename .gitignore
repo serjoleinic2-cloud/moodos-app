@@ -11,3 +11,5 @@ google-services.json
 # Sensitive - Credentials
 credentials.json
 config.prod.js
+www/js/cloud/firebase-init.js
+www/js/cloud/firebase-config.js
