@@ -65,23 +65,19 @@ export function hasLocalData() {
   });
 }
 
+function shouldRestore(cloudData) {
+  const localSyncedAt = parseInt(localStorage.getItem('syncedAt') || '0', 10);
+  const cloudSyncedAt = cloudData?.syncedAt || 0;
+  return cloudSyncedAt > localSyncedAt;
+}
+
 export function restoreFromCloudIfEmpty(data) {
   if (!data) return false;
 
   const parsed = typeof data === 'string' ? JSON.parse(data) : data;
   
-  // Time-based protection: skip if local is newer
-  const cloudTs = parsed.updatedAt || 0;
-  const localProfile = JSON.parse(localStorage.getItem("neyra_profile") || "{}");
-  const localTs = localProfile.updatedAt || 0;
-
-  if (localTs > cloudTs) {
-    console.warn('[RESTORE] Local newer → skip');
-    return false;
-  }
-
-  if (hasLocalData()) {
-    console.log('[CLOUD] Skip restore — local data exists');
+  if (!shouldRestore(parsed)) {
+    console.log('[CLOUD] Skip restore — local newer or same');
     return false;
   }
   

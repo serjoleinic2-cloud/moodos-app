@@ -131,10 +131,7 @@ const SystemCore = {
   },
 
   async dispatch(event, payload) {
-    console.log('[SYSTEM] dispatch:', event, payload);
-
     if (this.processingEvents.has(event)) {
-      console.warn('[SYSTEM] Blocked duplicate event:', event)
       return { duplicate: true }
     }
 
@@ -173,7 +170,6 @@ const SystemCore = {
           break
 
         case 'SAVE_REFLECTION':
-          console.log('[SYSTEM] SAVE_REFLECTION payload:', payload);
           if (payload?.text) {
             const { saveReflection } = await import('./services/memory.js');
             saveReflection({

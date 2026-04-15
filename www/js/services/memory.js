@@ -4,6 +4,15 @@
 // Отвечает ТОЛЬКО за localStorage
 // =====================================
 
+function dedupeByTime(arr) {
+  const map = new Map();
+  arr.forEach(item => {
+    const key = item.time || item.date;
+    map.set(key, item);
+  });
+  return Array.from(map.values());
+}
+
 /* ---------- GENERIC SAVE ---------- */
 export function save(data) {
   let needsSnapshotUpdate = false;
@@ -70,8 +79,9 @@ export function getMoodHistory() {
 }
 
 export function saveMoodHistory(history) {
+  const deduped = dedupeByTime(history);
   try {
-    localStorage.setItem("mood_history", JSON.stringify(history));
+    localStorage.setItem("mood_history", JSON.stringify(deduped));
   } catch(e) {
     console.error('[memory] saveMoodHistory failed (quota?):', e);
   }
@@ -95,6 +105,10 @@ export function getNotesHistory() {
 }
 
 export function saveNotesHistory(history) {
+  const deduped = dedupeByTime(history);
+  if (deduped.length > 500) {
+    history = deduped.slice(-500);
+  }
   try {
     localStorage.setItem("notes_history", JSON.stringify(history));
   } catch(e) {
@@ -114,21 +128,21 @@ export function getReflections() {
 }
 
 export function saveReflection(entry) {
-  console.log('[MEMORY] saveReflection called:', entry);
   let data = getReflections();
   data.push({
     ...entry,
     type: 'reflection',
     time: entry.time || Date.now()
   });
-  console.log('[MEMORY] reflections after save:', data.length);
+  
+  data = dedupeByTime(data);
+  
   const MAX_REFLECTIONS = 100;
   if (data.length > MAX_REFLECTIONS) {
     data = data.slice(-MAX_REFLECTIONS);
   }
   try {
     localStorage.setItem("reflections", JSON.stringify(data));
-    console.log('[MEMORY] reflections saved to localStorage');
   } catch(e) {
     console.error('[memory] saveReflection failed:', e);
   }
@@ -249,13 +263,46 @@ export function addActivityEntry(entry) {
 
 /* ---------- PHOTO HISTORY ---------- */
 
+const MAX_PHOTOS = 20;
+
 export function getPhotoHistory() {
-  return JSON.parse(localStorage.getItem("photo_history")) || [];
+  return safeParseStorage("photo_history", []);
 }
 
 export function savePhotoHistory(history) {
-  if (history.length > 20) history.splice(0, history.length - 20);
-  localStorage.setItem("photo_history", JSON.stringify(history));
+  if (history.length > MAX_PHOTOS) {
+    history = history.slice(-MAX_PHOTOS);
+  }
+  try {
+    localStorage.setItem("photo_history", JSON.stringify(history));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      emergencyPrune("photo_history", 0.8);
+    }
+  }
+}
+
+function safeParseStorage(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function emergencyPrune(key, ratio) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr) || arr.length === 0) return;
+    const pruneCount = Math.floor(arr.length * ratio);
+    const pruned = arr.slice(pruneCount);
+    localStorage.setItem(key, JSON.stringify(pruned));
+    console.log('[MEMORY] Emergency prune:', key);
+  } catch (e) {
+    console.error('[MEMORY] Prune failed:', e);
+  }
 }
 
 /* ---------- WEEKLY HISTORY ---------- */

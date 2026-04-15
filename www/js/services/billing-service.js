@@ -1,11 +1,13 @@
-import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState } from "./user-profile.js";
+import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./user-profile.js";
 import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
 import { enqueueBillingStateUpdate } from "../core/event-queue.js";
 
 let storeReady = false;
 
 export function initBilling() {
-  // FIX 2: Guard flag for timing risk
+  if (window._billingInitialized) return;
+  window._billingInitialized = true;
+  
   window._billingInitializing = true;
   
   if (!window.store) {
@@ -21,8 +23,24 @@ export function initBilling() {
     { id: "premium_yearly", type: store.PAID_SUBSCRIPTION }
   ]);
 
-  store.when("premium_monthly").approved(onPurchaseApproved);
-  store.when("premium_yearly").approved(onPurchaseApproved);
+  store.when("premium_monthly").approved(p => {
+    if (isPremium()) {
+      p.finish();
+      return;
+    }
+    p.finish();
+    activatePremiumPaid();
+  });
+  
+  store.when("premium_yearly").approved(p => {
+    if (isPremium()) {
+      p.finish();
+      return;
+    }
+    p.finish();
+    activatePremiumPaid();
+  });
+  
   store.when("premium_monthly").owned(onOwned);
   store.when("premium_yearly").owned(onOwned);
   store.when("premium_monthly").cancelled(onCancelled);
@@ -37,7 +55,6 @@ export function initBilling() {
   store.refresh();
   storeReady = true;
   
-  // FIX 2: Set flag to false after initial sync
   getPremiumFromBilling();
   window._billingInitializing = false;
 }

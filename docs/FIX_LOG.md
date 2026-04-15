@@ -89,6 +89,76 @@ Quick reference for recent fixes.
 
 ---
 
+## 2026-04-15 (Part 3)
+
+### TASK I-O — Cloud Sync Improvements
+
+**Files updated:**
+- `www/js/services/cloud-sync.js` — Single source, confirm delete, change detection, consent
+- `android/.../MainActivity.java` — Firestore min split
+- `www/js/app.js` — initCloudConsent() call
+
+**Key fixes:**
+
+1. **TASK I:** Single source of truth
+   - Deleted `www/js/cloud/cloud-sync.js`
+   - Updated imports in `storage-wrapper.js`
+
+2. **TASK J:** Hard confirm for delete
+   - `confirmDeleteCloud()` with native confirm()
+
+3. **TASK K:** Consent migration
+   - `initCloudConsent()` sets default to 'false' if null
+
+4. **TASK L:** Firestore min split
+   - `collection("neyra_users").document(uid).collection("core").document("main")`
+
+5. **TASK M:** Change detection
+   - `lastPayloadHash` comparison before sync
+
+6. **TASK N:** Billing restore (already implemented)
+   - `onOwned()` calls `activatePremiumPaid()` on restore
+
+7. **TASK O:** Cloud sync feedback
+   - `window._lastCloudSync` object
+
+---
+
+## 2026-04-15 (Part 4)
+
+### TASK P-Z — Final Hardening
+
+**Files updated:**
+- `www/js/services/cloud-sync.js` — Payload guard, truncation, safe JSON helpers
+- `www/js/services/cloud-restore.js` — Smart restore with syncedAt
+- `www/js/app.js` — Null guard, error reporting, cloud prompt
+- `www/js/screens/paywall.js` — Billing fail safe
+- `www/js/services/memory.js` — All limits + emergency prune
+- `android/.../MainActivity.java` — Firestore split
+
+**Key fixes:**
+
+1. **TASK P:** Payload size guard (900KB limit)
+2. **TASK Q:** Truncation if too large
+3. **TASK R:** Smart restore (syncedAt comparison)
+4. **TASK S:** Android bridge null guard
+5. **TASK T:** safeParse/safeSet helpers
+6. **TASK U:** All history limits (mood:730, notes:500, etc.)
+7. **TASK V:** Removed test-cloud.js
+8. **TASK W:** Error reporting (`window._errors`)
+9. **TASK X:** Billing fail safe UI
+10. **TASK Y:** First-run cloud prompt
+11. **TASK Z:** Production flags verified
+
+**Final Checklist:**
+- ✅ No "test" collection
+- ✅ No unsafe Firestore rules
+- ✅ No __internalPremium backdoor
+- ✅ No direct premium mutation
+- ✅ No duplicate cloud modules
+
+---
+
 ## 2026-04-13
 
 ### TASK 132 — Privacy Policy & User Consent
@@ -226,6 +296,41 @@ privacy_full_policy: "Read full policy →"
 
 ### i18n Comma Fixes
 Fixed missing commas in all language files.
+
+## 2026-04-15 (Part 5)
+
+### TASK AA-AK — Pre-Audit Hardening
+
+**Files updated:**
+- `android/.../MainActivity.java` — Delete path matches core/main split
+- `www/js/services/cloud-sync.js` — Type check, retry, restore loop guard, syncedAt validation
+- `www/js/services/memory.js` — Dedupe function applied
+- `www/js/services/billing-service.js` — Double-activation guard, multiple init prevention
+- `www/js/system-core.js` — Log reduction
+
+**Key fixes:**
+
+1. **TASK AA:** Load path uses `core/main` ✅
+2. **TASK AB:** Delete matches split structure ✅
+3. **TASK AC:** Sync after delete (local reset) ✅
+4. **TASK AD:** Prevent sync loop after restore ✅
+5. **TASK AE:** Deduplicate history entries ✅
+6. **TASK AF:** Strict type check before save ✅
+7. **TASK AG:** Fail retry for cloud save (2 retries) ✅
+8. **TASK AH:** Protect syncedAt corruption ✅
+9. **TASK AI:** Billing double-activation guard ✅
+10. **TASK AJ:** Prevent multiple init of store ✅
+11. **TASK AK:** Log reduction (removed verbose logs) ✅
+
+**Final Pre-Audit Checklist:**
+- [x] load path uses core/main
+- [x] delete matches split structure
+- [x] no sync loop after restore
+- [x] retries on save implemented
+- [x] no duplicate entries in history
+- [x] billing cannot double-activate
+- [x] syncedAt validated
+- [x] logs safe for production
 
 ---
 

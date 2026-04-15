@@ -123,6 +123,8 @@ public class MainActivity extends BridgeActivity {
 
             db.collection("neyra_users")
                 .document(uid)
+                .collection("core")
+                .document("main")
                 .set(data)
                 .addOnSuccessListener(v -> Log.d("FIREBASE", "SAVE OK"))
                 .addOnFailureListener(e -> Log.e("FIREBASE", "SAVE ERROR: " + e.getMessage()));
@@ -138,6 +140,8 @@ public class MainActivity extends BridgeActivity {
 
             db.collection("neyra_users")
                 .document(uid)
+                .collection("core")
+                .document("main")
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists() && doc.contains("payload")) {
@@ -202,6 +206,8 @@ public class MainActivity extends BridgeActivity {
 
             db.collection("neyra_users")
                 .document(uid)
+                .collection("core")
+                .document("main")
                 .delete()
                 .addOnSuccessListener(v -> Log.d("FIREBASE", "DELETE OK"))
                 .addOnFailureListener(e -> Log.e("FIREBASE", "DELETE ERROR: " + e.getMessage()));

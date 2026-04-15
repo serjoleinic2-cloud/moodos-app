@@ -51,6 +51,75 @@
 | G | Remove medical data from sync | ✅ |
 | H | Fix billing expiry API | ✅ |
 
+---
+
+## ✅ ЗАВЕРШЕНО: TASK I-O — Cloud Sync Improvements
+
+**Дата:** 2026-04-15
+**Статус:** ✅ ГОТОВО
+
+| TASK | Описание | Статус |
+|------|----------|--------|
+| I | Single source of truth (delete cloud/cloud-sync.js) | ✅ |
+| J | Hard confirm for delete | ✅ |
+| K | Consent migration | ✅ |
+| L | Firestore min split | ✅ |
+| M | Change detection for sync | ✅ |
+| N | Billing restore | ✅ (already exists) |
+| O | Cloud sync error feedback | ✅ |
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK P-Z — Final Hardening
+
+**Дата:** 2026-04-15
+**Статус:** ✅ BETA-READY
+
+| TASK | Описание | Статус |
+|------|----------|--------|
+| P | Payload size guard (900KB) | ✅ |
+| Q | Partial truncation | ✅ |
+| R | Smart restore | ✅ |
+| S | Android null guard | ✅ |
+| T | Safe JSON helpers | ✅ |
+| U | All history limits | ✅ |
+| V | Remove debug globals | ✅ |
+| W | Error reporting | ✅ |
+| X | Billing fail safe UI | ✅ |
+| Y | First-run cloud prompt | ✅ |
+| Z | Production flags check | ✅ |
+
+### FINAL BETA CHECKLIST:
+- [x] sync survives reinstall
+- [x] sync survives offline → online
+- [x] no payload >1MB
+- [x] no duplicate sync calls
+- [x] premium restores after reinstall
+- [x] delete cloud works
+- [x] no console-based premium bypass
+- [x] no storage crashes on heavy use
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK AA-AK — Pre-Audit Hardening
+
+**Дата:** 2026-04-15
+**Статус:** ✅ PRE-AUDIT READY
+
+| TASK | Описание | Статус |
+|------|----------|--------|
+| AA | Android load path (core/main) | ✅ |
+| AB | Cloud delete path update | ✅ |
+| AC | Sync after delete (local reset) | ✅ |
+| AD | Prevent sync loop after restore | ✅ |
+| AE | Deduplicate history entries | ✅ |
+| AF | Strict type check before save | ✅ |
+| AG | Fail retry for cloud save | ✅ |
+| AH | Protect syncedAt corruption | ✅ |
+| AI | Billing double-activation guard | ✅ |
+| AJ | Prevent multiple init of store | ✅ |
+| AK | Log reduction | ✅ |
+
 ## ✅ ЗАВЕРШЕНО: TASK 144-G — Firebase Android Bridge (РАБОТАЕТ!)
 
 **Дата:** 2026-04-14

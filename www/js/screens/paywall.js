@@ -53,11 +53,16 @@ function bindEvents() {
 
   if (buyBtn) {
     buyBtn.addEventListener("click", async () => {
+      if (!window.store) {
+        alert("Billing temporarily unavailable. Try later.");
+        return;
+      }
       try {
         const { buyMonthly } = await import("../services/billing-service.js");
         await buyMonthly();
       } catch (e) {
-        console.error('[PAYWALL] Buy error:', e);
+        console.warn('[billing] purchase failed');
+        alert("Purchase failed. Try again later.");
       }
     });
   }

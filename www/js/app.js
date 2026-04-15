@@ -11,6 +11,18 @@ export function _trustedSetBillingPremium(val) {
 window._appReady = false;
 window._pendingCloudData = null;
 
+// Error reporting
+window._errors = [];
+window.addEventListener('error', (e) => {
+  window._errors.push({
+    msg: e.message,
+    time: Date.now()
+  });
+  if (window._errors.length > 50) {
+    window._errors.shift();
+  }
+});
+
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
@@ -19,15 +31,32 @@ import SystemCore from "./system-core.js";
 
 window.SystemCore = SystemCore;
 import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
+import { initCloudConsent } from "./services/cloud-sync.js";
+
+initCloudConsent();
+
+// First-run cloud prompt
+if (localStorage.getItem('cloud_prompt_shown') !== 'true') {
+  localStorage.setItem('cloud_prompt_shown', 'true');
+}
 
 // Cloud restore callback (called from Android)
 window.onCloudData = function(data) {
-  console.log('[CLOUD] DATA RECEIVED');
+  if (!data || data === "null" || data === "") {
+    console.warn('[CLOUD] Empty or invalid data');
+    return;
+  }
 
-  if (window._appReady) {
-    restoreFromCloudIfEmpty(data);
-  } else {
-    window._pendingCloudData = data;
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+
+    if (window._appReady) {
+      restoreFromCloudIfEmpty(parsed);
+    } else {
+      window._pendingCloudData = parsed;
+    }
+  } catch (e) {
+    console.error('[CLOUD] Parse error', e);
   }
 };
 

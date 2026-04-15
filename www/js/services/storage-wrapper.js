@@ -46,7 +46,7 @@ function scheduleCloudSync() {
   
   syncTimeout = setTimeout(async () => {
     try {
-      const { syncToCloud, collectLocalData } = await import('../cloud/cloud-sync.js');
+      const { syncToCloud, collectLocalData } = await import('../services/cloud-sync.js');
       const data = collectLocalData();
       await syncToCloud(data);
     } catch (e) {
@@ -132,7 +132,7 @@ function deleteFromLocalStorage(key) {
 async function saveToCloud(key, data) {
   console.log('[STORAGE] Cloud save:', key);
   try {
-    const { syncToCloud, collectLocalData } = await import('../cloud/cloud-sync.js');
+    const { syncToCloud, collectLocalData } = await import('../services/cloud-sync.js');
     const allData = collectLocalData();
     await syncToCloud(allData);
     return { success: true };
@@ -145,7 +145,7 @@ async function saveToCloud(key, data) {
 async function loadFromCloud(key) {
   console.log('[STORAGE] Cloud load:', key);
   try {
-    const { loadFromCloud: loadCloud } = await import('../cloud/cloud-sync.js');
+    const { loadFromCloud: loadCloud } = await import('../services/cloud-sync.js');
     const data = await loadCloud();
     return data;
   } catch (e) {
@@ -168,7 +168,7 @@ export async function syncToCloudNow() {
   }
   
   try {
-    const { fullSync } = await import('../cloud/cloud-sync.js');
+    const { fullSync } = await import('../services/cloud-sync.js');
     return await fullSync();
   } catch (e) {
     console.error('[STORAGE] Sync error:', e);
@@ -178,7 +178,7 @@ export async function syncToCloudNow() {
 
 export async function restoreFromCloud() {
   try {
-    const { loadFromCloud, mergeData } = await import('../cloud/cloud-sync.js');
+    const { loadFromCloud, mergeData } = await import('../services/cloud-sync.js');
     const cloudData = await loadFromCloud();
     if (cloudData) {
       await mergeData(cloudData);
