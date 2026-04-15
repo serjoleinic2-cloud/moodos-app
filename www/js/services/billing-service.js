@@ -28,7 +28,7 @@ export function initBilling() {
   store.when("premium_monthly").cancelled(onCancelled);
   store.when("premium_yearly").cancelled(onCancelled);
   store.when("premium_monthly").expired(onExpired);
-  store.when("premium_yearly").onExpired(onExpired);
+  store.when("premium_yearly").expired(onExpired);
 
   store.error(function(err) {
     console.error('[billing] error:', err);

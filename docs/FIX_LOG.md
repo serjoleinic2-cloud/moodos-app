@@ -47,7 +47,45 @@ Quick reference for recent fixes.
    - Added loadFromCloud + retry logic in MainActivity
 
 **Files deleted:**
-- `www/js/services/cloud-sync.js`
+- `www/js/services/cloud-sync.js` (дубликат)
+
+---
+
+## 2026-04-15 (Part 2)
+
+### TASK A-H — Additional Security Fixes
+
+**Files updated:**
+- `www/js/services/user-profile.js` — Removed __internalPremium backdoor, added block
+- `www/js/cloud/cloud-sync.js` — Profile sanitization (no premium in cloud)
+- `www/js/services/cloud-sync.js` — Created with consent check + delete function
+- `www/js/services/billing-service.js` — Fixed .onExpired → .expired
+
+**Key fixes:**
+
+1. **TASK A:** Kill __internalPremium backdoor
+   - Removed check `if (window.__internalPremium === true) return true`
+   - Added Object.defineProperty to block attempts
+
+2. **TASK B:** Profile sanitization
+   - collectLocalData removes premium, medical data before sync
+
+3. **TASK C:** Cloud consent
+   - isCloudEnabled() checks localStorage.getItem('cloud_enabled')
+   - scheduleCloudSync returns early if no consent
+
+4. **TASK D:** Delete cloud data
+   - window.Android.deleteCloudData() + Android deleteFromFirestore()
+
+5. **TASK E:** Pending cloud data (already exists in app.js)
+
+6. **TASK F:** Crash fix
+   - All `window.systemState.premium` now wrapped in `if (window.systemState)`
+
+7. **TASK G:** Medical data removal (included in TASK B)
+
+8. **TASK H:** Billing expiry API
+   - `.onExpired` → `.expired`
 
 ---
 

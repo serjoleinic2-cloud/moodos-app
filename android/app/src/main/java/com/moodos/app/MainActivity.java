@@ -177,5 +177,34 @@ public class MainActivity extends BridgeActivity {
                 }
             ));
         }
+
+        @JavascriptInterface
+        public void deleteCloudData() {
+            Log.d("FIREBASE", "BRIDGE CALLED: deleteCloudData");
+            
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Log.e("FIREBASE", "Not authenticated");
+                return;
+            }
+            
+            String uid = user.getUid();
+            deleteFromFirestore(uid);
+        }
+        
+        private void deleteFromFirestore(String uid) {
+            if (uid == null || uid.isEmpty()) {
+                Log.e("FIREBASE", "NO UID — ABORT DELETE");
+                return;
+            }
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("neyra_users")
+                .document(uid)
+                .delete()
+                .addOnSuccessListener(v -> Log.d("FIREBASE", "DELETE OK"))
+                .addOnFailureListener(e -> Log.e("FIREBASE", "DELETE ERROR: " + e.getMessage()));
+        }
     }
 }

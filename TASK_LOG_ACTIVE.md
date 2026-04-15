@@ -29,8 +29,27 @@
 - ✅ reflections синкается правильно
 - ✅ cloud restore работает
 - ✅ premium НЕ активируется бесплатно
+- ✅ нет __internalPremium backdoor
+- ✅ cloud consent требуется
+- ✅ premium medical data не синкается
 
 ---
+
+## ✅ ЗАВЕРШЕНО: TASK A-H — Additional Security Fixes
+
+**Дата:** 2026-04-15
+**Статус:** ✅ ГОТОВО
+
+| TASK | Описание | Статус |
+|------|----------|--------|
+| A | Kill __internalPremium backdoor | ✅ |
+| B | Sanitize profile before sync | ✅ |
+| C | Cloud consent hard block | ✅ |
+| D | Delete cloud data function | ✅ |
+| E | Pending cloud data fix | ✅ (already exists) |
+| F | Crash fix for systemState.premium | ✅ |
+| G | Remove medical data from sync | ✅ |
+| H | Fix billing expiry API | ✅ |
 
 ## ✅ ЗАВЕРШЕНО: TASK 144-G — Firebase Android Bridge (РАБОТАЕТ!)
 

@@ -151,8 +151,6 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  if (window.__internalPremium === true) return true;
-
   const info = getPremiumInfo();
 
   if (info?.isExpired) {
@@ -164,6 +162,13 @@ export function isPremium() {
 }
 
 window.isPremium = isPremium;
+
+Object.defineProperty(window, "__internalPremium", {
+  get: () => false,
+  set: () => {
+    console.warn("Blocked premium hack attempt");
+  }
+});
 
 export function setBillingPremium(value) {
   window._billingPremium = value === true;
@@ -181,7 +186,9 @@ export function activatePremiumPaid() {
 
     saveProfile(profile);
 
-    window.systemState.premium = true;
+    if (window.systemState) {
+      window.systemState.premium = true;
+    }
 
     document.dispatchEvent(new Event("premiumChanged"));
   } catch (e) {

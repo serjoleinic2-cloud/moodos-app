@@ -139,13 +139,29 @@ export async function fullSync() {
 }
 
 export function collectLocalData() {
+  const profileRaw = JSON.parse(localStorage.getItem('user_profile') || '{}');
+  
+  const {
+    premium,
+    premium_type,
+    premiumExpiresAt,
+    premium_since,
+    premiumTrial,
+    premiumPlan,
+    isPremium,
+    takesMeds,
+    medEffect,
+    baseFeeling,
+    ...safeProfile
+  } = profileRaw;
+  
   return {
     mood: localStorage.getItem('mood_history'),
     notes: localStorage.getItem('notes_history'),
     reflections: localStorage.getItem('reflections'),
     voice: localStorage.getItem('voice_history'),
     sessions: localStorage.getItem('session_history'),
-    profile: localStorage.getItem('user_profile'),
+    profile: JSON.stringify(safeProfile),
     syncedAt: Date.now()
   };
 }
