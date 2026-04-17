@@ -6,6 +6,7 @@
 // JSZip loaded via CDN in index.html
 import { isPremium } from './user-profile.js';
 import { canExportBackup, markBackupSuccess } from './backup-reminder.js';
+import { disableExitGuardForReload } from './exit-guard.js';
 
 /** @type {any} */
 const Filesystem = window.Capacitor?.Plugins?.Filesystem;
@@ -361,6 +362,7 @@ export function showImportPicker() {
       alert(messages[result.error] || 'Ошибка импорта: ' + result.error);
     } else {
       alert('Данные успешно восстановлены!');
+      disableExitGuardForReload();
       window.location.reload();
     }
   };
@@ -479,6 +481,7 @@ async function importFromZip(file, resolve) {
     resolve({ success: true, message: 'Данные восстановлены!' });
     
     // Reload страницы чтобы данные перезагрузились
+    disableExitGuardForReload();
     setTimeout(() => window.location.reload(), 500);
 
     const mediaFolder = zip.folder('media');

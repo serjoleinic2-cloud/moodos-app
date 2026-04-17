@@ -13,11 +13,16 @@ export function setupExitGuard() {
   });
   
   window.addEventListener("beforeunload", (e) => {
+    if (window._restoreInProgress) return;
     if (shouldWarnBeforeExit()) {
       e.preventDefault();
       e.returnValue = "";
     }
   });
+}
+
+export function disableExitGuardForReload() {
+  window._restoreInProgress = true;
 }
 
 function shouldWarnBeforeExit() {
