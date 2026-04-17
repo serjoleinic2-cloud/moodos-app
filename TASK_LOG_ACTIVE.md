@@ -226,12 +226,16 @@
 
 ---
 
-## ⚠️ ПЕРЕД РЕЛИЗОМ
+## ⚠️ ПЕРЕД РЕЛИЗОМ (2026-04-16)
 
-1. Изменить коллекцию с `test` на `user_data/{uid}/entries`
-2. Включить Anonymous Auth в Firebase Console
-3. Задеплоить firestore.rules
-4. Убрать тестовые логи из MainActivity
+~~1. Изменить коллекцию с `test` на `user_data/{uid}/entries`~~ ✅ ДONE (TASK 1)
+   - Теперь: `neyra_users/{uid}/core/main`
+
+Текущие требования:
+- [ ] Anonymous Auth включён в Firebase Console
+- [ ] firestore.rules задеплоены
+- [ ] google-services.json заменён
+- [ ] Тестовые логи из MainActivity убрать (опционально)
 
 ---
 
@@ -258,9 +262,252 @@ FIREBASE — Firestore operations
 
 ---
 
+---
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK BACKUP-UX — Backup UX + Reminders + Premium Trigger
+
+**Дата:** 2026-04-16
+**Статус:** ✅ ГОТОВО
+
+### Что сделано:
+
+| Компонент | Описание | Статус |
+|-----------|----------|--------|
+| backup-reminder.js | Smart reminders service | ✅ |
+| shouldShowBackupReminder() | Проверка через 7 дней | ✅ |
+| canExportBackup() | FREE cooldown 3 дня | ✅ |
+| showBackupReminderModal() | Modal с export | ✅ |
+| showFirstBackupHint() | Первый hint для новых | ✅ |
+| markBackupSuccess() | Сохранение времени | ✅ |
+| settings.js | Обновлённый UI | ✅ |
+| app.js | Триггер напоминания | ✅ |
+
+### backup-reminder.js API:
+
+```js
+shouldShowBackupReminder()  // true если >7 дней без backup
+canExportBackup()           // { allowed, reason, remainingHours }
+showBackupReminderModal()   // Показ модального окна
+showFirstBackupHint()       // Первый hint (через 5 сек)
+markBackupSuccess()         // Сохранить время backup
+```
+
+### FREE Limitation:
+- 1 backup каждые 3 дня
+- После 3 дней → alert → предложение Premium
+
+### Files created:
+- `www/js/services/backup-reminder.js`
+
+### Files updated:
+- `www/js/services/backup-service.js` (v4)
+- `www/js/screens/settings.js`
+- `www/js/app.js`
+- `MODULE_MAP.md`
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK BACKUP-HARDENING — Backup Final Hardening
+
+**Дата:** 2026-04-16
+**Статус:** ✅ ГОТОВО
+
+### Что сделано:
+
+| Компонент | Значение | Статус |
+|-----------|----------|--------|
+| MAX_BACKUP_SIZE_MB | 25MB | ✅ |
+| MAX_MEDIA_FILES | 50 | ✅ |
+| MAX_FILE_SIZE_MB | 5MB | ✅ |
+| MAX_IMPORT_SIZE_MB | 30MB | ✅ |
+| Duplicate removal | by name | ✅ |
+| Large file skip | >5MB skip | ✅ |
+| Progress logging | console.log | ✅ |
+| Fallback | JSON without media | ✅ |
+
+### Консольные логи:
+```
+[BACKUP] Media found: 75
+[BACKUP] After dedup: 73
+[BACKUP] Limited to: 50
+[BACKUP] Estimated size: 12.45 MB
+[BACKUP] Media files added to ZIP: 48
+```
+
+### Error codes added:
+- `size_exceeded` — файл слишком большой
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK BACKUP-ZIP — ZIP Backup System
+
+**Дата:** 2026-04-16
+**Статус:** ✅ ГОТОВО
+
+### Что сделано:
+
+| Компонент | Описание | Статус |
+|-----------|----------|--------|
+| JSZip library | npm install jszip | ✅ |
+| exportData() | ZIP архив с data.json + media/ | ✅ |
+| importData() | Поддержка ZIP + JSON с валидацией | ✅ |
+| Versioning | BACKUP_VERSION = 2 | ✅ |
+| Validation | Проверка структуры при импорте | ✅ |
+| Error messages | Русские сообщения об ошибках | ✅ |
+
+### Структура ZIP:
+
+```
+neyra-backup-YYYY-MM-DD.zip
+├── data.json        # Данные + метаданные медиа
+└── media/           # Извлечённые файлы
+    ├── voice_*.webm
+    └── photo_*.jpg
+```
+
+### BACKUP_VERSION 2 features:
+- ZIP архив вместо JSON
+- Медиа в формате data:url внутри data.json
+- Дополнительно файлы в папке media/
+- Валидация структуры при импорте
+- Обратная совместимость с JSON (.json всё ещё работает)
+
+### Files updated:
+- `package.json` — добавлен jszip
+- `www/js/services/backup-service.js` — полный rewrite
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK AUDIT — Project Structure Audit
+
+**Дата:** 2026-04-16
+**Статус:** ✅ ЗАВЕРШЕНО
+
+### Проверено:
+
+| Проверка | Статус |
+|----------|--------|
+| Архитектура L1-L4 | ✅ Актуальна |
+| CLAUDE.md vs MODULE_MAP | ✅ Синхронизированы |
+| Screens (17 штук) | ✅ Все на месте |
+| Services (18 штук) | ✅ Все на месте |
+| i18n (4 языка + hi) | ✅ 5 языков |
+| Premium Security | ✅ BILLING ALWAYS WINS |
+| Cloud Sync | ✅ Удален cloud-sync.js (дубликат) |
+| Android Bridge | ✅ MainActivity.java |
+
+### Актуальная структура:
+
+```
+www/js/
+├── app.js, navigation.js, state.js, system-core.js
+├── i18n.js, onboarding.js, avatar.js
+├── premium-modal.js, monthly-check.js
+├── core/     → appRuntime.js, audioController.js, event-queue.js, ...
+├── ai/       → offline-ai.js, voice.js, avatar-brain.js
+├── screens/  → home.js, insight.js, history.js, report.js, ...
+├── services/ → memory.js, analytics.js, billing-service.js, ...
+└── i18n/     → en.js, es.js, ru.js, uk.js, hi.js
+```
+
+### Расхождения с MODULE_MAP.md:
+
+| Файл | MODULE_MAP | Реальность |
+|------|------------|------------|
+| cloud-sync.js | www/js/services/ | ❌ УДАЛЁН (TASK I) |
+| cloud-restore.js | www/js/services/ | ❌ УДАЛЁН |
+| hi.js | ❌ Нет | ✅ Добавлен (TASK 132-C) |
+| audit-logger.js | www/js/core/ | ✅ Есть |
+| state-governance.js | www/js/core/ | ✅ Есть |
+
+---
+
+## ✅ ПЕРЕД РЕЛИЗОМ (UPDATED 2026-04-16)
+
+~~1. Изменить коллекцию с `test` на `user_data/{uid}/entries`~~ ✅ СДЕЛАНО (TASK 1)
+
+Текущий статус:
+- [x] Firebase User Isolation → `neyra_users/{uid}/core/main`
+- [x] Firestore rules задеплоены
+- [x] Anonymous Auth включён (должен быть)
+- [ ] Тестовые логи из MainActivity убрать (опционально)
+
+---
+
 ## PENDING
 
-1. Изменить коллекцию test → user_data/{uid}
-2. Реализовать загрузку данных с сервера
-3. Настроить правила Firestore
-4. Убрать тестовые логи
+1. ✅ Коллекция test → neyra_users/{uid} (DONE)
+2. ✅ Загрузка данных с сервера (DONE - onCloudData callback)
+3. ✅ Правила Firestore (DONE - firestore.rules)
+4. Убрать тестовые логи из MainActivity (опционально)
+5. Финальное QA тестирование
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK EXPORT FIX — Share + Import ZIP
+
+**Дата:** 2026-04-17
+**Статус:** ✅ РАБОТАЕТ
+
+### Что сделано:
+
+| Компонент | Описание | Статус |
+|-----------|----------|--------|
+| Exit Guard | exit-guard.js — защита от потери данных | ✅ |
+| Recovery Prompt | предложение восстановления при пустом состоянии | ✅ |
+| Export Share | Capacitor Share с реальным файлом (Filesystem) | ✅ |
+| Import ZIP | accept=".zip,.json" — можно импортировать zip | ✅ |
+| Confirm before Export | подтверждение перед сохранением | ✅ |
+| last_backup_time | ставится только после успеха | ✅ |
+| Data Storage Screen | новый экран с объяснением | ✅ |
+
+### Export Flow (работает):
+
+```
+1. check canExportBackup() → cooldown для FREE (3 дня)
+2. confirm("Сохраните копию...")
+3. collectAllData() → ZIP с data.json + media/
+4. Filesystem.writeFile() → создаёт файл
+5. Share.share() → открывается системное окно
+6. markBackupSuccess() → только после успеха
+```
+
+### Import Flow:
+
+```
+1. Settings → Резервное копирование → Импорт
+2. accept=".zip,.json" → можно выбрать zip
+3. importFromZip() → парсит data.json → восстанавливает
+```
+
+### Files created:
+- `www/js/services/exit-guard.js` — Exit Guard Service
+- `www/js/screens/data-storage.js` — Data Storage Screen
+
+### Files updated:
+- `www/js/services/backup-service.js` — Export Share + ZIP import
+- `www/js/screens/settings.js` — accept=".zip,.json"
+- `www/js/app.js` — setupExitGuard() + recovery prompt
+- `www/js/navigation.js` — dataStorage route
+- `www/index.html` — data-screen="dataStorage"
+- `MODULE_MAP.md` — exit-guard.js
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK i18n FIX — Missing Keys
+
+**Дата:** 2026-04-17
+**Статус:** ✅ ГОТОВО
+
+### Добавлены отсутствующие ключи:
+
+| Ключ | Описание | Файл |
+|------|----------|------|
+| home_events_hint | Подсказка событий | en, es, uk, hi |
+| home_insight_label | Метка инсайта | en, es, uk, hi |
+| home_pattern_label | Метка паттерна | en, es, uk, hi |
+| close | Закрыть | en, es, uk, hi |
+| exit_warning | Предупреждение при выходе | ru, en, es, uk, hi |
+| recovery_prompt | Предложение восстановления | ru, en, es, uk, hi |

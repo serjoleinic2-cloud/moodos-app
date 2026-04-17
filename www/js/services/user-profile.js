@@ -171,7 +171,8 @@ Object.defineProperty(window, "__internalPremium", {
 });
 
 export function setBillingPremium(value) {
-  window._billingPremium = value === true;
+  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || { billingPremium: false };
+  window.__NEYRA_SECURITY__.billingPremium = value === true;
 }
 
 export function activatePremiumPaid() {

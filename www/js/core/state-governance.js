@@ -27,7 +27,7 @@ class StateGovernance {
   reconcile() {
     if (!this.governanceEnabled) return null;
     
-    const billingPremium = window._billingPremium;
+    const billingPremium = window.__NEYRA_SECURITY__?.billingPremium ?? false;
     
     return {
       resolvedPremium: billingPremium ?? false,

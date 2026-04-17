@@ -22,7 +22,6 @@ import { showAvatarForMood, showAvatar } from './avatar.js'
 import { t } from './i18n.js'
 import { analyzeText } from './ai/offline-ai.js'
 import { saveVoiceNote } from './services/memory.js'
-import { scheduleCloudSync } from './services/cloud-sync.js'
 
 const SystemCore = {
 
@@ -148,7 +147,6 @@ const SystemCore = {
           const moodValue = typeof payload === 'object' ? payload.mood : payload;
           result = await this.handleMoodFlow(payload)
           showAvatarForMood(moodValue)
-          scheduleCloudSync()
           break
 
         case 'SAVE_NOTE':
@@ -166,7 +164,6 @@ const SystemCore = {
               ...payload
             })
           }
-          scheduleCloudSync()
           break
 
         case 'SAVE_REFLECTION':
@@ -179,7 +176,6 @@ const SystemCore = {
             });
           }
           result = { success: true };
-          scheduleCloudSync()
           break
 
         case 'AVATAR_UPDATE':
@@ -232,7 +228,6 @@ const SystemCore = {
           } else {
             result = { success: false, error: 'No audio data' };
           }
-          scheduleCloudSync()
           break
 
         case 'REFLECTION_START':

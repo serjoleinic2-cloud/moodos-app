@@ -4,6 +4,137 @@ Quick reference for recent fixes.
 
 ---
 
+## 2026-04-16 (Part 4)
+
+### TASK BACKUP-UX — Reminders + Premium Trigger
+
+**Files created:**
+- `www/js/services/backup-reminder.js` — Smart backup reminders
+
+**Files updated:**
+- `www/js/services/backup-service.js` (v4) — Added cooldown check
+- `www/js/screens/settings.js` — Updated backup UI
+- `www/js/app.js` — Backup reminder trigger
+
+**Features:**
+1. **Smart Reminder** — Shows modal after 7 days without backup
+2. **FREE Cooldown** — 1 backup per 3 days for free users
+3. **First Hint** — Shows hint to new users after 5 seconds
+4. **Premium Trigger** — Alert + redirect to paywall on cooldown
+5. **Success Feedback** — Alert after successful export
+
+**API:**
+```js
+shouldShowBackupReminder()  // Check if reminder needed
+canExportBackup()           // Check cooldown
+showBackupReminderModal()   // Show modal
+markBackupSuccess()         // Save timestamp
+```
+
+**Version:** BACKUP_VERSION = 4
+
+---
+
+## 2026-04-16 (Part 3)
+
+### TASK BACKUP-HARDENING — Final Hardening
+
+**Files updated:**
+- `www/js/services/backup-service.js` — Added limits and safety checks
+
+**Constants added:**
+```js
+const MAX_BACKUP_SIZE_MB = 25;    // Export limit
+const MAX_MEDIA_FILES = 50;        // Max media in backup
+const MAX_FILE_SIZE_MB = 5;        // Skip large files
+const MAX_IMPORT_SIZE_MB = 30;     // Import limit
+```
+
+**Features:**
+1. **Size check** — Alert if backup >25MB
+2. **Media limit** — Slice to last 50 files
+3. **Dedup** — Remove duplicate media by name
+4. **Large file skip** — Skip files >5MB
+5. **Import size guard** — Reject files >30MB
+6. **Progress logs** — `[BACKUP] Media found: X`
+7. **Fallback** — Export JSON without media on ZIP error
+
+**Error codes:**
+- `size_exceeded` — файл слишком большой
+
+**Version:** BACKUP_VERSION = 3
+
+---
+
+## 2026-04-16 (Part 2)
+
+### TASK BACKUP-ZIP — ZIP Backup System
+
+**Files added:**
+- `package.json` — jszip dependency
+
+**Files updated:**
+- `www/js/services/backup-service.js` — Complete rewrite with ZIP support
+
+**Changes:**
+
+1. **exportData()** — Creates ZIP archive:
+   ```js
+   const zip = new JSZip();
+   zip.file('data.json', JSON.stringify(backup));
+   zip.folder('media').file(mediaName, blob);
+   const blob = await zip.generateAsync({ type: 'blob' });
+   ```
+
+2. **importData()** — Supports both ZIP and JSON:
+   - Detects file type by extension
+   - ZIP: `JSZip.loadAsync()` → validate → restore
+   - JSON: direct parse (backward compatible)
+
+3. **Validation**:
+   - Checks `backup.version`
+   - Checks `backup.data`
+   - Returns specific error codes
+
+4. **Media handling**:
+   - `voice_history`: data:url в JSON + файл в media/
+   - `photo_history`: data:url в JSON + файл в media/
+
+5. **Error messages** (Russian):
+   - no_file, invalid_format, invalid_structure
+   - missing_version, parse_error, read_error
+
+**BACKUP_VERSION = 2**
+
+---
+
+## 2026-04-16 (Part 1)
+
+### TASK AUDIT — Project Structure Audit
+
+**Files updated:**
+- `TASK_LOG_ACTIVE.md` — Added TASK AUDIT section, updated PENDING
+- `MODULE_MAP.md` — Fixed structure (added hi.js, checkpoint-manager.js, removed cloud-sync.js refs)
+- `CLAUDE.md` — Fixed core/ and services/ sections
+- `PROJECT_BRAIN.md` — Updated BILLING SYSTEM section
+
+**Key findings:**
+
+| Check | Status |
+|-------|--------|
+| Architecture L1-L4 | ✅ Valid |
+| 17 screens | ✅ All exist |
+| 18 services | ✅ All exist |
+| 5 languages (hi.js) | ✅ Added TASK 132-C |
+| Cloud sync | ✅ cloud-sync.js removed (duplicate) |
+| Premium security | ✅ BILLING ALWAYS WINS |
+
+**⚠️ Known issues:**
+- FIX_LOG references deleted files (www/js/cloud/cloud-sync.js)
+- PROJECT_BRAIN.md had outdated BILLING section
+
+---
+
 ## 2026-04-15
 
 ### TASK CRITICAL 1-10 — Firebase Security & Premium Fixes
@@ -351,3 +482,157 @@ Fixed missing commas in all language files.
 | notes_history | 500 |
 | mood_history | 730 |
 | reflections_history | 100 |
+
+---
+
+## 2026-04-17 (Export + Import Fix)
+
+### Export Share Fix — Capacitor Share with Filesystem
+
+**Files updated:**
+- `www/js/services/backup-service.js`
+
+**Changes:**
+
+1. **Filesystem.writeFile()** — creates real file:
+   ```js
+   const base64 = await blobToBase64(blob);
+   const savedFile = await FilesystemPlugin.writeFile({
+     path: fileName,
+     data: base64,
+     directory: 'CACHE'
+   });
+   ```
+
+2. **Share.share()** — uses real file URI:
+   ```js
+   await SharePlugin.share({
+     title: 'Neyra Backup',
+     url: savedFile.uri,
+     dialogTitle: 'Сохранить резервную копию'
+   });
+   ```
+
+3. **Fallback** — blob URL if Filesystem unavailable
+4. **Cleanup** — deleteFile after share
+
+**Logs:**
+```
+[EXPORT] Capacitor: true
+[EXPORT] Native: true
+[EXPORT] Share plugin: true
+[EXPORT] File saved: file:///data/.../neyra-backup-2026-04-17.zip
+[EXPORT] Share success
+```
+
+### Import ZIP Fix
+
+**Files updated:**
+- `www/js/screens/settings.js`
+
+**Changes:**
+- `accept=".json"` → `accept=".zip,.json"`
+
+Now users can select `.zip` backup file to restore.
+
+---
+
+## 2026-04-17 (Exit Guard + Recovery)
+
+### Exit Guard Service
+
+**Files created:**
+- `www/js/services/exit-guard.js`
+
+**Features:**
+1. **setupExitGuard()** — listens to visibilitychange
+2. **shouldWarnBeforeExit()** — checks 7 days since backup
+3. **showExitWarning()** — prompts before exit
+4. **showRecoveryPrompt()** — offers restore on empty app
+5. **markDataDirty()** — flags unsaved changes
+6. **getDataDirty()/clearDataDirty()** — tracks changes
+
+**Files updated:**
+- `www/js/app.js` — calls setupExitGuard() + recovery check
+
+### Recovery Prompt
+
+Shows when:
+- User reinstalls app (mood_history is empty)
+- No previous backup was restored
+
+Flow:
+```
+1. App starts → mood_history is empty
+2. showRecoveryPrompt() → "У вас нет данных. Восстановить из копии?"
+3. OK → navigate to settings → import
+```
+
+---
+
+## 2026-04-17 (Backup UX Fix)
+
+### Confirm Before Export
+
+**Files updated:**
+- `www/js/screens/settings.js`
+- `www/js/services/backup-reminder.js`
+
+**Fix:**
+- Add `confirm()` before export starts
+- `last_backup_time` only set after successful save
+- Cancel/share abort → do NOT mark success
+
+**Old (broken):**
+```js
+showPopup();
+setLastBackupTime(); // ❌ too early
+await exportData();
+```
+
+**New (fixed):**
+```js
+const ok = confirm("Сохраните копию...");
+if (!ok) return;
+await exportData(); // success → markBackupSuccess()
+```
+
+---
+
+## 2026-04-17 (Data Storage Screen)
+
+### New Screen — data-storage.js
+
+**Files created:**
+- `www/js/screens/data-storage.js`
+
+**Features:**
+- Explains local storage
+- Shows backup options
+- Has "Создать копию" button with confirm
+
+**Files updated:**
+- `www/js/navigation.js` — dataStorage route
+- `www/index.html` — data-screen="dataStorage"
+- `www/js/screens/settings.js` — menu item added
+
+---
+
+## 2026-04-17 (i18n Missing Keys)
+
+### Fixed Missing Keys
+
+**Files updated:**
+- `www/js/i18n/en.js`
+- `www/js/i18n/es.js`
+- `www/js/i18n/uk.js`
+- `www/js/i18n/hi.js`
+
+**Added keys:**
+```js
+home_events_hint: "This helps understand your state"
+home_insight_label: "Insight"
+home_pattern_label: "Pattern noticed"
+close: "Close"
+exit_warning: "You haven't backed up in a while..."
+recovery_prompt: "You have no data..."

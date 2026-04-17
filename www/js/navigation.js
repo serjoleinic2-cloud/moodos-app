@@ -37,6 +37,7 @@ export function initNavigation() {
     history:   () => import("./screens/history.js"),
     paywall:   () => import("./screens/paywall.js"),
     howItWorks: () => import("./screens/how-it-works.js"),
+    dataStorage: () => import("./screens/data-storage.js"),
   };
 
   async function loadScreen(name) {

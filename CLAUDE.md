@@ -32,7 +32,13 @@ www/
 │   ├── monthly-check.js # Monthly medication check reminder
 │   │
 │   ├── core/              # Architectural layer (ARL)
-│   │   └── appRuntime.js # Global state management, event delegation helpers
+│   │   ├── appRuntime.js       # Global state management, event delegation
+│   │   ├── audioController.js  # Audio queue management
+│   │   ├── audit-logger.js     # Essential audit trail
+│   │   ├── state-governance.js # State reconciliation
+│   │   ├── state-execution-engine.js # Decision pipeline
+│   │   ├── event-queue.js      # Event delivery
+│   │   └── migration-registry.js    # Backup version migrations
 │   │
 │   ├── i18n/            # Translations (5 languages)
 │   │   ├── en.js, es.js, ru.js, uk.js, hi.js
@@ -77,8 +83,10 @@ www/
 │       ├── voice-service.js    # Voice processing
 │       ├── daily-snapshots.js  # Daily mood snapshots
 │       ├── billing-service.js  # In-app purchases
-│       ├── cloud-sync.js       # Firebase cloud sync (Android bridge)
-│       └── cloud-restore.js    # Firebase cloud restore
+│       ├── checkpoint-manager.js # Crash recovery
+│       ├── backup-service.js   # Local backup/export/import
+│       ├── drive-backup.js     # Google Drive backup
+│       └── storage-wrapper.js  # Cloud-ready abstraction
 ```
 
 ## Key Patterns

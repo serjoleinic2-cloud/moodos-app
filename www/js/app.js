@@ -30,10 +30,6 @@ import { startVoiceRecording } from "./ai/voice.js";
 import SystemCore from "./system-core.js";
 
 window.SystemCore = SystemCore;
-import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
-import { initCloudConsent } from "./services/cloud-sync.js";
-
-initCloudConsent();
 
 // First-run cloud prompt
 if (localStorage.getItem('cloud_prompt_shown') !== 'true') {
@@ -85,6 +81,8 @@ import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 import { runReconciliation } from "./core/state-execution-engine.js";
+import { shouldShowBackupReminder, showBackupReminderModal, showFirstBackupHint } from "./services/backup-reminder.js";
+import { exportData } from "./services/backup-service.js";
 
 // =====================================
 // 🛡️ MULTI INIT GUARD
@@ -273,9 +271,6 @@ if (!window.__neyraAppRunning) {
   document.addEventListener("DOMContentLoaded", () => {
     console.log('[BOOT] DOMContentLoaded fired');
     
-    // Используем trusted setter
-    window._trustedSetBillingPremium(false);
-    
     try {
       initState();
       console.log('[BOOT] initState done');
@@ -334,7 +329,14 @@ if (!window.__neyraAppRunning) {
 
     if (!isOnboardingDone()) {
       initOnboarding(() => {
-        applyDomTranslations();
+applyDomTranslations();
+    
+    // Exit guard - protect against data loss
+    setTimeout(() => {
+      import("./services/exit-guard.js")
+        .then(m => m.setupExitGuard())
+        .catch(e => console.warn("[BOOT] ExitGuard failed:", e));
+    }, 100);
         startApp();
       });
     } else {
@@ -573,12 +575,28 @@ if (!window.__neyraAppRunning) {
     initAvatar();
     console.log('[BOOT] startApp done');
     
-    // Cloud restore: process pending data
+    // App ready
     window._appReady = true;
-    if (window._pendingCloudData) {
-      restoreFromCloudIfEmpty(window._pendingCloudData);
-      window._pendingCloudData = null;
-    }
+    
+    // Проверка пустого состояния - предложить восстановление
+    setTimeout(() => {
+      import("./services/exit-guard.js").then(m => {
+        if (m.shouldShowRecoveryPrompt()) {
+          m.showRecoveryPrompt(() => {
+            window.navigateTo?.("settings");
+          });
+          m.markRecoveryPromptShown();
+        }
+      }).catch(e => console.warn("[APP] Recovery check failed:", e));
+    }, 1500);
+    
+    // Backup reminder (after 3 sec)
+    setTimeout(() => {
+      if (shouldShowBackupReminder()) {
+        showBackupReminderModal(() => exportData());
+      }
+      showFirstBackupHint();
+    }, 3000);
   }
 
   window.addEventListener("resize", () => {

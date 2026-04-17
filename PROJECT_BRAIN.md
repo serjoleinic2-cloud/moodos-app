@@ -147,14 +147,26 @@ isPremium() возвращал true для статуса "premium" с истё�
 - Продукты: `premium_monthly`, `premium_yearly` (PAID_SUBSCRIPTION)
 - Подписки: `approved`, `owned`, `cancelled`, `expired`
 
-### Priority в isPremium()
+### Premium State Resolution (TASK CRITICAL 1-10)
 
-1. `window._billingPremium` — флаг из billing проверки
-2. fallback → localStorage профиль (для trial)
+```
+Billing → Execution Engine → __NEYRA_SECURITY__.billingPremium
+                ↓
+        stateGovernance.resolvePremiumState()
+                ↓
+        isPremium() → profile + expiration check
+```
+
+### BILLING ALWAYS WINS
+
+1. billing-service вызывает `enqueueBillingStateUpdate(premium)`
+2. Execution Engine вызывает `_trustedSetBillingPremium(next)`
+3. `stateGovernance.resolvePremiumState(billingPremium, localPremium)`
+4. billingPremium всегда выигрывает если !== undefined
 
 ### Events
 
-- При APPROVED → `activatePremiumPaid()`
+- При APPROVED → `activatePremiumPaid()` → save profile
 - При CANCELLED → `deactivateExpiredPremium()` + `reconcileSystemState()`
 - При EXPIRED → `deactivateExpiredPremium()` + `reconcileSystemState()`
 - При resume (visibilitychange) → `refreshBilling()`
@@ -162,6 +174,7 @@ isPremium() возвращал true для статуса "premium" с истё�
 ### ⚠️ Security Note
 
 Нет серверной валидации purchase token. Это заглушка для MVP.
+Установка `window._billingPremium = true` напрямую — заблокирована.
 
 ---
 

@@ -15,7 +15,6 @@ import {
   applyTheme,
   isPremium,
 } from "../services/user-profile.js";
-import { getLastBackupTime, getBackupStatus, getSystemBackupState, createBackup, shareBackup } from "../services/drive-backup.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 
 function st(key, fallback = "") {
@@ -29,17 +28,11 @@ export function onEnter() {
   bindEvents(el);
 }
 
-function fmtTime(d) {
-  if (!d) return t("settings_backup_never") || "никогда";
-  return d.toLocaleDateString("ru-RU") + " " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-}
-
 function renderSettings() {
   const profile   = getProfile();
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
   const premiumInfo = getPremiumInfo();
-  const backupState = getSystemBackupState();
 
   const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
   const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
@@ -87,23 +80,6 @@ function renderSettings() {
       '<span class="neo-row-arrow">›</span>' +
     '</div>'
   ) : "";
-
-  const backupStatus = getBackupStatus();
-  const lastBackupDate = backupState.lastBackupAt ? new Date(backupState.lastBackupAt) : null;
-  const lastBackupText = lastBackupDate ? fmtTime(lastBackupDate) : (t("settings_backup_never") || "никогда");
-  const statusIcon = backupState.pendingChanges ? '⏳' : '✔';
-  const statusColor = backupState.pendingChanges ? '#f59e0b' : '#4caf87';
-
-  const autoBackupNote = premiumInfo.isPremium 
-    ? `<div style="font-size:11px; color:#888; margin-top:6px;">${t("auto_backup_enabled") || "Автобэкап включён"}</div>`
-    : `<div style="font-size:11px; color:#aaa; margin-top:6px;">${t("auto_backup_premium") || "Автобэкап в Premium"}</div>`;
-
-  const backupRangeText = backupState.backupInfo 
-    ? (backupState.backupInfo.range === "all" 
-      ? "🌟 Saved full history" 
-      : `📅 Saved last 7 days (${backupState.backupInfo.moodCount} moods)`)
-    : "";
-  const backupTypeLabel = backupState.isPremium ? "PREMIUM" : "FREE";
 
   return `
     <style>
@@ -206,58 +182,30 @@ function renderSettings() {
           </div>
           <span class="neo-row-arrow">›</span>
         </div>
-        <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
+        <input type="file" id="restoreFileInput" accept=".zip,.json" style="display:none;">
       </div>
 
-      ${(() => {
-        const ENABLE_GOOGLE_AUTH = false;
-        if (!ENABLE_GOOGLE_AUTH) return '';
-        return `
-      <div class="settings-section">
-        <div class="settings-section-label">🔐 ${t("cloud_section") || "Облако"}</div>
-        <div id="cloudLoginSection">
-          <div class="neo-row" id="btnGoogleLogin">
-            <div class="neo-row-content">
-              <span class="neo-row-icon">🔵</span>
-              <div class="neo-row-text">
-                <div class="neo-row-label" id="cloudLoginLabel">${t("cloud_login") || "Войти через Google"}</div>
-                <div class="neo-row-sub" id="cloudLoginStatus">${t("cloud_not_connected") || "Не подключено"}</div>
-              </div>
-            </div>
-            <span class="neo-row-arrow">›</span>
-          </div>
-          <div id="cloudSyncInfo" style="display:none;font-size:11px;color:#888;padding:8px 16px;">
-            <span id="cloudSyncStatus">☁️ ${t("cloud_syncing") || "Синхронизация..."}</span>
-          </div>
-          <div class="cloud-data-info" style="font-size:10px;color:#aaa;padding:8px 16px 4px;line-height:1.4;">
-            <div>📱 ${t("cloud_data_local") || "Ваши данные хранятся локально"}</div>
-            <div>☁️ ${t("cloud_data_firebase") || "При входе: синхронизация через Firebase (Google)"}</div>
-            <div style="margin-top:6px;">
-              <a href="#" id="btnPrivacyPolicy" style="color:#7eb8d4;font-size:10px;">${t("privacy_policy") || "Политика конфиденциальности"} →</a>
-            </div>
-          </div>
-        </div>
-      </div>
-        `;
-      })()}
+
 
       <div class="settings-section">
         <div class="settings-section-label">📦 ${t("backup_section") || "Резервное копирование"}</div>
         
         <div class="backup-card">
-          <div class="backup-card-title">${t("backup_data_7days")}</div>
+          <div class="backup-card-title">${t("backup_data_local") || "Экспорт данных"}</div>
           <div class="backup-card-btns">
-            <button class="backup-card-btn save" id="btnCreateBackup">${t("btn_backup_save")}</button>
-            <button class="backup-card-btn restore" id="btnRestore7days">${t("btn_backup_restore")}</button>
+            <button class="backup-card-btn save" id="btnExportBackup">${t("btn_export") || "Экспорт"}</button>
+            <button class="backup-card-btn restore" id="btnImportBackup">${t("btn_import") || "Импорт"}</button>
           </div>
+          ${!premiumInfo.isPremium ? '<div style="font-size:10px;color:#805ad5;text-align:center;margin-top:6px;">Free: 1 копия в 3 дня • Premium: без ограничений</div>' : ''}
         </div>
         
-        <div class="backup-card ${!premiumInfo.isPremium ? 'backup-card-premium' : ''}">
-          <div class="backup-card-title">${t("backup_full_period")}</div>
-          <div class="backup-card-btns">
-            <button class="backup-card-btn save" id="btnCloudSave" ${!premiumInfo.isPremium ? 'disabled' : ''}>${t("btn_backup_save")}</button>
-            <button class="backup-card-btn restore" id="btnCloudRestore" ${!premiumInfo.isPremium ? 'disabled' : ''}>${t("btn_backup_restore")}</button>
-          </div>
+        <div style="font-size:11px;color:#888;padding:8px 0;line-height:1.6; background:rgba(240,240,240,0.5);border-radius:10px;padding:10px;">
+          <strong>⚠️ Важно:</strong><br>
+          Данные хранятся только на устройстве.<br>
+          Чтобы не потерять:<br>
+          — создавайте резервную копию регулярно<br>
+          — сохраняйте файл в облаке (Google Drive)<br>
+          — вы самостоятельно отвечаете за сохранность копии
         </div>
       </div>
 
@@ -285,6 +233,15 @@ function renderSettings() {
             <span class="neo-row-icon">📘</span>
             <div class="neo-row-text">
               <div class="neo-row-label">${t("how_it_works_title")}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
+        </div>
+        <div class="neo-row" id="settingDataStorage">
+          <div class="neo-row-content">
+            <span class="neo-row-icon">💾</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("data_storage_title") || "Хранение данных"}</div>
             </div>
           </div>
           <span class="neo-row-arrow">›</span>
@@ -338,6 +295,9 @@ function bindEvents(el) {
   el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
     if (window.navigateTo) window.navigateTo("howItWorks");
   });
+  el.querySelector("#settingDataStorage")?.addEventListener("click", () => {
+    if (window.navigateTo) window.navigateTo("dataStorage");
+  });
   el.querySelector("#restoreFileInput")?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -345,59 +305,35 @@ function bindEvents(el) {
     showRestoreConfirmModal(file);
   });
 
-  el.querySelector("#btnCreateBackup")?.addEventListener("click", async () => {
-    const btn = el.querySelector("#btnCreateBackup");
+  el.querySelector("#btnExportBackup")?.addEventListener("click", async () => {
+    const ok = confirm(
+      "Сохраните копию ваших данных в безопасном месте.\nВы сами отвечаете за её сохранность."
+    );
+    if (!ok) return;
+    
+    const btn = el.querySelector("#btnExportBackup");
     if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
     try {
-      const result = await createBackup();
+      const { exportData } = await import("../services/backup-service.js");
+      const result = await exportData();
       if (result.success) {
-        showToast("✅ " + (t("settings_backup_saved") || "Сохранено"));
-        setTimeout(() => refresh(), 1000);
+        // Success + alert handled in backup-service.js
+      } else if (result.error === 'cooldown' && result.message) {
+        alert(result.message);
+        if (window.openScreen) {
+          setTimeout(() => window.openScreen("paywall"), 500);
+        }
       } else {
-        showToast("❌ " + (t("backup_error") || "Ошибка"));
+        showToast("❌ " + (result.error || t("backup_error") || "Ошибка"));
       }
     } catch(e) {
-      showToast("❌ " + t("backup_error"));
+      showToast("❌ " + (t("backup_error") || "Ошибка экспорта"));
     }
-    if (btn) { btn.textContent = t("btn_backup_save"); btn.disabled = false; }
+    if (btn) { btn.textContent = t("btn_export") || "Экспорт"; btn.disabled = false; }
   });
 
-  el.querySelector("#btnRestore7days")?.addEventListener("click", () => el.querySelector("#restoreFileInput")?.click());
-
-  el.querySelector("#btnCloudSave")?.addEventListener("click", async () => {
-    const doCloudSave = async () => {
-      const btn = el.querySelector("#btnCloudSave");
-      if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
-      try {
-        const result = await shareBackup();
-        if (result.message === "cancelled") {
-          showToast(t("backup_cancelled") || "Отменено");
-        } else if (result.success) {
-          showToast("✅ " + (result.message === "shared" ? (t("backup_shared") || "Отправлено") : (t("backup_downloaded") || "Скачано")));
-        } else {
-          showToast("❌ " + (t("backup_error") || "Ошибка"));
-        }
-      } catch(e) {
-        showToast("❌ " + t("backup_error"));
-      }
-      if (btn) { btn.textContent = t("btn_backup_save"); btn.disabled = false; }
-    };
-    if (localStorage.getItem('cloud_consent') === 'true') {
-      doCloudSave();
-    } else {
-      showCloudConsentModal(doCloudSave);
-    }
-  });
-
-  el.querySelector("#btnCloudRestore")?.addEventListener("click", async () => {
-    const doCloudRestore = async () => {
-      showToast("☁️ " + (t("cloud_coming_soon") || "Скоро в Premium"));
-    };
-    if (localStorage.getItem('cloud_consent') === 'true') {
-      doCloudRestore();
-    } else {
-      showCloudConsentModal(doCloudRestore);
-    }
+  el.querySelector("#btnImportBackup")?.addEventListener("click", () => {
+    el.querySelector("#restoreFileInput")?.click();
   });
 
   const getPremiumBtn = el.querySelector("#getPremiumBtn");
@@ -410,11 +346,6 @@ function bindEvents(el) {
       }
     });
   }
-
-  el.querySelector("#btnPrivacyPolicy")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    showPrivacyModal();
-  });
 }
 
 function showPrivacyModal() {
@@ -424,17 +355,12 @@ function showPrivacyModal() {
     <div class="health-modal" style="max-height:85vh;overflow-y:auto;">
       <div class="modal-title">🔐 ${t("privacy_policy") || "Политика конфиденциальности"}</div>
       <div style="font-size:12px;color:#666;line-height:1.6;padding:0 4px 16px;">
-        <p style="margin:0 0 12px;"><strong>${t("privacy_local_title") || "Локальное хранение"}</strong><br>
-        ${t("privacy_local_text") || "По умолчанию все данные хранятся локально на вашем устройстве."}</p>
-        
-        <p style="margin:0 0 12px;"><strong>☁️ ${t("privacy_cloud_title") || "Облачная синхронизация"}</strong><br>
-        ${t("privacy_cloud_text") || "При входе через Google данные синхронизируются через Firebase (Google). Это позволяет восстановить данные на новом устройстве."}</p>
+        <p style="margin:0 0 12px;"><strong>📱 ${t("data_storage_title") || "Хранение данных"}</strong><br>
+        ${t("data_storage_local") || "Все данные хранятся локально на устройстве."}<br>
+        ${t("data_storage_backup") || "Для защиты от потери используйте резервное копирование."}</p>
         
         <p style="margin:0 0 12px;"><strong>📋 ${t("privacy_data_title") || "Какие данные"}</strong><br>
         ${t("privacy_data_text") || "Записи настроения, заметки, история практик, настройки приложения."}</p>
-        
-        <p style="margin:0 0 12px;"><strong>🔒 ${t("privacy_rights_title") || "Ваши права"}</strong><br>
-        ${t("privacy_rights_text") || "Вы можете отключить синхронизацию и удалить данные в любой момент."}</p>
         
         <p style="margin:0;font-size:11px;color:#888;"><a href="#" id="btnPrivacyFull" style="color:#7eb8d4;">${t("privacy_full_policy") || "Читать полностью →"}</a></p>
       </div>
@@ -447,10 +373,6 @@ function showPrivacyModal() {
     window.open("docs/PRIVACY.md", "_blank");
   });
   overlay.addEventListener("click", (ev) => { if (ev.target === overlay) overlay.remove(); });
-}
-
-function initCloudLoginUI() {
-  console.log('[Cloud] UI disabled (native setup phase)');
 }
 
 function refresh() {
@@ -475,47 +397,29 @@ function showRestoreConfirmModal(file) {
   overlay.className = "health-modal-overlay";
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">${t("settings_restore_title")}</div>
-      <div class="modal-subtitle" style="color:#e05555;">${t("settings_restore_warn")}</div>
+      <div class="modal-title">${t("settings_restore_title") || "Восстановление данных"}</div>
+      <div class="modal-subtitle" style="color:#e05555;">${t("settings_restore_warn") || "Текущие данные будут заменены!"}</div>
       <div style="background:rgba(232,237,230,0.9);border-radius:14px;padding:14px;margin-bottom:20px;font-size:13px;color:#666;">📄 ${file.name}</div>
-      <button class="modal-save-btn" id="restoreConfirm" style="color:#e05555;">${t("settings_restore_confirm")}</button>
-      <div class="modal-cancel" id="restoreCancel">${t("cancel")}</div>
+      <button class="modal-save-btn" id="restoreConfirm" style="color:#e05555;">${t("settings_restore_confirm") || "Восстановить"}</button>
+      <div class="modal-cancel" id="restoreCancel">${t("cancel") || "Отмена"}</div>
     </div>`;
   document.body.appendChild(overlay);
   overlay.querySelector("#restoreConfirm").addEventListener("click", async () => {
     const btn = overlay.querySelector("#restoreConfirm");
     btn.textContent = "⏳..."; btn.disabled = true;
-    const { restoreFromBackup } = await import("../services/drive-backup.js");
-    const result = await restoreFromBackup(file);
+    console.log('[SETTINGS] Import started, file:', file.name, file.size);
+    const { importData } = await import("../services/backup-service.js");
+    const result = await importData(file);
+    console.log('[SETTINGS] Import result:', result);
     overlay.remove();
     if (result.success) {
-      showToast("✅ " + t("settings_restore_success"));
+      showToast("✅ " + (result.message || t("settings_restore_success") || "Данные восстановлены"));
       setTimeout(() => { window.location.href = window.location.href; }, 1500);
     } else { 
-      showToast("❌ " + t("settings_backup_error") + ": " + result.message); 
+      showToast("❌ " + (result.error || t("backup_error") || "Ошибка")); 
     }
   });
   overlay.querySelector("#restoreCancel").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
-}
-
-function showCloudConsentModal(onConfirm) {
-  const overlay = document.createElement("div");
-  overlay.className = "health-modal-overlay";
-  overlay.innerHTML = `
-    <div class="health-modal">
-      <div class="modal-title">☁️ ${t("cloud_consent_title")}</div>
-      <div class="modal-subtitle" style="font-size:13px;line-height:1.5;margin-bottom:20px;">${t("cloud_consent_text")}</div>
-      <button class="modal-save-btn" id="cloudConsentContinue">${t("cloud_consent_continue")}</button>
-      <div class="modal-cancel" id="cloudConsentCancel">${t("cloud_consent_cancel")}</div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector("#cloudConsentContinue").addEventListener("click", () => {
-    localStorage.setItem('cloud_consent', 'true');
-    overlay.remove();
-    if (onConfirm) onConfirm();
-  });
-  overlay.querySelector("#cloudConsentCancel").addEventListener("click", () => overlay.remove());
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
 }
 

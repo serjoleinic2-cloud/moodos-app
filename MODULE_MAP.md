@@ -66,6 +66,7 @@ d:\moodos-app\
         es.js
         ru.js
         uk.js
+        hi.js                    # Hindi (added TASK 132-C)
         en.js.backup_before_audit
         es.js.backup_before_audit
         ru.js.backup_before_audit
@@ -79,6 +80,7 @@ d:\moodos-app\
         settings.js
         premium.js
         how-it-works.js
+        data-storage.js   # Data storage explanation
         tools.js
         breathing.js
         meditation.js
@@ -103,7 +105,13 @@ d:\moodos-app\
         voice-service.js
         daily-snapshots.js
         billing-service.js
-        drive-backup.js
+        checkpoint-manager.js
+        backup-service.js    # Local backup/export/import
+        backup-reminder.js  # Smart backup reminders
+        drive-backup.js     # Google Drive backup
+        storage-wrapper.js
+        userId.js
+        exit-guard.js     # Data loss protection
 
 ---
 
@@ -153,6 +161,7 @@ d:\moodos-app\
 - www/js/i18n/es.js
 - www/js/i18n/ru.js
 - www/js/i18n/uk.js
+- www/js/i18n/hi.js
 - www/js/i18n/en.js.backup_before_audit
 - www/js/i18n/es.js.backup_before_audit
 - www/js/i18n/ru.js.backup_before_audit
@@ -188,6 +197,8 @@ d:\moodos-app\
 - www/js/services/voice-service.js
 - www/js/services/daily-snapshots.js
 - www/js/services/billing-service.js
+- www/js/services/checkpoint-manager.js
+- www/js/services/backup-service.js
 - www/js/services/drive-backup.js
 - www/js/services/storage-wrapper.js
 - www/js/services/userId.js
@@ -200,6 +211,11 @@ d:\moodos-app\
 www/js/core/
 - appRuntime.js
 - audioController.js
+- audit-logger.js
+- state-governance.js
+- migration-registry.js
+- state-execution-engine.js
+- event-queue.js
 
 ## L2 — AI LAYER
 www/js/ai/
@@ -248,7 +264,9 @@ www/js/
 ## SERVICES
 www/js/services/
 - analytics.js
+- backup-service.js    # Local backup/export/import
 - billing-service.js
+- checkpoint-manager.js  # Crash recovery
 - daily-snapshots.js
 - drive-backup.js
 - insight-engine.js
@@ -264,18 +282,13 @@ www/js/services/
 - weekly-analytics.js
 - year-comparison.js
 
-## CLOUD
-www/js/cloud/
-- firebase-init.js
-- auth.js
-- cloud-sync.js
-
 ## I18N
 www/js/i18n/
 - en.js
 - es.js
 - ru.js
 - uk.js
+- hi.js  # Hindi
 
 ## STATIC
 - www/css/style.css
