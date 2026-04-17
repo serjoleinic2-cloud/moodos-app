@@ -628,90 +628,107 @@ async function restoreMediaFile(filename, dataUrl) {
 function restoreData(data) {
   console.log('[BACKUP] restoreData started, keys:', Object.keys(data));
   
+  const results = { merged: [], updated: [], skipped: [] };
+  
   Object.keys(data).forEach(key => {
     if (!VALID_KEYS.includes(key)) {
       console.warn('[BACKUP] Skipping unknown key:', key);
+      results.skipped.push(key);
       return;
     }
 
     try {
       const backupValue = data[key];
       if (backupValue === null || backupValue === undefined) {
-        console.log('[BACKUP] Empty value for:', key);
+        console.log('[BACKUP] Empty backup value for:', key);
+        results.skipped.push(key);
         return;
       }
 
-      // Получаем текущие данные
-      const currentValue = localStorage.getItem(key);
-      let currentData = [];
+      // ТИПЫ ДАННЫХ:
+      // 1. ARRAY - мерджим по timestamp
+      // 2. STRING/BOOL - просто записыв��ем (строки, даты, булево)
+      // 3. OBJECT - мерджим ключи (profile)
       
-      if (currentValue) {
-        try {
-          currentData = JSON.parse(currentValue);
-          if (!Array.isArray(currentData)) {
-            currentData = [];
-          }
-        } catch (e) {
-          console.warn('[BACKUP] Failed to parse current:', key);
-          currentData = [];
-        }
-      }
-
-      // Парсим backup данные
-      let backupData = [];
-      try {
-        if (typeof backupValue === 'string') {
-          backupData = JSON.parse(backupValue);
-        } else if (Array.isArray(backupValue)) {
-          backupData = backupValue;
+      const currentValue = localStorage.getItem(key);
+      const isArray = Array.isArray(backupValue);
+      const isObject = typeof backupValue === 'object' && !isArray;
+      const isPrimitive = !isArray && !isObject;
+      
+      console.log('[BACKUP] Type for', key, ':', isArray ? 'array' : isObject ? 'object' : 'primitive');
+      
+      if (isArray) {
+        // === ARRAY: merge по timestamp ===
+        let currentData = [];
+        if (currentValue) {
+          try { currentData = JSON.parse(currentValue); } catch { currentData = []; }
         }
         
-        if (!Array.isArray(backupData)) {
-          console.log('[BACKUP] Backup data not array for:', key);
+        // Парсим backup
+        let backupData = [];
+        try { backupData = JSON.parse(backupValue); } catch { backupData = []; }
+        
+        if (!backupData.length) {
+          console.log('[BACKUP] No backup data for:', key);
+          results.skipped.push(key);
           return;
         }
-      } catch (e) {
-        console.error('[BACKUP] Failed to parse backup:', key, e);
-        // Не прерываем - продолжаем с другими ключами
-        return;
+        
+        // Фильтруем дубликаты по ts
+// ID приоритет: timestamp → time → date → ts → id
+        const existingIds = new Set(
+          currentData.map(getId).filter(id => id !== null)
+        );
+        
+        const newItems = backupData.filter(item => {
+          const id = getId(item);
+          return id && !existingIds.has(id);
+        });
+        
+        console.log('[BACKUP] Current:', currentData.length, 'Backup:', backupData.length, 'New:', newItems.length);
+        
+        // Мерджим и сортируем
+        const merged = [...currentData, ...newItems].sort((a, b) => (a?.ts || 0) - (b?.ts || 0));
+        
+        localStorage.setItem(key, JSON.stringify(merged));
+        console.log('[BACKUP] Merged:', key, 'total:', merged.length);
+        results.merged.push(key);
+        
+      } else if (isObject) {
+        // === OBJECT: merge keys ===
+        let currentObj = {};
+        if (currentValue) {
+          try { currentObj = JSON.parse(currentValue); } catch { currentObj = {}; }
+        }
+        
+        const mergedObj = { ...currentObj, ...backupValue };
+        localStorage.setItem(key, JSON.stringify(mergedObj));
+        console.log('[BACKUP] Merged object:', key);
+        results.merged.push(key);
+        
+      } else {
+        // === PRIMITIVE (string, number, bool): просто записываем ===
+        // Не перезаписываем если есть текущие данные (кроме startDate, onboarding)
+        const keysToOverwrite = ['startDate', 'onboarding_done', 'last_backup_time'];
+        const hasCurrent = !!currentValue;
+        const shouldOverwrite = keysToOverwrite.includes(key) || !hasCurrent;
+        
+        if (shouldOverwrite) {
+          localStorage.setItem(key, backupValue);
+          console.log('[BACKUP] Set primitive:', key, '=', backupValue);
+        } else {
+          console.log('[BACKUP] Skipped primitive (has current):', key);
+        }
+        results.updated.push(key);
       }
-
-      console.log('[BACKUP] Current:', currentData.length, 'Backup:', backupData.length, 'Key:', key);
-
-      if (!backupData.length) {
-        console.log('[BACKUP] No backup data for:', key);
-        return;
-      }
-
-      // Мерджим: добавляем только те записи из backup, которых нет в current
-      // по уникальному ключу (timestamp или id)
-      const existingIds = new Set(
-        currentData.filter(item => item.ts || item.id).map(item => item.ts || item.id)
-      );
-
-      const newItems = backupData.filter(item => {
-        const itemId = item.ts || item.id;
-        return itemId && !existingIds.has(itemId);
-      });
-
-      console.log('[BACKUP] New items to add:', newItems.length, 'Key:', key);
-
-      // Объединяем и сортируем по времени
-      const merged = [...currentData, ...newItems].sort((a, b) => {
-        return (a.ts || 0) - (b.ts || 0);
-      });
-
-      localStorage.setItem(key, JSON.stringify(merged));
-      console.log('[BACKUP] Restored:', key, 'total:', merged.length);
       
     } catch (e) {
-      if (e.name === 'QuotaExceededError') {
-        console.warn('[BACKUP] Storage quota exceeded for:', key);
-      } else {
-        console.warn('[BACKUP] Failed to restore:', key, e.message);
-      }
+      console.warn('[BACKUP] Failed to restore:', key, e.message);
+      results.skipped.push(key);
     }
   });
+  
+  console.log('[BACKUP] Restore results:', results);
 }
 
 export function getBackupInfo() {
