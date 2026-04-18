@@ -391,10 +391,10 @@ export function resolveTimestamp(entry) {
 
 /* ---------- VOICE MIGRATION (base64 -> Filesystem) ---------- */
 
-const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-const Capacitor = window.Capacitor;
-
 export async function migrateVoiceStorage() {
+  const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+  const Capacitor = window.Capacitor;
+  
   if (!Filesystem || !Capacitor?.isNativePlatform()) {
     return;
   }

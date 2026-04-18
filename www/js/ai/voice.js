@@ -1,13 +1,13 @@
 import { getMood } from "../state.js";
 
-const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-const Capacitor = window.Capacitor;
-
 let mediaRecorder;
 let chunks = [];
 let recordingStartTime = null;
 
 async function saveAudioToFile(audioData) {
+  const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+  const Capacitor = window.Capacitor;
+  
   if (!Filesystem || !Capacitor?.isNativePlatform()) {
     return audioData;
   }

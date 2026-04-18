@@ -32,7 +32,7 @@ window.onCloudData = function(data) {
 };
 
 import {
-  getMoodHistory, getNotesHistory
+  getMoodHistory, getNotesHistory, migrateVoiceStorage
 } from "./services/memory.js";
 import {
   calculateStabilityScore, calculateTrend, calculateGoldenHour
@@ -339,8 +339,6 @@ if (!window.__neyraAppRunning) {
   function initCloudAuth() {
     console.log('[Cloud] Auth disabled (native setup phase)');
   }
-
-  import { migrateVoiceStorage } from "./services/memory.js";
 
   function startApp() {
     console.log('[APP] startApp called');
