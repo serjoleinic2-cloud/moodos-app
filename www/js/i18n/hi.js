@@ -11,6 +11,7 @@ export const hi = {
     get_insight: "त्वरित अंतर्दृष्टि",
     ai_listening: "विश्लेषण...",
     voice_reflection: "आवाज़ नोट्स (10 सेकंड)",
+    voice_notes_caption: "कभी-कभी खुद को बाहर से सुनना फायदेमंद होता है",
     start_recording: "रिकॉर्डिंग शुरू करें",
     waiting: "प्रतीक्षा",
     stability_index: "स्थिरता सूचकांक",
@@ -133,6 +134,7 @@ export const hi = {
     hist_voice: "आवाज़ रिकॉर्डिंग",
     hist_voice_diary: "आवाज़ डायरी",
     hist_voice_no_audio: "🔇 ऑडियो सहेजा नहीं गया",
+    voice_notes_duration: "वॉइस नोट",
     hist_no_text: "कोई टेक्स्ट नहीं",
     hist_no_image: "कोई छवि नहीं",
     hist_back: "‹ वापस",
@@ -712,4 +714,13 @@ export const hi = {
     insight_advice_low: "थोड़ा भार कम करें और खुद को समय दें।",
     insight_advice_mid: "इस लय बनाए रखें और विवरण पर ध्यान दें।",
     insight_advice_high: "याद करने की कोशिश करें कि आपको ऐसा महसूस करने में क्या मदद मिली।",
+    
+    // Additional insight keys used in offline-ai.js
+    pattern_recommend_low: "आपके डेटा के अनुसार, {event} पहले मदद करता था। अभी आज़माएं।",
+    reflection_fallback: "विवरण में वर्णन करने की कोशिश करें।",
+    reflection_stress: "ऐसा लगता है कि यह एक तनावपूर्ण क्षण था। खुद को ठीक होने का समय देना महत्वपूर्ण है।",
+    reflection_positive: "एक अच्छा अनुभव जैसा लगता है। इन क्षणों को याद करना फायदेमंद है।",
+    reflection_neutral: "आप अपनी स्थिति नोट कर रहे हैं — यह पहले से ही एक महत्वपूर्ण कदम है।",
+    reflection_negative: "दिन कठिन था। मैं यहाँ हूँ।",
+    time_afternoon: "दोपहर में",
   };

@@ -255,7 +255,14 @@ function showMoodCalendarOverlay() {
     const d = new Date(ts);
     const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
     if (!dayVoiceMap[key]) dayVoiceMap[key] = [];
-    if (e.audio) dayVoiceMap[key].push(e.audio);
+    if (e.audio) {
+      let audioSrc = e.audio;
+      const Capacitor = window.Capacitor;
+      if (Capacitor?.convertFileSrc && audioSrc.startsWith("file://")) {
+        audioSrc = Capacitor.convertFileSrc(audioSrc);
+      }
+      dayVoiceMap[key].push(audioSrc);
+    }
   });
 
   function moodBg(v) {

@@ -328,8 +328,15 @@ function renderHistory(filterDate=null) {
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      const url = btn.dataset.url;
+      let url = btn.dataset.url;
       if (!url) return;
+      
+      // Convert Capacitor file:// URL to web-accessible URL
+      const Capacitor = window.Capacitor;
+      if (Capacitor?.convertFileSrc && url.startsWith("file://")) {
+        url = Capacitor.convertFileSrc(url);
+      }
+      
       const ts     = btn.dataset.ts;
       const seekEl = container.querySelector(`.voice-seek[data-ts="${ts}"]`);
       const curEl  = container.querySelector(`.voice-cur[data-ts="${ts}"]`);

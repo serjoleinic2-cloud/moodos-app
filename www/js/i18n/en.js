@@ -11,6 +11,7 @@ export const en = {
     get_insight: "Quick Insight",
     ai_listening: "Analyzing...",
     voice_reflection: "Voice Notes (10 sec)",
+    voice_notes_caption: "Sometimes it's useful to hear yourself from the outside",
     start_recording: "Start Recording",
     waiting: "Waiting",
     stability_index: "Stability Index",
@@ -146,6 +147,7 @@ export const en = {
     hist_voice: "Voice Recording",
     hist_voice_diary: "Voice Diary",
     hist_voice_no_audio: "🔇 Audio not saved",
+    voice_notes_duration: "Voice note",
     hist_no_text: "No text",
     hist_no_image: "No image",
     hist_back: "‹ Back",
@@ -714,4 +716,24 @@ export const en = {
     insight_advice_low: "Try to reduce load a bit and give yourself time.",
     insight_advice_mid: "Keep this rhythm and pay attention to details.",
     insight_advice_high: "Try to remember what helped you feel this way.",
+    
+    // Additional insight keys used in offline-ai.js
+    insight_combo_stress_low: "Looks like stress directly affected your state.",
+    insight_combo_walk_high: "A walk could have enhanced your good state.",
+    insight_combo_sport_high: "Physical activity clearly benefited you.",
+    insight_combo_work_low: "Workload might have overloaded you.",
+    pattern_recommend_low: "Based on your data, {event} used to help. Try it now.",
+    
+    // Reflection fallback
+    reflection_fallback: "Try to describe in more detail.",
+    reflection_stress: "Looks like it was a tense moment. It's important to give yourself time to recover.",
+    reflection_positive: "Sounds like a good experience. Worth anchoring these moments.",
+    reflection_neutral: "You're noting your state — that's already an important step.",
+    reflection_negative: "The day was tough. I'm here.",
+    
+    // Time buckets for patterns
+    time_morning: "in the morning",
+    time_afternoon: "in the afternoon",
+    time_evening: "in the evening",
+    time_night: "at night",
   };

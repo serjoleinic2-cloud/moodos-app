@@ -30,6 +30,11 @@ export function onEnter() {
         const duration = item.duration || 0;
         const mins = Math.floor(duration / 60);
         const secs = duration % 60;
+        let audioSrc = item.audio || item.uri || '';
+        const Capacitor = window.Capacitor;
+        if (Capacitor?.convertFileSrc && audioSrc.startsWith("file://")) {
+          audioSrc = Capacitor.convertFileSrc(audioSrc);
+        }
         const durationStr = mins > 0 
           ? `${mins}:${String(secs).padStart(2, "0")}` 
           : `${secs} сек`;
@@ -43,7 +48,7 @@ export function onEnter() {
               </div>
               <span class="neyra-badge neyra-badge-purple">${durationStr}</span>
             </div>
-            <audio controls src="${item.audio || item.uri || ''}" class="neyra-audio-player" style="margin-top: var(--neyra-space-sm);"></audio>
+            <audio controls src="${audioSrc}" class="neyra-audio-player" style="margin-top: var(--neyra-space-sm);"></audio>
           </div>
         `;
       }).join('')}

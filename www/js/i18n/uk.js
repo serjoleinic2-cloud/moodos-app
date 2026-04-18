@@ -11,6 +11,7 @@ export const uk = {
     get_insight: "Швидкий інсайт",
     ai_listening: "Аналізую...",
     voice_reflection: "Голосові нотатки (10 сек)",
+    voice_notes_caption: "Іноді корисно почути себе зі сторони",
     start_recording: "Почати запис",
     waiting: "Очікування",
     stability_index: "Індекс стійкості",
@@ -146,6 +147,7 @@ export const uk = {
     hist_voice: "Голосовий запис",
     hist_voice_diary: "Голосовий щоденник",
     hist_voice_no_audio: "🔇 Аудіо не збережено",
+    voice_notes_duration: "Голосова нотатка",
     hist_no_text: "Немає тексту",
     hist_no_image: "Немає зображення",
     hist_back: "‹ Назад",
@@ -712,4 +714,13 @@ export const uk = {
     insight_advice_low: "Спробуй трохи знизити навантаження і дати собі час.",
     insight_advice_mid: "Збережи цей ритм і зверни увагу на деталі.",
     insight_advice_high: "Спробуй запам'ятати, що допомогло тобі так себе відчувати.",
+    
+    // Additional insight keys used in offline-ai.js
+    pattern_recommend_low: "За твоїми даними, {event} раніше допомагало. Спробуй зараз.",
+    reflection_fallback: "Спробуй описати детальніше.",
+    reflection_stress: "Здається, це був напружений момент. Важливо дати собі час на відновлення.",
+    reflection_positive: "Звучить як хороший досвід. Варто закріпити ці моменти.",
+    reflection_neutral: "Ти фіксуєш свій стан — це вже важливий крок.",
+    reflection_negative: "День був складним. Я тут.",
+    time_afternoon: "вдень",
   };

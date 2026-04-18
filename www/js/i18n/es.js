@@ -11,6 +11,7 @@ export const es = {
     get_insight: "Insight Rápido",
     ai_listening: "Analizando...",
     voice_reflection: "Notas de voz (10 seg)",
+    voice_notes_caption: "A veces es útil escucharse desde fuera",
     start_recording: "Iniciar grabación",
     waiting: "Esperando",
     stability_index: "Índice de estabilidad",
@@ -146,6 +147,7 @@ export const es = {
     hist_voice: "Grabación de voz",
     hist_voice_diary: "Diario de voz",
     hist_voice_no_audio: "🔇 Audio no guardado",
+    voice_notes_duration: "Nota de voz",
     hist_no_text: "Sin texto",
     hist_no_image: "Sin imagen",
     hist_back: "‹ Atrás",
@@ -712,4 +714,13 @@ export const es = {
     insight_advice_low: "Intenta reducir un poco la carga y darte tiempo.",
     insight_advice_mid: "Mantén este ritmo y presta atención a los detalles.",
     insight_advice_high: "Intenta recordar lo que te ayudó a sentirte así.",
+    
+    // Additional insight keys used in offline-ai.js
+    pattern_recommend_low: "Según tus datos, {event} solía ayudar. Inténtalo ahora.",
+    reflection_fallback: "Intenta describir con más detalle.",
+    reflection_stress: "Parece que fue un momento tenso. Es importante darte tiempo para recuperarte.",
+    reflection_positive: "Suena como una buena experiencia. Vale la pena anclar estos momentos.",
+    reflection_neutral: "Estás noting tu estado — ya es un paso importante.",
+    reflection_negative: "El día fue difícil. Estoy aquí.",
+    time_afternoon: "por la tarde",
   };
