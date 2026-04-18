@@ -349,6 +349,10 @@ applyDomTranslations();
   function startApp() {
     console.log('[APP] startApp called');
     
+    import("./services/exit-guard.js")
+      .then(m => m.setupExitGuard())
+      .catch(() => {});
+    
     const detectedLang = getLang();
     setLang(detectedLang);
     

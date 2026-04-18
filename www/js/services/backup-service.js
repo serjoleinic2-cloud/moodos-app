@@ -600,6 +600,13 @@ async function importFromJson(file, resolve) {
         return;
       }
 
+      const validation = validateBackup(backup);
+      if (!validation.valid) {
+        console.error('[BACKUP] Validation failed:', validation.error);
+        resolve({ success: false, error: validation.error });
+        return;
+      }
+
       console.log('[BACKUP] Data keys to restore:', Object.keys(backup.data));
       restoreData(backup.data);
       resolve({ success: true, message: ' данные восстановлены' });
@@ -648,20 +655,34 @@ function restoreMediaFromMap(mediaMap) {
   const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
   const photoHistory = JSON.parse(localStorage.getItem('photo_history') || '[]');
 
-  voiceHistory.forEach(item => {
-    if (item.fileName && mediaMap.has(item.fileName)) {
-      item.audio = mediaMap.get(item.fileName);
+  mediaMap.forEach((dataUrl, filename) => {
+    if (filename.startsWith('voice_')) {
+      const parts = filename.split('_');
+      const ts = parseInt(parts[1]);
+      const match = voiceHistory.find(item =>
+        (item.time || item.timestamp || item.date) === ts
+      );
+      if (match) match.audio = dataUrl;
+    }
+    if (filename.startsWith('photo_')) {
+      const parts = filename.split('_');
+      const ts = parseInt(parts[1]);
+      const match = photoHistory.find(item =>
+        (item.timestamp || item.time) === ts
+      );
+      if (match) match.dataUrl = dataUrl;
     }
   });
 
-  photoHistory.forEach(item => {
-    if (item.fileName && mediaMap.has(item.fileName)) {
-      item.dataUrl = mediaMap.get(item.fileName);
-    }
-  });
-
-  localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
-  localStorage.setItem('photo_history', JSON.stringify(photoHistory));
+  try {
+    localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
+    localStorage.setItem('photo_history', JSON.stringify(photoHistory));
+  } catch (quotaErr) {
+    console.error('[BACKUP] Quota error during restore:', quotaErr);
+    alert('Не удалось восстановить медиа: память переполнена.');
+    localStorage.setItem('voice_history', JSON.stringify(voiceHistory.filter(i => !i.audio)));
+    localStorage.setItem('photo_history', JSON.stringify(photoHistory.filter(i => !i.dataUrl)));
+  }
   console.log('[BACKUP] Media restored from map');
 }
 
@@ -786,16 +807,6 @@ function restoreData(data) {
       console.warn('[BACKUP] restore failed:', key, e);
     }
   });
-}
-      }
-      
-    } catch (e) {
-      console.warn('[BACKUP] Failed to restore:', key, e.message);
-      results.skipped.push(key);
-    }
-  });
-  
-  console.log('[BACKUP] Restore results:', results);
 }
 
 export function getBackupInfo() {
