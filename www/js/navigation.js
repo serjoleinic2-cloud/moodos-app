@@ -14,6 +14,7 @@ export function closeAllOverlays() {
   document.getElementById("dayPopup")?.remove();
   document.getElementById("dayPopupOverlay")?.remove();
   document.querySelectorAll(".health-modal-overlay").forEach(m => m.remove());
+  document.querySelectorAll(".mo-info-btn.open").forEach(b => b.classList.remove("open"));
 }
 
 export function initNavigation() {
