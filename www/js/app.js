@@ -329,18 +329,12 @@ if (!window.__neyraAppRunning) {
 
     if (!isOnboardingDone()) {
       initOnboarding(() => {
-applyDomTranslations();
-    
-// Exit guard - protect against data loss
-    setTimeout(async () => {
-      await import("./services/exit-guard.js")
-        .then(m => m.setupExitGuard())
-        .catch(e => console.warn("[BOOT] ExitGuard failed:", e));
+        applyDomTranslations();
+        setTimeout(() => startApp(), 100);
+      });
+    } else {
       startApp();
-    }, 100);
-  } else {
-    startApp();
-  }
+    }
 
   function initCloudAuth() {
     console.log('[Cloud] Auth disabled (native setup phase)');
