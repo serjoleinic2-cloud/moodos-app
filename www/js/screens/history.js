@@ -56,7 +56,7 @@ function shareItem(item) {
   const text = buildShareText(item);
   if (!text) return;
 
-  if (item.type === "photo" && (item.uri || item.dataUrl)) {
+  if (item.type === "photo" && (item.dataUrl || item.uri)) {
     sharePhoto(item);
     return;
   }
@@ -166,7 +166,8 @@ function buildTimeline() {
     photos.forEach(e => items.push({
       type: "photo",
       ts: e.timestamp||e.time||Date.now(),
-      dataUrl: e.thumbnail || (e.source === 'gallery' ? null : e.dataUrl||e.photo||null),
+      dataUrl: e.source === 'gallery' ? null : (e.dataUrl||e.photo||null),
+      thumbnail: e.thumbnail||null,
       uri: e.uri||null,
       source: e.source||'base64',
       albumName: e.albumName||null,
@@ -473,11 +474,11 @@ async function _savePhotoFallback(dataUrl, timestamp, thumbnail) {
     
     const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
     arr.push({
-      dataUrl: thumbnail || dataUrl,
+      dataUrl: dataUrl,
+      thumbnail: thumbnail,
       timestamp: ts,
       note: "",
-      source: 'base64',
-      thumbnail
+      source: 'base64'
     });
     if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem("photo_history", JSON.stringify(arr));
@@ -507,10 +508,10 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="photo") {
-    const photoSrc = item.uri || item.dataUrl || "";
+    const previewSrc = item.thumbnail || item.uri || item.dataUrl || "";
     return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1">
       <div class="hist-card-left" style="background:#f59e0b22;overflow:hidden;border-radius:12px;">
-        ${photoSrc?`<img src="${photoSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
+        ${previewSrc?`<img src="${previewSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
       </div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
@@ -606,7 +607,7 @@ function renderDetail(item, filterDate) {
         ${item.note ? `<div style="margin-top:12px;color:#666;">${item.note}</div>` : ""}
       </div>`;
     } else {
-      const photoSrc = item.uri || item.dataUrl || "";
+      const photoSrc = item.dataUrl || item.uri || "";
       body=`<div style="margin-top:20px;text-align:center;">
         ${photoSrc?`<img src="${photoSrc}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
         ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
