@@ -511,3 +511,39 @@ www/js/
 | close | Закрыть | en, es, uk, hi |
 | exit_warning | Предупреждение при выходе | ru, en, es, uk, hi |
 | recovery_prompt | Предложение восстановления | ru, en, es, uk, hi |
+
+---
+
+## ✅ ЗАВЕРШЕНО: TASK AUDIT-FIX — Final Release Blockers
+
+**Дата:** 2026-04-18
+**Статус:** ✅ READY FOR RELEASE
+
+### Что сделано:
+
+| TASK | Описание | Файл |
+|------|---------|------|
+| FIX PHOTO STORAGE | Фото в Filesystem, не base64 | history.js |
+| PART 1 | restoreData rewrite + getId | backup-service.js |
+| PART 2 | restoreMediaFromMap | backup-service.js |
+| PART 3 | ExitGuard -> startApp() | app.js |
+| PART 4 | Storage consistency | storage-wrapper.js |
+| PART 5 | photo_history в VALID_KEYS | backup-service.js |
+| PART 6 | Export race lock | backup-service.js |
+| PART 7 | Share files API | backup-service.js |
+| PART 8 | version validation | backup-service.js |
+| PART 9 | empty backup check | backup-service.js |
+| PART 10 | quota alert | memory.js |
+| N1 | Мусорный код удалён | backup-service.js |
+| N2 | ExitGuard для всех | app.js |
+| N3 | restoreMedia по ts | backup-service.js |
+| N4 | importFromJson version | backup-service.js |
+| N5 | QuotaExceededError | backup-service.js |
+| N6 | Дубликат ExitGuard | app.js |
+
+### i18n добавлено:
+`photo_storage_notice` — все 5 языков
+
+---
+
+## 🔑 CURRENT STATUS: READY FOR RELEASE
