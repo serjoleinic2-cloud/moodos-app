@@ -560,6 +560,8 @@ export const uk = {
     privacy_section_changes: "Політика може оновлюватися. Користувачі будуть повідомлені через оновлення додатку.",
     
     // Backup
+    backup_section: "Резервне копіювання",
+    backup_error: "Помилка",
     backup_data_local: "Експорт даних",
     backup_local_info: "Ваші дані зберігаються лише на пристрої. Створіть резервну копію та збережіть її самостійно.",
     btn_export: "Експорт",
@@ -596,6 +598,7 @@ export const uk = {
     how_device_text: "Всі записи зберігаються на вашому пристрої. Ви повністю контролюєте свої дані.",
     how_cloud_title: "Premium: Хмара",
     how_cloud_text: "Автоматичний backup у хмару. Перенос між пристроями. Без обмежень.",
+    how_footer: "Почни з простого — відзнач свій стан сьогодні",
     
     // Smart warnings
     export_free_warning_title: "FREE: Зберігаються лише записи",
@@ -609,4 +612,38 @@ export const uk = {
     restore_preview_count: "{mood} записів · {photo} фото · {voice} голосових",
     storage_warning_title: "⚠️ Пам'ять пристрою заповнена",
     storage_warning_text: "Рекомендуємо створити резервну копію, щоб не втратити дані.",
+    
+    // Premium screen
+    premium_hook: "Це більше, ніж просто трекер настрою.<br><br>Це інструмент, який допомагає зрозуміти себе — без хмар, без підписки на ваші дані.",
+    premium_open_btn_full: "Відкрити повний доступ",
+    premium_trust: "✔ Скасування будь-коли через Google Play<br>✔ Дані залишаються у вас<br>✔ Працює без інтернету",
+    premium_feature_control: "Повний контроль даних",
+    premium_feature_control_desc: "Всі дані тільки у вас на пристрої",
+    premium_feature_archive: "Повний архів з фото",
+    premium_feature_archive_desc: "Перенос на новий телефон одним файлом",
+    premium_feature_unlimited: "Без обмежень",
+    premium_feature_unlimited_desc: "Резервні копії без лімітів",
+    premium_feature_practices: "Розширені практики",
+    premium_feature_practices_desc: "Глибокі техніки відновлення стану",
+    premium_feature_music: "Музика та атмосфера",
+    premium_feature_music_desc: "Фон для концентрації та спокою",
+    premium_feature_themes: "Теми",
+    premium_feature_themes_desc: "Персоналізація інтерфейсу",
+    premium_feature_ai: "Локальний AI",
+    premium_feature_ai_desc: "Аналіз без відправки даних в інтернет",
+    
+    // Settings backup section
+    settings_backup_info: "Дані зберігаються лише на пристрої. Щоб не втратити: — створюйте резервну копію регулярно — зберігайте файл у хмарі (Google Drive)",
+    settings_backup_free_limit: "Free: 1 копія за 3 дні • Premium: без обмежень",
+    
+    // Data storage screen
+    data_storage_control: "Контроль",
+    data_storage_control_desc: "Тільки ви маєте доступ до своїх даних. Додаток не передає їх на сервер.",
+    data_storage_cloud_premium: "Хмара (Premium)",
+    data_storage_cloud_premium_desc: "Автоматичний backup у Google Drive. Перенос даних між пристроями.",
+    
+    // Settings photo info
+    settings_photo_saved_info: "📷 Фото зберігаються в альбом «Neyra» у галереї та не видаляються з додатком",
+    settings_photo_premium_info: "👑 Фото з альбому «Neyra» включені в резервну копію",
+    settings_free_version: "Безкоштовна версія",
   };

@@ -532,6 +532,40 @@ export const ru = {
     restore_preview_count: "{mood} записей · {photo} фото · {voice} голосовых",
     storage_warning_title: "⚠️ Память устройства заполнена",
     storage_warning_text: "Рекомендуем создать резервную копию, чтобы не потерять данные.",
+    
+    // Premium screen
+    premium_hook: "Это не просто трекер настроения.<br><br>Это инструмент, который помогает понять себя — без облаков, без подписки на ваши данные.",
+    premium_open_btn_full: "Открыть полный доступ",
+    premium_trust: "✔ Отмена в любой момент через Google Play<br>✔ Данные остаются у вас<br>✔ Работает без интернета",
+    premium_feature_control: "Полный контроль данных",
+    premium_feature_control_desc: "Все данные только у вас на устройстве",
+    premium_feature_archive: "Полный архив с фото",
+    premium_feature_archive_desc: "Перенос на новый телефон одним файлом",
+    premium_feature_unlimited: "Без ограничений",
+    premium_feature_unlimited_desc: "Резервные копии без лимитов",
+    premium_feature_practices: "Расширенные практики",
+    premium_feature_practices_desc: "Глубокие техники восстановления состояния",
+    premium_feature_music: "Музыка и атмосфера",
+    premium_feature_music_desc: "Фон для концентрации и спокойствия",
+    premium_feature_themes: "Темы",
+    premium_feature_themes_desc: "Персонализация интерфейса",
+    premium_feature_ai: "Локальный AI",
+    premium_feature_ai_desc: "Анализ без отправки данных в интернет",
+    
+    // Settings backup section
+    settings_backup_info: "Данные хранятся только на устройстве. Чтобы не потерять: — создавайте резервную копию регулярно — сохраняйте файл в облаке (Google Drive)",
+    settings_backup_free_limit: "Free: 1 копия в 3 дня • Premium: без ограничений",
+    
+    // Data storage screen
+    data_storage_control: "Контроль",
+    data_storage_control_desc: "Только вы имеете доступ к своим данным. Приложение не передаёт их на сервер.",
+    data_storage_cloud_premium: "Облако (Premium)",
+    data_storage_cloud_premium_desc: "Автоматический backup в Google Drive. Перенос данных между устройствами.",
+    
+    // Settings photo info
+    settings_photo_saved_info: "📷 Фото сохраняются в альбом «Neyra» в галерее и не удаляются вместе с приложением",
+    settings_photo_premium_info: "👑 Фото из альбома «Neyra» включены в резервную копию",
+    settings_free_version: "Бесплатная версия",
     restore_purchases: "Восстановить покупки",
     close: "Закрыть",
     med_add_track: "Добавить мелодию",

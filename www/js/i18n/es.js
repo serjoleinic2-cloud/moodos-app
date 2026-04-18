@@ -560,6 +560,8 @@ export const es = {
     privacy_section_changes: "La política puede actualizarse. Los usuarios serán informados a través de actualizaciones de la aplicación.",
     
     // Backup
+    backup_section: "Copia de seguridad",
+    backup_error: "Error",
     backup_data_local: "Exportar datos",
     backup_local_info: "Tus datos se almacenan solo en tu dispositivo. Crea una copia de seguridad y guárdala tú mismo.",
     btn_export: "Exportar",
@@ -596,6 +598,7 @@ export const es = {
     how_device_text: "Todos los registros se almacenan en tu dispositivo. Tienes control total.",
     how_cloud_title: "Premium: Nube",
     how_cloud_text: "Copia de seguridad automática en la nube. Transferencia entre dispositivos. Sin límites.",
+    how_footer: "Comienza simple — registra tu estado hoy",
     
     // Smart warnings
     export_free_warning_title: "FREE: Solo se guardan registros",
@@ -609,4 +612,38 @@ export const es = {
     restore_preview_count: "{mood} registros · {photo} fotos · {voice} notas de voz",
     storage_warning_title: "⚠️ El almacenamiento del dispositivo está lleno",
     storage_warning_text: "Recomendamos crear una copia de seguridad para evitar pérdida de datos.",
+    
+    // Premium screen
+    premium_hook: "Esto es más que un simple rastreador de estado de ánimo.<br><br>Es una herramienta que te ayuda a entenderte a ti mismo — sin nubes, sin suscripción a tus datos.",
+    premium_open_btn_full: "Desbloquear acceso completo",
+    premium_trust: "✔ Cancelar en cualquier momento desde Google Play<br>✔ Tus datos permanecen contigo<br>✔ Funciona sin internet",
+    premium_feature_control: "Control total de datos",
+    premium_feature_control_desc: "Todos los datos solo en tu dispositivo",
+    premium_feature_archive: "Archivo completo con fotos",
+    premium_feature_archive_desc: "Transferir a nuevo teléfono en un archivo",
+    premium_feature_unlimited: "Ilimitado",
+    premium_feature_unlimited_desc: "Copias de seguridad sin límites",
+    premium_feature_practices: "Prácticas extendidas",
+    premium_feature_practices_desc: "Técnicas profundas de recuperación",
+    premium_feature_music: "Música y ambiente",
+    premium_feature_music_desc: "Fondo para concentración y calma",
+    premium_feature_themes: "Temas",
+    premium_feature_themes_desc: "Personalización de interfaz",
+    premium_feature_ai: "IA local",
+    premium_feature_ai_desc: "Análisis sin internet",
+    
+    // Settings backup section
+    settings_backup_info: "Los datos se almacenan solo en tu dispositivo. Para evitar pérdidas: — crea copias de seguridad regularmente — guarda el archivo en la nube (Google Drive)",
+    settings_backup_free_limit: "Free: 1 copia cada 3 días • Premium: ilimitado",
+    
+    // Data storage screen
+    data_storage_control: "Control",
+    data_storage_control_desc: "Solo tú tienes acceso a tus datos. La aplicación no los envía a servidores.",
+    data_storage_cloud_premium: "Nube (Premium)",
+    data_storage_cloud_premium_desc: "Copia de seguridad automática a Google Drive. Transferencia de datos entre dispositivos.",
+    
+    // Settings photo info
+    settings_photo_saved_info: "📷 Las fotos se guardan en el álbum 'Neyra' en la galería y no se eliminan con la aplicación",
+    settings_photo_premium_info: "👑 Las fotos del álbum 'Neyra' están incluidas en la copia de seguridad",
+    settings_free_version: "Versión gratuita",
   };

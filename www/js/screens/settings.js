@@ -191,25 +191,22 @@ function renderSettings() {
         <div class="settings-section-label">📦 ${t("backup_section") || "Резервное копирование"}</div>
         
         <div class="backup-card">
-          <div class="backup-card-title">${t("backup_data_local") || "Экспорт данных"}</div>
+          <div class="backup-card-title">${t("backup_data_local")}</div>
           <div class="backup-card-btns">
-            <button class="backup-card-btn save" id="btnExportBackup">${t("btn_export") || "Экспорт"}</button>
-            <button class="backup-card-btn restore" id="btnImportBackup">${t("btn_import") || "Импорт"}</button>
+            <button class="backup-card-btn save" id="btnExportBackup">${t("btn_export")}</button>
+            <button class="backup-card-btn restore" id="btnImportBackup">${t("btn_import")}</button>
           </div>
-          ${!premiumInfo.isPremium ? '<div style="font-size:10px;color:#805ad5;text-align:center;margin-top:6px;">Free: 1 копия в 3 дня • Premium: без ограничений</div>' : ''}
+          ${!premiumInfo.isPremium ? `<div style="font-size:10px;color:#805ad5;text-align:center;margin-top:6px;">${t("settings_backup_free_limit")}</div>` : ''}
         </div>
         
         <div style="font-size:11px;color:#888;padding:8px 0;line-height:1.6; background:rgba(240,240,240,0.5);border-radius:10px;padding:10px;">
-          <strong>⚠️ Важно:</strong><br>
-          Данные хранятся только на устройстве.<br>
-          Чтобы не потерять:<br>
-          — создавайте резервную копию регулярно<br>
-          — сохраняйте файл в облаке (Google Drive)<br>
+          <strong>⚠️ ${t("important") || "Важно"}:</strong><br>
+          ${t("settings_backup_info")}
           — вы самостоятельно отвечаете за сохранность копии
         </div>
         ${premiumInfo.isPremium 
-          ? '<div style="font-size:11px;color:#805ad5;margin-top:8px;">👑 Фото из альбома «Neyra» включены в резервную копию</div>' 
-          : '<div style="font-size:11px;color:#888;margin-top:8px;">📷 Фото сохраняются в альбом «Neyra» в галерее и не удаляются вместе с приложением</div>'}
+          ? `<div style="font-size:11px;color:#805ad5;margin-top:8px;">${t("settings_photo_premium_info")}</div>` 
+          : `<div style="font-size:11px;color:#888;margin-top:8px;">${t("settings_photo_saved_info")}</div>`}
       </div>
 
       <div class="settings-section">
@@ -223,7 +220,7 @@ function renderSettings() {
           text-align: center;
         ">
           <div id="premiumStatus" style="font-size:16px;font-weight:700;color:${premiumStatusColor};margin-bottom:4px;">${premiumStatusLabel}</div>
-          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : "Бесплатная версия"}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:8px;">${premiumInfo.isPremium ? t("premium_unlimited") : t("settings_free_version")}</div>
           ${showGetPremiumBtn ? `<button id="getPremiumBtn" style="
             margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;
             background:linear-gradient(145deg,#9f7aea,#805ad5);

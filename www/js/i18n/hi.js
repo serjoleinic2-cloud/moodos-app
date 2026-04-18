@@ -560,6 +560,8 @@ export const hi = {
     privacy_section_changes: "नीति अपडेट की जा सकती है। उपयोगकर्ताओं को ऐप अपडेट के माध्यम से सूचित किया जाएगा।",
     
     // Backup
+    backup_section: "बैकअप",
+    backup_error: "त्रुटि",
     backup_data_local: "डेटा निर्यात करें",
     backup_local_info: "आपका डेटा केवल आपके डिवाइस पर संग्रहीत है। बैकअप बनाएं और खुद सहेजें।",
     btn_export: "निर्यात",
@@ -596,6 +598,7 @@ export const hi = {
     how_device_text: "सभी रिकॉर्ड आपके डिवाइस पर संग्रहीत हैं। आपका पूरा नियंत्रण।",
     how_cloud_title: "Premium: क्लाउड",
     how_cloud_text: "स्वचालित क्लाउड बैकअप। डिवाइस के बीच ट्रांसफर। बिना सीमा।",
+    how_footer: "सरल से शुरू करें — आज अपनी स्थिति दर्ज करें",
     
     // Smart warnings
     export_free_warning_title: "FREE: केवल रिकॉर्ड सहेजे जाते हैं",
@@ -609,4 +612,38 @@ export const hi = {
     restore_preview_count: "{mood} रिकॉर्ड · {photo} फ़ोटो · {voice} वॉइस नोट्स",
     storage_warning_title: "⚠️ डिवाइस स्टोरेज भरा हुआ है",
     storage_warning_text: "डेटा हानि से बचने के लिए बैकअप बनाने की सिफारिश करते हैं।",
+    
+    // Premium screen
+    premium_hook: "यह सिर्फ एक मूड ट्रैकर से ज्यादा है।<br><br>यह एक टूल है जो आपको खुद को समझने में मदद करता है — बिना क्लाउड, बिना आपके डेटा की सब्सक्रिप्शन।",
+    premium_open_btn_full: "पूर्ण एक्सेस अनलॉक करें",
+    premium_trust: "✔ Google Play से कभी भी रद्द करें<br>✔ आपका डेटा आपके पास रहता है<br>✔ बिना इंटरनेट के काम करता है",
+    premium_feature_control: "पूर्ण डेटा नियंत्रण",
+    premium_feature_control_desc: "सभी डेटा केवल आपके डिवाइस पर",
+    premium_feature_archive: "फ़ोटो के साथ पूर्ण संग्रह",
+    premium_feature_archive_desc: "एक फ़ाइल में नए फोन में ट्रांसफर",
+    premium_feature_unlimited: "असीमित",
+    premium_feature_unlimited_desc: "सीमा के बिना बैकअप",
+    premium_feature_practices: "विस्तारित अभ्यास",
+    premium_feature_practices_desc: "गहरी पुनर्प्राप्ति तकनीक",
+    premium_feature_music: "संगीत और वातावरण",
+    premium_feature_music_desc: "एकाग्रता और शांति के लिए पृष्ठभूमि",
+    premium_feature_themes: "थीम्स",
+    premium_feature_themes_desc: "इंटरफ़ेस अनुकूलन",
+    premium_feature_ai: "स्थानीय AI",
+    premium_feature_ai_desc: "इंटरनेट के बिना विश्लेषण",
+    
+    // Settings backup section
+    settings_backup_info: "डेटा केवल आपके डिवाइस पर संग्रहीत है। हानि से बचने के लिए: — नियमित रूप से बैकअप बनाएं — फ़ाइल को क्लाउड (Google Drive) में सहेजें",
+    settings_backup_free_limit: "Free: 1 कॉपी हर 3 दिन • Premium: असीमित",
+    
+    // Data storage screen
+    data_storage_control: "नियंत्रण",
+    data_storage_control_desc: "केवल आपके पास अपने डेटा तक पहुंच है। ऐप इसे सर्वर पर नहीं भेजता।",
+    data_storage_cloud_premium: "क्लाउड (Premium)",
+    data_storage_cloud_premium_desc: "Google Drive में स्वचालित बैकअप। डिवाइस के बीच डेटा ट्रांसफर।",
+    
+    // Settings photo info
+    settings_photo_saved_info: "📷 फ़ोटो गैलरी में 'Neyra' एल्बम में सहेजी जाती हैं और ऐप्लिकेशन के साथ हटाई नहीं जातीं",
+    settings_photo_premium_info: "👑 'Neyra' एल्बम की फ़ोटो बैकअप में शामिल हैं",
+    settings_free_version: "मुफ्त संस्करण",
   };

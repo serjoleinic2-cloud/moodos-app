@@ -562,6 +562,8 @@ export const en = {
     privacy_section_changes: "Policy may be updated. Users will be informed via app updates.",
     
     // Backup
+    backup_section: "Backup",
+    backup_error: "Error",
     backup_data_local: "Export Data",
     backup_local_info: "Your data is stored only on your device. Create a backup and save it yourself.",
     btn_export: "Export",
@@ -598,6 +600,7 @@ export const en = {
     how_device_text: "All records are stored on your device. You have full control.",
     how_cloud_title: "Premium: Cloud",
     how_cloud_text: "Automatic cloud backup. Transfer between devices. No limits.",
+    how_footer: "Start simple — log your mood today",
     
     // Smart warnings
     export_free_warning_title: "FREE: Only records are saved",
@@ -611,4 +614,38 @@ export const en = {
     restore_preview_count: "{mood} records · {photo} photos · {voice} voice notes",
     storage_warning_title: "⚠️ Device storage is full",
     storage_warning_text: "We recommend creating a backup to avoid data loss.",
+    
+    // Premium screen
+    premium_hook: "This is more than just a mood tracker.<br><br>It's a tool that helps you understand yourself — without clouds, without subscribtion to your data.",
+    premium_open_btn_full: "Unlock full access",
+    premium_trust: "✔ Cancel anytime via Google Play<br>✔ Your data stays with you<br>✔ Works without internet",
+    premium_feature_control: "Full data control",
+    premium_feature_control_desc: "All data stays on your device",
+    premium_feature_archive: "Full archive with photos",
+    premium_feature_archive_desc: "Transfer to new phone in one file",
+    premium_feature_unlimited: "Unlimited",
+    premium_feature_unlimited_desc: "Backups without limits",
+    premium_feature_practices: "Extended practices",
+    premium_feature_practices_desc: "Deep recovery techniques",
+    premium_feature_music: "Music & atmosphere",
+    premium_feature_music_desc: "Background for focus and calm",
+    premium_feature_themes: "Themes",
+    premium_feature_themes_desc: "Interface personalization",
+    premium_feature_ai: "Local AI",
+    premium_feature_ai_desc: "Analysis without internet",
+    
+    // Settings backup section
+    settings_backup_info: "Data is stored only on your device. To avoid loss: — create backups regularly — save file to cloud (Google Drive)",
+    settings_backup_free_limit: "Free: 1 copy every 3 days • Premium: unlimited",
+    
+    // Data storage screen
+    data_storage_control: "Control",
+    data_storage_control_desc: "Only you have access to your data. The app doesn't send it to servers.",
+    data_storage_cloud_premium: "Cloud (Premium)",
+    data_storage_cloud_premium_desc: "Automatic backup to Google Drive. Transfer data between devices.",
+    
+    // Settings photo info
+    settings_photo_saved_info: "📷 Photos are saved to 'Neyra' album in gallery and are not deleted with the app",
+    settings_photo_premium_info: "👑 Photos from 'Neyra' album are included in backup",
+    settings_free_version: "Free version",
   };

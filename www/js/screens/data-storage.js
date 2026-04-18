@@ -39,10 +39,10 @@ async function doExport() {
         setTimeout(() => window.openScreen("paywall"), 500);
       }
     } else {
-      alert(result.error || "Не удалось создать резервную копию");
+      alert(result.error || t("backup_error"));
     }
   } catch(e) {
-    alert("Ошибка: " + e.message);
+    alert(t("backup_error") + ": " + e.message);
   }
   if (btn) { btn.textContent = t("btn_export") || "Создать копию"; btn.disabled = false; }
 }
@@ -123,25 +123,25 @@ function render() {
       }
     </style>
     <div class="ds-container">
-      <h2>${t("data_storage_title") || "Хранение данных"}</h2>
+      <h2>${t("data_storage_title")}</h2>
       
-      ${block("📱", t("data_storage_local") || "Локальное хранение", 
+      ${block("📱", t("data_storage_local"), 
         "Все ваши записи, фото и аудио хранятся только на вашем устройстве.")}
       
-      ${block("🔒", "Контроль",
-        "Только вы имеете доступ к своим данным. Приложение не передаёт их на сервер.")}
+      ${block("🔒", t("data_storage_control"),
+        t("data_storage_control_desc")}
       
-      ${block("💾", t("backup_section") || "Резервная копия",
+      ${block("💾", t("backup_section"),
         "Чтобы не потерять данные при переустановке, создайте резервную копию и сохраните её самостоятельно.")}
       
-      ${block("☁️", "Облако (Premium)",
-        "Автоматический backup в Google Drive. Перенос данных между устройствами.")}
+      ${block("☁️", t("data_storage_cloud_premium"),
+        t("data_storage_cloud_premium_desc")}
       
-      ${block("⚠️", t("data_storage_responsibility") || "Ответственность",
+      ${block("⚠️", t("data_storage_responsibility"),
         "Вы самостоятельно отвечаете за сохранность резервной копии. Если файл будет утерян — восстановить данные будет невозможно.", true)}
       
       <button class="ds-btn" id="dsBackupBtn">
-        ${t("btn_export") || "Создать копию"}
+        ${t("btn_export")}
       </button>
     </div>
   `;

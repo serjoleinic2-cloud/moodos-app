@@ -27,13 +27,13 @@ export function onEnter() {
 }
 
 const features = [
-  { icon: "🔐", title: "Полный контроль данных", desc: "Все данные только у вас на устройстве" },
-  { icon: "📦", title: "Полный архив с фото", desc: "Перенос на новый телефон одним файлом" },
-  { icon: "♾️", title: "Без ограничений", desc: "Резервные копии без лимитов" },
-  { icon: "🧘", title: "Расширенные практики", desc: "Глубокие техники восстановления состояния" },
-  { icon: "🎵", title: "Музыка и атмосфера", desc: "Фон для концентрации и спокойствия" },
-  { icon: "🎨", title: "Темы", desc: "Персонализация интерфейса" },
-  { icon: "🤖", title: "Локальный AI", desc: "Анализ без отправки данных в интернет" }
+  { icon: "🔐", title: t("premium_feature_control"), desc: t("premium_feature_control_desc") },
+  { icon: "📦", title: t("premium_feature_archive"), desc: t("premium_feature_archive_desc") },
+  { icon: "♾️", title: t("premium_feature_unlimited"), desc: t("premium_feature_unlimited_desc") },
+  { icon: "🧘", title: t("premium_feature_practices"), desc: t("premium_feature_practices_desc") },
+  { icon: "🎵", title: t("premium_feature_music"), desc: t("premium_feature_music_desc") },
+  { icon: "🎨", title: t("premium_feature_themes"), desc: t("premium_feature_themes_desc") },
+  { icon: "🤖", title: t("premium_feature_ai"), desc: t("premium_feature_ai_desc") }
 ];
 
 function renderPremium() {
@@ -162,18 +162,13 @@ function renderPremium() {
       
       ${!isActive ? `
         <div class="premium-hook">
-          Это не просто трекер настроения.
-          <br><br>
-          Это инструмент, который помогает понять себя
-          — без облаков, без подписки на ваши данные.
+          ${t("premium_hook")}
         </div>
         <button id="premiumBtn" class="premium-btn">
-          Открыть полный доступ
+          ${t("premium_open_btn_full")}
         </button>
         <div class="premium-trust">
-          ✔ Отмена в любой момент через Google Play<br>
-          ✔ Данные остаются у вас<br>
-          ✔ Работает без интернета
+          ${t("premium_trust")}
         </div>
       ` : `
         <button id="premiumBtn" class="premium-btn" disabled>
