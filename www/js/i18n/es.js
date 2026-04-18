@@ -723,4 +723,9 @@ export const es = {
     reflection_neutral: "Estás noting tu estado — ya es un paso importante.",
     reflection_negative: "El día fue difícil. Estoy aquí.",
     time_afternoon: "por la tarde",
+    
+    // Insight comparison
+    insight_better: "mejor que el período anterior",
+    insight_worse: "peor que el período anterior",
+    insight_no_change: "sin cambios",
   };

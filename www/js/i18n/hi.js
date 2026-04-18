@@ -723,4 +723,9 @@ export const hi = {
     reflection_neutral: "आप अपनी स्थिति नोट कर रहे हैं — यह पहले से ही एक महत्वपूर्ण कदम है।",
     reflection_negative: "दिन कठिन था। मैं यहाँ हूँ।",
     time_afternoon: "दोपहर में",
+    
+    // Insight comparison
+    insight_better: "पिछली अवधि से बेहतर",
+    insight_worse: "पिछली अवधि से बदतर",
+    insight_no_change: "कोई बदलाव नहीं",
   };

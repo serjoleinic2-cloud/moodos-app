@@ -87,9 +87,6 @@ if (!window.__neyraAppRunning) {
     window.__internalPremium = value === true;
   };
 
-  // TEMP TEST MODE
-  window._billingPremium = true;
-  console.log("IS PREMIUM:", window.isPremium && window.isPremium());
 
 
 

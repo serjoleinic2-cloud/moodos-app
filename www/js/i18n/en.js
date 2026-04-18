@@ -736,4 +736,9 @@ export const en = {
     time_afternoon: "in the afternoon",
     time_evening: "in the evening",
     time_night: "at night",
+    
+    // Insight comparison
+    insight_better: "better than previous period",
+    insight_worse: "worse than previous period",
+    insight_no_change: "no change",
   };

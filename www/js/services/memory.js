@@ -404,7 +404,13 @@ export async function migrateVoiceStorage() {
     try {
       await Filesystem.readDir({ path: 'Neyra', directory: 'Documents' });
     } catch(e) {
-      await Filesystem.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+      try {
+        await Filesystem.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+      } catch(mkErr) {
+        if (!mkErr?.message?.includes('already exists')) {
+          console.warn('[VOICE MIGRATION] mkdir failed:', mkErr);
+        }
+      }
     }
   } catch(e) {
     console.warn('[VOICE MIGRATION] Could not create Neyra directory:', e);

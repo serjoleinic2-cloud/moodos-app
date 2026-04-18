@@ -723,4 +723,9 @@ export const uk = {
     reflection_neutral: "Ти фіксуєш свій стан — це вже важливий крок.",
     reflection_negative: "День був складним. Я тут.",
     time_afternoon: "вдень",
+    
+    // Insight comparison
+    insight_better: "краще, ніж попередній період",
+    insight_worse: "гірше, ніж попередній період",
+    insight_no_change: "без змін",
   };
