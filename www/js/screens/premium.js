@@ -27,13 +27,13 @@ export function onEnter() {
 }
 
 const features = [
-  { icon: "☁️", title: "Облачное сохранение", desc: "Синхронизация между устройствами" },
-  { icon: "📊", title: "Полная история", desc: "Доступ к старым данным" },
-  { icon: "🧘", title: "Медитации", desc: "Расширенная библиотека практик" },
-  { icon: "🎵", title: "Музыка и звуки", desc: "Фоновые треки и атмосфера" },
-  { icon: "🎨", title: "Темы оформления", desc: "Цветовые схемы интерфейса" },
-  { icon: "📈", title: "Аналитика", desc: "Глубокий анализ состояния" },
-  { icon: "🔒", title: "Без рекламы", desc: "Чистый интерфейс" }
+  { icon: "🔐", title: "Полный контроль данных", desc: "Все данные только у вас на устройстве" },
+  { icon: "📦", title: "Полный архив с фото", desc: "Перенос на новый телефон одним файлом" },
+  { icon: "♾️", title: "Без ограничений", desc: "Резервные копии без лимитов" },
+  { icon: "🧘", title: "Расширенные практики", desc: "Глубокие техники восстановления состояния" },
+  { icon: "🎵", title: "Музыка и атмосфера", desc: "Фон для концентрации и спокойствия" },
+  { icon: "🎨", title: "Темы", desc: "Персонализация интерфейса" },
+  { icon: "🤖", title: "Локальный AI", desc: "Анализ без отправки данных в интернет" }
 ];
 
 function renderPremium() {
@@ -129,6 +129,18 @@ function renderPremium() {
         color: #999;
         margin-top: 4px;
       }
+      .premium-hook {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .premium-trust {
+        font-size: 11px;
+        color: #888;
+        margin-top: 12px;
+        line-height: 1.4;
+      }
     </style>
     
     <div class="premium-screen ${statusClass}">
@@ -149,9 +161,20 @@ function renderPremium() {
       </div>
       
       ${!isActive ? `
+        <div class="premium-hook">
+          Это не просто трекер настроения.
+          <br><br>
+          Это инструмент, который помогает понять себя
+          — без облаков, без подписки на ваши данные.
+        </div>
         <button id="premiumBtn" class="premium-btn">
-          ${t("premium_open_btn")}
+          Открыть полный доступ
         </button>
+        <div class="premium-trust">
+          ✔ Отмена в любой момент через Google Play<br>
+          ✔ Данные остаются у вас<br>
+          ✔ Работает без интернета
+        </div>
       ` : `
         <button id="premiumBtn" class="premium-btn" disabled>
           ✓ ${t("premium_unlimited")}
@@ -168,7 +191,6 @@ function bindEvents() {
   if (btn) {
     btn.addEventListener("click", () => {
       if (premiumInfo.isPremium) {
-        alert("У тебя уже активирован Premium");
         return;
       }
 
