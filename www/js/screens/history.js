@@ -56,7 +56,7 @@ function shareItem(item) {
   const text = buildShareText(item);
   if (!text) return;
 
-  if (item.type === "photo" && item.dataUrl) {
+  if (item.type === "photo" && (item.uri || item.dataUrl)) {
     sharePhoto(item);
     return;
   }
@@ -81,6 +81,9 @@ function shareItem(item) {
 
 function sharePhoto(item) {
   const text = buildShareText(item);
+  const imgSrc = item.uri || item.dataUrl;
+  if (!imgSrc) return;
+  
   const img = new Image();
   img.onload = () => {
     const canvas = document.createElement("canvas");
@@ -93,7 +96,6 @@ function sharePhoto(item) {
     const base64 = dataUrl.split(",")[1];
     const fileName = "neyra-photo-" + Date.now() + ".jpg";
     
-    // Try Capacitor.Share first
     const Share = window.Capacitor?.Plugins?.Share;
     const Filesystem = window.Capacitor?.Plugins?.Filesystem;
     
@@ -112,7 +114,7 @@ function sharePhoto(item) {
       navigator.share({ title: "Neyra", text, url: dataUrl }).catch(() => {});
     }
   };
-  img.src = item.dataUrl;
+  img.src = imgSrc;
 }
 
 function showToast(msg) {
@@ -169,8 +171,19 @@ function deleteItem(item) {
       const arr = getVoiceHistory().filter(e => (e.date||e.timestamp||e.time) !== item.ts);
       localStorage.setItem("voice_history", JSON.stringify(arr));
     } else if (item.type==="photo") {
-      const arr = JSON.parse(localStorage.getItem("photo_history")||"[]").filter(e => (e.timestamp||e.time) !== item.ts);
-      localStorage.setItem("photo_history", JSON.stringify(arr));
+      const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
+      const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
+      if (toDelete?.uri && toDelete.uri.startsWith("file://")) {
+        const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+        if (Filesystem) {
+          const pathMatch = toDelete.uri.match(/\/([^\/]+)$/);
+          if (pathMatch) {
+            Filesystem.deleteFile({ path: pathMatch[1], directory: "Documents" }).catch(() => {});
+          }
+        }
+      }
+      const filtered = arr.filter(e => (e.timestamp||e.time) !== item.ts);
+      localStorage.setItem("photo_history", JSON.stringify(filtered));
     } else if (item.type==="session") {
       const arr = getSessionHistory().filter(e => (e.timestamp) !== item.ts);
       localStorage.setItem("session_history", JSON.stringify(arr));
@@ -240,7 +253,7 @@ function renderHistory(filterDate=null) {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const compressed = await compressImage(ev.target.result);
-      savePhoto(compressed);
+      await savePhoto(compressed);
       renderHistory(filterDate);
     };
     reader.readAsDataURL(file);
@@ -367,15 +380,34 @@ function showPhotoMenu(container, photoInput) {
   overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
 }
 
-function savePhoto(dataUrl) {
+async function savePhoto(dataUrl) {
   try {
+    const timestamp = Date.now();
+    const fileName = "neyra-" + timestamp + ".jpg";
+    const base64 = dataUrl.split(",")[1];
+    const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+    
+    let uri = dataUrl;
+    
+    if (Filesystem && base64) {
+      try {
+        await Filesystem.writeFile({ path: fileName, data: base64, directory: "Documents" });
+        const fileInfo = await Filesystem.getUri({ path: fileName, directory: "Documents" });
+        uri = fileInfo.uri || dataUrl;
+      } catch(e) {
+        console.warn("[photo] Filesystem write failed:", e);
+      }
+    }
+    
     const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
-    arr.push({ dataUrl, timestamp:Date.now(), note:"" });
+    arr.push({ uri, timestamp, note:"" });
     if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem("photo_history", JSON.stringify(arr));
-    // Cloud sync
+    
     if (window.scheduleCloudSync) window.scheduleCloudSync();
-  } catch(e) {}
+  } catch(e) {
+    console.error("[photo] save failed:", e);
+  }
 }
 
 function renderCard(item) {
@@ -399,9 +431,10 @@ function renderCard(item) {
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="photo") {
+    const photoSrc = item.uri || item.dataUrl || "";
     return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1">
       <div class="hist-card-left" style="background:#f59e0b22;overflow:hidden;border-radius:12px;">
-        ${item.dataUrl?`<img src="${item.dataUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
+        ${photoSrc?`<img src="${photoSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
       </div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
@@ -485,9 +518,12 @@ function renderDetail(item, filterDate) {
     }
   }
   if (item.type==="photo") {
+    const photoSrc = item.uri || item.dataUrl || "";
+    const isDeviceFile = photoSrc.startsWith("file://");
     body=`<div style="margin-top:20px;text-align:center;">
-      ${item.dataUrl?`<img src="${item.dataUrl}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
+      ${photoSrc?`<img src="${photoSrc}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
       ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
+      ${isDeviceFile?`<div style="margin-top:16px;padding:12px;background:rgba(245,158,11,0.1);border-radius:12px;font-size:13px;color:#b45309;">ℹ️ ${t("photo_storage_notice")}</div>`:""}
     </div>`;
   }
   if (item.type==="session") {

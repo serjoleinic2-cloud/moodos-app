@@ -92,6 +92,8 @@ function getMediaInfo(data) {
 
   photoHistory.forEach((item, idx) => {
     const photoData = item.dataUrl || item.photo;
+    const photoUri = item.uri || "";
+    
     if (photoData && photoData.startsWith('data:')) {
       const key = `${item.timestamp || item.time}_${idx}_photo`;
       if (!mediaMap.has(key)) {
@@ -103,6 +105,19 @@ function getMediaInfo(data) {
           name: `photo_${item.timestamp || item.time || Date.now()}_${idx}.jpg`,
           data: photoData,
           sizeMB: sizeMB
+        });
+      }
+    } else if (photoUri && photoUri.startsWith('file://')) {
+      const key = `${item.timestamp || item.time}_${idx}_photo`;
+      if (!mediaMap.has(key)) {
+        mediaMap.set(key, {
+          type: 'photo_uri',
+          key: 'photo_history',
+          index: idx,
+          name: photoUri.split('/').pop(),
+          uri: photoUri,
+          timestamp: item.timestamp || item.time,
+          sizeMB: 0
         });
       }
     }
@@ -196,9 +211,14 @@ export async function exportData() {
       let addedMedia = 0;
 
       for (const m of media) {
-        // PART 4: Skip large files
+        // PART 4: Skip large files and photo_uri (device file references)
         if (m.sizeMB > MAX_FILE_SIZE_MB) {
           console.warn(`[BACKUP] Skipped (too large ${m.sizeMB.toFixed(1)}MB):`, m.name);
+          continue;
+        }
+        
+        if (m.type === 'photo_uri') {
+          console.log('[BACKUP] Skipped (device file reference):', m.name);
           continue;
         }
 

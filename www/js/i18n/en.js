@@ -130,6 +130,7 @@ export const en = {
     hist_taps: "Taps",
     hist_thoughts: "📝 Recorded Thoughts",
     hist_photo_mood: "Mood Photo",
+    photo_storage_notice: "Photos are stored on your device. Save them separately for backup.",
     hist_min: "min",
     hist_sec: "sec",
     insight_title: "What do I learn about myself?",

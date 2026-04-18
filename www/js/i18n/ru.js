@@ -132,6 +132,7 @@ export const ru = {
     hist_taps: "Нажатий",
     hist_thoughts: "📝 Записанные мысли",
     hist_photo_mood: "Фотозапись настроения",
+    photo_storage_notice: "Фото хранятся в памяти устройства. Для восстановления сохраните их отдельно.",
     hist_min: "мин",
     hist_sec: "сек",
     insight_title: "Что я о себе узнаю?",
