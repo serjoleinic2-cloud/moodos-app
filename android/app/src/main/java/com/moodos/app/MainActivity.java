@@ -7,7 +7,6 @@ import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
-import com.capacitorjs.community.media.MediaPlugin;
 
 public class MainActivity extends BridgeActivity {
 
@@ -16,7 +15,6 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(MediaPlugin.class);
         super.onCreate(savedInstanceState);
     }
 

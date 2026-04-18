@@ -79,9 +79,34 @@ function shareItem(item) {
   }).catch(() => {});
 }
 
-function sharePhoto(item) {
+async function sharePhoto(item) {
   const text = buildShareText(item);
-  const imgSrc = item.uri || item.dataUrl;
+  const Share = window.Capacitor?.Plugins?.Share;
+  const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+  const Media = window.Capacitor?.Plugins?.Media;
+  const Capacitor = window.Capacitor;
+  
+  let imgSrc = item.uri || item.dataUrl;
+  let isFromGallery = item.source === 'gallery';
+  
+  if (isFromGallery && Media && Capacitor?.isNativePlatform()) {
+    try {
+      const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
+      const photo = albumPhotos?.medias?.find(p => p.creationDate === item.timestamp);
+      if (photo?.identifier) {
+        const fullPhoto = await Media.getMedias({
+          identifiers: [photo.identifier],
+          thumbnail: false
+        });
+        if (fullPhoto?.medias?.[0]?.webPath) {
+          imgSrc = fullPhoto.medias[0].webPath;
+        }
+      }
+    } catch(e) {
+      console.warn("[share] Could not get full photo, using thumbnail:", e);
+    }
+  }
+  
   if (!imgSrc) return;
   
   const img = new Image();
@@ -92,12 +117,9 @@ function sharePhoto(item) {
     canvas.height = img.height * scale;
     canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
     
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
     const base64 = dataUrl.split(",")[1];
     const fileName = "neyra-photo-" + Date.now() + ".jpg";
-    
-    const Share = window.Capacitor?.Plugins?.Share;
-    const Filesystem = window.Capacitor?.Plugins?.Filesystem;
     
     if (Share && Filesystem) {
       Filesystem.writeFile({ path: fileName, data: base64, directory: "CACHE" })
