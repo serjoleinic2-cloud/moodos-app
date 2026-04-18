@@ -347,10 +347,9 @@ export function initOnboarding(onComplete) {
     markOnboardingDone();
     overlay.style.transition = "opacity 0.35s ease";
     overlay.style.opacity = "0";
-    // НЕТ перезагрузки — язык уже в localStorage, onComplete() запустит приложение
     setTimeout(() => {
       overlay.remove();
-      if (onComplete) onComplete();
+      window.location.reload();
     }, 350);
   }
 
