@@ -10,7 +10,6 @@
 
 import { auditLogger, AuditEvent } from "./audit-logger.js";
 import { stateGovernance } from "./state-governance.js";
-import { _trustedSetBillingPremium } from "../app.js";
 
 export const ExecutionEvent = {
   PREMIUM_CHANGED: 'PREMIUM_CHANGED',
@@ -86,12 +85,12 @@ class StateExecutionEngine {
 
       case ExecutionEvent.BILLING_SYNC:
         isPremium = event.data?.isPremium ?? false;
-        _trustedSetBillingPremium(isPremium);
+        window._trustedSetBillingPremium?.(isPremium);
         break;
 
       case ExecutionEvent.BILLING_STATE_UPDATE:
         const next = event.data?.premium === true;
-        _trustedSetBillingPremium(next);
+        window._trustedSetBillingPremium?.(next);
         isPremium = next;
         break;
 
