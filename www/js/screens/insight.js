@@ -572,10 +572,10 @@ export async function onEnter() {
   // Period selector HTML
   const periodSelectorHTML = 
     '<div class="period-selector" style="display:flex;gap:8px;margin-bottom:16px;justify-content:center;">' +
-      '<button class="period-btn' + (selectedTimeRange === 'week' ? ' active' : '') + '" data-period="week" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'week' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'week' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_7d") + '</button>' +
-      '<button class="period-btn' + (selectedTimeRange === 'month' ? ' active' : '') + '" data-period="month" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'month' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'month' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_30d") + '</button>' +
-      '<button class="period-btn' + (selectedTimeRange === 'quarter' ? ' active' : '') + '" data-period="quarter" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'quarter' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'quarter' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_90d") + '</button>' +
-      '<button class="period-btn' + (selectedTimeRange === 'year' ? ' active' : '') + '" data-period="year" style="padding:8px 16px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'year' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'year' ? 'white' : '#555') + ';font-size:13px;font-weight:600;cursor:pointer;">' + t("period_365d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'week' ? ' active' : '') + '" data-period="week" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'week' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'week' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_7d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'month' ? ' active' : '') + '" data-period="month" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'month' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'month' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_30d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'quarter' ? ' active' : '') + '" data-period="quarter" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'quarter' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'quarter' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_90d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'year' ? ' active' : '') + '" data-period="year" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'year' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'year' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_365d") + '</button>' +
     '</div>';
 
   // ПРАВИЛА ОТОБРАЖЕНИЯ ПРАКТИК
@@ -754,10 +754,10 @@ export async function onEnter() {
 
     '</div>';
 
-  document.querySelectorAll(".flip-wrap").forEach(function(wrap) {
+  container.querySelectorAll(".flip-wrap").forEach(function(wrap) {
     wrap.addEventListener("click", function() {
       const wasFlipped = wrap.classList.contains("flipped");
-      document.querySelectorAll(".flip-wrap").forEach(function(w) { w.classList.remove("flipped"); });
+      container.querySelectorAll(".flip-wrap").forEach(function(w) { w.classList.remove("flipped"); });
       if (!wasFlipped) {
         wrap.classList.add("flipped");
         const front = wrap.querySelector(".flip-front");
@@ -769,7 +769,7 @@ export async function onEnter() {
   });
 
   // Period selector handlers
-  document.querySelectorAll(".period-btn").forEach(function(btn) {
+  container.querySelectorAll(".period-btn").forEach(function(btn) {
     btn.addEventListener("click", function() {
       const period = btn.getAttribute("data-period");
       if (period && TIME_HORIZONS[period]) {
