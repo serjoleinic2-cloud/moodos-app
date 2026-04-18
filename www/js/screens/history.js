@@ -383,9 +383,49 @@ function showPhotoMenu(container, photoInput) {
 async function savePhoto(dataUrl) {
   try {
     const timestamp = Date.now();
-    const fileName = "neyra-" + timestamp + ".jpg";
+    const fileName = `neyra_${timestamp}.jpg`;
     const base64 = dataUrl.split(",")[1];
-    const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+    
+    const Capacitor = window.Capacitor;
+    const Media = Capacitor?.Plugins?.Media || Capacitor?.Plugins?.CapacitorCommunityMedia;
+    
+    if (Media && Capacitor?.isNativePlatform()) {
+      try {
+        await Media.savePhoto({
+          path: dataUrl,
+          album: { name: 'Neyra' }
+        });
+        console.log('[PHOTO] Saved to gallery album Neyra');
+        
+        const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
+        arr.push({
+          timestamp,
+          albumName: 'Neyra',
+          fileName,
+          note: "",
+          source: 'gallery'
+        });
+        if (arr.length > 20) arr.splice(0, arr.length - 20);
+        localStorage.setItem("photo_history", JSON.stringify(arr));
+        return;
+      } catch(mediaErr) {
+        console.warn('[PHOTO] Gallery save failed:', mediaErr);
+      }
+    }
+    
+    _savePhotoFallback(dataUrl, timestamp);
+  } catch(e) {
+    console.error('[PHOTO] savePhoto error:', e);
+  }
+}
+
+function _savePhotoFallback(dataUrl, timestamp) {
+  try {
+    const Capacitor = window.Capacitor;
+    const Filesystem = Capacitor?.Plugins?.Filesystem;
+    const ts = timestamp || Date.now();
+    const fileName = "neyra-" + ts + ".jpg";
+    const base64 = dataUrl.split(",")[1];
     
     let uri = dataUrl;
     
@@ -399,15 +439,13 @@ async function savePhoto(dataUrl) {
       }
     }
     
-    const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
-    arr.push({ uri, timestamp, note:"" });
+    const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
+    arr.push({ uri, timestamp: ts, note: "", source: 'base64' });
     if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem("photo_history", JSON.stringify(arr));
     
     if (window.scheduleCloudSync) window.scheduleCloudSync();
-  } catch(e) {
-    console.error("[photo] save failed:", e);
-  }
+  } catch(e) {}
 }
 
 function renderCard(item) {
@@ -518,13 +556,24 @@ function renderDetail(item, filterDate) {
     }
   }
   if (item.type==="photo") {
-    const photoSrc = item.uri || item.dataUrl || "";
-    const isDeviceFile = photoSrc.startsWith("file://");
-    body=`<div style="margin-top:20px;text-align:center;">
-      ${photoSrc?`<img src="${photoSrc}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
-      ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
-      ${isDeviceFile?`<div style="margin-top:16px;padding:12px;background:rgba(245,158,11,0.1);border-radius:12px;font-size:13px;color:#b45309;">ℹ️ ${t("photo_storage_notice")}</div>`:""}
-    </div>`;
+    if (item.source === 'gallery') {
+      body = `<div style="text-align:center;margin-top:40px;">
+        <div style="font-size:64px;">📷</div>
+        <div style="margin-top:16px;color:#888;font-size:14px;">
+          ${t("photo_in_gallery") || "Фото сохранено в альбоме «Neyra» в галерее"}
+        </div>
+        <div id="openGalleryBtn" style="margin-top:20px;padding:14px 24px;border-radius:20px;background:rgba(76,175,135,0.15);color:#4caf87;font-size:16px;cursor:pointer;display:inline-block;">
+          📂 ${t("open_gallery") || "Открыть галерею"}
+        </div>
+        ${item.note ? `<div style="margin-top:12px;color:#666;">${item.note}</div>` : ""}
+      </div>`;
+    } else {
+      const photoSrc = item.uri || item.dataUrl || "";
+      body=`<div style="margin-top:20px;text-align:center;">
+        ${photoSrc?`<img src="${photoSrc}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
+        ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
+      </div>`;
+    }
   }
   if (item.type==="session") {
     const m=meta[item.sessionType]||{icon:"🛠", label:item.sessionType || "—"};
@@ -573,6 +622,15 @@ function renderDetail(item, filterDate) {
 
   if (canShare) {
     document.getElementById("histShareBtn").addEventListener("click", () => shareItem(item));
+  }
+
+  if (item.type === 'photo' && item.source === 'gallery') {
+    document.getElementById('openGalleryBtn')?.addEventListener('click', () => {
+      const Media = window.Capacitor?.Plugins?.Media;
+      if (Media?.openAlbum) {
+        Media.openAlbum({ name: 'Neyra' }).catch(() => {});
+      }
+    });
   }
 }
 

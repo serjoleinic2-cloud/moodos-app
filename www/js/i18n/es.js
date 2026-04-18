@@ -130,7 +130,7 @@ export const es = {
     hist_taps: "Toques",
     hist_thoughts: "📝 Pensamientos registrados",
     hist_photo_mood: "Foto de humor",
-    photo_storage_notice: "Las fotos se guardan en el dispositivo. Guárdalas por separado.",
+    photo_storage_notice: "📷 Las fotos se guardan en el álbum 'Neyra' de tu galería. Permanecen tras borrar la app.",
     hist_min: "min",
     hist_sec: "seg",
     insight_title: "¿Qué aprendo de mí?",

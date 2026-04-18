@@ -130,7 +130,7 @@ export const hi = {
     hist_taps: "टैप्स",
     hist_thoughts: "📝 दर्ज किए गए विचार",
     hist_photo_mood: "मूड फोटो",
-    photo_storage_notice: "फोटो आपके डिवाइस पर सहेजे जाते हैं। बैकअप के लिए अलग से सहेजें।",
+    photo_storage_notice: "📷 फोटो आपके डिवाइस की गैलरी में 'Neyra' एल्बम में सहेजे जाते हैं। ऐप हटाने के बाद भी रहते हैं।",
     hist_min: "मिनट",
     hist_sec: "सेकंड",
     insight_title: "मैं अपने बारे में क्या सीखता हूं?",

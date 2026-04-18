@@ -130,7 +130,7 @@ export const uk = {
     hist_taps: "Натискань",
     hist_thoughts: "📝 Записані думки",
     hist_photo_mood: "Фотозапис настрою",
-    photo_storage_notice: "Фото зберігаються на пристрої. Збережіть їх окремо.",
+    photo_storage_notice: "📷 Фото зберігаються в альбомі «Neyra» у галереї пристрою. Залишаються після видалення app.",
     hist_min: "хв",
     hist_sec: "сек",
     insight_title: "Що я дізнаюся про себе?",

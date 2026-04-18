@@ -207,6 +207,9 @@ function renderSettings() {
           — сохраняйте файл в облаке (Google Drive)<br>
           — вы самостоятельно отвечаете за сохранность копии
         </div>
+        ${premiumInfo.isPremium 
+          ? '<div style="font-size:11px;color:#805ad5;margin-top:8px;">👑 Фото из альбома «Neyra» включены в резервную копию</div>' 
+          : '<div style="font-size:11px;color:#888;margin-top:8px;">📷 Фото сохраняются в альбом «Neyra» в галерее и не удаляются вместе с приложением</div>'}
       </div>
 
       <div class="settings-section">

@@ -100,6 +100,19 @@ function getMediaInfo(data) {
   });
 
   photoHistory.forEach((item, idx) => {
+    if (item.source === 'gallery') {
+      const key = `${item.timestamp}_${idx}_photo`;
+      if (!mediaMap.has(key)) {
+        mediaMap.set(key, {
+          type: 'photo_gallery',
+          timestamp: item.timestamp,
+          albumName: item.albumName || 'Neyra',
+          sizeMB: 0
+        });
+      }
+      return;
+    }
+    
     const photoData = item.dataUrl || item.photo;
     const photoUri = item.uri || "";
     
@@ -211,6 +224,39 @@ export async function exportData() {
     // PART 1: Size check
     const estimatedSize = JSON.stringify(backup).length / (1024 * 1024);
     console.log('[BACKUP] Estimated size:', estimatedSize.toFixed(2), 'MB');
+
+    // PREMIUM: read gallery photos and pack to ZIP
+    if (isPremium()) {
+      const Media = window.Capacitor?.Plugins?.Media;
+      const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+      const Capacitor = window.Capacitor;
+      if (Media && Capacitor?.isNativePlatform()) {
+        try {
+          const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
+          for (const photo of albumPhotos?.medias || []) {
+            try {
+              if (Filesystem) {
+                const fileResult = await Filesystem.readFile({ path: photo.identifier });
+                if (fileResult?.data) {
+                  const name = `gallery_${photo.creationDate || Date.now()}.jpg`;
+                  backup.media.push({
+                    type: 'photo',
+                    name,
+                    data: `data:image/jpeg;base64,${fileResult.data}`,
+                    sizeMB: (fileResult.data.length * 3) / 4 / (1024 * 1024)
+                  });
+                }
+              }
+            } catch(e) {
+              console.warn('[BACKUP] Failed to read gallery photo:', e);
+            }
+          }
+          console.log('[BACKUP] Premium: added gallery photos:', albumPhotos?.medias?.length);
+        } catch(e) {
+          console.warn('[BACKUP] Premium gallery read failed:', e);
+        }
+      }
+    }
 
     if (estimatedSize > MAX_BACKUP_SIZE_MB) {
       alert(`Размер резервной копии слишком большой (${estimatedSize.toFixed(1)}MB). Максимум: ${MAX_BACKUP_SIZE_MB}MB. Удалите часть медиа или старые записи.`);
