@@ -7,11 +7,18 @@ import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
+import com.capacitorjs.community.media.MediaPlugin;
 
 public class MainActivity extends BridgeActivity {
 
     private WebView webView;
     private boolean bridgeRegistered = false;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(MediaPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     public void onStart() {

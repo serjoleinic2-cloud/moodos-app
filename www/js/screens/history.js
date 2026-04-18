@@ -141,7 +141,15 @@ function buildTimeline() {
   }));
   try {
     const photos = JSON.parse(localStorage.getItem("photo_history")||"[]");
-    photos.forEach(e => items.push({ type:"photo", ts:e.timestamp||e.time||Date.now(), dataUrl:e.dataUrl||e.photo||null, note:e.note||"" }));
+    photos.forEach(e => items.push({
+      type: "photo",
+      ts: e.timestamp||e.time||Date.now(),
+      dataUrl: e.thumbnail || (e.source === 'gallery' ? null : e.dataUrl||e.photo||null),
+      uri: e.uri||null,
+      source: e.source||'base64',
+      albumName: e.albumName||null,
+      note: e.note||""
+    }));
   } catch(e) {}
   getSessionHistory().forEach(e => items.push({
     type:"session", ts:e.timestamp||Date.now(),
@@ -384,7 +392,8 @@ async function savePhoto(dataUrl) {
   try {
     const timestamp = Date.now();
     const fileName = `neyra_${timestamp}.jpg`;
-    const base64 = dataUrl.split(",")[1];
+    
+    const thumbnail = await compressImage(dataUrl, 100, 0.6);
     
     const Capacitor = window.Capacitor;
     const Media = Capacitor?.Plugins?.Media || Capacitor?.Plugins?.CapacitorCommunityMedia;
@@ -403,7 +412,8 @@ async function savePhoto(dataUrl) {
           albumName: 'Neyra',
           fileName,
           note: "",
-          source: 'gallery'
+          source: 'gallery',
+          thumbnail
         });
         if (arr.length > 20) arr.splice(0, arr.length - 20);
         localStorage.setItem("photo_history", JSON.stringify(arr));
@@ -413,13 +423,13 @@ async function savePhoto(dataUrl) {
       }
     }
     
-    _savePhotoFallback(dataUrl, timestamp);
+    await _savePhotoFallback(dataUrl, timestamp, thumbnail);
   } catch(e) {
     console.error('[PHOTO] savePhoto error:', e);
   }
 }
 
-async function _savePhotoFallback(dataUrl, timestamp) {
+async function _savePhotoFallback(dataUrl, timestamp, thumbnail) {
   try {
     const Capacitor = window.Capacitor;
     const Filesystem = Capacitor?.Plugins?.Filesystem;
@@ -440,7 +450,13 @@ async function _savePhotoFallback(dataUrl, timestamp) {
     }
     
     const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
-    arr.push({ uri, timestamp: ts, note: "", source: 'base64' });
+    arr.push({
+      dataUrl: thumbnail || dataUrl,
+      timestamp: ts,
+      note: "",
+      source: 'base64',
+      thumbnail
+    });
     if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem("photo_history", JSON.stringify(arr));
     
