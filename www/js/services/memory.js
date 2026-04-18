@@ -400,6 +400,17 @@ export async function migrateVoiceStorage() {
   }
   
   try {
+    // Ensure Neyra directory exists
+    try {
+      await Filesystem.readDir({ path: 'Neyra', directory: 'Documents' });
+    } catch(e) {
+      await Filesystem.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+    }
+  } catch(e) {
+    console.warn('[VOICE MIGRATION] Could not create Neyra directory:', e);
+  }
+  
+  try {
     const history = getVoiceHistory();
     let migrated = false;
     

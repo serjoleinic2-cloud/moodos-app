@@ -126,19 +126,22 @@ function render() {
       <h2>${t("data_storage_title")}</h2>
       
       ${block("📱", t("data_storage_local"), 
-        "Все ваши записи, фото и аудио хранятся только на вашем устройстве.")}
+        t("data_storage_records_desc"))}
       
       ${block("🔒", t("data_storage_control"),
-        t("data_storage_control_desc")}
+        t("data_storage_control_desc"))
+      }
       
       ${block("💾", t("backup_section"),
-        "Чтобы не потерять данные при переустановке, создайте резервную копию и сохраните её самостоятельно.")}
+        t("data_storage_backup_desc"))
+      }
       
       ${block("☁️", t("data_storage_cloud_premium"),
-        t("data_storage_cloud_premium_desc")}
+        t("data_storage_cloud_premium_desc"))
+      }
       
       ${block("⚠️", t("data_storage_responsibility"),
-        "Вы самостоятельно отвечаете за сохранность резервной копии. Если файл будет утерян — восстановить данные будет невозможно.", true)}
+        t("data_storage_responsibility_desc"), true)}
       
       <button class="ds-btn" id="dsBackupBtn">
         ${t("btn_export")}
