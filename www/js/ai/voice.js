@@ -57,10 +57,7 @@ export async function startVoiceRecording(statusEl, onFinish) {
         reader.onloadend = async () => {
           const audioData = reader.result;
           
-          let savedAudio = audioData;
-          if (Filesystem && Capacitor?.isNativePlatform()) {
-            savedAudio = await saveAudioToFile(audioData);
-          }
+          const savedAudio = await saveAudioToFile(audioData);
           
           if (onFinish) {
             onFinish({ audio: savedAudio, duration, mood: getMood(), date: Date.now() });
