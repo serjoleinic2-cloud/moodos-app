@@ -16,9 +16,6 @@ const getId = (item) =>
   item?.id ??
   null;
 
-/** @type {any} */
-const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-
 const BACKUP_VERSION = 4;
 
 /** @type {string} */
