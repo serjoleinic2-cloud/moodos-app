@@ -665,4 +665,17 @@ export const hi = {
     settings_photo_saved_info: "📷 फ़ोटो गैलरी में 'Neyra' एल्बम में सहेजी जाती हैं और ऐप्लिकेशन के साथ हटाई नहीं जातीं",
     settings_photo_premium_info: "👑 'Neyra' एल्बम की फ़ोटो बैकअप में शामिल हैं",
     settings_free_version: "मुफ्त संस्करण",
+    
+    // Backup cooldown
+    backup_cooldown_message: "बैकअप हर 3 दिन में एक बार उपलब्ध है।\nअगला",
+    backup_hours_suffix: "घंटे में।",
+    backup_premium_unlimited: "असीमित",
+    
+    // Paywall
+    paywall_title: "अपने आप में पूर्ण पहुंच",
+    paywall_subtitle: "ऐप के सभी फ़ीचर्स अनलॉक करें",
+    paywall_open_btn: "पहुंच अनलॉक करें",
+    paywall_back: "वापस",
+    paywall_billing_unavailable: "खरीदारी अस्थायी रूप से अनुपलब्ध। बाद में प्रयास करें।",
+    paywall_purchase_failed: "खरीद विफल। फिर से प्रयास करें।",
   };

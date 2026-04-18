@@ -42,6 +42,19 @@ export const en = {
     data_storage_records_desc: "All your records, photos and audio are stored only on your device.",
     data_storage_backup_desc: "To not lose data during reinstall, create a backup and save it yourself.",
     data_storage_responsibility_desc: "You are responsible for the safety of your backup. If the file is lost — data cannot be recovered.",
+    
+    // Backup cooldown
+    backup_cooldown_message: "Backup is available once every 3 days.\nNext in",
+    backup_hours_suffix: "h.",
+    backup_premium_unlimited: "unlimited",
+    
+    // Paywall
+    paywall_title: "Full Access to Yourself",
+    paywall_subtitle: "Unlock all app features",
+    paywall_open_btn: "Unlock Access",
+    paywall_back: "Back",
+    paywall_billing_unavailable: "Purchases temporarily unavailable. Try later.",
+    paywall_purchase_failed: "Purchase failed. Try again later.",
     home_daily_reflection: "Daily Reflection",
     home_note_placeholder: "Write a few words about your day...",
     home_get_insight: "Quick Insight",

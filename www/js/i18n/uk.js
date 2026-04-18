@@ -42,6 +42,19 @@ export const uk = {
     data_storage_records_desc: "Всі ваші записи, фото та аудіо зберігаються лише на вашому пристрої.",
     data_storage_backup_desc: "Щоб не втратити дані при перевстановленні, створіть резервну копію та збережіть її самостійно.",
     data_storage_responsibility_desc: "Ви самостійно відповідаєте за збереження резервної копії. Якщо файл буде втрачено — дані неможливо буде відновити.",
+    
+    // Backup cooldown
+    backup_cooldown_message: "Резервна копія доступна раз на 3 дні.\nНаступна через",
+    backup_hours_suffix: "год.",
+    backup_premium_unlimited: "без обмежень",
+    
+    // Paywall
+    paywall_title: "Повний доступ до себе",
+    paywall_subtitle: "Розблокуй усі функції додатку",
+    paywall_open_btn: "Відкрити доступ",
+    paywall_back: "Назад",
+    paywall_billing_unavailable: "Покупки тимчасово недоступні. Спробуйте пізніше.",
+    paywall_purchase_failed: "Покупка не вдалася. Спробуйте ще раз.",
     home_daily_reflection: "Щоденна рефлексія",
     home_note_placeholder: "Напиши кілька слів про свій день...",
     home_get_insight: "Швидкий інсайт",

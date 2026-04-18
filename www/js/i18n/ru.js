@@ -42,6 +42,19 @@ export const ru = {
     data_storage_records_desc: "Все ваши записи, фото и аудио хранятся только на вашем устройстве.",
     data_storage_backup_desc: "Чтобы не потерять данные при переустановке, создайте резервную копию и сохраните её самостоятельно.",
     data_storage_responsibility_desc: "Вы самостоятельно отвечаете за сохранность резервной копии. Если файл будет утерян — восстановить данные будет невозможно.",
+    
+    // Backup cooldown
+    backup_cooldown_message: "Резервная копия доступна раз в 3 дня.\nСледующая через",
+    backup_hours_suffix: "ч.",
+    backup_premium_unlimited: "без ограничений",
+    
+    // Paywall
+    paywall_title: "Полный доступ к себе",
+    paywall_subtitle: "Разблокируй все функции приложения",
+    paywall_open_btn: "Открыть доступ",
+    paywall_back: "Назад",
+    paywall_billing_unavailable: "Покупки временно недоступны. Попробуйте позже.",
+    paywall_purchase_failed: "Покупка не удалась. Попробуйте ещё раз.",
     home_how_feeling: "Как ты себя чувствуешь?",
     home_daily_reflection: "Дневная рефлексия",
     home_note_placeholder: "Напиши несколько слов о своём дне...",

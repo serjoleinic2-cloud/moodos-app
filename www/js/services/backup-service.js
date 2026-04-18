@@ -4,6 +4,7 @@
 // =====================================
 
 // JSZip loaded via CDN in index.html
+import { t } from '../i18n.js';
 import { isPremium } from './user-profile.js';
 import { canExportBackup, markBackupSuccess } from './backup-reminder.js';
 import { disableExitGuardForReload } from './exit-guard.js';
@@ -177,7 +178,7 @@ export async function exportData() {
       return { 
         success: false, 
         error: 'cooldown',
-        message: `Резервная копия доступна раз в 3 дня.\nСледующая через ${hours} ч.\n\nPremium — без ограничений.`
+        message: `${t("backup_cooldown_message")} ${hours} ${t("backup_hours_suffix")}\n\nPremium — ${t("backup_premium_unlimited")}`
       };
     }
 
