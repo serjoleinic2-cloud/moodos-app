@@ -514,6 +514,35 @@ www/js/
 
 ---
 
+## ✅ ЗАВЕРШЕНО: TASK-082 — Фото в галерею (Neyra Album)
+
+**Дата:** 2026-04-18
+**Статус:** ✅ ГОТОВО
+
+### Что сделано:
+
+| TASK | Описание | Файл |
+|------|---------|------|
+| AndroidManifest | +READ_MEDIA_* permissions | AndroidManifest.xml |
+| savePhoto() | Media.savePhoto() в gallery | history.js |
+| renderDetail() | Кнопка "Открыть галерею" | history.js |
+| getMediaInfo() | photo_gallery type | backup-service.js |
+| Premium backup | Media.getMedias() → ZIP | backup-service.js |
+| Settings UX | Текст про галерею | settings.js |
+| i18n | photo_in_gallery, open_gallery | i18n/ru.js, en.js... |
+| MainActivity | registerPlugin(MediaPlugin) | MainActivity.java |
+| thumbnail | compressImage() → ~5-10KB | history.js |
+| buildTimeline | thumbnail as dataUrl | history.js |
+
+### Definition of Done:
+- ✅ Фото → gallery "Neyra" album
+- ✅ thumbnail (~5-10KB) в localStorage
+- ✅ FREE: ZIP без gallery фото
+- ✅ Premium: ZIP включает gallery фото
+- ✅ Settings текст про галерею
+
+---
+
 ## ✅ ЗАВЕРШЕНО: TASK AUDIT-FIX — Final Release Blockers
 
 **Дата:** 2026-04-18
@@ -546,4 +575,28 @@ www/js/
 
 ---
 
-## 🔑 CURRENT STATUS: READY FOR RELEASE
+## ✅ ЗАВЕРШЕНО: BUG FILES — SyntaxError Fix
+
+**Дата:** 2026-04-18
+**Статус:** ✅ ГОТОВО
+
+| BUG | Описание | Файл |
+|-----|-----------|------|
+| BUG 1 | _savePhotoFallback await без async | history.js |
+| BUG 2 | Premium size check до gallery фото | backup-service.js |
+
+---
+
+## ✅ ЗАВЕРШЕНО: PHOTO THUMBNAIL FIX
+
+**Дата:** 2026-04-18
+**Статус:** ✅ ГОТОВО
+
+| FIX | Описание | Файл |
+|-----|-----------|------|
+| 1 | buildTimeline photo + thumbnail | history.js |
+| 2 | await _savePhotoFallback() | history.js |
+
+---
+
+## 🔑 CURRENT STATUS: READY FOR RELEASE ✅
