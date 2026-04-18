@@ -222,11 +222,13 @@ export async function exportData() {
     };
 
     // PART 1: Size check
-    // PREMIUM: read gallery photos and pack to ZIP
+    // PREMIUM: read gallery photos and voice files and pack to ZIP
     if (isPremium()) {
       const Media = window.Capacitor?.Plugins?.Media;
       const Filesystem = window.Capacitor?.Plugins?.Filesystem;
       const Capacitor = window.Capacitor;
+      
+      // Gallery photos
       if (Media && Capacitor?.isNativePlatform()) {
         try {
           const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
@@ -251,6 +253,33 @@ export async function exportData() {
           console.log('[BACKUP] Premium: added gallery photos:', albumPhotos?.medias?.length);
         } catch(e) {
           console.warn('[BACKUP] Premium gallery read failed:', e);
+        }
+      }
+      
+      // Voice files from Documents/Neyra/
+      if (Filesystem && Capacitor?.isNativePlatform()) {
+        try {
+          const voiceDir = await Filesystem.readDir({ path: 'Neyra', directory: 'Documents' });
+          for (const file of voiceDir?.files || []) {
+            if (file.name?.startsWith('voice_') && file.name?.endsWith('.webm')) {
+              try {
+                const fileResult = await Filesystem.readFile({ path: `Neyra/${file.name}`, directory: 'Documents' });
+                if (fileResult?.data) {
+                  backup.media.push({
+                    type: 'audio',
+                    name: file.name,
+                    data: `data:audio/webm;base64,${fileResult.data}`,
+                    sizeMB: (fileResult.data.length * 3) / 4 / (1024 * 1024)
+                  });
+                }
+              } catch(e) {
+                console.warn('[BACKUP] Failed to read voice file:', e);
+              }
+            }
+          }
+          console.log('[BACKUP] Premium: added voice files from filesystem');
+        } catch(e) {
+          console.warn('[BACKUP] Premium voice read failed:', e);
         }
       }
     }

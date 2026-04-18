@@ -1,8 +1,42 @@
 import { getMood } from "../state.js";
 
+const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+const Capacitor = window.Capacitor;
+
 let mediaRecorder;
 let chunks = [];
 let recordingStartTime = null;
+
+async function saveAudioToFile(audioData) {
+  if (!Filesystem || !Capacitor?.isNativePlatform()) {
+    return audioData;
+  }
+  
+  try {
+    const base64 = audioData.split(",")[1];
+    if (!base64) return audioData;
+    
+    const ts = Date.now();
+    const fileName = `voice_${ts}.webm`;
+    const dir = "Documents";
+    
+    await Filesystem.writeFile({
+      path: `Neyra/${fileName}`,
+      data: base64,
+      directory: dir
+    });
+    
+    const fileInfo = await Filesystem.getUri({
+      path: `Neyra/${fileName}`,
+      directory: dir
+    });
+    
+    return fileInfo.uri || audioData;
+  } catch(e) {
+    console.warn('[VOICE] Filesystem save failed:', e);
+    return audioData;
+  }
+}
 
 export async function startVoiceRecording(statusEl, onFinish) {
   try {
@@ -15,15 +49,21 @@ export async function startVoiceRecording(statusEl, onFinish) {
         if (e.data.size > 0) chunks.push(e.data);
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const duration = Math.round((Date.now() - recordingStartTime) / 1000);
         stream.getTracks().forEach(track => track.stop());
         const blob   = new Blob(chunks, { type: "audio/webm" });
         const reader = new FileReader();
-        reader.onloadend = () => {
+        reader.onloadend = async () => {
           const audioData = reader.result;
+          
+          let savedAudio = audioData;
+          if (Filesystem && Capacitor?.isNativePlatform()) {
+            savedAudio = await saveAudioToFile(audioData);
+          }
+          
           if (onFinish) {
-            onFinish({ audio: audioData, duration, mood: getMood(), date: Date.now() });
+            onFinish({ audio: savedAudio, duration, mood: getMood(), date: Date.now() });
           }
         };
         reader.readAsDataURL(blob);

@@ -340,6 +340,8 @@ if (!window.__neyraAppRunning) {
     console.log('[Cloud] Auth disabled (native setup phase)');
   }
 
+  import { migrateVoiceStorage } from "./services/memory.js";
+
   function startApp() {
     console.log('[APP] startApp called');
     
@@ -357,6 +359,8 @@ if (!window.__neyraAppRunning) {
     initCloudAuth();
     
     initCheckpointRecovery();
+    
+    migrateVoiceStorage();
     
     setTimeout(() => {
       runReconciliation();

@@ -43,7 +43,7 @@ export function onEnter() {
               </div>
               <span class="neyra-badge neyra-badge-purple">${durationStr}</span>
             </div>
-            <audio controls src="${item.audio}" class="neyra-audio-player" style="margin-top: var(--neyra-space-sm);"></audio>
+            <audio controls src="${item.audio || item.uri || ''}" class="neyra-audio-player" style="margin-top: var(--neyra-space-sm);"></audio>
           </div>
         `;
       }).join('')}

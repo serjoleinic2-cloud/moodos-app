@@ -92,7 +92,12 @@ async function sharePhoto(item) {
   if (isFromGallery && Media && Capacitor?.isNativePlatform()) {
     try {
       const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
-      const photo = albumPhotos?.medias?.find(p => p.creationDate === item.timestamp);
+      const photo = albumPhotos?.medias?.find(p => {
+      const photoTs = typeof p.creationDate === 'number'
+        ? p.creationDate
+        : new Date(p.creationDate).getTime();
+      return Math.abs(photoTs - item.ts) < 5000;
+    });
       if (photo?.identifier) {
         const fullPhoto = await Media.getMedias({
           identifiers: [photo.identifier],

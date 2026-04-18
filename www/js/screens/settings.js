@@ -309,9 +309,18 @@ function bindEvents(el) {
   });
 
   el.querySelector("#btnExportBackup")?.addEventListener("click", async () => {
-    const ok = confirm(
-      "Сохраните копию ваших данных в безопасном месте.\nВы сами отвечаете за её сохранность."
-    );
+    const { isPremium } = await import("../services/user-profile.js");
+    
+    const isPrem = isPremium();
+    let confirmText = "";
+    
+    if (isPrem) {
+      confirmText = `${t("export_premium_title")}\n\n${t("export_premium_list")}\n\n${t("export_premium_subtitle")}\n\n${t("exit_warning")}`;
+    } else {
+      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}\n\n${t("exit_warning")}`;
+    }
+    
+    const ok = confirm(confirmText);
     if (!ok) return;
     
     const btn = el.querySelector("#btnExportBackup");

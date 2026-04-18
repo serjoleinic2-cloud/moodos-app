@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { isPremium } from "../services/user-profile.js";
 
 export function onEnter() {
   const el = document.getElementById("dataStorage-content");
@@ -9,21 +10,41 @@ export function onEnter() {
 
 function bindEvents(el) {
   el.querySelector("#dsBackupBtn")?.addEventListener("click", () => {
-    const ok = confirm(
-      "Сохраните копию ваших данных в безопасном месте.\nВы сами отвечаете за её сохранность."
-    );
+    const isPrem = isPremium();
+    let confirmText = "";
+    
+    if (isPrem) {
+      confirmText = `${t("export_premium_title")}\n\n${t("export_premium_list")}\n\n${t("export_premium_subtitle")}\n\n${t("exit_warning")}`;
+    } else {
+      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}\n\n${t("exit_warning")}`;
+    }
+    
+    const ok = confirm(confirmText);
     if (!ok) return;
     doExport();
   });
 }
 
 async function doExport() {
+  const btn = document.getElementById("dsBackupBtn");
+  if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
   try {
     const { exportData } = await import("../services/backup-service.js");
     const result = await exportData();
+    if (result.success) {
+      // Success + alert handled in backup-service.js
+    } else if (result.error === 'cooldown' && result.message) {
+      alert(result.message);
+      if (window.openScreen) {
+        setTimeout(() => window.openScreen("paywall"), 500);
+      }
+    } else {
+      alert(result.error || "Не удалось создать резервную копию");
+    }
   } catch(e) {
     alert("Ошибка: " + e.message);
   }
+  if (btn) { btn.textContent = t("btn_export") || "Создать копию"; btn.disabled = false; }
 }
 
 function block(icon, title, text) {

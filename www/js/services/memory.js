@@ -388,3 +388,55 @@ export function resolveTimestamp(entry) {
   if (typeof ts === 'string') return new Date(ts).getTime() || null;
   return Number(ts) || null;
 }
+
+/* ---------- VOICE MIGRATION (base64 -> Filesystem) ---------- */
+
+const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+const Capacitor = window.Capacitor;
+
+export async function migrateVoiceStorage() {
+  if (!Filesystem || !Capacitor?.isNativePlatform()) {
+    return;
+  }
+  
+  try {
+    const history = getVoiceHistory();
+    let migrated = false;
+    
+    for (const item of history) {
+      if (item.audio && item.audio.startsWith('data:')) {
+        try {
+          const base64 = item.audio.split(",")[1];
+          if (!base64) continue;
+          
+          const ts = item.date || Date.now();
+          const fileName = `voice_${ts}.webm`;
+          
+          await Filesystem.writeFile({
+            path: `Neyra/${fileName}`,
+            data: base64,
+            directory: 'Documents'
+          });
+          
+          const fileInfo = await Filesystem.getUri({
+            path: `Neyra/${fileName}`,
+            directory: 'Documents'
+          });
+          
+          item.audio = fileInfo.uri;
+          item.uri = fileInfo.uri;
+          migrated = true;
+        } catch(e) {
+          console.warn('[VOICE MIGRATION] Failed to migrate:', e);
+        }
+      }
+    }
+    
+    if (migrated) {
+      localStorage.setItem("voice_history", JSON.stringify(history));
+      console.log('[VOICE MIGRATION] Completed:', history.length, 'items');
+    }
+  } catch(e) {
+    console.error('[VOICE MIGRATION] Error:', e);
+  }
+}
