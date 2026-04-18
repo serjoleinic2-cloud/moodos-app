@@ -11,18 +11,6 @@ export function _trustedSetBillingPremium(val) {
 window._appReady = false;
 window._pendingCloudData = null;
 
-// Error reporting
-window._errors = [];
-window.addEventListener('error', (e) => {
-  window._errors.push({
-    msg: e.message,
-    time: Date.now()
-  });
-  if (window._errors.length > 50) {
-    window._errors.shift();
-  }
-});
-
 import { initNavigation } from "./navigation.js";
 import { initUI } from "./ui-controller.js";
 import { analyzeText } from "./ai/offline-ai.js";
@@ -30,29 +18,16 @@ import { startVoiceRecording } from "./ai/voice.js";
 import SystemCore from "./system-core.js";
 
 window.SystemCore = SystemCore;
-
-// First-run cloud prompt
-if (localStorage.getItem('cloud_prompt_shown') !== 'true') {
-  localStorage.setItem('cloud_prompt_shown', 'true');
-}
+import { restoreFromCloudIfEmpty } from "./services/cloud-restore.js";
 
 // Cloud restore callback (called from Android)
 window.onCloudData = function(data) {
-  if (!data || data === "null" || data === "") {
-    console.warn('[CLOUD] Empty or invalid data');
-    return;
-  }
+  console.log('[CLOUD] DATA RECEIVED');
 
-  try {
-    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-
-    if (window._appReady) {
-      restoreFromCloudIfEmpty(parsed);
-    } else {
-      window._pendingCloudData = parsed;
-    }
-  } catch (e) {
-    console.error('[CLOUD] Parse error', e);
+  if (window._appReady) {
+    restoreFromCloudIfEmpty(data);
+  } else {
+    window._pendingCloudData = data;
   }
 };
 
@@ -81,8 +56,6 @@ import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 import { runReconciliation } from "./core/state-execution-engine.js";
-import { shouldShowBackupReminder, showBackupReminderModal, showFirstBackupHint } from "./services/backup-reminder.js";
-import { exportData } from "./services/backup-service.js";
 
 // =====================================
 // 🛡️ MULTI INIT GUARD
@@ -94,6 +67,29 @@ if (!window.__neyraAppRunning) {
   window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || {
     billingPremium: false
   };
+
+  // ❗ defineProperty ТОЛЬКО ОДИН РАЗ
+  if (!Object.getOwnPropertyDescriptor(window, '_billingPremium')) {
+    Object.defineProperty(window, '_billingPremium', {
+      get: () => window.__NEYRA_SECURITY__.billingPremium,
+      set: () => {
+        console.warn('[SECURITY] BLOCKED direct write to _billingPremium');
+      },
+      configurable: false
+    });
+    console.log('[SECURITY] billingPremium LOCKED');
+  }
+
+  // ✅ TRUSTED SETTER на window
+  window._trustedSetBillingPremium = function(value) {
+    console.log("[SECURITY] trusted premium set:", value);
+    window.__NEYRA_SECURITY__.billingPremium = value === true;
+    window.__internalPremium = value === true;
+  };
+
+  // TEMP TEST MODE
+  window._billingPremium = true;
+  console.log("IS PREMIUM:", window.isPremium && window.isPremium());
 
 
 
@@ -271,6 +267,9 @@ if (!window.__neyraAppRunning) {
   document.addEventListener("DOMContentLoaded", () => {
     console.log('[BOOT] DOMContentLoaded fired');
     
+    // Используем trusted setter
+    window._trustedSetBillingPremium(false);
+    
     try {
       initState();
       console.log('[BOOT] initState done');
@@ -330,11 +329,12 @@ if (!window.__neyraAppRunning) {
     if (!isOnboardingDone()) {
       initOnboarding(() => {
         applyDomTranslations();
-        setTimeout(() => startApp(), 100);
+        startApp();
       });
     } else {
       startApp();
     }
+  });
 
   function initCloudAuth() {
     console.log('[Cloud] Auth disabled (native setup phase)');
@@ -571,28 +571,12 @@ if (!window.__neyraAppRunning) {
     initAvatar();
     console.log('[BOOT] startApp done');
     
-    // App ready
+    // Cloud restore: process pending data
     window._appReady = true;
-    
-    // Проверка пустого состояния - предложить восстановление
-    setTimeout(() => {
-      import("./services/exit-guard.js").then(m => {
-        if (m.shouldShowRecoveryPrompt()) {
-          m.showRecoveryPrompt(() => {
-            window.navigateTo?.("settings");
-          });
-          m.markRecoveryPromptShown();
-        }
-      }).catch(e => console.warn("[APP] Recovery check failed:", e));
-    }, 1500);
-    
-    // Backup reminder (after 3 sec)
-    setTimeout(() => {
-      if (shouldShowBackupReminder()) {
-        showBackupReminderModal(() => exportData());
-      }
-      showFirstBackupHint();
-    }, 3000);
+    if (window._pendingCloudData) {
+      restoreFromCloudIfEmpty(window._pendingCloudData);
+      window._pendingCloudData = null;
+    }
   }
 
   window.addEventListener("resize", () => {
