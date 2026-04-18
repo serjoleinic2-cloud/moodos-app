@@ -222,9 +222,6 @@ export async function exportData() {
     };
 
     // PART 1: Size check
-    const estimatedSize = JSON.stringify(backup).length / (1024 * 1024);
-    console.log('[BACKUP] Estimated size:', estimatedSize.toFixed(2), 'MB');
-
     // PREMIUM: read gallery photos and pack to ZIP
     if (isPremium()) {
       const Media = window.Capacitor?.Plugins?.Media;
@@ -257,6 +254,10 @@ export async function exportData() {
         }
       }
     }
+
+    // Size check AFTER adding gallery photos
+    const estimatedSize = JSON.stringify(backup).length / (1024 * 1024);
+    console.log('[BACKUP] Estimated size:', estimatedSize.toFixed(2), 'MB');
 
     if (estimatedSize > MAX_BACKUP_SIZE_MB) {
       alert(`Размер резервной копии слишком большой (${estimatedSize.toFixed(1)}MB). Максимум: ${MAX_BACKUP_SIZE_MB}MB. Удалите часть медиа или старые записи.`);

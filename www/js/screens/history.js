@@ -419,7 +419,7 @@ async function savePhoto(dataUrl) {
   }
 }
 
-function _savePhotoFallback(dataUrl, timestamp) {
+async function _savePhotoFallback(dataUrl, timestamp) {
   try {
     const Capacitor = window.Capacitor;
     const Filesystem = Capacitor?.Plugins?.Filesystem;
