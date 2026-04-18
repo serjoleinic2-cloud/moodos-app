@@ -300,6 +300,10 @@ function emergencyPrune(key, ratio) {
     const pruned = arr.slice(pruneCount);
     localStorage.setItem(key, JSON.stringify(pruned));
     console.log('[MEMORY] Emergency prune:', key);
+    
+    if (key === 'photo_history') {
+      alert('Память заполнена. Старые фото удалены.');
+    }
   } catch (e) {
     console.error('[MEMORY] Prune failed:', e);
   }

@@ -3,8 +3,6 @@
 // Local-first data persistence
 // =====================================
 
-import { getUserId } from './userId.js';
-
 const STORAGE_TYPE = {
   LOCAL: 'localStorage'
 };
@@ -20,20 +18,17 @@ export function getStorageType() {
 }
 
 export async function saveData(key, data) {
-  const userId = getUserId();
-  const fullKey = userId ? `${userId}_${key}` : key;
+  const fullKey = key;
   return saveToLocalStorage(fullKey, data);
 }
 
 export async function loadData(key) {
-  const userId = getUserId();
-  const fullKey = userId ? `${userId}_${key}` : key;
+  const fullKey = key;
   return loadFromLocalStorage(fullKey);
 }
 
 export async function deleteData(key) {
-  const userId = getUserId();
-  const fullKey = userId ? `${userId}_${key}` : key;
+  const fullKey = key;
   return deleteFromLocalStorage(fullKey);
 }
 

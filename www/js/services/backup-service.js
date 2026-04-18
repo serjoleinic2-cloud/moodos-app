@@ -8,6 +8,14 @@ import { isPremium } from './user-profile.js';
 import { canExportBackup, markBackupSuccess } from './backup-reminder.js';
 import { disableExitGuardForReload } from './exit-guard.js';
 
+const getId = (item) =>
+  item?.timestamp ??
+  item?.time ??
+  item?.date ??
+  item?.ts ??
+  item?.id ??
+  null;
+
 /** @type {any} */
 const Filesystem = window.Capacitor?.Plugins?.Filesystem;
 
@@ -39,6 +47,7 @@ const VALID_KEYS = [
   'notes_history',
   'reflections',
   'voice_history',
+  'photo_history',
   'session_history',
   'user_profile',
   'mood_baseline',
@@ -144,6 +153,12 @@ function downloadFallback(blob, filename) {
 }
 
 export async function exportData() {
+  if (window.__exportInProgress) {
+    console.warn('[EXPORT] blocked duplicate');
+    return { success: false, error: 'already_in_progress' };
+  }
+  window.__exportInProgress = true;
+
   try {
     // FREE users cooldown check
     const canExport = canExportBackup();
@@ -276,14 +291,26 @@ export async function exportData() {
           
           console.log('[EXPORT] File saved:', savedFile.uri);
           
-          const result = await SharePlugin.share({
-            title: 'Neyra Backup',
-            text: 'Резервная копия данных Neyra',
-            url: savedFile.uri,
-            dialogTitle: 'Сохранить резервную копию'
-          });
-          
-          console.log('[EXPORT] Share success');
+          try {
+            const file = new File([blob], fileName, { type: 'application/zip' });
+            await SharePlugin.share({
+              title: 'Neyra Backup',
+              text: 'Резервная копия данных Neyra',
+              files: [file],
+              dialogTitle: 'Сохранить резервную копию'
+            });
+            console.log('[EXPORT] Share success');
+          } catch (shareErr) {
+            console.warn('[EXPORT] Share with files failed, trying url:', shareErr);
+            const url = URL.createObjectURL(blob);
+            await SharePlugin.share({
+              title: 'Neyra Backup',
+              text: 'Резервная копия данных Neyra',
+              url: url,
+              dialogTitle: 'Сохранить резервную копию'
+            });
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
+          }
           
           // Cleanup
           FilesystemPlugin.deleteFile({
@@ -298,14 +325,17 @@ export async function exportData() {
         
         // Fallback: use blob URL
         const url = URL.createObjectURL(blob);
-        const result = await SharePlugin.share({
-          title: 'Neyra Backup',
-          text: 'Резервная копия данных Neyra',
-          url: url,
-          dialogTitle: 'Сохранить резервную копию'
-        });
-        
-        console.log('[EXPORT] Share success (blob)');
+        try {
+          await SharePlugin.share({
+            title: 'Neyra Backup',
+            text: 'Резервная копия данных Neyra',
+            url: url,
+            dialogTitle: 'Сохранить резервную копию'
+          });
+          console.log('[EXPORT] Share success (blob)');
+        } catch (err) {
+          console.warn('[EXPORT] Share fallback failed:', err);
+        }
         
         setTimeout(() => URL.revokeObjectURL(url), 3000);
         
@@ -352,6 +382,8 @@ export async function exportData() {
   } catch (e) {
     console.error('[BACKUP] Export error:', e);
     return { success: false, error: e.message };
+  } finally {
+    window.__exportInProgress = false;
   }
 }
 
@@ -494,18 +526,21 @@ async function importFromZip(file, resolve) {
       return;
     }
 
+    if (!backup.data || Object.keys(backup.data).length === 0) {
+      resolve({ success: false, error: 'empty_backup' });
+      return;
+    }
+
+    if (!backup.version) {
+      resolve({ success: false, error: 'missing_version' });
+      return;
+    }
+
     console.log('[BACKUP] Backup data keys:', Object.keys(backup.data || {}));
     restoreData(backup.data);
 
-    console.log('[BACKUP] >>> Reloading page...');
-    resolve({ success: true, message: 'Данные восстановлены!' });
-    
-    // Reload страницы чтобы данные перезагрузились
-    disableExitGuardForReload();
-    setTimeout(() => window.location.reload(), 500);
-
     const mediaFolder = zip.folder('media');
-    let restoredMedia = 0;
+    const mediaMap = new Map();
 
     if (mediaFolder) {
       const mediaFiles = Object.keys(mediaFolder.files).filter(name => name !== 'media/');
@@ -517,17 +552,20 @@ async function importFromZip(file, resolve) {
           try {
             const blob = await fileObj.async('blob');
             const dataUrl = await blobToDataUrl(blob);
-            await restoreMediaFile(name, dataUrl);
-            restoredMedia++;
+            mediaMap.set(name, dataUrl);
           } catch (e) {
-            console.warn('[BACKUP] Failed to restore media:', name, e);
+            console.warn('[BACKUP] Failed to extract media:', name, e);
           }
         }
       }
-      console.log('[BACKUP] Media restored:', restoredMedia);
     }
 
-    // Всё завершено
+    restoreMediaFromMap(mediaMap);
+
+    console.log('[BACKUP] >>> Reloading page...');
+    resolve({ success: true, message: 'Данные восстановлены!' });
+    disableExitGuardForReload();
+    setTimeout(() => window.location.reload(), 300);
   } catch (e) {
     console.error('[BACKUP] ZIP import error:', e.message, e.stack);
     if (e.message?.includes('Invalid') || e.message?.includes('not a zip')) {
@@ -604,6 +642,29 @@ function blobToDataUrl(blob) {
   });
 }
 
+function restoreMediaFromMap(mediaMap) {
+  console.log('[BACKUP] restoreMediaFromMap started, files:', mediaMap.size);
+  
+  const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
+  const photoHistory = JSON.parse(localStorage.getItem('photo_history') || '[]');
+
+  voiceHistory.forEach(item => {
+    if (item.fileName && mediaMap.has(item.fileName)) {
+      item.audio = mediaMap.get(item.fileName);
+    }
+  });
+
+  photoHistory.forEach(item => {
+    if (item.fileName && mediaMap.has(item.fileName)) {
+      item.dataUrl = mediaMap.get(item.fileName);
+    }
+  });
+
+  localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
+  localStorage.setItem('photo_history', JSON.stringify(photoHistory));
+  console.log('[BACKUP] Media restored from map');
+}
+
 async function restoreMediaFile(filename, dataUrl) {
   try {
     const isAudio = filename.startsWith('voice_');
@@ -651,98 +712,81 @@ async function restoreMediaFile(filename, dataUrl) {
 function restoreData(data) {
   console.log('[BACKUP] restoreData started, keys:', Object.keys(data));
   
-  const results = { merged: [], updated: [], skipped: [] };
-  
   Object.keys(data).forEach(key => {
     if (!VALID_KEYS.includes(key)) {
       console.warn('[BACKUP] Skipping unknown key:', key);
-      results.skipped.push(key);
       return;
     }
 
     try {
-      const backupValue = data[key];
-      if (backupValue === null || backupValue === undefined) {
+      const rawBackupValue = data[key];
+      if (!rawBackupValue) {
         console.log('[BACKUP] Empty backup value for:', key);
-        results.skipped.push(key);
         return;
       }
 
-      // ТИПЫ ДАННЫХ:
-      // 1. ARRAY - мерджим по timestamp
-      // 2. STRING/BOOL - просто записыв��ем (строки, даты, булево)
-      // 3. OBJECT - мерджим ключи (profile)
-      
-      const currentValue = localStorage.getItem(key);
+      let backupValue;
+      try {
+        backupValue = JSON.parse(rawBackupValue);
+      } catch {
+        backupValue = rawBackupValue;
+      }
+
+      let currentRaw = localStorage.getItem(key);
+      let currentValue;
+
+      try {
+        currentValue = currentRaw ? JSON.parse(currentRaw) : null;
+      } catch {
+        currentValue = currentRaw;
+      }
+
       const isArray = Array.isArray(backupValue);
-      const isObject = typeof backupValue === 'object' && !isArray;
-      const isPrimitive = !isArray && !isObject;
-      
-      console.log('[BACKUP] Type for', key, ':', isArray ? 'array' : isObject ? 'object' : 'primitive');
-      
+      const isObject = backupValue && typeof backupValue === 'object' && !isArray;
+
       if (isArray) {
-        // === ARRAY: merge по timestamp ===
-        let currentData = [];
-        if (currentValue) {
-          try { currentData = JSON.parse(currentValue); } catch { currentData = []; }
-        }
-        
-        // Парсим backup
-        let backupData = [];
-        try { backupData = JSON.parse(backupValue); } catch { backupData = []; }
-        
-        if (!backupData.length) {
-          console.log('[BACKUP] No backup data for:', key);
-          results.skipped.push(key);
-          return;
-        }
-        
-        // Фильтруем дубликаты по ts
-// ID приоритет: timestamp → time → date → ts → id
+        const currentArr = Array.isArray(currentValue) ? currentValue : [];
+
         const existingIds = new Set(
-          currentData.map(getId).filter(id => id !== null)
+          currentArr.map(getId).filter(Boolean)
         );
-        
-        const newItems = backupData.filter(item => {
+
+        const merged = [...currentArr];
+
+        backupValue.forEach(item => {
           const id = getId(item);
-          return id && !existingIds.has(id);
+          if (!id || !existingIds.has(id)) {
+            merged.push(item);
+          }
         });
-        
-        console.log('[BACKUP] Current:', currentData.length, 'Backup:', backupData.length, 'New:', newItems.length);
-        
-        // Мерджим и сортируем
-        const merged = [...currentData, ...newItems].sort((a, b) => (a?.ts || 0) - (b?.ts || 0));
-        
+
         localStorage.setItem(key, JSON.stringify(merged));
-        console.log('[BACKUP] Merged:', key, 'total:', merged.length);
-        results.merged.push(key);
-        
-      } else if (isObject) {
-        // === OBJECT: merge keys ===
-        let currentObj = {};
-        if (currentValue) {
-          try { currentObj = JSON.parse(currentValue); } catch { currentObj = {}; }
+        console.log('[BACKUP] Merged array:', key, 'total:', merged.length);
+      }
+      else if (isObject) {
+        const currentObj = currentValue && typeof currentValue === 'object' ? currentValue : {};
+
+        let mergedObj;
+
+        if (key === 'user_profile') {
+          mergedObj = { ...backupValue, ...currentObj };
+        } else {
+          mergedObj = { ...currentObj, ...backupValue };
         }
-        
-        const mergedObj = { ...currentObj, ...backupValue };
+
         localStorage.setItem(key, JSON.stringify(mergedObj));
         console.log('[BACKUP] Merged object:', key);
-        results.merged.push(key);
-        
-      } else {
-        // === PRIMITIVE (string, number, bool): просто записываем ===
-        // Не перезаписываем если есть текущие данные (кроме startDate, onboarding)
-        const keysToOverwrite = ['startDate', 'onboarding_done', 'last_backup_time'];
-        const hasCurrent = !!currentValue;
-        const shouldOverwrite = keysToOverwrite.includes(key) || !hasCurrent;
-        
-        if (shouldOverwrite) {
-          localStorage.setItem(key, backupValue);
-          console.log('[BACKUP] Set primitive:', key, '=', backupValue);
-        } else {
-          console.log('[BACKUP] Skipped primitive (has current):', key);
-        }
-        results.updated.push(key);
+      }
+      else {
+        localStorage.setItem(key, rawBackupValue);
+        console.log('[BACKUP] Set primitive:', key);
+      }
+
+    } catch (e) {
+      console.warn('[BACKUP] restore failed:', key, e);
+    }
+  });
+}
       }
       
     } catch (e) {
