@@ -1,4 +1,4 @@
-package com.moodos.app;
+package com.neyra.app;
 
 import android.os.Bundle;
 import android.util.Log;
