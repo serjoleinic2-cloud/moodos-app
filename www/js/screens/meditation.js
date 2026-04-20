@@ -38,8 +38,8 @@ function resizeWaveCanvas() {
 }
 
 const standardTracks = [
-  { name: "Celestial Tranquility", src: "/assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
-  { name: "Tibetan Serenity",      src: "/assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
+  { name: "Celestial Tranquility", src: "/audio/meditation/Celestial Tranquility.mp3", builtin: true },
+  { name: "Tibetan Serenity",      src: "/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
 ];
 const MAX_CUSTOM_TRACKS = 5;
 const MAX_FILE_SIZE_MB = 6;
@@ -145,6 +145,18 @@ let currentIndex = 0;
 
 let loopMode  = false;
 let chainMode = false;
+let trackingActive = false;
+
+function updatePlayButton(audioState) {
+  const btn = document.getElementById("centerButton");
+  const icon = document.getElementById("playIcon");
+  if (btn && icon) {
+    const state = audioState || getState();
+    icon.src = state.isPlaying 
+      ? "/icons/player/pause.svg" 
+      : "/icons/player/play.svg";
+  }
+}
 
 export async function onEnter(container) {
   console.log("onEnter", MODULE_NAME);
@@ -180,7 +192,6 @@ export async function onEnter(container) {
   
   // Subscribe to audio state changes
   let wasPlaying = false;
-  let trackingActive = false;
   audioUnsubscribe = subscribe((audioState) => {
     updatePlayButton(audioState);
     updateProgress(audioState);
@@ -254,7 +265,11 @@ function bindEvents() {
       return;
     }
     currentIndex = parseInt(track.dataset.index);
-    handleTrackSwitch();
+    if (running) {
+      handleTrackSwitch(0);
+    } else {
+      play(getTrackByIndex(currentIndex));
+    }
   };
   document.getElementById("trackList")?.addEventListener("click", trackListClickHandler);
 
@@ -691,7 +706,7 @@ function toggleMeditation() {
     cancelAnimationFrame(animationId);
     showFeedback();
     updatePlayButton({ isPlaying: false });
-}
+  }
 }
 
 function updateTrackHighlight() {
@@ -715,6 +730,34 @@ function animate() {
   if (!running) return;
   drawWaveProgress();
   animationId = requestAnimationFrame(animate);
+}
+
+function handleTrackEnd() {
+  if (chainMode) {
+    currentIndex = (currentIndex + 1) % getAllTracks().length;
+    const track = getTrackByIndex(currentIndex);
+    if (track) play(track);
+  } else if (loopMode) {
+    const track = getTrackByIndex(currentIndex);
+    if (track) play(track);
+  } else {
+    running = false;
+    showFeedback();
+    updatePlayButton({ isPlaying: false });
+  }
+}
+
+function handleTrackSwitch(dir) {
+  const tracks = getAllTracks();
+  if (tracks.length === 0) return;
+  
+  currentIndex = (currentIndex + dir + tracks.length) % tracks.length;
+  const track = getTrackByIndex(currentIndex);
+  if (track && running) {
+    play(track);
+  }
+  renderTracks();
+  updateTrackHighlight();
 }
 
 export function onExit() {
