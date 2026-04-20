@@ -1,6 +1,7 @@
 import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./user-profile.js";
 import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
 import { enqueueBillingStateUpdate } from "../core/event-queue.js";
+import { store, ProductType, Platform } from 'capacitor-plugin-cdv-purchase';
 
 let storeReady = false;
 
@@ -10,53 +11,58 @@ export function initBilling() {
   
   window._billingInitializing = true;
   
-  if (!window.store) {
-    console.warn('[billing] not available');
-    window._billingInitializing = false;
-    return;
-  }
-
-  const store = window.store;
+  window.store = store;
 
   store.register([
-    { id: "premium_monthly", type: store.PAID_SUBSCRIPTION },
-    { id: "premium_yearly", type: store.PAID_SUBSCRIPTION }
+    { id: "premium_monthly", type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
+    { id: "premium_yearly", type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
   ]);
 
-  store.when("premium_monthly").approved(p => {
-    if (isPremium()) {
+  store.when()
+    .productUpdated((product) => {
+      console.log('[billing] product updated:', product.id, product.state);
+    })
+    .approved(p => {
+      console.log('[billing] approved:', p.productId);
       p.finish();
-      return;
-    }
-    p.finish();
-    activatePremiumPaid();
-  });
-  
-  store.when("premium_yearly").approved(p => {
-    if (isPremium()) {
-      p.finish();
-      return;
-    }
-    p.finish();
-    activatePremiumPaid();
-  });
-  
-  store.when("premium_monthly").owned(onOwned);
-  store.when("premium_yearly").owned(onOwned);
-  store.when("premium_monthly").cancelled(onCancelled);
-  store.when("premium_yearly").cancelled(onCancelled);
-  store.when("premium_monthly").expired(onExpired);
-  store.when("premium_yearly").expired(onExpired);
+      activatePremiumPaid();
+      enqueueBillingStateUpdate(true);
+      logPremiumGranted('billing_approved', { productId: p.productId });
+    })
+    .owned(p => {
+      console.log('[billing] owned:', p.productId);
+      activatePremiumPaid();
+      enqueueBillingStateUpdate(true);
+      logPremiumGranted('billing_own', { productId: p.productId });
+    })
+    .cancelled(p => {
+      console.log('[billing] cancelled:', p.productId);
+      enqueueBillingStateUpdate(false);
+      deactivateExpiredPremium();
+      reconcileSystemState();
+    })
+    .expired(p => {
+      console.log('[billing] expired:', p.productId);
+      enqueueBillingStateUpdate(false);
+      deactivateExpiredPremium();
+      reconcileSystemState();
+    })
+    .error(err => {
+      console.error('[billing] error:', err);
+    });
 
-  store.error(function(err) {
-    console.error('[billing] error:', err);
-  });
-
-  store.refresh();
-  storeReady = true;
-  
-  getPremiumFromBilling();
-  window._billingInitializing = false;
+  store.initialize()
+    .then(() => {
+      console.log('[billing] initialized successfully');
+      storeReady = true;
+      getPremiumFromBilling();
+    })
+    .catch(err => {
+      console.error('[billing] init failed:', err);
+    })
+    .finally(() => {
+      window._billingInitializing = false;
+    });
 }
 
 async function onPurchaseApproved(order) {
@@ -113,11 +119,11 @@ function onExpired(product) {
 }
 
 export function getPremiumFromBilling() {
-  if (!window.store || !storeReady) return false;
+  if (!store || !storeReady) return false;
   
   try {
-    const monthly = window.store.get("premium_monthly");
-    const yearly = window.store.get("premium_yearly");
+    const monthly = store.get("premium_monthly");
+    const yearly = store.get("premium_yearly");
     
     const isPremiumBilling = 
       monthly?.owned || yearly?.owned ||
@@ -133,22 +139,22 @@ export function getPremiumFromBilling() {
   }
 }
 
-export function refreshBilling() {
-  if (!window.store) return;
-  window.store.refresh();
+export async function refreshBilling() {
+  if (!store) return;
+  await store.refresh();
 }
 
-export function buyMonthly() {
-  if (!window.store) return;
-  window.store.order("premium_monthly");
+export async function buyMonthly() {
+  if (!store) return;
+  await store.order("premium_monthly");
 }
 
-export function buyYearly() {
-  if (!window.store) return;
-  window.store.order("premium_yearly");
+export async function buyYearly() {
+  if (!store) return;
+  await store.order("premium_yearly");
 }
 
-export function restorePurchases() {
-  if (!window.store) return;
-  window.store.refresh();
+export async function restorePurchases() {
+  if (!store) return;
+  await store.refresh();
 }
