@@ -1,4 +1,5 @@
 import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory, resolveTimestamp } from "../services/memory.js";
+import Chart from 'chart.js/auto';
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";

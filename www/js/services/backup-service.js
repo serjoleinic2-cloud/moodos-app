@@ -3,7 +3,7 @@
 // ZIP backup with HARDENING + UX
 // =====================================
 
-// JSZip loaded via CDN in index.html
+import JSZip from 'jszip';
 import { t } from '../i18n.js';
 import { isPremium } from './user-profile.js';
 import { canExportBackup, markBackupSuccess } from './backup-reminder.js';
@@ -548,27 +548,6 @@ export async function importData(file) {
 async function importFromZip(file, resolve) {
   console.log('[BACKUP] >>> importFromZip START');
   try {
-    console.log('[BACKUP] Loading ZIP..., JSZip:', typeof JSZip);
-    
-    // Ждём пока JSZip загрузится
-    const waitForJSZip = () => new Promise((res) => {
-      if (typeof JSZip !== 'undefined') {
-        res(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-      script.onload = () => { console.log('[BACKUP] JSZip loaded dynamically'); res(true); };
-      script.onerror = () => { console.error('[BACKUP] JSZip load failed'); res(false); };
-      document.head.appendChild(script);
-    });
-    
-    const jszipLoaded = await waitForJSZip();
-    if (!jszipLoaded) {
-      resolve({ success: false, error: 'Не удалось загрузить библиотеку ZIP' });
-      return;
-    }
-    
     const zip = await JSZip.loadAsync(file);
     console.log('[BACKUP] ZIP loaded, files:', Object.keys(zip.files));
     

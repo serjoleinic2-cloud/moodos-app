@@ -22,38 +22,77 @@ export function initBilling() {
     { id: "premium_yearly", type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
   ]);
 
-  store.when()
-    .productUpdated((product) => {
-      console.log('[billing] product updated:', product.id, product.state);
-    })
-    .approved(p => {
-      console.log('[billing] approved:', p.productId);
-      p.finish();
-      activatePremiumPaid(p.productId);
-      enqueueBillingStateUpdate(true);
-      logPremiumGranted('billing_approved', { productId: p.productId });
-    })
-    .owned(p => {
-      console.log('[billing] owned:', p.productId);
-      activatePremiumPaid(p.productId);
-      enqueueBillingStateUpdate(true);
-      logPremiumGranted('billing_own', { productId: p.productId });
-    })
-    .cancelled(p => {
-      console.log('[billing] cancelled:', p.productId);
-      enqueueBillingStateUpdate(false);
-      deactivateExpiredPremium();
-      reconcileSystemState();
-    })
-    .expired(p => {
-      console.log('[billing] expired:', p.productId);
-      enqueueBillingStateUpdate(false);
-      deactivateExpiredPremium();
-      reconcileSystemState();
-    })
-    .error(err => {
-      console.error('[billing] error:', err);
-    });
+  store.when("premium_monthly").approved((p) => {
+    console.log('[billing] approved:', p.id);
+    p.verify();
+  });
+
+  store.when("premium_monthly").verified((p) => {
+    console.log('[billing] verified:', p.id);
+    p.finish();
+    activatePremiumPaid(p.id);
+    enqueueBillingStateUpdate(true);
+    logPremiumGranted('billing_approved', { productId: p.id });
+  });
+
+  store.when("premium_monthly").owned((p) => {
+    console.log('[billing] owned:', p.id);
+    activatePremiumPaid(p.id);
+    enqueueBillingStateUpdate(true);
+    logPremiumGranted('billing_own', { productId: p.id });
+  });
+
+  store.when("premium_monthly").cancelled((p) => {
+    console.log('[billing] cancelled:', p.id);
+    enqueueBillingStateUpdate(false);
+    deactivateExpiredPremium();
+    reconcileSystemState();
+  });
+
+  store.when("premium_monthly").expired((p) => {
+    console.log('[billing] expired:', p.id);
+    enqueueBillingStateUpdate(false);
+    deactivateExpiredPremium();
+    reconcileSystemState();
+  });
+
+  store.when("premium_yearly").approved((p) => {
+    console.log('[billing] approved:', p.id);
+    p.verify();
+  });
+
+  store.when("premium_yearly").verified((p) => {
+    console.log('[billing] verified:', p.id);
+    p.finish();
+    activatePremiumPaid(p.id);
+    enqueueBillingStateUpdate(true);
+    logPremiumGranted('billing_approved', { productId: p.id });
+  });
+
+  store.when("premium_yearly").owned((p) => {
+    console.log('[billing] owned:', p.id);
+    activatePremiumPaid(p.id);
+    enqueueBillingStateUpdate(true);
+    logPremiumGranted('billing_own', { productId: p.id });
+  });
+
+  store.when("premium_yearly").cancelled((p) => {
+    console.log('[billing] cancelled:', p.id);
+    enqueueBillingStateUpdate(false);
+    deactivateExpiredPremium();
+    reconcileSystemState();
+  });
+
+  store.when("premium_yearly").expired((p) => {
+    console.log('[billing] expired:', p.id);
+    enqueueBillingStateUpdate(false);
+    deactivateExpiredPremium();
+    reconcileSystemState();
+  });
+
+  store.error((err) => {
+    console.error('[billing] error:', err);
+  });
 
   store.initialize()
     .then(() => {
@@ -91,8 +130,11 @@ export function getPremiumFromBilling() {
 }
 
 export async function refreshBilling() {
-  if (!store) return;
-  await store.refresh();
+  if (!store || !storeReady) {
+    console.warn('[billing] refresh skipped — store not ready');
+    return;
+  }
+  await store.update();
 }
 
 export async function buyMonthly() {
