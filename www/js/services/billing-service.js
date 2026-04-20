@@ -5,6 +5,10 @@ import { store, ProductType, Platform } from 'capacitor-plugin-cdv-purchase';
 
 let storeReady = false;
 
+export function isStoreReady() {
+  return storeReady;
+}
+
 export function initBilling() {
   if (window._billingInitialized) return;
   window._billingInitialized = true;
@@ -65,59 +69,6 @@ export function initBilling() {
     });
 }
 
-async function onPurchaseApproved(order) {
-  try {
-    if (!order || !order.productId) {
-      console.error('[billing] invalid order');
-      return;
-    }
-
-    const token = order?.transaction?.token || order?.id;
-
-    const verification = await verifyPurchaseWithServer(token);
-
-    if (!verification || verification.valid !== true) {
-      console.error('[billing] verification failed');
-      return;
-    }
-
-    order.finish();
-    activatePremiumPaid();
-    enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing', { productId: order.productId });
-  } catch (e) {
-    console.error('[billing] approve error', e);
-  }
-}
-
-export async function verifyPurchaseWithServer(token) {
-  console.warn('[billing] server verification not implemented');
-
-  if (!token) {
-    return { valid: false };
-  }
-
-  return { valid: false };
-}
-
-function onOwned(product) {
-  activatePremiumPaid();
-  enqueueBillingStateUpdate(true);
-  logPremiumGranted('billing_own', { productId: product?.id });
-}
-
-function onCancelled(product) {
-  enqueueBillingStateUpdate(false);
-  deactivateExpiredPremium();
-  reconcileSystemState();
-}
-
-function onExpired(product) {
-  enqueueBillingStateUpdate(false);
-  deactivateExpiredPremium();
-  reconcileSystemState();
-}
-
 export function getPremiumFromBilling() {
   if (!store || !storeReady) return false;
   
@@ -145,12 +96,18 @@ export async function refreshBilling() {
 }
 
 export async function buyMonthly() {
-  if (!store) return;
+  if (!store || !storeReady) {
+    console.warn('[billing] store not ready');
+    return;
+  }
   await store.order("premium_monthly");
 }
 
 export async function buyYearly() {
-  if (!store) return;
+  if (!store || !storeReady) {
+    console.warn('[billing] store not ready');
+    return;
+  }
   await store.order("premium_yearly");
 }
 
