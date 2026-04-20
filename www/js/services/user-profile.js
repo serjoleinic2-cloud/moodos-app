@@ -256,7 +256,6 @@ export function deactivateExpiredPremium() {
   const info = getPremiumInfo();
   if (info.isExpired) {
     const profile = getProfile() || {};
-    profile.isPremium = false;
     profile.premiumExpiresAt = null;
     saveProfile(profile);
     localStorage.removeItem('med_custom_tracks');

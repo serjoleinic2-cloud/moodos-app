@@ -262,6 +262,7 @@ if (!window.__neyraAppRunning) {
   console.log('[BOOT] DOMContentLoaded listener registered');
 
   document.addEventListener("DOMContentLoaded", () => {
+    document.body.style.visibility = 'visible';
     console.log('[BOOT] DOMContentLoaded fired');
     
     // Используем trusted setter
