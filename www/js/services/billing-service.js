@@ -29,13 +29,13 @@ export function initBilling() {
     .approved(p => {
       console.log('[billing] approved:', p.productId);
       p.finish();
-      activatePremiumPaid();
+      activatePremiumPaid(p.productId);
       enqueueBillingStateUpdate(true);
       logPremiumGranted('billing_approved', { productId: p.productId });
     })
     .owned(p => {
       console.log('[billing] owned:', p.productId);
-      activatePremiumPaid();
+      activatePremiumPaid(p.productId);
       enqueueBillingStateUpdate(true);
       logPremiumGranted('billing_own', { productId: p.productId });
     })

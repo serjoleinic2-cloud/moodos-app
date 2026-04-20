@@ -122,7 +122,6 @@ export function getPremiumStatus() {
   const profile = getProfile();
   if (!profile) return "free";
   if (profile.premium_type === "paid") return "premium";
-  if (profile.isPremium) return "premium";
   return "free";
 }
 
@@ -175,15 +174,17 @@ export function setBillingPremium(value) {
   window.__NEYRA_SECURITY__.billingPremium = value === true;
 }
 
-export function activatePremiumPaid() {
+export function activatePremiumPaid(productId = "premium_monthly") {
   try {
     const profile = getProfile() || {};
     const now = Date.now();
+    const durationDays = productId === "premium_yearly" ? 365 : 30;
 
     profile.premium = true;
     profile.premium_type = "paid";
     profile.premium_since = now;
-    profile.premiumExpiresAt = now + 30 * 24 * 60 * 60 * 1000;
+    profile.premiumPlan = productId === "premium_yearly" ? "yearly" : "monthly";
+    profile.premiumExpiresAt = now + durationDays * 24 * 60 * 60 * 1000;
 
     saveProfile(profile);
 
@@ -197,7 +198,7 @@ export function activatePremiumPaid() {
   }
 }
 
-export function activatePremium(plan = "monthly") {
+function activatePremium(plan = "monthly") {
   const profile = getProfile() || {};
   const durationMs = plan === "yearly" ? 365 : 30;
   const expiresAt = new Date(Date.now() + durationMs * 24 * 60 * 60 * 1000);
