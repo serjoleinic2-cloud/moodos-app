@@ -38,8 +38,8 @@ function resizeWaveCanvas() {
 }
 
 const standardTracks = [
-  { name: "Celestial Tranquility", src: "assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
-  { name: "Tibetan Serenity",      src: "assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
+  { name: "Celestial Tranquility", src: "/assets/audio/meditation/Celestial Tranquility.mp3", builtin: true },
+  { name: "Tibetan Serenity",      src: "/assets/audio/meditation/Tibetan Serenity.mp3",      builtin: true },
 ];
 const MAX_CUSTOM_TRACKS = 5;
 const MAX_FILE_SIZE_MB = 6;
