@@ -131,7 +131,7 @@ export function renderEventsGrid(container, onToggle) {
     <div id="eventsGrid">
       ${EVENTS.map(event => `
         <div class="event-item ${selectedEvents.includes(event.id) ? 'active' : ''}" data-id="${event.id}">
-          <img src="/assets/icons/${event.icon}" class="event-icon" alt="${t(event.labelKey) || event.id}" />
+          <img src="/icons/${event.icon}" class="event-icon" alt="${t(event.labelKey) || event.id}" />
           <div class="event-label">${t(event.labelKey) || event.id}</div>
         </div>
       `).join('')}

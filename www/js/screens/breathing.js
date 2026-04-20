@@ -64,7 +64,7 @@ export function initBreathing(container) {
       <!-- КНОПКА СТАРТ/СТОП -->
       <div style="margin-top:0; display:flex; justify-content:center;">
         <button id="breathingMainBtn" class="mainBtn" style="border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-          <img id="breathingPlayIcon" src="assets/icons/player/play.svg" style="width:28px;height:28px;">
+          <img id="breathingPlayIcon" src="/icons/player/play.svg" style="width:28px;height:28px;">
         </button>
       </div>
 
@@ -139,7 +139,7 @@ export function initBreathing(container) {
     const icon = document.getElementById("breathingPlayIcon");
     if (!running) {
       startBreathing();
-      if (icon) icon.src = "assets/icons/player/pause.svg";
+      if (icon) icon.src = "/icons/player/pause.svg";
     } else {
       stopBreathing();
       showFeedback();
@@ -167,7 +167,7 @@ addSessionEntry({
     showPlayer();
     document.getElementById("breathingText").innerText = t("breath_ready");
     const icon1 = document.getElementById("breathingPlayIcon");
-    if (icon1) icon1.src = "assets/icons/player/play.svg";
+    if (icon1) icon1.src = "/icons/player/play.svg";
   };
 
   document.getElementById("breathingNotHelped").onclick = () => {
@@ -186,7 +186,7 @@ addSessionEntry({
     showPlayer();
     document.getElementById("breathingText").innerText = t("breath_ready");
     const icon2 = document.getElementById("breathingPlayIcon");
-    if (icon2) icon2.src = "assets/icons/player/play.svg";
+    if (icon2) icon2.src = "/icons/player/play.svg";
   };
 }
 

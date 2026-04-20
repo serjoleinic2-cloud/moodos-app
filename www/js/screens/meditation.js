@@ -482,13 +482,13 @@ export function initMeditation(container) {
       <!-- КНОПКИ УПРАВЛЕНИЯ -->
       <div id="playerControls" class="player-controls">
         <button id="loopBtn" class="smallBtn player-btn">
-          <img src="assets/icons/player/loop.svg" class="player-icon" alt="Loop">
+          <img src="/icons/player/loop.svg" class="player-icon" alt="Loop">
         </button>
         <button id="centerButton" class="mainBtn player-btn">
-          <img src="assets/icons/player/play.svg" class="player-icon" id="playIcon" alt="Play">
+          <img src="/icons/player/play.svg" class="player-icon" id="playIcon" alt="Play">
         </button>
         <button id="chainBtn" class="smallBtn player-btn">
-          <img src="assets/icons/player/next.svg" class="player-icon" alt="Next">
+          <img src="/icons/player/next.svg" class="player-icon" alt="Next">
         </button>
       </div>
 
@@ -694,8 +694,8 @@ function updatePlayButton(audioState) {
   if (btn && icon) {
     const state = audioState || getState();
     icon.src = state.isPlaying 
-      ? "assets/icons/player/pause.svg" 
-      : "assets/icons/player/play.svg";
+      ? "/icons/player/pause.svg" 
+      : "/icons/player/play.svg";
   }
 }
 
