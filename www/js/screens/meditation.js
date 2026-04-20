@@ -38,7 +38,8 @@ function resizeWaveCanvas() {
     waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
   }
   if (!waveCanvas) return;
-  waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+  const w = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+  if (w > 0) waveCanvas.width = w;
 }
 
 const standardTracks = [
@@ -685,9 +686,18 @@ function showPlayer() {
   
   waveCanvas = document.getElementById("waveProgress");
   waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
-  if (waveCanvas) {
-    waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+if (waveCanvas) {
     waveCanvas.style.display = "block";
+    requestAnimationFrame(() => {
+      if (!waveCanvas) return;
+      const w = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+      if (w > 0) waveCanvas.width = w;
+      if (running) drawWaveProgress();
+    });
+  }
+  
+  if (running) {
+    drawWaveProgress();
   }
   
   if (running) {
@@ -795,8 +805,8 @@ function handleTrackSwitch(dir) {
   currentIndex = (currentIndex + dir + tracks.length) % tracks.length;
   const track = getTrackByIndex(currentIndex);
   if (track && running) {
-    resizeWaveCanvas();
     showPlayer();
+    resizeWaveCanvas();
     play(track);
   }
   renderTracks();
