@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   root: 'www',
@@ -6,10 +8,17 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: 'www/index.html'
+      input: resolve(__dirname, 'www/index.html')
     }
   },
-  resolve: {
-    alias: {}
-  }
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: './assets',
+          dest: 'assets'
+        }
+      ]
+    })
+  ]
 });

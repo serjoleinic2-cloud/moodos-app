@@ -22,73 +22,30 @@ export function initBilling() {
     { id: "premium_yearly", type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
   ]);
 
-  store.when("premium_monthly").approved((p) => {
-    console.log('[billing] approved:', p.id);
-    p.verify();
-  });
-
-  store.when("premium_monthly").verified((p) => {
-    console.log('[billing] verified:', p.id);
-    p.finish();
-    activatePremiumPaid(p.id);
-    enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing_approved', { productId: p.id });
-  });
-
-  store.when("premium_monthly").owned((p) => {
-    console.log('[billing] owned:', p.id);
-    activatePremiumPaid(p.id);
-    enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing_own', { productId: p.id });
-  });
-
-  store.when("premium_monthly").cancelled((p) => {
-    console.log('[billing] cancelled:', p.id);
-    enqueueBillingStateUpdate(false);
-    deactivateExpiredPremium();
-    reconcileSystemState();
-  });
-
-  store.when("premium_monthly").expired((p) => {
-    console.log('[billing] expired:', p.id);
-    enqueueBillingStateUpdate(false);
-    deactivateExpiredPremium();
-    reconcileSystemState();
-  });
-
-  store.when("premium_yearly").approved((p) => {
-    console.log('[billing] approved:', p.id);
-    p.verify();
-  });
-
-  store.when("premium_yearly").verified((p) => {
-    console.log('[billing] verified:', p.id);
-    p.finish();
-    activatePremiumPaid(p.id);
-    enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing_approved', { productId: p.id });
-  });
-
-  store.when("premium_yearly").owned((p) => {
-    console.log('[billing] owned:', p.id);
-    activatePremiumPaid(p.id);
-    enqueueBillingStateUpdate(true);
-    logPremiumGranted('billing_own', { productId: p.id });
-  });
-
-  store.when("premium_yearly").cancelled((p) => {
-    console.log('[billing] cancelled:', p.id);
-    enqueueBillingStateUpdate(false);
-    deactivateExpiredPremium();
-    reconcileSystemState();
-  });
-
-  store.when("premium_yearly").expired((p) => {
-    console.log('[billing] expired:', p.id);
-    enqueueBillingStateUpdate(false);
-    deactivateExpiredPremium();
-    reconcileSystemState();
-  });
+  store.when()
+    .productUpdated((product) => {
+      console.log('[billing] product updated:', product.id);
+    })
+    .approved((transaction) => {
+      console.log('[billing] approved:', transaction.products[0]?.id);
+      transaction.verify();
+    })
+    .verified((receipt) => {
+      console.log('[billing] verified');
+      receipt.finish();
+      receipt.collection.forEach(purchase => {
+        if (store.owned(purchase)) {
+          const productId = purchase.id;
+          activatePremiumPaid(productId);
+          enqueueBillingStateUpdate(true);
+          logPremiumGranted('billing_verified', { productId });
+        }
+      });
+    })
+    .unverified((receipt) => {
+      console.warn('[billing] unverified — finishing anyway for test');
+      receipt.finish();
+    });
 
   store.error((err) => {
     console.error('[billing] error:', err);
@@ -110,18 +67,12 @@ export function initBilling() {
 
 export function getPremiumFromBilling() {
   if (!store || !storeReady) return false;
-  
   try {
     const monthly = store.get("premium_monthly");
     const yearly = store.get("premium_yearly");
-    
-    const isPremiumBilling = 
-      monthly?.owned || yearly?.owned ||
-      monthly?.state === "APPROVED" || yearly?.state === "APPROVED" ||
-      monthly?.state === "VALID" || yearly?.state === "VALID";
-    
-    enqueueBillingStateUpdate(isPremiumBilling);
-    return isPremiumBilling;
+    const isPremiumBilling = store.owned(monthly) || store.owned(yearly);
+    enqueueBillingStateUpdate(!!isPremiumBilling);
+    return !!isPremiumBilling;
   } catch(e) {
     console.warn('[billing] getPremiumFromBilling error:', e);
     enqueueBillingStateUpdate(false);
@@ -142,7 +93,20 @@ export async function buyMonthly() {
     console.warn('[billing] store not ready');
     return;
   }
-  await store.order("premium_monthly");
+  const product = store.get("premium_monthly", Platform.GOOGLE_PLAY);
+  if (!product) {
+    console.warn('[billing] product premium_monthly not found');
+    return;
+  }
+  const offer = product.getOffer();
+  if (!offer) {
+    console.warn('[billing] no offer for premium_monthly');
+    return;
+  }
+  const error = await offer.order();
+  if (error) {
+    console.error('[billing] order error:', error);
+  }
 }
 
 export async function buyYearly() {
@@ -150,10 +114,29 @@ export async function buyYearly() {
     console.warn('[billing] store not ready');
     return;
   }
-  await store.order("premium_yearly");
+  const product = store.get("premium_yearly", Platform.GOOGLE_PLAY);
+  if (!product) {
+    console.warn('[billing] product premium_yearly not found');
+    return;
+  }
+  const offer = product.getOffer();
+  if (!offer) {
+    console.warn('[billing] no offer for premium_yearly');
+    return;
+  }
+  const error = await offer.order();
+  if (error) {
+    console.error('[billing] order error:', error);
+  }
 }
 
 export async function restorePurchases() {
   if (!store) return;
   await store.refresh();
+}
+
+export function activatePremiumForTesting(plan = "premium_monthly") {
+  console.warn('[billing] DEV MODE — activating premium locally');
+  activatePremiumPaid(plan);
+  enqueueBillingStateUpdate(true);
 }

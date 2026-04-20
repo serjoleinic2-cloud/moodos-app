@@ -252,6 +252,20 @@ function renderSettings() {
 }
 
 function bindEvents(el) {
+  let tapCount = 0;
+  const title = document.querySelector('[data-screen="settings"] h1');
+  if (title) {
+    title.addEventListener("click", async () => {
+      tapCount++;
+      if (tapCount >= 5) {
+        tapCount = 0;
+        const { activatePremiumForTesting } = await import("../services/billing-service.js");
+        activatePremiumForTesting("premium_yearly");
+        alert("DEV: Premium activated!");
+      }
+    });
+  }
+
   el.querySelector("#settingMeds")?.addEventListener("click", () => {
     showModal({ title: t("meds_intake"), subtitle: t("settings_meds_subtitle"), field: "takesMeds",
       options: [
