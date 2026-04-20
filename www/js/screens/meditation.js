@@ -180,11 +180,12 @@ export async function onEnter(container) {
   
   // Subscribe to audio state changes
   let wasPlaying = false;
+  let trackingActive = false;
   audioUnsubscribe = subscribe((audioState) => {
     updatePlayButton(audioState);
     updateProgress(audioState);
     
-    if (wasPlaying && !audioState.isPlaying && running) {
+    if (trackingActive && wasPlaying && !audioState.isPlaying && running) {
       handleTrackEnd();
     }
     wasPlaying = audioState.isPlaying;
@@ -652,6 +653,7 @@ function showFeedback() {
 function toggleMeditation() {
   if (!running) {
     running = true;
+    trackingActive = false;
     sessionStartTime = Date.now();
     moodBeforeSession = getMood();
     
@@ -671,84 +673,25 @@ function toggleMeditation() {
     const playerControls = document.getElementById("playerControls");
     const progressWrap = document.getElementById("progressWrap");
     const feedback = document.getElementById("meditationFeedback");
-    if (playerControls) playerControls.style.display = "flex";
-    if (progressWrap) progressWrap.style.display = "block";
-    if (feedback) feedback.style.display = "none";
-    setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
+    if (playerControls) playerControls.style.display = 'flex';
+    if (progressWrap) progressWrap.style.display = 'block';
+    if (feedback) feedback.style.display = 'none';
+    setTimeout(() => {
+      trackingActive = true;
+      updatePlayButton({ isPlaying: true });
+    }, 500);
     
     SystemCore.analyzeMoodOnly(moodBeforeSession).then(result => {
       stateBeforeSession = result?.state || 'NEUTRAL';
     });
   } else {
     running = false;
+    trackingActive = false;
     pause();
     cancelAnimationFrame(animationId);
     showFeedback();
     updatePlayButton({ isPlaying: false });
-  }
 }
-
-function updatePlayButton(audioState) {
-  const btn = document.getElementById("centerButton");
-  const icon = document.getElementById("playIcon");
-  if (btn && icon) {
-    const state = audioState || getState();
-    icon.src = state.isPlaying 
-      ? "/icons/player/pause.svg" 
-      : "/icons/player/play.svg";
-  }
-}
-
-function handleTrackEnd() {
-  if (loopMode && chainMode) {
-    const allTracks = getAllTracks();
-    currentIndex = (currentIndex + 1) % allTracks.length;
-    handleTrackSwitch(true);
-    return;
-  }
-  
-  if (loopMode) {
-    setCurrentTime(0);
-    resume();
-    return;
-  }
-  
-  if (chainMode) {
-    const allTracks = getAllTracks();
-    currentIndex = (currentIndex + 1) % allTracks.length;
-    handleTrackSwitch(true);
-    return;
-  }
-  
-  running = false;
-  cancelAnimationFrame(animationId);
-  showFeedback();
-  updatePlayButton();
-}
-
-function handleTrackSwitch(autoPlay = false) {
-  const wasRunning = running;
-  
-  const allTracks = getAllTracks();
-  if (currentIndex < 0 || currentIndex >= allTracks.length) {
-    currentIndex = 0;
-  }
-  
-  const track = getTrackByIndex(currentIndex);
-  renderTracks();
-  
-  if (autoPlay || wasRunning) {
-    if (track && track.src) {
-      play(track);
-      setTimeout(() => updatePlayButton({ isPlaying: true }), 50);
-    }
-    if (!wasRunning) {
-      running = true;
-      animate();
-      const feedback = document.getElementById("meditationFeedback");
-      if (feedback) feedback.style.display = "none";
-    }
-  }
 }
 
 function updateTrackHighlight() {
