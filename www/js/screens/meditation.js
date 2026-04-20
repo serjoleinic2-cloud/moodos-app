@@ -33,6 +33,10 @@ let fileInputChangeHandler = null;
 let windowResizeHandler = null;
 
 function resizeWaveCanvas() {
+  if (!waveCanvas) {
+    waveCanvas = document.getElementById("waveProgress");
+    waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
+  }
   if (!waveCanvas) return;
   waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
 }
@@ -195,6 +199,9 @@ export async function onEnter(container) {
   audioUnsubscribe = subscribe((audioState) => {
     updatePlayButton(audioState);
     updateProgress(audioState);
+    if (running) {
+      drawWaveProgress();
+    }
     
     if (trackingActive && wasPlaying && !audioState.isPlaying && running) {
       handleTrackEnd();
@@ -267,7 +274,11 @@ function bindEvents() {
     currentIndex = parseInt(track.dataset.index);
     if (running) {
       handleTrackSwitch(0);
+      showPlayer();
     } else {
+      running = true;
+      resizeWaveCanvas();
+      showPlayer();
       play(getTrackByIndex(currentIndex));
     }
   };
@@ -304,7 +315,7 @@ function bindEvents() {
   if (medHelped) {
     const newMedHelped = medHelped.cloneNode(true);
     medHelped.replaceWith(newMedHelped);
-    newMedHelped.onclick = async () => {
+newMedHelped.onclick = async () => {
       const moodAfter = getMood();
       const duration = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
       const analysisResult = await SystemCore.analyzeMoodOnly(moodAfter);
@@ -318,6 +329,10 @@ function bindEvents() {
         duration,
         timestamp: Date.now()
       });
+      stop();
+      running = false;
+      cancelAnimationFrame(animationId);
+      currentIndex = 0;
       sessionStartTime = null;
       moodBeforeSession = null;
       showPlayer();
@@ -342,6 +357,10 @@ function bindEvents() {
         duration,
         timestamp: Date.now()
       });
+      stop();
+      running = false;
+      cancelAnimationFrame(animationId);
+      currentIndex = 0;
       sessionStartTime = null;
       moodBeforeSession = null;
       showPlayer();
@@ -560,6 +579,12 @@ function renderTracks() {
 
 function updateProgress(audioState) {
   if (!audioState) return;
+  
+  if (!waveCtx || !waveCanvas) {
+    waveCanvas = document.getElementById("waveProgress");
+    waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
+  }
+  
   const current = Math.floor(getCurrentTime());
   const total   = Math.floor(getDuration());
 
@@ -576,7 +601,11 @@ function updateProgress(audioState) {
 }
 
 function drawWaveProgress() {
-  if (!waveCtx || !waveCanvas) return;
+  if (!waveCtx || !waveCanvas) {
+    waveCanvas = document.getElementById("waveProgress");
+    waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
+    if (!waveCtx || !waveCanvas) return;
+  }
 
   const current  = getCurrentTime();
   const duration = getDuration();
@@ -653,6 +682,18 @@ function showPlayer() {
   if (playerControls) playerControls.style.display = "flex";
   if (progressWrap) progressWrap.style.display = "block";
   if (feedback) feedback.style.display = "none";
+  
+  waveCanvas = document.getElementById("waveProgress");
+  waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
+  if (waveCanvas) {
+    waveCanvas.width = waveCanvas.offsetWidth || waveCanvas.parentElement?.offsetWidth || 300;
+    waveCanvas.style.display = "block";
+  }
+  
+  if (running) {
+    drawWaveProgress();
+  }
+  
   updatePlayButton({ isPlaying: false });
 }
 
@@ -754,6 +795,8 @@ function handleTrackSwitch(dir) {
   currentIndex = (currentIndex + dir + tracks.length) % tracks.length;
   const track = getTrackByIndex(currentIndex);
   if (track && running) {
+    resizeWaveCanvas();
+    showPlayer();
     play(track);
   }
   renderTracks();
