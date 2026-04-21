@@ -6,11 +6,28 @@ import { t } from "../i18n.js";
 
 let selectedPlan = "premium_monthly";
 
-export function onEnter() {
+export async function onEnter() {
   const container = document.getElementById("paywall-content");
   if (!container) return;
 
   selectedPlan = "premium_monthly";
+
+  let monthlyPrice = "—";
+  let yearlyPrice = "—";
+
+  try {
+    const { isStoreReady } = await import("../services/billing-service.js");
+    const { store } = await import('capacitor-plugin-cdv-purchase');
+
+    if (isStoreReady()) {
+      const monthly = store.get("premium_monthly");
+      const yearly = store.get("premium_yearly");
+      if (monthly?.pricing?.price) monthlyPrice = monthly.pricing.price;
+      if (yearly?.pricing?.price) yearlyPrice = yearly.pricing.price;
+    }
+  } catch(e) {
+    console.warn('[paywall] could not load prices:', e);
+  }
 
   container.innerHTML = `
     <div style="padding:24px;text-align:center;">
@@ -35,7 +52,7 @@ export function onEnter() {
           text-align:left;
         ">
           <div style="font-size:16px;font-weight:600;color:#333;">${t("paywall_monthly") || "Месяц"}</div>
-          <div style="font-size:14px;color:#805ad5;font-weight:700;">299₽<span style="font-size:12px;color:#888;font-weight:400;">/мес</span></div>
+          <div style="font-size:14px;color:#805ad5;font-weight:700;">${monthlyPrice}<span style="font-size:12px;color:#888;font-weight:400;">/мес</span></div>
         </div>
 
         <div id="planYearly" class="plan-card" data-plan="premium_yearly" style="
@@ -51,7 +68,7 @@ export function onEnter() {
             ${t("paywall_best_value") || "ВЫГОДНО"}
           </div>
           <div style="font-size:16px;font-weight:600;color:#333;">${t("paywall_yearly") || "Год"}</div>
-          <div style="font-size:14px;color:#4caf87;font-weight:700;">1990₽<span style="font-size:12px;color:#888;font-weight:400;">/год</span></div>
+          <div style="font-size:14px;color:#4caf87;font-weight:700;">${yearlyPrice}<span style="font-size:12px;color:#888;font-weight:400;">/год</span></div>
           <div style="font-size:11px;color:#888;">${t("paywall_save") || "-33%"}</div>
         </div>
       </div>
@@ -120,10 +137,27 @@ function bindEvents() {
     subscribeBtn.addEventListener("click", async () => {
       try {
         const { buyMonthly, buyYearly, isStoreReady } = await import("../services/billing-service.js");
-        
+
         if (!isStoreReady()) {
-          alert(t("paywall_billing_unavailable") || "Billing temporarily unavailable. Try later.");
-          return;
+          subscribeBtn.textContent = t("paywall_loading") || "Загрузка...";
+          subscribeBtn.disabled = true;
+
+          await new Promise((resolve, reject) => {
+            let attempts = 0;
+            const interval = setInterval(() => {
+              attempts++;
+              if (isStoreReady()) {
+                clearInterval(interval);
+                resolve();
+              } else if (attempts >= 50) {
+                clearInterval(interval);
+                reject(new Error('store not ready'));
+              }
+            }, 100);
+          });
+
+          subscribeBtn.textContent = t("paywall_subscribe") || "Оформить подписку";
+          subscribeBtn.disabled = false;
         }
 
         if (selectedPlan === "premium_monthly") {
@@ -133,6 +167,8 @@ function bindEvents() {
         }
       } catch (e) {
         console.warn('[billing] purchase failed:', e);
+        subscribeBtn.textContent = t("paywall_subscribe") || "Оформить подписку";
+        subscribeBtn.disabled = false;
         alert(t("paywall_purchase_failed") || "Purchase failed. Try again later.");
       }
     });
