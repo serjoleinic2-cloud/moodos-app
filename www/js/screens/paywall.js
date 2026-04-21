@@ -22,8 +22,16 @@ export async function onEnter() {
     if (isStoreReady()) {
       const monthly = store.get("premium_monthly");
       const yearly = store.get("premium_yearly");
-      if (monthly?.pricing?.price) monthlyPrice = monthly.pricing.price;
-      if (yearly?.pricing?.price) yearlyPrice = yearly.pricing.price;
+      
+      const monthlyOffer = monthly?.offers?.[0];
+      const yearlyOffer = yearly?.offers?.[0];
+      
+      if (monthlyOffer?.pricingPhases?.[0]?.price) {
+        monthlyPrice = monthlyOffer.pricingPhases[0].price;
+      }
+      if (yearlyOffer?.pricingPhases?.[0]?.price) {
+        yearlyPrice = yearlyOffer.pricingPhases[0].price;
+      }
     }
   } catch(e) {
     console.warn('[paywall] could not load prices:', e);

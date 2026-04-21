@@ -28,23 +28,13 @@ export function initBilling() {
     })
     .approved((transaction) => {
       console.log('[billing] approved:', transaction.products[0]?.id);
-      transaction.verify();
-    })
-    .verified((receipt) => {
-      console.log('[billing] verified');
-      receipt.finish();
-      receipt.collection.forEach(purchase => {
-        if (store.owned(purchase)) {
-          const productId = purchase.id;
-          activatePremiumPaid(productId);
-          enqueueBillingStateUpdate(true);
-          logPremiumGranted('billing_verified', { productId });
-        }
-      });
-    })
-    .unverified((receipt) => {
-      console.warn('[billing] unverified — finishing anyway for test');
-      receipt.finish();
+      transaction.finish();
+      const productId = transaction.products[0]?.id;
+      if (productId) {
+        activatePremiumPaid(productId);
+        enqueueBillingStateUpdate(true);
+        logPremiumGranted('billing_approved', { productId });
+      }
     });
 
   store.error((err) => {
@@ -136,7 +126,9 @@ export async function restorePurchases() {
 }
 
 export function activatePremiumForTesting(plan = "premium_monthly") {
-  console.warn('[billing] DEV MODE — activating premium locally');
-  activatePremiumPaid(plan);
-  enqueueBillingStateUpdate(true);
+  if (import.meta.env.DEV) {
+    console.warn('[billing] DEV MODE — activating premium locally');
+    activatePremiumPaid(plan);
+    enqueueBillingStateUpdate(true);
+  }
 }
