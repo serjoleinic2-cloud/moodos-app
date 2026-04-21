@@ -326,6 +326,8 @@ export const es = {
     reminder_empty_hint: "Agrega el primero 👇",
     reminder_med_placeholder: "Nombre del medicamento",
     reminder_days: "Días de la semana",
+    reminder_notif_title: '💊 Es hora de tomar tu medicamento',
+    reminder_notif_body: 'No olvides tomar tu medicamento',
     done: "Listo",
     settings_meds_subtitle: "Esto me ayuda a leer correctamente tus datos",
     settings_effect_title: "Efecto del medicamento",

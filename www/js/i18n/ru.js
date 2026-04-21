@@ -325,6 +325,8 @@ export const ru = {
     reminder_empty_hint: "Добавьте первое 👇",
     reminder_med_placeholder: "Название лекарства",
     reminder_days: "Дни недели",
+    reminder_notif_title: '💊 Время принять лекарство',
+    reminder_notif_body: 'Не забудьте принять лекарство',
     done: "Готово",
     settings_meds_subtitle: "Это помогает мне правильно читать твои данные",
     settings_effect_title: "Как влияет препарат",

@@ -333,6 +333,8 @@ export const en = {
     reminder_empty_hint: "Add your first 👇",
     reminder_med_placeholder: "Medicine name",
     reminder_days: "Days of week",
+    reminder_notif_title: '💊 Time to take your medication',
+    reminder_notif_body: "Don't forget to take your medication",
     done: "Done",
     settings_meds_subtitle: "This helps me correctly read your data",
     settings_effect_title: "Medication Effect",

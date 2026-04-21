@@ -1,3 +1,5 @@
+import { t } from '../i18n.js';
+
 const LS_KEY = 'med_reminders_v2';
 
 function getLocalNotifications() {
@@ -71,29 +73,29 @@ async function scheduleNotification({ id, time, medName, days }) {
     }
 
     const [hours, minutes] = time.split(':').map(Number);
-    const dayMap = { пн:2, вт:3, ср:4, чт:5, пт:6, сб:7, вс:1 };
+    const dayMap = { пн:1, вт:2, ср:3, чт:4, пт:5, сб:6, вс:0 };
     
     const notifications = [];
     const now = new Date();
     
-    days.forEach((day, i) => {
+    let idCounter = 0;
+    days.forEach((day) => {
       const jsDow = dayMap[day];
-      const target = new Date();
-      target.setHours(hours, minutes, 0, 0);
-      
-      const currentDow = now.getDay();
-      let daysUntil = (jsDow - currentDow + 7) % 7;
-      if (daysUntil === 0 && target.getTime() <= now.getTime() + 60000) daysUntil = 7;
-      
-      target.setDate(target.getDate() + daysUntil);
-      
-      notifications.push({
-        id: id + i,
-        title: '💊 Время принять лекарство',
-        body: medName || 'Не забудьте принять лекарство',
-        schedule: { at: target, allowWhileIdle: true },
-        sound: null,
-      });
+      for (let week = 0; week < 8; week++) {
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+        const currentDow = now.getDay();
+        let daysUntil = (jsDow - currentDow + 7) % 7;
+        if (daysUntil === 0 && target.getTime() <= now.getTime() + 65000) daysUntil = 7;
+        daysUntil += week * 7;
+        target.setDate(target.getDate() + daysUntil);
+        notifications.push({
+          id: (id % 100000) * 1000 + idCounter++,
+          title: t('reminder_notif_title') || '💊 Time to take your medication',
+          body: medName || (t('reminder_notif_body') || "Don't forget to take your medication"),
+          schedule: { at: target, allowWhileIdle: true, exact: true },
+        });
+      }
     });
     
     await LocalNotifications.schedule({ notifications });
@@ -108,7 +110,8 @@ async function cancelNotification(id) {
     const LocalNotifications = getLocalNotifications();
     if (!LocalNotifications) return;
     
-    const ids = [0,1,2,3,4,5,6].map((_, i) => ({ id: id + i }));
+    const base = (id % 100000) * 1000;
+    const ids = Array.from({ length: 56 }, (_, i) => ({ id: base + i }));
     await LocalNotifications.cancel({ notifications: ids });
   } catch(e) {
     console.warn('[reminders] cancel failed:', e);

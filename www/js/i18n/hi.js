@@ -318,6 +318,8 @@ export const hi = {
     reminder_empty_hint: "पहला जोड़ें 👇",
     reminder_med_placeholder: "दवाई का नाम",
     reminder_days: "दिन",
+    reminder_notif_title: '💊 दवा लेने का समय',
+    reminder_notif_body: 'अपनी दवा लेना न भूलें',
     done: "हो गया",
     settings_meds_subtitle: "यह मुझे आपके डेटा को सही ढंग से पढ़ने में मदद करता है",
     settings_effect_title: "दवाई का प्रभाव",

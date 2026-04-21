@@ -326,6 +326,8 @@ export const uk = {
     reminder_empty_hint: "Додай перше 👇",
     reminder_med_placeholder: "Назва ліків",
     reminder_days: "Дні тижня",
+    reminder_notif_title: '💊 Час прийняти ліки',
+    reminder_notif_body: 'Не забудьте прийняти ліки',
     done: "Готово",
     settings_meds_subtitle: "Це допомагає мені правильно читати твої дані",
     settings_effect_title: "Як впливає препарат",
