@@ -145,7 +145,8 @@ D:\moodos-app\
 │       │   ├── voice-service.js
 │       │   ├── exit-guard.js
 │       │   ├── backup-reminder.js
-│       │   └── userId.js
+│       │   ├── userId.js
+│       │   └── reminders-service.js
 │       ├── i18n/                  # Translations (5 langs)
 │       │   ├── ru.js
 │       │   ├── en.js

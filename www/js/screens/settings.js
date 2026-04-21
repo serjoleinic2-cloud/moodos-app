@@ -35,6 +35,7 @@ function renderSettings() {
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
   const premiumInfo = getPremiumInfo();
   const reminderCount = getReminders().length;
+  const hasReminders = reminderCount > 0;
 
   const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
   const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
@@ -54,9 +55,9 @@ function renderSettings() {
   const showGetPremiumBtn = !premiumInfo.isPremium;
 
   const themeLabels = {
-    "default":      "🌿 " + t("theme_default"),
-    "purple-blue":  "💜 " + t("theme_purple_blue"),
-    "purple-pink":  "🌸 " + t("theme_purple_pink"),
+    "default":      t("theme_default"),
+    "purple-blue":  t("theme_purple_blue"),
+    "purple-pink":  t("theme_purple_pink"),
   };
   const currentThemeLabel = themeLabels[getTheme()] || themeLabels["default"];
 
@@ -75,8 +76,19 @@ function renderSettings() {
       '<div class="neo-row-content">' +
         '<span class="neo-row-icon">⏰</span>' +
         '<div class="neo-row-text">' +
-          '<div class="neo-row-label">Напоминания о лекарствах</div>' +
-          '<div class="neo-row-sub">' + reminderCount + ' будильников</div>' +
+          '<div class="neo-row-label">' + t("settings_med_reminders_label") + '</div>' +
+          '<div class="neo-row-sub">' + reminderCount + ' ' + t("settings_alarms") + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="neo-row-arrow">›</span>' +
+    '</div>'
+  ) : hasReminders ? (
+    '<div class="neo-row" id="settingReminder">' +
+      '<div class="neo-row-content">' +
+        '<span class="neo-row-icon">⏰</span>' +
+        '<div class="neo-row-text">' +
+          '<div class="neo-row-label">' + t("settings_med_reminders_label") + '</div>' +
+          '<div class="neo-row-sub">' + reminderCount + ' ' + t("settings_alarms") + '</div>' +
         '</div>' +
       '</div>' +
       '<span class="neo-row-arrow">›</span>' +
@@ -528,8 +540,8 @@ function showThemeModal() {
   
   if (premium) {
     themes.push(
-      { value: "ocean-blue",  label: "🌊 " + t("theme_ocean_blue") },
-      { value: "warm-sunset", label: "🌅 " + t("theme_warm_sunset") }
+      { value: "ocean-blue",  label: t("theme_ocean_blue") },
+      { value: "warm-sunset", label: t("theme_warm_sunset") }
     );
   }
   const overlay = document.createElement("div");
@@ -570,17 +582,38 @@ function showThemeModal() {
 }
 
 export async function showRemindersModal() {
-  const { getReminders, addReminder, deleteReminder, toggleReminder } = 
+  const { getReminders, addReminder, deleteReminder, toggleReminder, updateReminder } = 
     await import('../services/reminders-service.js');
 
   const DAYS = ['пн','вт','ср','чт','пт','сб','вс'];
   const DAYS_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let editingId = null;
+  let editSelectedDays = [];
+
+  function renderEditForm(reminder) {
+    return `
+      <div id="editReminderForm" style="background:rgba(232,237,230,0.9);border-radius:16px;padding:16px;box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #fff;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:700;color:#3d3d3d;margin-bottom:12px;">${t('reminder_edit_title')}</div>
+        <input id="editMedName" type="text" value="${reminder.medName || ''}" placeholder="${t('reminder_med_placeholder')}" style="width:100%;padding:12px 14px;border:none;border-radius:12px;background:rgba(255,255,255,0.8);box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;font-size:15px;color:#333;box-sizing:border-box;margin-bottom:12px;">
+        <input id="editMedTime" type="time" value="${reminder.time}" style="width:100%;padding:12px 14px;border:none;border-radius:12px;background:rgba(255,255,255,0.8);box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;font-size:20px;font-weight:700;color:#3d3d3d;box-sizing:border-box;margin-bottom:12px;">
+        <div style="font-size:12px;color:#aaa;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">${t('reminder_days')}</div>
+        <div id="editDaysContainer" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          ${DAYS.map((d,i) => {
+            const isSelected = reminder.days.includes(d);
+            return `<div class="edit-day-btn" data-day="${d}" style="width:38px;height:38px;border-radius:50%;${isSelected ? 'background:linear-gradient(145deg,#7eb8d4,#6aa5c0);color:#fff;box-shadow:inset 2px 2px 5px rgba(0,0,0,0.1);' : 'background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #fff;color:#888;'}display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;">${DAYS_LABELS[i]}</div>`;
+          }).join('')}
+        </div>
+        <button id="updateReminderBtn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;font-size:15px;font-weight:700;cursor:pointer;">${t('save')}</button>
+        <button id="cancelEditBtn" style="width:100%;padding:13px;border:none;border-radius:14px;background:rgba(200,200,200,0.5);color:#666;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;">${t('cancel')}</button>
+      </div>
+    `;
+  }
 
   function renderList() {
     const reminders = getReminders();
     if (reminders.length === 0) {
       return `<div style="text-align:center;color:#bbb;padding:20px;font-size:14px;">
-        Нет напоминаний.<br>Добавьте первое 👇
+        ${t('reminder_empty') || 'Нет напоминаний'}<br>${t('reminder_empty_hint') || 'Добавьте первое 👇'}
       </div>`;
     }
     return reminders.map(r => `
@@ -593,24 +626,31 @@ export async function showRemindersModal() {
         display:flex;
         align-items:center;
         justify-content:space-between;
+        box-sizing:border-box;
       ">
-        <div style="flex:1">
-          <div style="font-size:22px;font-weight:700;color:#3d3d3d;">${r.time}</div>
-          <div style="font-size:13px;color:#805ad5;font-weight:600;margin-top:2px;">
-            💊 ${r.medName || 'Лекарство'}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:26px;font-weight:700;color:#3d3d3d;">${r.time}</div>
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(159,122,234,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;" data-edit="${r.id}">✏️</div>
           </div>
-          <div style="font-size:11px;color:#aaa;margin-top:4px;">
-            ${r.days.map(d => DAYS_LABELS[DAYS.indexOf(d)]).join(', ')}
+          <div style="font-size:18px;color:#805ad5;font-weight:700;margin-top:4px;word-break:break-word;">
+            ${r.medName || t('reminder_medicine_default')}
+          </div>
+          <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;">
+            ${DAYS.map((d,i) => {
+              const isSelected = r.days.includes(d);
+              return `<div style="width:26px;height:26px;border-radius:50%;${isSelected ? 'background:linear-gradient(145deg,#7eb8d4,#6aa5c0);color:#fff;' : 'background:rgba(200,200,200,0.3);color:#ccc;'}display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${DAYS_LABELS[i]}</div>`;
+            }).join('')}
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
           <div style="
-            width:44px;height:24px;border-radius:12px;
+            width:40px;height:22px;border-radius:11px;
             background:${r.active ? '#4caf87' : '#ccc'};
             position:relative;cursor:pointer;transition:background 0.2s;
           " data-toggle="${r.id}">
             <div style="
-              width:20px;height:20px;border-radius:50%;background:#fff;
+              width:18px;height:18px;border-radius:50%;background:#fff;
               position:absolute;top:2px;
               ${r.active ? 'right:2px' : 'left:2px'};
               transition:all 0.2s;
@@ -618,10 +658,10 @@ export async function showRemindersModal() {
             "></div>
           </div>
           <div style="
-            width:32px;height:32px;border-radius:50%;
-            background:rgba(224,85,85,0.1);
+            width:28px;height:28px;border-radius:50%;
+            background:rgba(224,85,85,0.15);
             display:flex;align-items:center;justify-content:center;
-            cursor:pointer;font-size:16px;color:#e05555;
+            cursor:pointer;font-size:14px;color:#e05555;
           " data-delete="${r.id}">✕</div>
         </div>
       </div>
@@ -639,10 +679,10 @@ export async function showRemindersModal() {
         display:none;
       ">
         <div style="font-size:14px;font-weight:700;color:#3d3d3d;margin-bottom:12px;">
-          ➕ Новое напоминание
+          ${t('reminder_add_title') || '➕ Новое напоминание'}
         </div>
         
-        <input id="newMedName" type="text" placeholder="Название лекарства" style="
+        <input id="newMedName" type="text" placeholder="${t('reminder_med_placeholder') || 'Название лекарства'}" style="
           width:100%;padding:12px 14px;border:none;border-radius:12px;
           background:rgba(255,255,255,0.8);
           box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;
@@ -658,7 +698,7 @@ export async function showRemindersModal() {
         ">
         
         <div style="font-size:12px;color:#aaa;margin-bottom:8px;font-weight:600;
-          letter-spacing:0.5px;text-transform:uppercase;">Дни недели</div>
+          letter-spacing:0.5px;text-transform:uppercase;">${t('reminder_days') || 'Дни недели'}</div>
         <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
           ${DAYS.map((d,i) => `
             <div class="day-btn" data-day="${d}" style="
@@ -676,7 +716,7 @@ export async function showRemindersModal() {
           width:100%;padding:13px;border:none;border-radius:14px;
           background:linear-gradient(145deg,#4caf87,#45a070);
           color:#fff;font-size:15px;font-weight:700;cursor:pointer;
-        ">Сохранить</button>
+        ">${t('save')}</button>
       </div>
     `;
   }
@@ -691,14 +731,16 @@ export async function showRemindersModal() {
           padding:8px 14px;border:none;border-radius:12px;
           background:linear-gradient(145deg,#9f7aea,#805ad5);
           color:#fff;font-size:13px;font-weight:700;cursor:pointer;
-        ">+ Добавить</button>
+        ">${t('reminder_add_btn') || '+ Добавить'}</button>
       </div>
       
       ${renderAddForm()}
       
+      <div id="editFormContainer"></div>
+      
       <div id="remindersList">${renderList()}</div>
       
-      <div class="modal-cancel" id="remindersClose">Готово</div>
+      <div class="modal-cancel" id="remindersClose">${t('done') || 'Готово'}</div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -754,8 +796,23 @@ export async function showRemindersModal() {
   });
 
   overlay.querySelector('#remindersList').addEventListener('click', (e) => {
+    const editEl = e.target.closest('[data-edit]');
     const toggleEl = e.target.closest('[data-toggle]');
     const deleteEl = e.target.closest('[data-delete]');
+    
+    if (editEl) {
+      const id = Number(editEl.dataset.edit);
+      const reminder = getReminders().find(r => r.id === id);
+      if (reminder) {
+        editingId = id;
+        editSelectedDays = [...reminder.days];
+        overlay.querySelector('#addReminderForm').style.display = 'none';
+        overlay.querySelector('#editFormContainer').innerHTML = renderEditForm(reminder);
+        bindEditFormEvents();
+      }
+      return;
+    }
+    
     if (toggleEl) {
       toggleReminder(Number(toggleEl.dataset.toggle));
       overlay.querySelector('#remindersList').innerHTML = renderList();
@@ -766,6 +823,45 @@ export async function showRemindersModal() {
       refresh();
     }
   });
+
+  function bindEditFormEvents() {
+    overlay.querySelectorAll('.edit-day-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const day = btn.dataset.day;
+        if (editSelectedDays.includes(day)) {
+          editSelectedDays = editSelectedDays.filter(d => d !== day);
+          btn.style.background = 'rgba(232,237,230,0.9)';
+          btn.style.color = '#888';
+          btn.style.boxShadow = '3px 3px 7px #b8c4b4,-3px -3px 7px #fff';
+        } else {
+          editSelectedDays.push(day);
+          btn.style.background = 'linear-gradient(145deg,#7eb8d4,#6aa5c0)';
+          btn.style.color = '#fff';
+          btn.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.1)';
+        }
+      });
+    });
+
+    overlay.querySelector('#updateReminderBtn').addEventListener('click', () => {
+      const medName = overlay.querySelector('#editMedName').value.trim();
+      const time = overlay.querySelector('#editMedTime').value;
+      if (!medName) {
+        overlay.querySelector('#editMedName').style.boxShadow = 'inset 3px 3px 6px #e8a0a0,inset -3px -3px 6px #fff';
+        return;
+      }
+      if (editSelectedDays.length === 0) return;
+      updateReminder(editingId, { time, medName, days: editSelectedDays });
+      overlay.querySelector('#editFormContainer').innerHTML = '';
+      editingId = null;
+      overlay.querySelector('#remindersList').innerHTML = renderList();
+      refresh();
+    });
+
+    overlay.querySelector('#cancelEditBtn').addEventListener('click', () => {
+      overlay.querySelector('#editFormContainer').innerHTML = '';
+      editingId = null;
+    });
+  }
 
   overlay.querySelector('#remindersClose').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });

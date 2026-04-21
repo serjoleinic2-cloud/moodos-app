@@ -2,6 +2,7 @@
 // Neyra Onboarding v5 — i18n + Terms + default EN
 // =====================================
 import { saveProfile, markOnboardingDone, saveMedReminder } from "./services/user-profile.js";
+import { addReminder } from "./services/reminders-service.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "./i18n.js";
 
 export function initOnboarding(onComplete) {
@@ -211,7 +212,13 @@ export function initOnboarding(onComplete) {
         if (!s) return false;
         profile.medReminder = s.dataset.v;
         const times = { утро:"08:00", день:"13:00", вечер:"20:00" };
-        if (times[s.dataset.v]) saveMedReminder(times[s.dataset.v]);
+        if (times[s.dataset.v]) {
+          addReminder({ 
+            time: times[s.dataset.v], 
+            medName: 'Лекарство', 
+            days: ['пн','вт','ср','чт','пт','сб','вс'] 
+          });
+        }
         return true;
       }
     },
