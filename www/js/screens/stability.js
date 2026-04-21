@@ -1,6 +1,9 @@
 import { getMoodHistory, getNotesHistory, getReflections } from "../services/memory.js";
 import { calculateStabilityScore } from "../services/analytics.js";
 import { t } from "../i18n.js";
+import Chart from 'chart.js/auto';
+
+window.Chart = Chart;
 
 function getTodayEntries() {
   const history = getMoodHistory();

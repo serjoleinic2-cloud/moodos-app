@@ -16,6 +16,7 @@ import {
   isPremium,
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
+import { getReminders } from '../services/reminders-service.js';
 
 function st(key, fallback = "") {
   try { const v = t(key); return v || fallback; } catch(e) { return fallback; }
@@ -33,6 +34,7 @@ function renderSettings() {
   const reminder  = getMedReminder();
   const takesMeds = profile?.takesMeds && profile.takesMeds !== "нет" && profile.takesMeds !== "не_скажу";
   const premiumInfo = getPremiumInfo();
+  const reminderCount = getReminders().length;
 
   const medVal    = {нет:t("med_no"),антидепрессанты:t("med_anti"),седативные:t("med_sed"),другое:t("med_other"),не_скажу:t("med_not_said")};
   const effVal    = {лучше:t("effect_better"),примерно_так_же:t("effect_same"),приглушённость:t("effect_numb"),побочки:t("effect_side"),адаптация:t("effect_adapt")};
@@ -73,8 +75,8 @@ function renderSettings() {
       '<div class="neo-row-content">' +
         '<span class="neo-row-icon">⏰</span>' +
         '<div class="neo-row-text">' +
-          '<div class="neo-row-label">' + t("settings_reminder_label") + '</div>' +
-          '<div class="neo-row-sub">' + (reminder?.active ? (remVal[profile?.medReminder]||t("settings_reminder_on")) : t("settings_reminder_off")) + '</div>' +
+          '<div class="neo-row-label">Напоминания о лекарствах</div>' +
+          '<div class="neo-row-sub">' + reminderCount + ' будильников</div>' +
         '</div>' +
       '</div>' +
       '<span class="neo-row-arrow">›</span>' +
@@ -287,13 +289,7 @@ function bindEvents(el) {
   });
 
   el.querySelector("#settingReminder")?.addEventListener("click", () => {
-    showModal({ title: t("med_reminder"), subtitle: t("settings_reminder_subtitle"), field: "medReminder",
-      options: [
-        { value: "нет", label: t("ob_reminder_no") }, { value: "утро", label: t("ob_reminder_morning") },
-        { value: "день", label: t("ob_reminder_day") }, { value: "вечер", label: t("ob_reminder_evening") },
-      ],
-      onSave: (v) => { const times={утро:"08:00",день:"13:00",вечер:"20:00"}; if(times[v]) saveMedReminder(times[v]); else removeMedReminder(); }
-    });
+    showRemindersModal();
   });
 
   el.querySelector("#settingBaseFeeling")?.addEventListener("click", showBaselineModal);
@@ -571,6 +567,208 @@ function showThemeModal() {
       overlay.remove();
     }
   });
+}
+
+export async function showRemindersModal() {
+  const { getReminders, addReminder, deleteReminder, toggleReminder } = 
+    await import('../services/reminders-service.js');
+
+  const DAYS = ['пн','вт','ср','чт','пт','сб','вс'];
+  const DAYS_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  function renderList() {
+    const reminders = getReminders();
+    if (reminders.length === 0) {
+      return `<div style="text-align:center;color:#bbb;padding:20px;font-size:14px;">
+        Нет напоминаний.<br>Добавьте первое 👇
+      </div>`;
+    }
+    return reminders.map(r => `
+      <div style="
+        background:rgba(232,237,230,0.9);
+        border-radius:16px;
+        padding:14px 16px;
+        box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #fff;
+        margin-bottom:10px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+      ">
+        <div style="flex:1">
+          <div style="font-size:22px;font-weight:700;color:#3d3d3d;">${r.time}</div>
+          <div style="font-size:13px;color:#805ad5;font-weight:600;margin-top:2px;">
+            💊 ${r.medName || 'Лекарство'}
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px;">
+            ${r.days.map(d => DAYS_LABELS[DAYS.indexOf(d)]).join(', ')}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="
+            width:44px;height:24px;border-radius:12px;
+            background:${r.active ? '#4caf87' : '#ccc'};
+            position:relative;cursor:pointer;transition:background 0.2s;
+          " data-toggle="${r.id}">
+            <div style="
+              width:20px;height:20px;border-radius:50%;background:#fff;
+              position:absolute;top:2px;
+              ${r.active ? 'right:2px' : 'left:2px'};
+              transition:all 0.2s;
+              box-shadow:0 1px 3px rgba(0,0,0,0.2);
+            "></div>
+          </div>
+          <div style="
+            width:32px;height:32px;border-radius:50%;
+            background:rgba(224,85,85,0.1);
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;font-size:16px;color:#e05555;
+          " data-delete="${r.id}">✕</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderAddForm() {
+    return `
+      <div id="addReminderForm" style="
+        background:rgba(232,237,230,0.9);
+        border-radius:16px;
+        padding:16px;
+        box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #fff;
+        margin-bottom:16px;
+        display:none;
+      ">
+        <div style="font-size:14px;font-weight:700;color:#3d3d3d;margin-bottom:12px;">
+          ➕ Новое напоминание
+        </div>
+        
+        <input id="newMedName" type="text" placeholder="Название лекарства" style="
+          width:100%;padding:12px 14px;border:none;border-radius:12px;
+          background:rgba(255,255,255,0.8);
+          box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;
+          font-size:15px;color:#333;box-sizing:border-box;margin-bottom:12px;
+        ">
+        
+        <input id="newMedTime" type="time" value="08:00" style="
+          width:100%;padding:12px 14px;border:none;border-radius:12px;
+          background:rgba(255,255,255,0.8);
+          box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;
+          font-size:20px;font-weight:700;color:#3d3d3d;
+          box-sizing:border-box;margin-bottom:12px;
+        ">
+        
+        <div style="font-size:12px;color:#aaa;margin-bottom:8px;font-weight:600;
+          letter-spacing:0.5px;text-transform:uppercase;">Дни недели</div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          ${DAYS.map((d,i) => `
+            <div class="day-btn" data-day="${d}" style="
+              width:38px;height:38px;border-radius:50%;
+              background:rgba(232,237,230,0.9);
+              box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #fff;
+              display:flex;align-items:center;justify-content:center;
+              font-size:12px;font-weight:700;color:#888;cursor:pointer;
+              transition:all 0.15s;
+            ">${DAYS_LABELS[i]}</div>
+          `).join('')}
+        </div>
+        
+        <button id="saveReminderBtn" style="
+          width:100%;padding:13px;border:none;border-radius:14px;
+          background:linear-gradient(145deg,#4caf87,#45a070);
+          color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        ">Сохранить</button>
+      </div>
+    `;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'health-modal-overlay';
+  overlay.innerHTML = `
+    <div class="health-modal" style="max-height:85vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="modal-title" style="margin-bottom:0;">⏰ Напоминания</div>
+        <button id="addReminderToggle" style="
+          padding:8px 14px;border:none;border-radius:12px;
+          background:linear-gradient(145deg,#9f7aea,#805ad5);
+          color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+        ">+ Добавить</button>
+      </div>
+      
+      ${renderAddForm()}
+      
+      <div id="remindersList">${renderList()}</div>
+      
+      <div class="modal-cancel" id="remindersClose">Готово</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  let selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+  
+  setTimeout(() => {
+    overlay.querySelectorAll('.day-btn').forEach(btn => {
+      btn.style.background = 'linear-gradient(145deg,#7eb8d4,#6aa5c0)';
+      btn.style.color = '#fff';
+      btn.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.1)';
+    });
+  }, 10);
+
+  overlay.querySelector('#addReminderToggle').addEventListener('click', () => {
+    const form = overlay.querySelector('#addReminderForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  overlay.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const day = btn.dataset.day;
+      if (selectedDays.includes(day)) {
+        selectedDays = selectedDays.filter(d => d !== day);
+        btn.style.background = 'rgba(232,237,230,0.9)';
+        btn.style.color = '#888';
+        btn.style.boxShadow = '3px 3px 7px #b8c4b4,-3px -3px 7px #fff';
+      } else {
+        selectedDays.push(day);
+        btn.style.background = 'linear-gradient(145deg,#7eb8d4,#6aa5c0)';
+        btn.style.color = '#fff';
+        btn.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.1)';
+      }
+    });
+  });
+
+  overlay.querySelector('#saveReminderBtn').addEventListener('click', () => {
+    const medName = overlay.querySelector('#newMedName').value.trim();
+    const time = overlay.querySelector('#newMedTime').value;
+    if (!medName) {
+      overlay.querySelector('#newMedName').style.boxShadow = 
+        'inset 3px 3px 6px #e8a0a0,inset -3px -3px 6px #fff';
+      return;
+    }
+    if (selectedDays.length === 0) return;
+    addReminder({ time, medName, days: selectedDays });
+    overlay.querySelector('#remindersList').innerHTML = renderList();
+    overlay.querySelector('#addReminderForm').style.display = 'none';
+    overlay.querySelector('#newMedName').value = '';
+    overlay.querySelector('#newMedTime').value = '08:00';
+    selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+    refresh();
+  });
+
+  overlay.querySelector('#remindersList').addEventListener('click', (e) => {
+    const toggleEl = e.target.closest('[data-toggle]');
+    const deleteEl = e.target.closest('[data-delete]');
+    if (toggleEl) {
+      toggleReminder(Number(toggleEl.dataset.toggle));
+      overlay.querySelector('#remindersList').innerHTML = renderList();
+    }
+    if (deleteEl) {
+      deleteReminder(Number(deleteEl.dataset.delete));
+      overlay.querySelector('#remindersList').innerHTML = renderList();
+      refresh();
+    }
+  });
+
+  overlay.querySelector('#remindersClose').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 
 export function onExit() {

@@ -1,5 +1,7 @@
 import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import Chart from 'chart.js/auto';
+
+window.Chart = Chart;
 import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "../services/analytics.js";
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";

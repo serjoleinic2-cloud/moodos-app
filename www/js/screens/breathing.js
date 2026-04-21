@@ -11,6 +11,9 @@ let phaseIndex = 0;
 let phaseStartTime = 0;
 let cycleCount = 0;
 
+let BASE_RADIUS = 80;
+let MAX_RADIUS = 130;
+
 let inhaleDuration = 4000;
 let holdDuration = 4000;
 let exhaleDuration = 6000;
@@ -26,76 +29,90 @@ let stateBeforeSession = null;
 export function initBreathing(container) {
 
   container.innerHTML = `
-    <div style="text-align:center; margin-top:20px;">
+  <div style="
+    display:flex;
+    flex-direction:column;
+    height:calc(100vh - 120px);
+    padding:16px;
+    box-sizing:border-box;
+    text-align:center;
+  ">
+    <h2 style="margin:0 0 10px;">${t("breath_title") || "Дыхание"}</h2>
 
-      <h2 style="margin-bottom:15px;">Дыхание</h2>
-
-      <!-- РЕЖИМЫ -->
-      <div id="breathModes" style="margin-bottom:10px;">
-        <button class="breathMode" data-set="2-2-4" style="
-          margin:4px; padding:8px 16px; border:none; border-radius:12px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px;">2-2-4</button>
-        <button class="breathMode" data-set="4-4-6" style="
-          margin:4px; padding:8px 16px; border:none; border-radius:12px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px;">4-4-6</button>
-        <button class="breathMode" data-set="4-7-8" style="
-          margin:4px; padding:8px 16px; border:none; border-radius:12px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 4px 4px 8px #b8bec7, -4px -4px 8px #ffffff;
-          color:#555; font-size:14px;">4-7-8</button>
-      </div>
-
-      <div id="selectedMode" style="margin-bottom:10px;font-size:14px;color:#666;">
-        ${t("breath_selected")}: 4-4-6
-      </div>
-
-      <!-- АНИМАЦИЯ -->
-      <div id="breathingCanvasWrap">
-        <canvas id="breathingCanvas" width="320" height="320"></canvas>
-        <div id="breathingText" style="margin:10px 0; font-size:22px; font-weight:600;">${t("breath_ready")}</div>
-        <div id="breathingTimer" style="font-size:36px; font-weight:bold; margin-bottom:4px;">0</div>
-        <div id="cycleCounter" style="font-size:14px; color:#888; margin-bottom:10px;">${t("breath_cycles")}: 0</div>
-      </div>
-
-      <!-- КНОПКА СТАРТ/СТОП -->
-      <div style="margin-top:0; display:flex; justify-content:center;">
-        <button id="breathingMainBtn" class="mainBtn" style="border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-          <img id="breathingPlayIcon" src="/icons/player/play.svg" style="width:28px;height:28px;">
-        </button>
-      </div>
-
-      <!-- ФИДБЕК — скрыт по умолчанию -->
-      <div id="breathingFeedback" style="display:none; margin-top:30px; flex-direction:column; gap:14px; align-items:center;">
-
-        <div style="font-size:16px; color:#666; margin-bottom:6px;">${t("breath_how_feel")}</div>
-
-        <div id="breathingHelped" style="
-          width:75%; padding:16px; border-radius:18px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#4a7c59; font-size:18px; text-align:center;">
-          👍 ${t("hist_helped")}
-        </div>
-
-        <div id="breathingNotHelped" style="
-          width:75%; padding:16px; border-radius:18px; cursor:pointer;
-          background:#e0e5ec;
-          box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
-          color:#888; font-size:18px; text-align:center;">
-          👎 ${t("hist_not_helped")}
-        </div>
-
-      </div>
-
+    <!-- РЕЖИМЫ -->
+    <div id="breathModes" style="margin-bottom:8px;">
+      <button class="breathMode" data-set="2-2-4" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">2-2-4</button>
+      <button class="breathMode" data-set="4-4-6" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">4-4-6</button>
+      <button class="breathMode" data-set="4-7-8" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">4-7-8</button>
     </div>
-  `;
+
+    <div id="selectedMode" style="margin-bottom:8px;font-size:14px;color:#666;">
+      ${t("breath_selected")}: 4-4-6
+    </div>
+
+    <!-- АНИМАЦИЯ — flex:1 занимает всё доступное пространство -->
+    <div id="breathingCanvasWrap" style="
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:0;
+    ">
+      <canvas id="breathingCanvas" style="
+        display:block;
+        max-width:100%;
+        max-height:100%;
+      "></canvas>
+      <div id="breathingText" style="margin:8px 0;font-size:20px;font-weight:600;">${t("breath_ready")}</div>
+      <div id="breathingTimer" style="font-size:32px;font-weight:bold;margin-bottom:4px;">0</div>
+      <div id="cycleCounter" style="font-size:14px;color:#888;">${t("breath_cycles")}: 0</div>
+    </div>
+
+    <!-- КНОПКА — всегда внизу, не сдвигается -->
+    <div style="padding:16px 0 8px;flex-shrink:0;">
+      <button id="breathingMainBtn" class="mainBtn" style="
+        border:none;border-radius:50%;
+        width:72px;height:72px;
+        cursor:pointer;
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto;
+      ">
+        <img id="breathingPlayIcon" src="/icons/player/play.svg" style="width:28px;height:28px;">
+      </button>
+    </div>
+
+    <!-- ФИДБЕК -->
+    <div id="breathingFeedback" style="display:none;flex-direction:column;gap:14px;align-items:center;padding-bottom:16px;">
+      <div style="font-size:16px;color:#666;margin-bottom:6px;">${t("breath_how_feel")}</div>
+      <div id="breathingHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#4a7c59;font-size:18px;text-align:center;">
+        👍 ${t("hist_helped")}
+      </div>
+      <div id="breathingNotHelped" style="width:75%;padding:16px;border-radius:18px;cursor:pointer;background:#e0e5ec;box-shadow:6px 6px 12px #b8bec7,-6px -6px 12px #ffffff;color:#888;font-size:18px;text-align:center;">
+        👎 ${t("hist_not_helped")}
+      </div>
+    </div>
+
+  </div>
+`;
 
   canvas = document.getElementById("breathingCanvas");
   ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    const wrap = document.getElementById("breathingCanvasWrap");
+    if (!wrap) return;
+    const wrapH = wrap.clientHeight - 80;
+    const wrapW = wrap.clientWidth;
+    const size = Math.min(wrapW, wrapH, 280);
+    canvas.width = size;
+    canvas.height = size;
+    BASE_RADIUS = size * 0.25;
+    MAX_RADIUS = size * 0.40;
+    currentRadius = BASE_RADIUS;
+  }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
   document.querySelectorAll(".breathMode").forEach(btn => {
     btn.onclick = () => {
@@ -208,7 +225,7 @@ async function startBreathing() {
   phaseIndex        = 0;
   phaseStartTime    = performance.now();
   cycleCount        = 0;
-  currentRadius     = 80;
+  currentRadius     = BASE_RADIUS;
   const el = document.getElementById("cycleCounter");
   if (el) el.innerText = `${t("breath_cycles")}: 0`;
   animate();
@@ -271,8 +288,8 @@ function drawWave(progress, phaseName) {
   const eased   = ease(progress);
 
   let targetRadius;
-  if (phaseName === "Inhale")      targetRadius = 80 + 50 * eased;
-  else if (phaseName === "Exhale") targetRadius = 130 - 50 * eased;
+  if (phaseName === "Inhale")      targetRadius = BASE_RADIUS + (MAX_RADIUS - BASE_RADIUS) * eased;
+  else if (phaseName === "Exhale") targetRadius = MAX_RADIUS - (MAX_RADIUS - BASE_RADIUS) * eased;
   else                             targetRadius = currentRadius;
 
   currentRadius += (targetRadius - currentRadius) * 0.08;

@@ -19,12 +19,21 @@ export async function onEnter() {
     const { isStoreReady } = await import("../services/billing-service.js");
     const { store } = await import('capacitor-plugin-cdv-purchase');
 
+    console.log('[paywall] isStoreReady:', isStoreReady());
+    
     if (isStoreReady()) {
       const monthly = store.get("premium_monthly");
       const yearly = store.get("premium_yearly");
       
+      console.log('[paywall] monthly product:', JSON.stringify(monthly));
+      console.log('[paywall] yearly product:', JSON.stringify(yearly));
+      console.log('[paywall] monthly offers:', JSON.stringify(monthly?.offers));
+      
       const monthlyOffer = monthly?.offers?.[0];
       const yearlyOffer = yearly?.offers?.[0];
+      
+      console.log('[paywall] monthlyOffer:', JSON.stringify(monthlyOffer));
+      console.log('[paywall] pricingPhases:', JSON.stringify(monthlyOffer?.pricingPhases));
       
       if (monthlyOffer?.pricingPhases?.[0]?.price) {
         monthlyPrice = monthlyOffer.pricingPhases[0].price;
