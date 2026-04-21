@@ -43,6 +43,7 @@ async function scheduleNotifications(days, time, period) {
           title: "Neyra 📄",
           body: t("pr_notif_body").replace("{period}", period),
           schedule: { at: target, allowWhileIdle: true, exact: true },
+          sound: 'default',
           actionTypeId: "OPEN_REPORT",
           extra: { action: "openReport" }
         });

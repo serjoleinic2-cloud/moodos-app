@@ -94,6 +94,7 @@ async function scheduleNotification({ id, time, medName, days }) {
           title: t('reminder_notif_title') || '💊 Time to take your medication',
           body: medName || (t('reminder_notif_body') || "Don't forget to take your medication"),
           schedule: { at: target, allowWhileIdle: true, exact: true },
+          sound: 'default',
         });
       }
     });
@@ -115,5 +116,34 @@ async function cancelNotification(id) {
     await LocalNotifications.cancel({ notifications: ids });
   } catch(e) {
     console.warn('[reminders] cancel failed:', e);
+  }
+}
+
+export async function checkRemindersOnBoot() {
+  try {
+    const LocalNotifications = getLocalNotifications();
+    if (!LocalNotifications) return;
+
+    const reminders = getReminders().filter(r => r.active);
+    if (!reminders.length) return;
+
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') return;
+
+    const pending = await LocalNotifications.getPending();
+    const pendingIds = new Set(pending.notifications.map(n => n.id));
+
+    for (const r of reminders) {
+      const base = (r.id % 100000) * 1000;
+      const remaining = Array.from({ length: 56 }, (_, i) => base + i)
+        .filter(id => pendingIds.has(id)).length;
+      if (remaining < 4) {
+        await cancelNotification(r.id);
+        await scheduleNotification(r);
+      }
+    }
+    console.log('[reminders] boot check done');
+  } catch(e) {
+    console.warn('[reminders] boot check failed:', e);
   }
 }

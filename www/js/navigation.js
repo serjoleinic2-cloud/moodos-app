@@ -317,6 +317,9 @@ export function initNavigation() {
     import("./screens/pdf-report.js")
       .then(m => { try { m.checkAutoReminder(); } catch(e) {} })
       .catch(() => {});
+    import("./services/reminders-service.js")
+      .then(m => { try { m.checkRemindersOnBoot(); } catch(e) {} })
+      .catch(() => {});
   }, 3000);
 
   openScreen("home");
