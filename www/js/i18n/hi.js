@@ -270,6 +270,7 @@ export const hi = {
     ob_effect_adapt: "⏳ अभी खुराक समायोजित हो रही है",
     ob_reminder_title: "दवाई की याद दिलाएं?",
     ob_reminder_sub: "बिना अतिरिक्त शोर के, धीरे से",
+    ob_reminder_skip_hint: 'आप इसे छोड़ सकते हैं और बाद में सेटिंग्स में सेट कर सकते हैं',
     ob_reminder_no: "🙅 नहीं, मुझे याद है",
     ob_reminder_morning: "🌅 सुबह (8:00)",
     ob_reminder_day: "☀️ दोपहर (13:00)",

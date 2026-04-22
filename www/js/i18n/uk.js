@@ -270,6 +270,7 @@ export const uk = {
     ob_effect_adapt: "⏳ Ще підбираємо дозування",
     ob_reminder_title: "Нагадати про приймання?",
     ob_reminder_sub: "М'яко, без зайвого шуму",
+    ob_reminder_skip_hint: 'Можна пропустити і налаштувати пізніше в Налаштуваннях',
     ob_reminder_no: "🙅 Ні, сам пам'ятаю",
     ob_reminder_morning: "🌅 Вранці (8:00)",
     ob_reminder_day: "☀️ Вдень (13:00)",

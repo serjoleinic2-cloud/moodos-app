@@ -285,6 +285,7 @@ export const en = {
     ob_effect_adapt: "⏳ Still adjusting dosage",
     ob_reminder_title: "Remind about medication?",
     ob_reminder_sub: "Gently, without extra noise",
+    ob_reminder_skip_hint: 'You can skip this and set it up later in Settings',
     ob_reminder_no: "🙅 No, I remember myself",
     ob_reminder_morning: "🌅 Morning (8:00)",
     ob_reminder_day: "☀️ Afternoon (13:00)",

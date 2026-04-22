@@ -270,6 +270,7 @@ export const es = {
     ob_effect_adapt: "⏳ Ajustando dosis",
     ob_reminder_title: "¿Recordar la medicación?",
     ob_reminder_sub: "Suavemente, sin ruido extra",
+    ob_reminder_skip_hint: 'Puedes omitir esto y configurarlo más tarde en Ajustes',
     ob_reminder_no: "🙅 No, lo recuerdo solo",
     ob_reminder_morning: "🌅 Mañana (8:00)",
     ob_reminder_day: "☀️ Tarde (13:00)",

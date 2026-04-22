@@ -1,7 +1,8 @@
 // =====================================
 // Neyra Onboarding v5 — i18n + Terms + default EN
 // =====================================
-import { saveProfile, markOnboardingDone, saveMedReminder } from "./services/user-profile.js";
+import { saveProfile, markOnboardingDone } from "./services/user-profile.js";
+import { addReminder } from "./services/reminders-service.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "./i18n.js";
 
 export function initOnboarding(onComplete) {
@@ -190,36 +191,86 @@ export function initOnboarding(onComplete) {
       }
     },
 
-    // ШАГ 6: НАПОМИНАНИЕ
+    // ШАГ 6: НАСТРОЙКА НАПОМИНАНИЯ О ЛЕКАРСТВЕ
     {
       id: "reminder",
       shouldSkip: () => !profile.takesMeds || profile.takesMeds === "нет" || profile.takesMeds === "не_скажу",
-      render: () => `
-        <div style="font-size:52px;margin-bottom:20px;">⏰</div>
-        <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:10px;line-height:1.3;">${t("ob_reminder_title")}</div>
-        <div style="font-size:14px;color:#aaa;margin-bottom:20px;">${t("ob_reminder_sub")}</div>
-        <div id="opts" style="width:100%;display:flex;flex-direction:column;gap:9px;">
-          <div class="ob-opt" data-v="нет">${t("ob_reminder_no")}</div>
-          <div class="ob-opt" data-v="утро">${t("ob_reminder_morning")}</div>
-          <div class="ob-opt" data-v="день">${t("ob_reminder_day")}</div>
-          <div class="ob-opt" data-v="вечер">${t("ob_reminder_evening")}</div>
-        </div>
-      `,
-      needsChoice: true,
-      onNext: () => {
-        const s = overlay.querySelector("#opts .ob-opt.sel");
-        if (!s) return false;
-        profile.medReminder = s.dataset.v;
-        const times = { утро:"08:00", день:"13:00", вечер:"20:00" };
-        if (times[s.dataset.v]) {
-          saveMedReminder(times[s.dataset.v]);
-          import('./services/reminders-service.js').then(({ addReminder }) => {
-            addReminder({
-              time: times[s.dataset.v],
-              medName: '',
-              days: ['пн','вт','ср','чт','пт','сб','вс']
-            });
+      render: () => {
+        const DAYS = ['пн','вт','ср','чт','пт','сб','вс'];
+        const DAYS_LABELS = [
+          t('dow_mon'), t('dow_tue'), t('dow_wed'), t('dow_thu'),
+          t('dow_fri'), t('dow_sat'), t('dow_sun')
+        ];
+        return `
+          <div style="font-size:52px;margin-bottom:16px;">⏰</div>
+          <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:8px;line-height:1.3;">${t("ob_reminder_title")}</div>
+          <div style="font-size:14px;color:#aaa;margin-bottom:20px;">${t("ob_reminder_sub")}</div>
+
+          <div style="width:100%;background:rgba(232,237,230,0.9);border-radius:16px;padding:16px;box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #fff;box-sizing:border-box;">
+
+            <input id="obMedName" type="text" placeholder="${t('reminder_med_placeholder')}" style="
+              width:100%;padding:12px 14px;border:none;border-radius:12px;
+              background:rgba(255,255,255,0.8);
+              box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;
+              font-size:15px;color:#333;box-sizing:border-box;margin-bottom:12px;
+            ">
+
+            <input id="obMedTime" type="time" value="08:00" style="
+              width:100%;padding:12px 14px;border:none;border-radius:12px;
+              background:rgba(255,255,255,0.8);
+              box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;
+              font-size:20px;font-weight:700;color:#3d3d3d;
+              box-sizing:border-box;margin-bottom:12px;
+            ">
+
+            <div style="font-size:12px;color:#aaa;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">${t('reminder_days')}</div>
+            <div id="obDaysRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${DAYS.map((d, i) => `
+                <div class="ob-day-btn" data-day="${d}" style="
+                  width:38px;height:38px;border-radius:50%;
+                  background:linear-gradient(145deg,#7eb8d4,#6aa5c0);
+                  color:#fff;box-shadow:inset 2px 2px 5px rgba(0,0,0,0.1);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:12px;font-weight:700;cursor:pointer;
+                  -webkit-tap-highlight-color:transparent;
+                ">${DAYS_LABELS[i]}</div>
+              `).join('')}
+            </div>
+
+            <div style="font-size:12px;color:#aaa;margin-top:14px;text-align:center;">${t('ob_reminder_skip_hint')}</div>
+          </div>
+        `;
+      },
+      needsChoice: false,
+      _selectedDays: ['пн','вт','ср','чт','пт','сб','вс'],
+      onMount() {
+        this._selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+        overlay.querySelectorAll('.ob-day-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const day = btn.dataset.day;
+            if (this._selectedDays.includes(day)) {
+              this._selectedDays = this._selectedDays.filter(d => d !== day);
+              btn.style.background = 'rgba(232,237,230,0.9)';
+              btn.style.color = '#888';
+              btn.style.boxShadow = '3px 3px 7px #b8c4b4,-3px -3px 7px #fff';
+            } else {
+              this._selectedDays.push(day);
+              btn.style.background = 'linear-gradient(145deg,#7eb8d4,#6aa5c0)';
+              btn.style.color = '#fff';
+              btn.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.1)';
+            }
           });
+        });
+      },
+      onNext() {
+        const medName = overlay.querySelector('#obMedName')?.value.trim() || '';
+        const time = overlay.querySelector('#obMedTime')?.value || '08:00';
+        const days = this._selectedDays;
+        if (days.length > 0) {
+          profile.medReminder = time;
+          addReminder({ time, medName, days });
+        } else {
+          profile.medReminder = null;
         }
         return true;
       }
