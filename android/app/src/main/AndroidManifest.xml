@@ -64,11 +64,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Точные будильники — нужны для еженедельных напоминаний -->
-    <!-- Android 12 (API 31): SCHEDULE_EXACT_ALARM — требует разрешения пользователя -->
-    <!-- Android 13+ (API 33): USE_EXACT_ALARM — не требует, но нужно объявить -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
-        android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"
+        android:minSdkVersion="33"/>
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
     <!-- Google Play Billing -->

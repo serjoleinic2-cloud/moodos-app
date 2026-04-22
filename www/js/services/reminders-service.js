@@ -8,6 +8,16 @@ function getLocalNotifications() {
   } catch(e) { return null; }
 }
 
+export async function canPlaySound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await ctx.close();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
 export function getReminders() {
   try {
     return JSON.parse(localStorage.getItem(LS_KEY)) || [];
@@ -72,17 +82,32 @@ async function scheduleNotification({ id, time, medName, days }) {
       }
     }
 
+    // Проверяем доступность звука
+    const soundEnabled = await canPlaySound();
+
     try {
       await LocalNotifications.createChannel({
         id: 'med_reminders',
         name: 'Напоминания о лекарствах',
         description: 'Уведомления о приёме лекарств',
         importance: 5,
-        sound: 'default',
+        sound: soundEnabled ? 'default' : null,
         vibration: true,
         lights: true,
       });
     } catch(e) { /* канал уже существует */ }
+
+    try {
+      if (window.Capacitor?.getPlatform() === 'android') {
+        const { AlarmManager } = window.Capacitor?.Plugins || {};
+        if (AlarmManager?.canScheduleExactAlarms) {
+          const { value } = await AlarmManager.canScheduleExactAlarms();
+          if (!value) {
+            await AlarmManager.requestExactAlarmPermission();
+          }
+        }
+      }
+    } catch(e) { /* AlarmManager недоступен */ }
 
     const [hours, minutes] = time.split(':').map(Number);
     const dayMap = { пн:1, вт:2, ср:3, чт:4, пт:5, сб:6, вс:0 };
@@ -106,14 +131,14 @@ async function scheduleNotification({ id, time, medName, days }) {
           title: t('reminder_notif_title') || '💊 Time to take your medication',
           body: medName || (t('reminder_notif_body') || "Don't forget to take your medication"),
           schedule: { at: target, allowWhileIdle: true, exact: true },
-          sound: 'default',
+          ...(soundEnabled ? { sound: 'default' } : {}),
           channelId: 'med_reminders',
         });
       }
     });
     
     await LocalNotifications.schedule({ notifications });
-    console.log('[reminders] scheduled:', notifications.length);
+    console.log('[reminders] scheduled:', notifications.length, '| sound:', soundEnabled);
   } catch(e) {
     console.warn('[reminders] schedule failed:', e);
   }

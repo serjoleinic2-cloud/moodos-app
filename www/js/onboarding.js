@@ -191,6 +191,30 @@ export function initOnboarding(onComplete) {
       }
     },
 
+    // ШАГ 5.5: ЗАПРОС РАЗРЕШЕНИЯ НА УВЕДОМЛЕНИЯ
+    {
+      id: "notif_permission",
+      shouldSkip: () => !profile.takesMeds || profile.takesMeds === "нет" || profile.takesMeds === "не_скажу",
+      render: () => `
+        <div style="font-size:52px;margin-bottom:20px;">🔔</div>
+        <div style="font-size:22px;font-weight:700;color:#3a3530;margin-bottom:10px;line-height:1.3;">${t("ob_notif_title")}</div>
+        <div style="font-size:15px;color:#777;line-height:1.65;margin-bottom:20px;">${t("ob_notif_sub")}</div>
+        <div style="font-size:13px;color:#bbb;">${t("ob_notif_hint")}</div>
+      `,
+      needsChoice: false,
+      onMount() {
+        try {
+          const LN = window.Capacitor?.Plugins?.LocalNotifications;
+          if (LN) {
+            LN.requestPermissions().then(result => {
+              console.log('[onboarding] notification permission:', result.display);
+            }).catch(e => console.warn('[onboarding] permission request failed:', e));
+          }
+        } catch(e) {}
+      },
+      onNext: () => true
+    },
+
     // ШАГ 6: НАСТРОЙКА НАПОМИНАНИЯ О ЛЕКАРСТВЕ
     {
       id: "reminder",

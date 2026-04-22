@@ -723,8 +723,20 @@ export async function showRemindersModal() {
 
   const overlay = document.createElement('div');
   overlay.className = 'health-modal-overlay';
+  
+  // Проверяем звук и показываем баннер если нужно
+  const { canPlaySound } = await import('../services/reminders-service.js');
+  const hasSound = await canPlaySound();
+  
   overlay.innerHTML = `
     <div class="health-modal" style="max-height:85vh;overflow-y:auto;">
+      ${!hasSound ? `
+      <div id="soundPermBanner" style="background:#fff3e0;border-radius:12px;padding:12px 14px;margin-bottom:14px;border-left:3px solid #f0a500;">
+        <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:4px;">🔔 ${t('sound_prompt_title')}</div>
+        <div style="font-size:12px;color:#bf360c;margin-bottom:8px;">${t('sound_prompt_body')}</div>
+        <button id="openSoundSettings" style="width:100%;padding:9px;border:none;border-radius:9px;background:#f0a500;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">${t('sound_prompt_open')}</button>
+      </div>
+      ` : ''}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div class="modal-title" style="margin-bottom:0;">⏰ Напоминания</div>
         <button id="addReminderToggle" style="
@@ -744,6 +756,18 @@ export async function showRemindersModal() {
     </div>
   `;
   document.body.appendChild(overlay);
+
+  // Обработчик кнопки открытия настроек
+  overlay.querySelector('#openSoundSettings')?.addEventListener('click', () => {
+    try {
+      const { App } = window.Capacitor?.Plugins || {};
+      if (App?.openUrl) {
+        App.openUrl({ url: 'app-settings:' });
+      } else if (window.Capacitor?.getPlatform() === 'android') {
+        window.Capacitor.Plugins.App?.openUrl({ url: 'android.settings.APPLICATION_DETAILS_SETTINGS' });
+      }
+    } catch(e) {}
+  });
 
   let selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
   

@@ -9,7 +9,9 @@
   "plugins": {
     "LocalNotifications": {
       "smallIcon": "ic_stat_icon_config_sample",
-      "iconColor": "#4caf87"
+      "iconColor": "#4caf87",
+      "sound": "default",
+      "importance": 5
     },
     "Media": {
       "androidGalleryMode": false

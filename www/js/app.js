@@ -381,9 +381,11 @@ if (!window.__neyraAppRunning) {
       console.error('[APP ERROR] initNavigation:', e);
     }
     
-    // Восстановление уведомлений после перезагрузки устройства
-    checkAutoReminder();
-    checkRemindersOnBoot();
+    // Восстановление уведомлений — откладываем чтобы Capacitor успел инициализироваться
+    setTimeout(() => {
+      checkAutoReminder();
+      checkRemindersOnBoot();
+    }, 1500);
     
     const initAvatar = () => {
       try {

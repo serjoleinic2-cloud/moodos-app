@@ -5,6 +5,7 @@ import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { getProfile } from "../services/user-profile.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
 import { t, getLang } from "../i18n.js";
+import { canPlaySound } from "../services/reminders-service.js";
 
 async function requestNotificationPermission() {
   try {
@@ -17,17 +18,32 @@ async function requestNotificationPermission() {
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
+    
+    // Проверяем доступность звука
+    const soundEnabled = await canPlaySound();
+
     try {
       await LocalNotifications.createChannel({
         id: 'pdf_report',
         name: 'Отчёт для врача',
         description: 'Напоминания об отправке отчёта',
         importance: 5,
-        sound: 'default',
+        sound: soundEnabled ? 'default' : null,
         vibration: true,
         lights: true,
       });
     } catch(e) { /* канал уже существует */ }
+
+    try {
+      if (window.Capacitor?.getPlatform() === 'android') {
+        const { AlarmManager } = window.Capacitor?.Plugins || {};
+        if (AlarmManager?.canScheduleExactAlarms) {
+          const { value } = await AlarmManager.canScheduleExactAlarms();
+          if (!value) await AlarmManager.requestExactAlarmPermission();
+        }
+      }
+    } catch(e) {}
+
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9099)
@@ -54,7 +70,7 @@ async function scheduleNotifications(days, time, period) {
           title: "Neyra 📄",
           body: t("pr_notif_body").replace("{period}", period),
           schedule: { at: target, allowWhileIdle: true, exact: true },
-          sound: 'default',
+          ...(soundEnabled ? { sound: 'default' } : {}),
           channelId: 'pdf_report',
           actionTypeId: "OPEN_REPORT",
           extra: { action: "openReport" }
@@ -268,6 +284,31 @@ export function showPdfReportModal() {
         '<div class="pr-auto-status" id="prAutoStatus">' + autoStatusText + '</div>' +
       '</div>' +
     '</div>';
+
+  // Проверяем звук и показываем баннер если нужно
+  (async () => {
+    const hasSound = await canPlaySound();
+    if (!hasSound) {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#fff3e0;border-radius:12px;padding:12px 14px;margin:0 16px 14px;border-left:3px solid #f0a500;';
+      banner.innerHTML = `
+        <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:4px;">🔔 ${t('sound_prompt_title')}</div>
+        <div style="font-size:12px;color:#bf360c;margin-bottom:8px;">${t('sound_prompt_body')}</div>
+        <button id="prOpenSoundSettings" style="width:100%;padding:9px;border:none;border-radius:9px;background:#f0a500;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">${t('sound_prompt_open')}</button>
+      `;
+      screen.querySelector('.pr-wrap')?.prepend(banner);
+      banner.querySelector('#prOpenSoundSettings')?.addEventListener('click', () => {
+        try {
+          const { App } = window.Capacitor?.Plugins || {};
+          if (App?.openUrl) {
+            App.openUrl({ url: 'app-settings:' });
+          } else if (window.Capacitor?.getPlatform() === 'android') {
+            window.Capacitor.Plugins.App?.openUrl({ url: 'android.settings.APPLICATION_DETAILS_SETTINGS' });
+          }
+        } catch(e) {}
+      });
+    }
+  })();
 
   document.body.appendChild(screen);
   screen.querySelector("#prBack").addEventListener("click", function() { screen.remove(); });
