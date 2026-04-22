@@ -1,3 +1,12 @@
+// Cache-bust — версия подтягивается автоматически из package.json
+const _savedAppVersion = localStorage.getItem('app_version');
+if (_savedAppVersion !== __APP_VERSION__) {
+  localStorage.setItem('app_version', __APP_VERSION__);
+  if (_savedAppVersion !== null) {
+    window.location.reload(true);
+  }
+}
+
 // app.js — Neyra boot
 // ⚠️ IMPORTS ДОЛЖНЫ быть в начале файла (ES modules requirement)
 

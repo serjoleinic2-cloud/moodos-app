@@ -3,7 +3,8 @@
   "appName": "Neyra",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "cleartext": true
   },
   "plugins": {
     "LocalNotifications": {
