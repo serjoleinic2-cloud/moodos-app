@@ -243,7 +243,7 @@ export function initOnboarding(onComplete) {
           <div style="width:100%;background:rgba(232,237,230,0.9);border-radius:16px;padding:14px;box-shadow:4px 4px 9px #b8c4b4,-4px -4px 9px #fff;box-sizing:border-box;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div style="font-size:13px;font-weight:700;color:#888;">${t('settings_med_reminders_label')}</div>
-              <button id="obToggleAddForm" style="padding:7px 13px;border:none;border-radius:10px;background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">+ ${t('reminder_add_btn') || 'Добавить'}</button>
+              <button id="obToggleAddForm" style="padding:7px 13px;border:none;border-radius:10px;background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">${t('reminder_add_btn') || '+ Добавить'}</button>
             </div>
             ${addFormHTML}
             ${editFormHTML}
@@ -544,7 +544,7 @@ export function initOnboarding(onComplete) {
       render();
     });
 
-    if (step.onMount) setTimeout(step.onMount, 30);
+    if (step.onMount) setTimeout(() => step.onMount(), 30);
   }
 
   function finish() {
