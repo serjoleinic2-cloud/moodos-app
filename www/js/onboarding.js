@@ -205,7 +205,7 @@ export function initOnboarding(onComplete) {
         const listHTML = this._reminders.length === 0
           ? `<div style="text-align:center;color:#bbb;padding:16px;font-size:13px;">${t('reminder_empty') || 'Нет напоминаний'}<br>${t('reminder_empty_hint') || 'Добавьте первое 👇'}</div>`
           : this._reminders.map(r => `
-              <div style="background:rgba(220,228,218,0.7);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;">
+              <div data-ob-card="${r.id}" style="background:rgba(220,228,218,0.7);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;">
                 <div style="flex:1;min-width:0;">
                   <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:20px;font-weight:700;color:#3a3530;">${r.time}</span>
@@ -322,6 +322,10 @@ export function initOnboarding(onComplete) {
             step._editingId = id;
             step._editSelectedDays = [...reminder.days];
 
+            // Скрыть карточку редактируемого элемента
+            const card = overlay.querySelector(`[data-ob-card="${id}"]`);
+            if (card) card.style.display = 'none';
+
             const editForm = overlay.querySelector('#obEditForm');
             editForm.style.display = 'block';
             editForm.innerHTML = `
@@ -378,6 +382,7 @@ export function initOnboarding(onComplete) {
               step._editingId = null;
               editForm.style.display = 'none';
               editForm.innerHTML = '';
+              rerenderList();
             });
           }
         });
@@ -390,7 +395,7 @@ export function initOnboarding(onComplete) {
           listEl.innerHTML = step._reminders.length === 0
             ? `<div style="text-align:center;color:#bbb;padding:16px;font-size:13px;">${t('reminder_empty') || 'Нет напоминаний'}<br>${t('reminder_empty_hint') || 'Добавьте первое 👇'}</div>`
             : step._reminders.map(r => `
-                <div style="background:rgba(220,228,218,0.7);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;">
+                <div data-ob-card="${r.id}" style="background:rgba(220,228,218,0.7);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;">
                   <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:center;gap:6px;">
                       <span style="font-size:20px;font-weight:700;color:#3a3530;">${r.time}</span>

@@ -617,7 +617,7 @@ export async function showRemindersModal() {
       </div>`;
     }
     return reminders.map(r => `
-      <div style="
+      <div data-reminder-card="${r.id}" style="
         background:rgba(232,237,230,0.9);
         border-radius:16px;
         padding:14px 16px;
@@ -809,6 +809,9 @@ export async function showRemindersModal() {
         overlay.querySelector('#addReminderForm').style.display = 'none';
         overlay.querySelector('#editFormContainer').innerHTML = renderEditForm(reminder);
         bindEditFormEvents();
+        // Скрыть карточку редактируемого элемента
+        const card = overlay.querySelector(`[data-reminder-card="${id}"]`);
+        if (card) card.style.display = 'none';
       }
       return;
     }
@@ -860,6 +863,8 @@ export async function showRemindersModal() {
     overlay.querySelector('#cancelEditBtn').addEventListener('click', () => {
       overlay.querySelector('#editFormContainer').innerHTML = '';
       editingId = null;
+      // Восстановить список
+      overlay.querySelector('#remindersList').innerHTML = renderList();
     });
   }
 
