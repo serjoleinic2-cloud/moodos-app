@@ -72,6 +72,18 @@ async function scheduleNotification({ id, time, medName, days }) {
       }
     }
 
+    try {
+      await LocalNotifications.createChannel({
+        id: 'med_reminders',
+        name: 'Напоминания о лекарствах',
+        description: 'Уведомления о приёме лекарств',
+        importance: 5,
+        sound: 'default',
+        vibration: true,
+        lights: true,
+      });
+    } catch(e) { /* канал уже существует */ }
+
     const [hours, minutes] = time.split(':').map(Number);
     const dayMap = { пн:1, вт:2, ср:3, чт:4, пт:5, сб:6, вс:0 };
     
@@ -95,6 +107,7 @@ async function scheduleNotification({ id, time, medName, days }) {
           body: medName || (t('reminder_notif_body') || "Don't forget to take your medication"),
           schedule: { at: target, allowWhileIdle: true, exact: true },
           sound: 'default',
+          channelId: 'med_reminders',
         });
       }
     });

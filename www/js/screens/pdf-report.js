@@ -17,6 +17,17 @@ async function requestNotificationPermission() {
 async function scheduleNotifications(days, time, period) {
   try {
     const { LocalNotifications } = Capacitor.Plugins;
+    try {
+      await LocalNotifications.createChannel({
+        id: 'pdf_report',
+        name: 'Отчёт для врача',
+        description: 'Напоминания об отправке отчёта',
+        importance: 5,
+        sound: 'default',
+        vibration: true,
+        lights: true,
+      });
+    } catch(e) { /* канал уже существует */ }
     const pending = await LocalNotifications.getPending();
     const moodosIds = pending.notifications
       .filter(n => n.id >= 9000 && n.id <= 9099)
@@ -44,6 +55,7 @@ async function scheduleNotifications(days, time, period) {
           body: t("pr_notif_body").replace("{period}", period),
           schedule: { at: target, allowWhileIdle: true, exact: true },
           sound: 'default',
+          channelId: 'pdf_report',
           actionTypeId: "OPEN_REPORT",
           extra: { action: "openReport" }
         });

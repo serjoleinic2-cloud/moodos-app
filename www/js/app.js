@@ -65,6 +65,8 @@ import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 import { runReconciliation } from "./core/state-execution-engine.js";
+import { checkAutoReminder } from './screens/pdf-report.js';
+import { checkRemindersOnBoot } from './services/reminders-service.js';
 
 // =====================================
 // 🛡️ MULTI INIT GUARD
@@ -378,6 +380,10 @@ if (!window.__neyraAppRunning) {
     } catch (e) {
       console.error('[APP ERROR] initNavigation:', e);
     }
+    
+    // Восстановление уведомлений после перезагрузки устройства
+    checkAutoReminder();
+    checkRemindersOnBoot();
     
     const initAvatar = () => {
       try {
