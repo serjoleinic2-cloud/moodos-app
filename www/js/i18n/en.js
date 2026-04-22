@@ -53,6 +53,7 @@ export const en = {
     paywall_title: "Full Access to Yourself",
     paywall_subtitle: "Unlock all app features",
     paywall_open_btn: "Unlock Access",
+    back: "← Back",
     paywall_back: "Back",
     paywall_billing_unavailable: "Purchases temporarily unavailable. Try later.",
     paywall_purchase_failed: "Purchase failed. Try again later.",

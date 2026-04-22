@@ -53,6 +53,7 @@ export const es = {
     paywall_title: "Acceso completo a ti",
     paywall_subtitle: "Desbloquea todas las funciones de la aplicación",
     paywall_open_btn: "Desbloquear acceso",
+    back: "← Atrás",
     paywall_back: "Atrás",
     paywall_billing_unavailable: "Compras temporalmente no disponibles. Intenta más tarde.",
     paywall_purchase_failed: "La compra falló. Intenta de nuevo más tarde.",

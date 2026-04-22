@@ -4,6 +4,9 @@ export function onEnter() {
   const el = document.querySelector('[data-screen="howItWorks"]');
   if (!el) return;
   el.innerHTML = render();
+  el.querySelector('#howBackBtn')?.addEventListener('click', () => {
+    if (window.navigateTo) window.navigateTo('settings');
+  });
 }
 
 function section(title, text) {
@@ -125,6 +128,13 @@ function render() {
       <div class="how-footer">
         ${t("how_footer")}
       </div>
+      
+      <button id="howBackBtn" style="
+        width:100%;padding:14px;border:none;border-radius:14px;
+        background:linear-gradient(145deg,#9f7aea,#805ad5);
+        color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        margin-top:20px;
+      ">${t('back') || '← Back'}</button>
     </div>
   `;
 }

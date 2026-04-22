@@ -702,6 +702,7 @@ export const hi = {
     paywall_title: "अपने आप में पूर्ण पहुंच",
     paywall_subtitle: "ऐप के सभी फ़ीचर्स अनलॉक करें",
     paywall_open_btn: "पहुंच अनलॉक करें",
+    back: "← वापस",
     paywall_back: "वापस",
     paywall_billing_unavailable: "खरीदारी अस्थायी रूप से अनुपलब्ध। बाद में प्रयास करें।",
     paywall_purchase_failed: "खरीद विफल। फिर से प्रयास करें।",

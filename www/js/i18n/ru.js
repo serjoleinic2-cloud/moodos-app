@@ -52,6 +52,7 @@ export const ru = {
     paywall_title: "Полный доступ к себе",
     paywall_subtitle: "Разблокируй все функции приложения",
     paywall_open_btn: "Открыть доступ",
+    back: "← Назад",
     paywall_back: "Назад",
     paywall_billing_unavailable: "Покупки временно недоступны. Попробуйте позже.",
     paywall_purchase_failed: "Покупка не удалась. Попробуйте ещё раз.",

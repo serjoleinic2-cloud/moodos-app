@@ -6,6 +6,9 @@ export function onEnter() {
   if (!el) return;
   el.innerHTML = render();
   bindEvents(el);
+  el.querySelector('#dsBackBtn')?.addEventListener('click', () => {
+    if (window.navigateTo) window.navigateTo('settings');
+  });
 }
 
 function bindEvents(el) {
@@ -146,6 +149,13 @@ function render() {
       <button class="ds-btn" id="dsBackupBtn">
         ${t("btn_export")}
       </button>
+      
+      <button id="dsBackBtn" style="
+        width:100%;padding:14px;border:none;border-radius:14px;
+        background:linear-gradient(145deg,#9f7aea,#805ad5);
+        color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        margin-top:12px;
+      ">${t('back') || '← Back'}</button>
     </div>
   `;
 }

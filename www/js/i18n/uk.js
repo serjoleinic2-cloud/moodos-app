@@ -53,6 +53,7 @@ export const uk = {
     paywall_title: "Повний доступ до себе",
     paywall_subtitle: "Розблокуй усі функції додатку",
     paywall_open_btn: "Відкрити доступ",
+    back: "← Назад",
     paywall_back: "Назад",
     paywall_billing_unavailable: "Покупки тимчасово недоступні. Спробуйте пізніше.",
     paywall_purchase_failed: "Покупка не вдалася. Спробуйте ще раз.",

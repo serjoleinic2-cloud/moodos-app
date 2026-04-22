@@ -252,7 +252,7 @@ export function initOnboarding(onComplete) {
             <input id="obMedTime" type="time" value="08:00" style="width:100%;padding:11px 13px;border:none;border-radius:11px;background:rgba(255,255,255,0.8);box-shadow:inset 3px 3px 6px #b8c4b4,inset -3px -3px 6px #fff;font-size:18px;font-weight:700;color:#3d3d3d;box-sizing:border-box;margin-bottom:10px;">
             <div style="font-size:11px;color:#aaa;margin-bottom:6px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">${t('reminder_days')}</div>
             <div id="obAddDaysRow" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
-              ${DAYS.map((d,i) => `<div class="ob-add-day" data-day="${d}" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(145deg,#7eb8d4,#6aa5c0);color:#fff;box-shadow:inset 2px 2px 5px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">${DAYS_LABELS[i]}</div>`).join('')}
+              ${DAYS.map((d,i) => `<div class="ob-add-day" data-day="${d}" style="width:34px;height:34px;border-radius:50%;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #fff;color:#888;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">${DAYS_LABELS[i]}</div>`).join('')}
             </div>
             <button id="obSaveNewBtn" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(145deg,#4caf87,#45a070);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">${t('save')}</button>
           </div>
@@ -277,9 +277,9 @@ export function initOnboarding(onComplete) {
         `;
       },
       needsChoice: false,
-      _selectedDays: ['пн','вт','ср','чт','пт','сб','вс'],
+      _selectedDays: [],
       onMount() {
-        this._selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+        this._selectedDays = [];
 
         const DAYS = ['пн','вт','ср','чт','пт','сб','вс'];
         const DAYS_LABELS = [t('dow_mon'),t('dow_tue'),t('dow_wed'),t('dow_thu'),t('dow_fri'),t('dow_sat'),t('dow_sun')];
@@ -322,7 +322,7 @@ export function initOnboarding(onComplete) {
 
           overlay.querySelector('#obMedName').value = '';
           overlay.querySelector('#obMedTime').value = '08:00';
-          step._selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+          step._selectedDays = [];
           overlay.querySelector('#obAddForm').style.display = 'none';
 
           rerenderList();

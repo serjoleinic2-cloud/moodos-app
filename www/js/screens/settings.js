@@ -586,7 +586,7 @@ export async function showRemindersModal() {
     await import('../services/reminders-service.js');
 
   const DAYS = ['пн','вт','ср','чт','пт','сб','вс'];
-  const DAYS_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const DAYS_LABELS = [t('dow_mon'),t('dow_tue'),t('dow_wed'),t('dow_thu'),t('dow_fri'),t('dow_sat'),t('dow_sun')];
   let editingId = null;
   let editSelectedDays = [];
 
@@ -738,7 +738,7 @@ export async function showRemindersModal() {
       </div>
       ` : ''}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div class="modal-title" style="margin-bottom:0;">⏰ Напоминания</div>
+        <div class="modal-title" style="margin-bottom:0;">⏰ ${t('med_reminder')}</div>
         <button id="addReminderToggle" style="
           padding:8px 14px;border:none;border-radius:12px;
           background:linear-gradient(145deg,#9f7aea,#805ad5);
@@ -767,17 +767,9 @@ export async function showRemindersModal() {
         window.Capacitor.Plugins.App?.openUrl({ url: 'android.settings.APPLICATION_DETAILS_SETTINGS' });
       }
     } catch(e) {}
-  });
-
-  let selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+});
   
-  setTimeout(() => {
-    overlay.querySelectorAll('.day-btn').forEach(btn => {
-      btn.style.background = 'linear-gradient(145deg,#7eb8d4,#6aa5c0)';
-      btn.style.color = '#fff';
-      btn.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.1)';
-    });
-  }, 10);
+  let selectedDays = [];
 
   overlay.querySelector('#addReminderToggle').addEventListener('click', () => {
     const form = overlay.querySelector('#addReminderForm');
