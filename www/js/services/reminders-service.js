@@ -28,6 +28,19 @@ export function saveReminders(reminders) {
   localStorage.setItem(LS_KEY, JSON.stringify(reminders));
 }
 
+async function cancelNotification(id) {
+  try {
+    const LocalNotifications = getLocalNotifications();
+    if (!LocalNotifications) return;
+    const base = (id % 100000) * 1000;
+    const ids = Array.from({ length: 56 }, (_, i) => ({ id: base + i }));
+    await LocalNotifications.cancel({ notifications: ids });
+    console.log('[reminders] cancelled:', id);
+  } catch(e) {
+    console.warn('[reminders] cancel failed:', e);
+  }
+}
+
 export function addReminder({ time, medName, days }) {
   const reminders = getReminders();
   const id = Date.now();
@@ -66,24 +79,30 @@ export function toggleReminder(id) {
 }
 
 async function scheduleNotification({ id, time, medName, days }) {
+  const log = (msg, data) => console.log(`[reminders] ${msg}`, data !== undefined ? JSON.stringify(data) : '');
+  const logErr = (msg, e) => console.error(`[reminders] ERROR ${msg}`, e?.message || e);
+
   try {
+    log('scheduleNotification called', { id, time, medName, days });
+
     const LocalNotifications = getLocalNotifications();
     if (!LocalNotifications) {
-      console.warn('[reminders] LocalNotifications not available');
+      logErr('LocalNotifications plugin NOT FOUND', null);
       return;
     }
-    
+    log('plugin found OK');
+
     const perm = await LocalNotifications.checkPermissions();
+    log('checkPermissions result', perm);
+
     if (perm.display !== 'granted') {
       const req = await LocalNotifications.requestPermissions();
+      log('requestPermissions result', req);
       if (req.display !== 'granted') {
-        console.warn('[reminders] permission denied');
+        logErr('permission denied', null);
         return;
       }
     }
-
-    // Проверяем доступность звука
-    const soundEnabled = await canPlaySound();
 
     try {
       await LocalNotifications.createChannel({
@@ -91,29 +110,39 @@ async function scheduleNotification({ id, time, medName, days }) {
         name: 'Напоминания о лекарствах',
         description: 'Уведомления о приёме лекарств',
         importance: 5,
-        sound: soundEnabled ? 'default' : null,
         vibration: true,
         lights: true,
       });
-    } catch(e) { /* канал уже существует */ }
+      log('channel created OK');
+    } catch(e) {
+      log('channel already exists (OK)', e?.message);
+    }
 
     try {
       if (window.Capacitor?.getPlatform() === 'android') {
         const { AlarmManager } = window.Capacitor?.Plugins || {};
+        log('AlarmManager plugin available', !!AlarmManager);
         if (AlarmManager?.canScheduleExactAlarms) {
           const { value } = await AlarmManager.canScheduleExactAlarms();
+          log('canScheduleExactAlarms', value);
           if (!value) {
+            log('requesting exact alarm permission...');
             await AlarmManager.requestExactAlarmPermission();
           }
+        } else {
+          log('AlarmManager.canScheduleExactAlarms NOT available');
         }
       }
-    } catch(e) { /* AlarmManager недоступен */ }
+    } catch(e) {
+      logErr('AlarmManager block', e);
+    }
 
     const [hours, minutes] = time.split(':').map(Number);
     const dayMap = { пн:1, вт:2, ср:3, чт:4, пт:5, сб:6, вс:0 };
     
     const notifications = [];
     const now = new Date();
+    log('current time', now.toISOString());
     
     let idCounter = 0;
     days.forEach((day) => {
@@ -123,7 +152,7 @@ async function scheduleNotification({ id, time, medName, days }) {
         target.setHours(hours, minutes, 0, 0);
         const currentDow = now.getDay();
         let daysUntil = (jsDow - currentDow + 7) % 7;
-        if (daysUntil === 0 && target.getTime() <= now.getTime() + 65000) daysUntil = 7;
+        if (daysUntil === 0 && target.getTime() <= now.getTime() + 30000) daysUntil = 7;
         daysUntil += week * 7;
         target.setDate(target.getDate() + daysUntil);
         notifications.push({
@@ -131,29 +160,22 @@ async function scheduleNotification({ id, time, medName, days }) {
           title: t('reminder_notif_title') || '💊 Time to take your medication',
           body: medName || (t('reminder_notif_body') || "Don't forget to take your medication"),
           schedule: { at: target, allowWhileIdle: true, exact: true },
-          ...(soundEnabled ? { sound: 'default' } : {}),
           channelId: 'med_reminders',
         });
       }
     });
-    
-    await LocalNotifications.schedule({ notifications });
-    console.log('[reminders] scheduled:', notifications.length, '| sound:', soundEnabled);
-  } catch(e) {
-    console.warn('[reminders] schedule failed:', e);
-  }
-}
 
-async function cancelNotification(id) {
-  try {
-    const LocalNotifications = getLocalNotifications();
-    if (!LocalNotifications) return;
+    log('notifications to schedule', notifications.length);
+    log('first notification', notifications[0]);
     
-    const base = (id % 100000) * 1000;
-    const ids = Array.from({ length: 56 }, (_, i) => ({ id: base + i }));
-    await LocalNotifications.cancel({ notifications: ids });
+    const result = await LocalNotifications.schedule({ notifications });
+    log('schedule() result', result);
+
+    const pending = await LocalNotifications.getPending();
+    log('pending after schedule', pending?.notifications?.length);
+
   } catch(e) {
-    console.warn('[reminders] cancel failed:', e);
+logErr('scheduleNotification outer catch', e);
   }
 }
 

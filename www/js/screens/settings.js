@@ -807,7 +807,13 @@ export async function showRemindersModal() {
     overlay.querySelector('#addReminderForm').style.display = 'none';
     overlay.querySelector('#newMedName').value = '';
     overlay.querySelector('#newMedTime').value = '08:00';
-    selectedDays = ['пн','вт','ср','чт','пт','сб','вс'];
+    overlay.querySelector('#newMedName').style.boxShadow = '';
+    selectedDays = [];
+    overlay.querySelectorAll('.day-btn').forEach(btn => {
+      btn.style.background = 'rgba(232,237,230,0.9)';
+      btn.style.color = '#888';
+      btn.style.boxShadow = '3px 3px 7px #b8c4b4,-3px -3px 7px #fff';
+    });
     refresh();
   });
 
