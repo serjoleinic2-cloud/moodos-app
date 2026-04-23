@@ -102,29 +102,22 @@
   </div>
 
   <!-- Resilience карточка с перевёртышем -->
-  <div class="flip-wrap-home" id="resilienceFlipCard" style="margin-top:16px;">
+  <div class="flip-wrap-home" id="resilienceFlipCard">
     <div class="flip-inner-home">
 
       <!-- ЛИЦО -->
       <div class="flip-front-home">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b0b8c4;margin-bottom:4px;">🛡️ <span data-i18n="resilience_card_title">Индекс устойчивости</span></div>
-            <div id="resilienceIndexValue" style="font-size:32px;font-weight:800;color:#3d3d3d;">—</div>
-            <div id="resilienceIndexLabel" style="font-size:12px;color:#aaa;margin-top:2px;"></div>
-          </div>
-          <div style="text-align:right;">
-            <div id="resilienceDelta" style="font-size:13px;font-weight:700;margin-bottom:4px;"></div>
-            <div style="font-size:10px;color:#ccc;" data-i18n="resilience_card_hint">тап → график</div>
-          </div>
-        </div>
+        <div class="flip-label-home" data-i18n="resilience_card_title">Индекс устойчивости</div>
+        <div id="resilienceIndexValue" class="flip-value-home">—</div>
+        <div id="resilienceIndexLabel" class="flip-sub-home"></div>
+        <div id="resilienceHint" class="flip-hint-home" data-i18n="tap_for_details">tap → details</div>
       </div>
 
       <!-- ОБОРОТ -->
       <div class="flip-back-home">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b0b8c4;margin-bottom:8px;">📈 <span data-i18n="resilience_card_month">Динамика за месяц</span></div>
-        <canvas id="resilienceSparkline" height="60" style="width:100%;"></canvas>
-        <div id="resilienceSparklineLabel" style="font-size:11px;color:#888;margin-top:6px;text-align:center;"></div>
+        <div class="flip-label-home" data-i18n="resilience_card_month">Динамика за месяц</div>
+        <canvas id="resilienceSparkline" style="width:100%;height:100px;"></canvas>
+        <div id="resilienceSparklineLabel" class="flip-sub-home" style="margin-top:6px;text-align:center;"></div>
       </div>
 
     </div>

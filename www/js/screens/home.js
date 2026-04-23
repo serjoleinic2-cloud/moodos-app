@@ -360,6 +360,9 @@ function initResilienceCard() {
     const card = document.getElementById('resilienceFlipCard');
     if (!card) return;
 
+    // Сбрасываем состояние при каждом входе
+    card.classList.remove('resilience-flipped');
+
     const index = getResilienceIndex();
     const label = getResilienceLabel(index);
     const history = getMoodHistory();
@@ -370,6 +373,18 @@ function initResilienceCard() {
 
     if (valEl) valEl.textContent = index !== null ? index + '%' : '—';
     if (labelEl) labelEl.textContent = label;
+
+    // Добавляем обработчик только один раз
+    if (!card._flipListenerAdded) {
+      card.addEventListener('click', () => {
+        const wasFlipped = card.classList.contains('resilience-flipped');
+        card.classList.toggle('resilience-flipped');
+        if (!wasFlipped) {
+          setTimeout(() => drawSparkline(history), 280);
+        }
+      });
+      card._flipListenerAdded = true;
+    }
 
     if (deltaEl && history.length >= 5) {
       const now = Date.now();
@@ -408,6 +423,8 @@ function initResilienceCard() {
         setTimeout(() => drawSparkline(history), 280);
       }
     });
+
+    card._flipListenerAdded = true;
 
   } catch(e) {
     console.warn('[RESILIENCE CARD]', e);
@@ -529,6 +546,12 @@ export function onExit() {
   const container = document.getElementById('eventsContainer');
   if (container) {
     cleanupEventsListener(container);
+  }
+
+  // Сбрасываем flip карточку при выходе
+  const card = document.getElementById('resilienceFlipCard');
+  if (card) {
+    card.classList.remove('resilience-flipped');
   }
 }
 
