@@ -39,6 +39,7 @@ export function initNavigation() {
     paywall:   () => import("./screens/paywall.js"),
     howItWorks: () => import("./screens/how-it-works.js"),
     dataStorage: () => import("./screens/data-storage.js"),
+    medals:    () => import("./screens/medals.js"),
   };
 
   async function loadScreen(name) {
@@ -98,6 +99,8 @@ export function initNavigation() {
     toolsOverlay.style.zIndex  = "100";
     toolsPanel.style.zIndex    = "101";
   }
+
+  window.openToolsMenuDirect = openToolsMenu;
 
   function openScreen(name) {
     // Stop meditation FIRST if active (before any screen switch)

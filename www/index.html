@@ -41,8 +41,29 @@
     </div>
   </div>
 
+  <!-- Вызов дня -->
+  <div id="dailyChallengeBar" style="display:none; margin:12px 16px;">
+    <div style="
+      padding:16px;
+      border-radius:16px;
+      background:rgba(232,237,230,0.9);
+      box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;
+      text-align:center;
+    ">
+      <div style="font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:#9f7aea;margin-bottom:10px;" data-i18n="challenge_title">Вызов дня</div>
+      <div id="challengeText" style="font-size:14px;color:#555;line-height:1.4;margin-bottom:14px;"></div>
+      <button id="challengeBtn" style="
+        padding:10px 28px;
+        border:none;border-radius:12px;
+        background:linear-gradient(145deg,#9f7aea,#805ad5);
+        color:#fff;font-size:13px;font-weight:600;
+        cursor:pointer;
+      "></button>
+    </div>
+  </div>
+
   <!-- INSIGHT CARD -->
-  <div id="homeInsightCard" class="card" style="display:none; background: linear-gradient(145deg, #e8f5e9, #c8e6c9); transition: opacity 0.4s ease;">
+  <div id="homeInsightCard" class="card" style="display:none; background: linear-gradient(145deg, #e8f5e9, #c8e6c9); transition: opacity 0.4s ease; padding:14px 16px;">
     <div style="font-size:12px; color:#2e7d32; margin-bottom:4px; font-weight:600;">💡 <span data-i18n="home_insight_label">Инсайт</span></div>
     <div id="homeInsightText" style="font-size:14px; color:#1b5e20; line-height:1.4;"></div>
   </div>
@@ -55,7 +76,7 @@
 
   <!-- AI REFLECTION -->
   <div class="card">
-    <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_daily_reflection">Дневная рефлексия</div>
+    <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_daily_reflection">Текстовые заметки</div>
     <textarea id="reflectionInput" data-i18n-placeholder="reflection_placeholder" placeholder="Опиши свой день..."></textarea>
     <div style="display:flex;gap:10px;margin-top:12px;">
       <button id="confirmBtn" style="flex:1;padding:12px;border-radius:12px;background:#4caf87;color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;opacity:0.6;" data-i18n="home_confirm" disabled>Сохранить</button>
@@ -78,6 +99,35 @@
     <div style="font-size:14px; color:#999; margin-bottom:6px;" data-i18n="home_stability_index">Индекс устойчивости</div>
     <div id="stabilityValue" style="font-size:22px; font-weight:700; color:#3a3530;">--%</div>
     <div id="stabilityTrend" style="font-size:13px; color:#888; margin-top:4px;" data-i18n="home_stable">→ стабильно</div>
+  </div>
+
+  <!-- Resilience карточка с перевёртышем -->
+  <div class="flip-wrap-home" id="resilienceFlipCard" style="margin-top:16px;">
+    <div class="flip-inner-home">
+
+      <!-- ЛИЦО -->
+      <div class="flip-front-home">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b0b8c4;margin-bottom:4px;">🛡️ <span data-i18n="resilience_card_title">Индекс устойчивости</span></div>
+            <div id="resilienceIndexValue" style="font-size:32px;font-weight:800;color:#3d3d3d;">—</div>
+            <div id="resilienceIndexLabel" style="font-size:12px;color:#aaa;margin-top:2px;"></div>
+          </div>
+          <div style="text-align:right;">
+            <div id="resilienceDelta" style="font-size:13px;font-weight:700;margin-bottom:4px;"></div>
+            <div style="font-size:10px;color:#ccc;" data-i18n="resilience_card_hint">тап → график</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ОБОРОТ -->
+      <div class="flip-back-home">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b0b8c4;margin-bottom:8px;">📈 <span data-i18n="resilience_card_month">Динамика за месяц</span></div>
+        <canvas id="resilienceSparkline" height="60" style="width:100%;"></canvas>
+        <div id="resilienceSparklineLabel" style="font-size:11px;color:#888;margin-top:6px;text-align:center;"></div>
+      </div>
+
+    </div>
   </div>
 
   <!-- INSIGHT -->
@@ -118,6 +168,10 @@
 
 <div class="screen" data-screen="settings">
   <h1 data-i18n="screen_settings">Настройки</h1>
+</div>
+
+<div class="screen" data-screen="medals">
+  <div id="medals-content"></div>
 </div>
 
 <div class="screen" data-screen="premium">

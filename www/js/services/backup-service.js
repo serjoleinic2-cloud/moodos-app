@@ -616,6 +616,8 @@ async function importFromZip(file, resolve) {
     restoreMediaFromMap(mediaMap);
 
     console.log('[BACKUP] >>> Reloading page...');
+    // Ставим флаг — после перезагрузки показать баннер уточнения профиля
+    localStorage.setItem('show_profile_update_banner', '1');
     resolve({ success: true, message: 'Данные восстановлены!' });
     disableExitGuardForReload();
     setTimeout(() => window.location.reload(), 300);
@@ -660,9 +662,11 @@ async function importFromJson(file, resolve) {
         return;
       }
 
-      console.log('[BACKUP] Data keys to restore:', Object.keys(backup.data));
-      restoreData(backup.data);
-      resolve({ success: true, message: ' данные восстановлены' });
+console.log('[BACKUP] Data keys to restore:', Object.keys(backup.data));
+    restoreData(backup.data);
+    // Ставим флаг — после перезагрузки показать баннер уточнения профиля
+    localStorage.setItem('show_profile_update_banner', '1');
+    resolve({ success: true, message: ' данные восстановлены' });
 
     } catch (parseError) {
       console.error('[BACKUP] Parse error:', parseError.message, parseError.stack);

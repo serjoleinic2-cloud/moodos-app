@@ -4,6 +4,7 @@
 // Индекс эмоциональной устойчивости
 // ===============================
 import { getMoodHistory, getSessionHistory } from "./memory.js";
+import { t } from "../i18n.js";
 
 // ---- СКОРОСТЬ ВОССТАНОВЛЕНИЯ ----
 export function getRecoverySpeed() {
@@ -105,11 +106,11 @@ export function getResilienceIndex() {
 
 // ---- ТЕКСТОВЫЙ УРОВЕНЬ ----
 export function getResilienceLabel(index) {
-  if (index === null)  return "Недостаточно данных";
-  if (index >= 80)     return "Высокая устойчивость";
-  if (index >= 60)     return "Хорошая устойчивость";
-  if (index >= 40)     return "Умеренная устойчивость";
-  return "Формируется";
+  if (index === null)  return t("resilience_label_no_data") || "Not enough data";
+  if (index >= 80)     return t("resilience_label_high") || "High resilience";
+  if (index >= 60)     return t("resilience_label_good") || "Good resilience";
+  if (index >= 40)     return t("resilience_label_moderate") || "Moderate resilience";
+  return t("resilience_label_forming") || "Forming";
 }
 
 // ---- СВОДКА ----

@@ -112,6 +112,7 @@ d:\moodos-app\
         storage-wrapper.js
         userId.js
         exit-guard.js     # Data loss protection
+        medals-engine.js  # Achievements & medals
 
 ---
 
@@ -202,6 +203,7 @@ d:\moodos-app\
 - www/js/services/drive-backup.js
 - www/js/services/storage-wrapper.js
 - www/js/services/userId.js
+- www/js/services/medals-engine.js
 
 ---
 
@@ -281,6 +283,7 @@ www/js/services/
 - voice-service.js
 - weekly-analytics.js
 - year-comparison.js
+- medals-engine.js    # Achievements & medals
 
 ## I18N
 www/js/i18n/

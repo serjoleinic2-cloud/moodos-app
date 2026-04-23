@@ -131,11 +131,14 @@ export function getUsageDays() {
         const firstDate = firstEntry?.time || firstEntry?.date;
         
         if (firstDate) {
-          const start = new Date(parseInt(firstDate));
-          const now = new Date();
-          const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+          const firstTs = typeof firstDate === 'string' ? new Date(firstDate).getTime() : parseInt(firstDate);
+          const startOfFirst = new Date(firstTs);
+          startOfFirst.setHours(0, 0, 0, 0);
+          const startOfToday = new Date();
+          startOfToday.setHours(0, 0, 0, 0);
+          const diff = Math.floor((startOfToday - startOfFirst) / (1000 * 60 * 60 * 24)) + 1;
           const days = Math.max(1, diff);
-          console.log('[getUsageDays] from mood_history:', days, 'days, first entry:', new Date(parseInt(firstDate)).toLocaleDateString());
+          console.log('[getUsageDays] from mood_history:', days, 'days');
           return days;
         }
       }
@@ -144,14 +147,14 @@ export function getUsageDays() {
     console.warn("Error calculating usage days:", e);
   }
   
-  if (!state.startDate) {
-    console.log('[getUsageDays] no startDate, returning 1');
-    return 1;
-  }
-  const start = new Date(state.startDate);
-  const now = new Date();
-  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
-  const days = Math.max(1, diff);
-  console.log('[getUsageDays] from startDate:', days, 'days, start:', state.startDate);
-  return days;
+  // Fallback на startDate
+  const savedDate = localStorage.getItem("startDate");
+  if (!savedDate) return 1;
+  
+  const startOfFirst = new Date(savedDate);
+  startOfFirst.setHours(0, 0, 0, 0);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const diff = Math.floor((startOfToday - startOfFirst) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.max(1, diff);
 }

@@ -1,16 +1,21 @@
 // ⚠️ Использовать только через SystemCore
 // js/services/state-engine.js
+import { getMoodBaseline } from './user-profile.js';
 
 export function detectMoodState(mood) {
-
     if (mood === null || mood === undefined) {
         return "NEUTRAL"
     }
 
-    if (mood < 25) return "LOW"
-    if (mood < 40) return "STRESSED"
-    if (mood < 60) return "NEUTRAL"
-    if (mood < 80) return "GOOD"
+    // Берём персональную базу юзера (учитывает medEffect и baseFeeling)
+    const baseline = getMoodBaseline(); // 35–58, default 50
+    const offset = baseline - 50; // смещение от нейтрального
+
+    // Применяем offset к порогам — юзер на седативных имеет сдвинутую норму
+    if (mood < 25 + offset) return "LOW"
+    if (mood < 40 + offset) return "STRESSED"
+    if (mood < 60 + offset) return "NEUTRAL"
+    if (mood < 80 + offset) return "GOOD"
 
     return "HIGH"
 }

@@ -9,6 +9,7 @@ import { getResilienceSummary, getResilienceTrend } from "./resilience-engine.js
 import { getBestToolForState, getPersonalRecommendation } from "./session-analytics.js";
 import { showAvatarForInsight } from "../avatar.js";
 import { generateAvatarMessage, shouldShowAvatarInsight } from "../ai/avatar-brain.js";
+import { getMedContext } from "./user-profile.js";
 
 // ---- ОБЪЯСНЕНИЕ ТЕКУЩЕГО СОСТОЯНИЯ ----
 export function explainCurrentState(currentMood) {
@@ -49,6 +50,10 @@ export function explainCurrentState(currentMood) {
   if (!reasons.length) {
     reasons.push(currentMood >= 60 ? "Состояние выглядит стабильным" : "Обычные колебания настроения");
   }
+
+  // Контекст лекарств
+  const medContext = getMedContext();
+  if (medContext) reasons.push(medContext);
 
   return reasons;
 }

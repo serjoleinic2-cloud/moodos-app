@@ -17,9 +17,23 @@ import {
 } from "../services/user-profile.js";
 import { t, getLang, setLang, LANG_OPTIONS } from "../i18n.js";
 import { getReminders } from '../services/reminders-service.js';
+import { getAllMedalsWithState } from '../services/medals-engine.js';
 
 function st(key, fallback = "") {
   try { const v = t(key); return v || fallback; } catch(e) { return fallback; }
+}
+
+function getEarnedCount() {
+  try {
+    const medals = getAllMedalsWithState();
+    return medals.filter(m => m.earned).length;
+  } catch(e) { return 0; }
+}
+
+function getTotalCount() {
+  try {
+    return getAllMedalsWithState().length;
+  } catch(e) { return 0; }
 }
 
 export function onEnter() {
@@ -242,6 +256,16 @@ function renderSettings() {
             font-size:15px;font-weight:600;color:#fff;cursor:pointer;
           ">${t("premium_open_btn")}</button>` : ""}
         </div>
+        <div class="neo-row" id="settingMedals">
+          <div class="neo-row-content">
+            <span class="neo-row-icon">🏅</span>
+            <div class="neo-row-text">
+              <div class="neo-row-label">${t("medals_title")}</div>
+              <div class="neo-row-sub">${getEarnedCount()} / ${getTotalCount()}</div>
+            </div>
+          </div>
+          <span class="neo-row-arrow">›</span>
+        </div>
         <div class="neo-row" id="settingHowItWorks">
           <div class="neo-row-content">
             <span class="neo-row-icon">📘</span>
@@ -314,6 +338,9 @@ function bindEvents(el) {
 
   el.querySelector("#settingTheme")?.addEventListener("click", () => showThemeModal());
   el.querySelector("#settingLanguage")?.addEventListener("click", () => showLanguageModal(el));
+  el.querySelector("#settingMedals")?.addEventListener("click", () => {
+    if (window.navigateTo) window.navigateTo("medals");
+  });
   el.querySelector("#settingHowItWorks")?.addEventListener("click", () => {
     if (window.navigateTo) window.navigateTo("howItWorks");
   });

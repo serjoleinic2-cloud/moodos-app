@@ -101,6 +101,164 @@ if (!window.__neyraAppRunning) {
 
 
 
+  function showMedalAvatarNotification(medal, onDismiss) {
+    const existing = document.getElementById('medalNotification');
+    if (existing) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'medalNotification';
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      animation: fadeInMedal 0.3s ease;
+    `;
+
+    const medalName = t('medal_' + medal.id) || medal.id;
+    const medalDesc = t('medal_' + medal.id + '_desc') || '';
+
+    overlay.innerHTML = `
+      <style>
+        @keyframes fadeInMedal {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes popInMedal {
+          from { transform: scale(0.6) translateY(40px); opacity: 0; }
+          to   { transform: scale(1)   translateY(0);    opacity: 1; }
+        }
+        @keyframes shineEffect {
+          0%   { transform: translateX(-100%) rotate(25deg); }
+          100% { transform: translateX(300%)  rotate(25deg); }
+        }
+        .medal-notif-card {
+          background: linear-gradient(160deg, #d4ede8, #e8e0d5);
+          border-radius: 28px;
+          padding: 36px 28px 28px;
+          text-align: center;
+          max-width: 300px;
+          width: 100%;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+          animation: popInMedal 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+          overflow: hidden;
+        }
+        .medal-notif-card::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 40px;
+          height: 200%;
+          background: rgba(255,255,255,0.3);
+          animation: shineEffect 1.2s ease 0.5s forwards;
+        }
+        .medal-notif-label {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: #9f7aea;
+          margin-bottom: 12px;
+        }
+        .medal-notif-emoji {
+          font-size: 72px;
+          display: block;
+          margin-bottom: 14px;
+          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+        }
+        .medal-notif-name {
+          font-size: 20px;
+          font-weight: 700;
+          color: #3d3d3d;
+          margin-bottom: 6px;
+        }
+        .medal-notif-desc {
+          font-size: 13px;
+          color: #888;
+          line-height: 1.5;
+          margin-bottom: 24px;
+        }
+        .medal-notif-btns {
+          display: flex;
+          gap: 10px;
+        }
+        .medal-notif-btn-primary {
+          flex: 1;
+          padding: 14px;
+          border: none;
+          border-radius: 16px;
+          background: linear-gradient(145deg, #9f7aea, #805ad5);
+          box-shadow: 4px 4px 10px rgba(128,90,213,0.3);
+          font-size: 14px;
+          font-weight: 700;
+          color: #fff;
+          cursor: pointer;
+        }
+        .medal-notif-btn-secondary {
+          padding: 14px 16px;
+          border: none;
+          border-radius: 16px;
+          background: rgba(232,237,230,0.9);
+          box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+          font-size: 14px;
+          color: #aaa;
+          cursor: pointer;
+        }
+      </style>
+
+      <div class="medal-notif-card">
+        <div class="medal-notif-label">🎉 ${t('medal_notification_new') || 'Новая награда!'}</div>
+        <span class="medal-notif-emoji">${medal.emoji}</span>
+        <div class="medal-notif-name">${medalName}</div>
+        <div class="medal-notif-desc">${medalDesc}</div>
+        <div class="medal-notif-btns">
+          <button class="medal-notif-btn-primary" id="medalNotifView">
+            ${t('medal_notification_view') || 'Посмотреть'}
+          </button>
+          <button class="medal-notif-btn-secondary" id="medalNotifClose">
+            ${t('medal_notification_later') || 'Позже'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('medalNotifView').addEventListener('click', () => {
+      overlay.remove();
+      if (onDismiss) onDismiss();
+      if (window.navigateTo) window.navigateTo('medals');
+    });
+
+    document.getElementById('medalNotifClose').addEventListener('click', () => {
+      overlay.remove();
+      if (onDismiss) onDismiss();
+    });
+
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        overlay.remove();
+        if (onDismiss) onDismiss();
+      }
+    });
+
+    // Автозакрытие через 8 секунд
+    setTimeout(() => {
+      const el = document.getElementById('medalNotification');
+      if (el) {
+        el.remove();
+        if (onDismiss) onDismiss();
+      }
+    }, 8000);
+  }
+
+
   /* ---------- ИНСАЙТ ДНЯ ---------- */
   function buildDayInsight() {
     const today = new Date();
@@ -183,7 +341,7 @@ if (!window.__neyraAppRunning) {
       if (history && history.length > 0) {
         const validHistory = history.filter(e => e.time || e.date);
         if (validHistory.length > 0) {
-          const sorted = [...validHistory].sort((a, b) => (a.time || a.date) - (b.time || a.date));
+          const sorted = [...validHistory].sort((a, b) => (a.time || a.date) - (b.time || b.date));
           const firstEntry = sorted[0];
           const firstDate = firstEntry?.time || firstEntry?.date;
           
@@ -386,6 +544,35 @@ if (!window.__neyraAppRunning) {
       checkAutoReminder();
       checkRemindersOnBoot();
     }, 1500);
+
+    // Проверка медалей при каждом запуске
+    setTimeout(async () => {
+      try {
+        const { checkAndUpdateMedals, getUnshownNewMedals, markMedalsAsShown, getAllMedalsWithState } =
+          await import('./services/medals-engine.js');
+
+        checkAndUpdateMedals();
+
+        const newMedals = getUnshownNewMedals();
+        if (newMedals.length === 0) return;
+
+        // Показываем первую незасчитанную медаль через аватар
+        const medalId = newMedals[0];
+        const all = getAllMedalsWithState();
+        const medal = all.find(m => m.id === medalId);
+        if (!medal) return;
+
+        // Даём время аватару инициализироваться
+        await new Promise(r => setTimeout(r, 500));
+
+        showMedalAvatarNotification(medal, () => {
+          markMedalsAsShown(newMedals);
+        });
+
+      } catch(e) {
+        console.warn('[MEDALS] check failed:', e);
+      }
+    }, 2500);
     
     const initAvatar = () => {
       try {
