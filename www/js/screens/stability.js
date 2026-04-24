@@ -55,29 +55,72 @@ function renderTodaySection(todaySummary) {
         ${t("stab_today_no_data") || "Сегодня пока нет записей"}
       </div>`;
   }
-  
+
   const { avg, best, worst } = todaySummary;
+
+  function flipCard(id, frontHTML, backHTML, accentColor) {
+    return `
+      <div class="flip-wrap-stab" id="flip_${id}" style="margin-bottom:12px;">
+        <div class="flip-inner-stab">
+          <div class="flip-front-stab" style="border-left:3px solid ${accentColor};">
+            ${frontHTML}
+            <div style="font-size:9px;color:#ccc;text-align:right;margin-top:6px;" data-i18n="stab_tap_details">${t('stab_tap_details') || 'тап → подробнее'}</div>
+          </div>
+          <div class="flip-back-stab" style="border-left:3px solid ${accentColor};">
+            ${backHTML}
+            <div style="font-size:9px;color:#ccc;text-align:right;margin-top:8px;" data-i18n="stab_tap_back">${t('stab_tap_back') || 'тап → назад'}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Best moment
   const bestLabel = best?.events?.length ? formatEventLabel(best.events) : '';
-  const bestTime = best?.timeBucket ? formatTimeBucketLabel(best.timeBucket) : '';
-  const bestStr = bestLabel ? `${bestLabel}${bestTime ? ' ' + bestTime : ''}` : '';
-  
+  const bestTime  = best?.timeBucket ? formatTimeBucketLabel(best.timeBucket) : '';
+  const bestFront = `
+    <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_best") || "Лучший момент"}</div>
+    <div style="font-size:22px;font-weight:700;color:#4caf87;">${best?.value ?? '—'}%</div>`;
+  const bestBack = `
+    <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("stab_today_best") || "Лучший момент"}</div>
+    ${bestLabel ? `<div style="font-size:13px;color:#555;margin-bottom:4px;">📍 ${bestLabel}</div>` : ''}
+    ${bestTime  ? `<div style="font-size:12px;color:#888;margin-bottom:4px;">🕐 ${bestTime}</div>` : ''}
+    ${!bestLabel && !bestTime ? `<div style="font-size:12px;color:#bbb;">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
+    <div style="font-size:12px;color:#4caf87;font-weight:600;margin-top:4px;">${best?.value ?? '—'}% — ${t("stab_best_explain") || 'пиковое значение дня'}</div>`;
+
+  // Worst moment
   const worstLabel = worst?.events?.length ? formatEventLabel(worst.events) : '';
-  const worstTime = worst?.timeBucket ? formatTimeBucketLabel(worst.timeBucket) : '';
-  const worstStr = worstLabel ? `${worstLabel}${worstTime ? ' ' + worstTime : ''}` : '';
-  
-  return `<div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
+  const worstTime  = worst?.timeBucket ? formatTimeBucketLabel(worst.timeBucket) : '';
+  const worstFront = `
+    <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_worst") || "Сложный момент"}</div>
+    <div style="font-size:22px;font-weight:700;color:#e05555;">${worst?.value ?? '—'}%</div>`;
+  const worstBack = `
+    <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("stab_today_worst") || "Сложный момент"}</div>
+    ${worstLabel ? `<div style="font-size:13px;color:#555;margin-bottom:4px;">📍 ${worstLabel}</div>` : ''}
+    ${worstTime  ? `<div style="font-size:12px;color:#888;margin-bottom:4px;">🕐 ${worstTime}</div>` : ''}
+    ${!worstLabel && !worstTime ? `<div style="font-size:12px;color:#bbb;">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
+    <div style="font-size:12px;color:#e05555;font-weight:600;margin-top:4px;">${worst?.value ?? '—'}% — ${t("stab_worst_explain") || 'минимальное значение дня'}</div>`;
+
+  return `
+    <div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
     <div class="mo-metric" style="margin-bottom:12px;">
       <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_avg") || "Среднее настроение"}</div>
       <div style="font-size:28px;font-weight:700;color:${avg >= 70 ? '#4caf87' : avg >= 40 ? '#f0a500' : '#e05555'}">${avg}%</div>
     </div>
-    ${best ? `<div class="mo-metric" style="margin-bottom:12px;">
-      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_best") || "Лучший момент"}</div>
-      <div style="font-size:14px;color:#4caf87;">${bestStr ? bestStr + ' (' + best.value + '%)' : best.value + '%'}</div>
-    </div>` : ''}
-    ${worst ? `<div class="mo-metric" style="margin-bottom:12px;">
-      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_worst") || "Сложный момент"}</div>
-      <div style="font-size:14px;color:#e05555;">${worstStr ? worstStr + ' (' + worst.value + '%)' : worst.value + '%'}</div>
-    </div>` : ''}`;
+    <style>
+      .flip-wrap-stab { perspective:800px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+      .flip-inner-stab { position:relative; width:100%; transform-style:preserve-3d; transition:transform 0.45s ease; border-radius:16px; min-height:80px; }
+      .flip-wrap-stab.flipped .flip-inner-stab { transform:rotateY(180deg); }
+      .flip-front-stab, .flip-back-stab {
+        backface-visibility:hidden; -webkit-backface-visibility:hidden;
+        border-radius:16px; padding:14px 16px; box-sizing:border-box;
+        background:rgba(232,237,230,0.9);
+        box-shadow:5px 5px 12px #b8c4b4,-5px -5px 12px #ffffff;
+      }
+      .flip-front-stab { position:relative; width:100%; }
+      .flip-back-stab  { position:absolute; top:0; left:0; width:100%; height:100%; transform:rotateY(180deg); }
+    </style>
+    ${best  ? flipCard('best',  bestFront,  bestBack,  '#4caf87') : ''}
+    ${worst ? flipCard('worst', worstFront, worstBack, '#e05555') : ''}`;
 }
 
 let cachedStability = null;
@@ -162,7 +205,11 @@ export function onEnter() {
   function entryCards(entries) {
     return entries.map((e, idx) => {
       const d   = new Date(e.time);
-      const ds  = d.toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+      const day2 = String(d.getDate()).padStart(2,'0');
+      const mon2 = String(d.getMonth()+1).padStart(2,'0');
+      const h2   = String(d.getHours()).padStart(2,'0');
+      const min2 = String(d.getMinutes()).padStart(2,'0');
+      const ds   = `${day2}.${mon2} ${h2}:${min2}`;
       const col = mc(e.value);
       const emoji = e.value>=70?"😊":e.value>=40?"😐":"😔";
       let stateText = t("stab_state_low");
@@ -248,5 +295,10 @@ export function onEnter() {
       data:{labels:sorted.map(e=>{const d=new Date(e.time);return `${d.getDate()}.${d.getMonth()+1}`;}),datasets:[{data:sorted.map(e=>e.value),borderColor:"#4caf87",backgroundColor:"rgba(76,175,135,0.12)",tension:0.4,pointRadius:3,fill:true}]},
       options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:45}}}}
     });
+  });
+
+  // Flip карточки лучший/сложный момент
+  container.querySelectorAll('.flip-wrap-stab').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
   });
 }

@@ -326,9 +326,9 @@ function showMoodCalendarOverlay() {
     const hasVoice = voices.length > 0;
     
     const date = new Date(key + "T12:00:00");
-    const lang = localStorage.getItem('app_language') || 'ru';
-    const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
-    const dateFormatted = date.toLocaleDateString(localeMap[lang] || 'ru-RU', { day: "numeric", month: "long" });
+    const day = String(date.getDate()).padStart(2, '0');
+    const mon = String(date.getMonth() + 1).padStart(2, '0');
+    const dateFormatted = `${day}.${mon}.${date.getFullYear()}`;
     
     const popup = document.createElement("div");
     popup.id = "dayPopup";
@@ -575,9 +575,12 @@ function countActiveDays(history) {
 }
 
 function formatDate(ts) {
-  const lang = localStorage.getItem('app_language') || 'ru';
-  const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA' };
-  return new Date(ts).toLocaleString(localeMap[lang] || 'ru-RU', {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  const d = new Date(ts);
+  const day = String(d.getDate()).padStart(2, '0');
+  const mon = String(d.getMonth() + 1).padStart(2, '0');
+  const h   = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${mon} ${h}:${min}`;
 }
 
 function filterByDays(history, days) {

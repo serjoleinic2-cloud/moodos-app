@@ -11,6 +11,30 @@ const MEDALS_KEY = 'neyra_medals';
 const MEDALS_SHOWN_KEY = 'neyra_medals_shown';
 
 // =====================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// =====================================
+// Динамический порог — после 8 достижений медали порог растёт
+function getDynamicThreshold(medalId, baseThreshold) {
+  try {
+    const state = getMedalsState();
+    const count = state[medalId]?.count || 0;
+    if (count < 8) return baseThreshold;
+    // После 8 достижений каждые следующие 8 увеличивают порог на 1
+    const extra = Math.floor((count - 8) / 8) + 1;
+    return baseThreshold + extra;
+  } catch(e) { return baseThreshold; }
+}
+
+function hasStableWeekN(history, days) {
+  const now = Date.now();
+  const period = history.filter(e => now - e.time <= days * 86400000);
+  if (period.length < Math.floor(days * 0.6)) return false;
+  const avg = period.reduce((s, e) => s + e.value, 0) / period.length;
+  const maxDiff = Math.max(...period.map(e => Math.abs(e.value - avg)));
+  return maxDiff <= 15;
+}
+
+// =====================================
 // ОПРЕДЕЛЕНИЕ ВСЕХ МЕДАЛЕЙ
 // =====================================
 export const MEDALS_DEFINITION = [
@@ -67,7 +91,10 @@ export const MEDALS_DEFINITION = [
     category: 'mood',
     emoji: '☀️',
     repeatable: true,
-    checkFn: ({ moodHistory }) => getGoodMoodStreak(moodHistory) >= 3
+    checkFn: ({ moodHistory }) => {
+      const base = getDynamicThreshold('bright_streak', 3);
+      return getGoodMoodStreak(moodHistory) >= base;
+    }
   },
   {
     id: 'comeback',
@@ -81,7 +108,10 @@ export const MEDALS_DEFINITION = [
     category: 'mood',
     emoji: '⚖️',
     repeatable: true,
-    checkFn: ({ moodHistory }) => hasStableWeek(moodHistory)
+    checkFn: ({ moodHistory }) => {
+      const base = getDynamicThreshold('stability_week', 7);
+      return hasStableWeekN(moodHistory, base);
+    }
   },
   {
     id: 'peak_form',
