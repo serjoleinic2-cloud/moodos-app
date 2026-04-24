@@ -199,6 +199,7 @@ export const en = {
     trend_lbl: "Trend", trend_sub: "Recent to previous entries",
     golden_lbl: "Golden Hours", golden_sub: "Your peak activity",
     breathing_lbl: "Breathing", meditation_lbl: "Meditation",
+    breath_title: "Breathing", med_title: "Meditation",
     avg_lift: "Avg lift",
     pts: "pt",
     no_lift_data: "No lift data",

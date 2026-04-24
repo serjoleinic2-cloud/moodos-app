@@ -197,6 +197,7 @@ export const es = {
     trend_lbl: "Tendencia", trend_sub: "Registros recientes a anteriores",
     golden_lbl: "Horas doradas", golden_sub: "Tu pico de actividad",
     breathing_lbl: "Respiración", meditation_lbl: "Meditación",
+    breath_title: "Respiración",
     avg_lift: "Mejora media", sessions_count: "sesiones", no_data_short: "Sin datos",
     pts: "pts",
     state_col: "Estado", no_state_data: "Sin datos por estado aún.",

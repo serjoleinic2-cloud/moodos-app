@@ -198,6 +198,7 @@ export const ru = {
     trend_lbl: "Тренд", trend_sub: "Последние записи к предыдущим",
     golden_lbl: "Золотые часы", golden_sub: "Твой пик активности",
     breathing_lbl: "Дыхание", meditation_lbl: "Медитация",
+    breath_title: "Дыхание",
     avg_lift: "Средний подъём", sessions_count: "сессий", no_data_short: "Нет данных", pts: "пт.",
     state_col: "Состояние", no_state_data: "Пока нет данных по состояниям.",
     stab_high: "Высокая стабильность", stab_mid: "Умеренная стабильность",

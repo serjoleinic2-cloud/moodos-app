@@ -197,6 +197,7 @@ export const uk = {
     trend_lbl: "Тренд", trend_sub: "Останні записи до попередніх",
     golden_lbl: "Золоті години", golden_sub: "Твій пік активності",
     breathing_lbl: "Дихання", meditation_lbl: "Медитація",
+    breath_title: "Дихання",
     avg_lift: "Середній підйом", sessions_count: "сесій", no_data_short: "Немає даних",
     pts: "пт",
     state_col: "Стан", no_state_data: "Поки немає даних за станами.",

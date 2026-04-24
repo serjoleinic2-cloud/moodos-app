@@ -183,6 +183,7 @@ export const hi = {
     trend_lbl: "प्रवृत्ति", trend_sub: "हाल की बनाम पिछली प्रविष्टियां",
     golden_lbl: "सुनहरे घंटे", golden_sub: "आपका शीर्ष गतिविधि समय",
     breathing_lbl: "श्वास", meditation_lbl: "ध्यान",
+    breath_title: "श्वास",
     avg_lift: "औसत वृद्धि",
     pts: "अंक",
     no_lift_data: "कोई वृद्धि डेटा नहीं",
