@@ -643,7 +643,7 @@ export async function onEnter() {
     '.practice-main-value{font-size:20px;font-weight:600;color:#3a3530;}' +
     '.practice-subtext{font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;line-height:1.4;opacity:0.8;}' +
     '.flip-sub{font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;line-height:1.4;}' +
-    '.flip-hint{font-size:9px;color:#ccc;font-weight:400;text-align:right;margin-top:6px;letter-spacing:0.3px;}' +
+    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
@@ -681,7 +681,40 @@ export async function onEnter() {
               '<div class="flip-label">' + t("stability_lbl") + '</div>' +
               '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : formatInsightValue(null)) + '%</div>' +
               '<div class="flip-sub">' + sText(stability) + '</div>' +
-              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_stability_explain") + '</div>' +
+'<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_stability_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="flip-wrap" id="flip-mood">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
+              '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
+              '<div class="flip-sub">' + mText(avgMood) + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_mood_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+
+        '<div class="flip-wrap" id="flip-trend">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("trend_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
+              '<div class="flip-sub">' + t("trend_sub") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+
+        '<div class="flip-wrap" id="flip-golden">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front">' +
+              '<div class="flip-label">' + t("golden_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
+              '<div class="flip-sub">' + t("golden_sub") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
