@@ -556,5 +556,11 @@ export function onExit() {
 }
 
 document.addEventListener("languageChanged", () => {
+  // Сбросить сохранённый инсайт — он на старом языке
+  try {
+    localStorage.removeItem('neyra_last_insight');
+  } catch(e) {}
+  // Перерисовать плашку
   renderInsightCard();
+  initDailyChallenge();
 });

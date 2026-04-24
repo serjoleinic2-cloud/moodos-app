@@ -14,13 +14,16 @@ const CHALLENGE_KEY = 'neyra_daily_challenge';
 // =====================================
 export function getTodayChallenge() {
   const today = new Date().toDateString();
+  const currentLang = localStorage.getItem('app_language') || 'ru';
   try {
     const saved = JSON.parse(localStorage.getItem(CHALLENGE_KEY) || 'null');
-    if (saved && saved.date === today) return saved;
+    // Пересоздаём если другой день ИЛИ сменился язык
+    if (saved && saved.date === today && saved.lang === currentLang) return saved;
   } catch(e) {}
 
   const challenge = generateChallenge();
   challenge.date = today;
+  challenge.lang = currentLang; // сохраняем язык генерации
   challenge.completed = false;
   challenge.completedAt = null;
 

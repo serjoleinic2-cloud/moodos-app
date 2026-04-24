@@ -188,24 +188,36 @@ function shouldUseTimeDimension(timeStats, event) {
 }
 
 function analyzeEventImpact(history) {
-  const single = {};
-  const singleByTime = {};
-  const combo = {};
-
   const baseline = calculateBaseline(history);
   const now = Date.now();
   const DAY = 24 * 60 * 60 * 1000;
 
-  // Collect stats by event + timeBucket for smart decision
+  // ПРОХОД 1 — собираем timeStats по всей истории
   const timeStats = {};
-
   history.forEach(entry => {
-    // Ignore entries older than 7 days
-    if (now - entry.time > 7 * DAY) return;
+    if (now - entry.time > 21 * DAY) return;
+    const events = (entry.events || []).slice();
+    const bucket = entry.timeBucket || 'day';
+    const mood = entry.value || entry.mood || 0;
+    events.forEach(ev => {
+      if (!timeStats[ev]) timeStats[ev] = {};
+      if (!timeStats[ev][bucket]) timeStats[ev][bucket] = { count: 0, totalMood: 0 };
+      timeStats[ev][bucket].count++;
+      timeStats[ev][bucket].totalMood += mood;
+    });
+  });
+
+  const single = {};
+  const combo  = {};
+
+  // ПРОХОД 2 — анализируем с полными timeStats
+  history.forEach(entry => {
+    if (now - entry.time > 21 * DAY) return;
 
     let mood = entry.value || entry.mood || 0;
     const events = (entry.events || []).slice().sort();
-    
+    if (events.length === 0) return;
+
     // BLOCK 2: Reflection affects insight - if text contains negative words and mood < 40, reduce score
     if (entry.text && entry.text.trim().length > 0 && mood < 40) {
       const lowerText = entry.text.toLowerCase();
@@ -214,39 +226,21 @@ function analyzeEventImpact(history) {
       }
     }
 
-    if (events.length === 0) return;
-
-    // Time weight: entries closer to now have more weight
     const ageDays = (now - entry.time) / DAY;
-    const weight = Math.max(0.3, 1 - ageDays / 7);
+    const weight = Math.max(0.3, 1 - ageDays / 21);
     const weightedMood = mood * weight;
     const bucket = entry.timeBucket || 'day';
 
-    // Collect time stats per event (for smart time decision)
-    events.forEach(ev => {
-      if (!timeStats[ev]) timeStats[ev] = {};
-      if (!timeStats[ev][bucket]) timeStats[ev][bucket] = { count: 0, totalMood: 0 };
-      timeStats[ev][bucket].count++;
-      timeStats[ev][bucket].totalMood += mood;
-    });
-
-    // Use time bucket only for single events, not combos
     events.forEach(ev => {
       const useTime = shouldUseTimeDimension(timeStats[ev], ev);
       const key = useTime ? ev + '_' + bucket : ev;
-      
       if (!single[key]) single[key] = { count: 0, totalMood: 0, event: ev, timeBucket: useTime ? bucket : null };
       single[key].count++;
       single[key].totalMood += weightedMood;
-      
-      if (useTime) {
-        console.log('[TIME PATTERN]', { event: ev, timeBucket: bucket, used: true });
-      }
     });
 
     if (events.length >= 2) {
-      // NO time bucket for combos
-      const key = events.slice().sort().join('+');
+      const key = events.join('+');
       if (!combo[key]) combo[key] = { count: 0, totalMood: 0, events: events.slice() };
       combo[key].count++;
       combo[key].totalMood += weightedMood;
@@ -255,19 +249,26 @@ function analyzeEventImpact(history) {
 
   const results = [];
 
-  Object.entries(single).forEach(([ev, data]) => {
+  Object.entries(single).forEach(([key, data]) => {
     if (data.count < 2) return;
     const avgMood = data.totalMood / data.count;
     const score = avgMood - baseline;
     const weight = EVENT_WEIGHTS[data.event] || 1.0;
+
+    // Нейтральные триггеры — не показываем как негативные сами по себе
+    const NEUTRAL_EVENTS = ['food', 'rest', 'music', 'sleep'];
+    const adjustedScore = NEUTRAL_EVENTS.includes(data.event) && score < 0
+      ? score * 0.4  // сильно снижаем негативный вес нейтральных триггеров
+      : score;
+
     results.push({
-      key: ev,
+      key,
       events: [data.event],
       event: data.event,
       timeBucket: data.timeBucket || 'day',
       count: data.count,
       avgMood: Math.round(avgMood),
-      score: Math.round(score * weight),
+      score: Math.round(adjustedScore * weight),
       isCombo: false
     });
   });
@@ -412,7 +413,9 @@ function buildPatternInsight(pattern, currentMood) {
     if (pattern.score > 5 && !NEVER_RECOMMEND.includes(pattern.event)) {
       type = 'pattern_recommend_low';
     } else if (pattern.score < -5) {
-      type = humanizePattern(pattern) || 'pattern_negative';
+      const humanized = humanizePattern(pattern);
+      if (humanized === null) return null; // нейтральный триггер — не показываем негатив
+      type = humanized || 'pattern_negative';
     } else {
       return null;
     }
@@ -422,7 +425,9 @@ function buildPatternInsight(pattern, currentMood) {
     } else if (pattern.score > 3) {
       type = 'pattern_mild_positive';
     } else if (pattern.score < -7) {
-      type = humanizePattern(pattern) || 'pattern_negative';
+      const humanized = humanizePattern(pattern);
+      if (humanized === null) return null; // нейтральный триггер — не показываем негатив
+      type = humanized || 'pattern_negative';
     } else {
       return null;
     }
@@ -484,14 +489,21 @@ export async function safeGenerateInsight(payload) {
 
 function humanizePattern(pattern) {
   if (!pattern) return null;
-  
+
   if (pattern.score < 0) {
     const contextKeys = {
-      food: 'pattern_food_negative',
-      work: 'pattern_work_negative',
-      stress: 'pattern_stress_negative'
+      food:  'pattern_food_negative',
+      work:  'pattern_work_negative',
+      stress:'pattern_stress_negative',
+      rest:  'pattern_rest_negative',
+      sleep: 'pattern_sleep_negative',
+      music: null, // музыку не показываем как негативный триггер
     };
-    return contextKeys[pattern.event] || 'pattern_negative';
+    // Если триггер нейтральный и у него нет специального ключа — не показываем
+    if (pattern.event in contextKeys) {
+      return contextKeys[pattern.event]; // может быть null — тогда паттерн не покажется
+    }
+    return 'pattern_negative';
   }
 
   return 'pattern_positive';
