@@ -558,7 +558,7 @@ export async function onEnter() {
       yearComparisonHTML = 
         '<div class="insight-section">' +
           '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-          '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+          '<div style="padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(255,200,50,0.08),rgba(255,140,0,0.04));border:1.5px solid rgba(255,180,0,0.5);">' +
             '<div style="display:flex;align-items:center;gap:10px;">' +
               '<div style="font-size:20px;">🔒</div>' +
               '<div>' +
@@ -635,13 +635,15 @@ export async function onEnter() {
     '.flip-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform 0.5s ease;border-radius:18px;}' +
     '.flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}' +
     '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:14px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
-    '.flip-front{position:relative;}' +
+    '.flip-front{position:relative;border-left:3px solid #4caf87;}' +
+    '.flip-front.mood-low{border-left-color:#e05555;}' +
+    '.flip-front.mood-mid{border-left-color:#f0a500;}' +
     '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
     '.flip-label{font-size:14px;font-weight:600;color:rgba(0,0,0,0.7);margin-bottom:2px;}' +
     '.practice-main-value{font-size:20px;font-weight:600;color:#3a3530;}' +
     '.practice-subtext{font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;line-height:1.4;opacity:0.8;}' +
     '.flip-sub{font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;line-height:1.4;}' +
-    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;}' +
+    '.flip-hint{font-size:9px;color:#ccc;font-weight:400;text-align:right;margin-top:6px;letter-spacing:0.3px;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
@@ -679,6 +681,7 @@ export async function onEnter() {
               '<div class="flip-label">' + t("stability_lbl") + '</div>' +
               '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : formatInsightValue(null)) + '%</div>' +
               '<div class="flip-sub">' + sText(stability) + '</div>' +
+              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_stability_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
@@ -691,6 +694,7 @@ export async function onEnter() {
               '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
               '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
               '<div class="flip-sub">' + mText(avgMood) + '</div>' +
+              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_mood_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>' +
@@ -703,6 +707,7 @@ export async function onEnter() {
               '<div class="flip-label">' + t("trend_lbl") + '</div>' +
               '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
               '<div class="flip-sub">' + t("trend_sub") + '</div>' +
+              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back" style="padding:20px;">' +
@@ -717,6 +722,7 @@ export async function onEnter() {
               '<div class="flip-label">' + t("golden_lbl") + '</div>' +
               '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
               '<div class="flip-sub">' + t("golden_sub") + '</div>' +
+              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>' +
@@ -732,11 +738,11 @@ export async function onEnter() {
       (showPremiumTrigger ? `
         <div class="insight-section" style="margin-top:24px;">
           <div style="
-            background:linear-gradient(145deg,#fef3c7,#fde68a);
+            background:linear-gradient(135deg,rgba(255,200,50,0.08),rgba(255,140,0,0.04));
             border-radius:18px;
             padding:20px;
             text-align:center;
-            box-shadow:4px 4px 10px #c8bfb2,-4px -4px 10px #ffffff;
+            border:1.5px solid rgba(255,180,0,0.5);
           ">
             <div style="font-size:14px;color:#92400e;margin-bottom:12px;line-height:1.5;">` + t("premium_trigger_text") + `</div>
             <button id="premiumTriggerBtn" style="
@@ -745,7 +751,6 @@ export async function onEnter() {
               border:none;
               border-radius:12px;
               background:linear-gradient(145deg,#f59e0b,#d97706);
-              box-shadow:4px 4px 8px #b8860b,-4px -4px 8px #ffffff;
               font-size:15px;
               font-weight:600;
               color:#fff;

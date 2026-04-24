@@ -360,71 +360,54 @@ function initResilienceCard() {
     const card = document.getElementById('resilienceFlipCard');
     if (!card) return;
 
-    // Сбрасываем состояние при каждом входе
-    card.classList.remove('resilience-flipped');
+    // Сбрасываем флип при каждом входе
+    card.classList.remove('flipped');
 
     const index = getResilienceIndex();
     const label = getResilienceLabel(index);
     const history = getMoodHistory();
 
-    const valEl = document.getElementById('resilienceIndexValue');
+    const valEl   = document.getElementById('resilienceIndexValue');
     const labelEl = document.getElementById('resilienceIndexLabel');
     const deltaEl = document.getElementById('resilienceDelta');
 
-    if (valEl) valEl.textContent = index !== null ? index + '%' : '—';
-    if (labelEl) labelEl.textContent = label;
-
-    // Добавляем обработчик только один раз
-    if (!card._flipListenerAdded) {
-      card.addEventListener('click', () => {
-        const wasFlipped = card.classList.contains('resilience-flipped');
-        card.classList.toggle('resilience-flipped');
-        if (!wasFlipped) {
-          setTimeout(() => drawSparkline(history), 280);
-        }
-      });
-      card._flipListenerAdded = true;
+    if (valEl) {
+      valEl.textContent  = index !== null ? index + '%' : '—';
+      valEl.style.color  = index !== null
+        ? (index >= 70 ? '#4caf87' : index >= 40 ? '#f0a500' : '#e05555')
+        : '#888';
     }
+    if (labelEl) labelEl.textContent = label || '';
 
+    // Дельта за месяц
     if (deltaEl && history.length >= 5) {
-      const now = Date.now();
-      const monthAgo = now - 30 * 86400000;
+      const now          = Date.now();
+      const monthAgo     = now - 30 * 86400000;
       const twoMonthsAgo = now - 60 * 86400000;
+      const recentH      = history.filter(e => e.time >= monthAgo);
+      const prevH        = history.filter(e => e.time >= twoMonthsAgo && e.time < monthAgo);
 
-      const recentHistory = history.filter(e => e.time >= monthAgo);
-      const prevHistory = history.filter(e => e.time >= twoMonthsAgo && e.time < monthAgo);
-
-      if (recentHistory.length >= 3 && prevHistory.length >= 3) {
-        const avgRecent = recentHistory.reduce((s, e) => s + e.value, 0) / recentHistory.length;
-        const avgPrev = prevHistory.reduce((s, e) => s + e.value, 0) / prevHistory.length;
-        const delta = Math.round(avgRecent - avgPrev);
-
-        if (delta > 0) {
-          deltaEl.textContent = '↑ +' + delta;
-          deltaEl.style.color = '#4caf87';
-        } else if (delta < 0) {
-          deltaEl.textContent = '↓ ' + delta;
-          deltaEl.style.color = '#e05555';
-        } else {
-          deltaEl.textContent = '→ 0';
-          deltaEl.style.color = '#aaa';
-        }
+      if (recentH.length >= 3 && prevH.length >= 3) {
+        const avgR = recentH.reduce((s, e) => s + e.value, 0) / recentH.length;
+        const avgP = prevH.reduce((s, e) => s + e.value, 0) / prevH.length;
+        const delta = Math.round(avgR - avgP);
+        deltaEl.textContent = delta > 0 ? '↑ +' + delta : delta < 0 ? '↓ ' + delta : '→ 0';
+        deltaEl.style.color = delta > 0 ? '#4caf87' : delta < 0 ? '#e05555' : '#aaa';
       }
     }
 
-    if (valEl && index !== null) {
-      valEl.style.color = index >= 70 ? '#4caf87' : index >= 40 ? '#f0a500' : '#e05555';
-    }
+    // Удаляем старый обработчик через замену ноды
+    const newCard = card.cloneNode(true);
+    card.parentNode.replaceChild(newCard, card);
 
-    card.addEventListener('click', () => {
-      const wasFlipped = card.classList.contains('resilience-flipped');
-      card.classList.toggle('resilience-flipped');
+    // Вешаем единственный обработчик на свежую ноду
+    newCard.addEventListener('click', () => {
+      const wasFlipped = newCard.classList.contains('flipped');
+      newCard.classList.toggle('flipped');
       if (!wasFlipped) {
         setTimeout(() => drawSparkline(history), 280);
       }
     });
-
-    card._flipListenerAdded = true;
 
   } catch(e) {
     console.warn('[RESILIENCE CARD]', e);
@@ -550,9 +533,7 @@ export function onExit() {
 
   // Сбрасываем flip карточку при выходе
   const card = document.getElementById('resilienceFlipCard');
-  if (card) {
-    card.classList.remove('resilience-flipped');
-  }
+  if (card) card.classList.remove('flipped');
 }
 
 document.addEventListener("languageChanged", () => {

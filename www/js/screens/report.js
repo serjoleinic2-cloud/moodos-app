@@ -125,7 +125,7 @@ function renderReport() {
     }
   } else {
     yearComparisonHTML = `
-      <div id="yearComparisonLocked" style="margin-top:16px;padding:16px;border-radius:16px;background:rgba(0,0,0,0.04);border:1px dashed rgba(0,0,0,0.1);cursor:pointer;">
+      <div id="yearComparisonLocked" style="margin-top:16px;padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,200,50,0.08),rgba(255,140,0,0.04));border:1.5px solid rgba(255,180,0,0.5);cursor:pointer;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:20px;">🔒</div>
           <div>

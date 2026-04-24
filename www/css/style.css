@@ -742,7 +742,7 @@ body[data-theme="warm-sunset"] textarea {
   transition: transform 0.5s ease;
   border-radius: 18px;
 }
-.flip-wrap-home.resilience-flipped .flip-inner-home {
+.flip-wrap-home.flipped .flip-inner-home {
   transform: rotateY(180deg);
 }
 .flip-front-home, .flip-back-home {
