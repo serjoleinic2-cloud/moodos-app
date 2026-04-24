@@ -831,6 +831,8 @@ export const hi = {
     medals_locked: "अभी तक नहीं मिली",
     medals_earned: "मिली",
     medals_times: "बार",
+    medal_share_btn: "साझा करें",
+    medal_share_dialog: "उपलब्धि साझा करें",
     nav_medals: "उपलब्धियां",
     medal_notification_new: "नई उपलब्धि!",
     medal_notification_view: "देखें →",
@@ -869,4 +871,7 @@ export const hi = {
     resilience_label_moderate: "मध्यम लचीलापन",
     resilience_label_forming: "बन रहा है",
     resilience_label_no_data: "पर्याप्त डेटा नहीं",
+    pattern_positive: "जब {label} होता है तो आप बेहतर महसूस करते हैं",
+    pattern_negative: "जब {label} होता है तो मनोदशा गिरती है",
+    pattern_positive_time: "जब {label} {time} होता है — मनोदशा बेहतर होती है",
   };

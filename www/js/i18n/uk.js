@@ -831,6 +831,8 @@ export const uk = {
     medals_locked: "Ще не отримана",
     medals_earned: "Отримана",
     medals_times: "разів",
+    medal_share_btn: "Поділитись",
+    medal_share_dialog: "Поділитись нагородою",
     nav_medals: "Досягнення",
     medal_notification_new: "Нова нагорода!",
     medal_notification_view: "Подивитись →",
@@ -869,4 +871,7 @@ export const uk = {
     resilience_label_moderate: "Помірна стійкість",
     resilience_label_forming: "Формується",
     resilience_label_no_data: "Недостатньо даних",
+    pattern_positive: "Тобі краще коли відбувається {label}",
+    pattern_negative: "Настрій падає коли відбувається {label}",
+    pattern_positive_time: "Коли {label} відбувається {time} — настрій покращується",
   };

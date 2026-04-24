@@ -272,6 +272,14 @@ window.__showMedalModal = function(medalId) {
           : `🔒 ${t('medals_locked')}`
         }
       </div>
+      ${medal.earned ? `
+      <button class="medal-modal-share" id="medalModalShare" style="
+        width:100%;padding:14px;border:none;border-radius:16px;
+        background:linear-gradient(145deg,#7eb8d4,#6aa8c4);
+        color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        margin-bottom:10px;
+      ">↗ ${t('medal_share_btn')}</button>
+      ` : ''}
       <button class="medal-modal-close" id="medalModalClose">OK</button>
     </div>
   `;
@@ -279,6 +287,33 @@ window.__showMedalModal = function(medalId) {
 
   document.getElementById('medalModalClose').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  
+  document.getElementById('medalModalShare')?.addEventListener('click', () => {
+    const medalName = t('medal_' + medal.id) || medal.id;
+    const medalDesc = t('medal_' + medal.id + '_desc') || '';
+    const shareText = `${medal.emoji} ${medalName}\n${medalDesc}\n\n— Neyra`;
+
+    const Share = window.Capacitor?.Plugins?.Share;
+    if (Share) {
+      Share.share({
+        title: 'Neyra',
+        text: shareText,
+        dialogTitle: t('medal_share_dialog')
+      });
+      return;
+    }
+    if (navigator.share) {
+      navigator.share({ title: 'Neyra', text: shareText }).catch(() => {});
+      return;
+    }
+    navigator.clipboard?.writeText(shareText).then(() => {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#4caf87;color:#fff;padding:10px 20px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;';
+      toast.textContent = '✓ Скопировано';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    });
+  });
 };
 
 export function onExit() {}

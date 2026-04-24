@@ -875,6 +875,8 @@ export const ru = {
     medals_locked: "Ещё не получена",
     medals_earned: "Получена",
     medals_times: "раз",
+    medal_share_btn: "Поделиться",
+    medal_share_dialog: "Поделиться наградой",
     nav_medals: "Достижения",
     medal_notification_new: "Новая награда!",
     medal_notification_view: "Посмотреть →",

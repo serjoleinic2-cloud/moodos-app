@@ -831,6 +831,8 @@ export const es = {
     medals_locked: "Aún no obtenida",
     medals_earned: "Obtenida",
     medals_times: "veces",
+    medal_share_btn: "Compartir",
+    medal_share_dialog: "Compartir logro",
     nav_medals: "Logros",
     medal_notification_new: "¡Nuevo logro!",
     medal_notification_view: "Ver →",
@@ -869,4 +871,7 @@ export const es = {
     resilience_label_moderate: "Resiliencia moderada",
     resilience_label_forming: "Formándose",
     resilience_label_no_data: "Sin datos suficientes",
+    pattern_positive: "Te sientes mejor cuando ocurre {label}",
+    pattern_negative: "Tu estado de ánimo baja cuando ocurre {label}",
+    pattern_positive_time: "Cuando {label} ocurre {time} — tu estado de ánimo mejora",
   };
