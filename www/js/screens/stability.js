@@ -64,11 +64,11 @@ function renderTodaySection(todaySummary) {
         <div class="flip-inner-stab">
           <div class="flip-front-stab" style="border-left:3px solid ${accentColor};">
             ${frontHTML}
-            <div style="font-size:9px;color:#ccc;text-align:right;margin-top:6px;" data-i18n="stab_tap_details">${t('stab_tap_details') || 'тап → подробнее'}</div>
+            <div style="font-size:9px;color:#4caf87;font-weight:600;text-align:right;margin-top:6px;">${t('stab_tap_details')}</div>
           </div>
           <div class="flip-back-stab" style="border-left:3px solid ${accentColor};">
             ${backHTML}
-            <div style="font-size:9px;color:#ccc;text-align:right;margin-top:8px;" data-i18n="stab_tap_back">${t('stab_tap_back') || 'тап → назад'}</div>
+            <div style="font-size:9px;color:#4caf87;font-weight:600;text-align:right;margin-top:8px;">${t('stab_tap_back')}</div>
           </div>
         </div>
       </div>`;

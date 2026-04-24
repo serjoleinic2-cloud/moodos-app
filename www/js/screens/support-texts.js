@@ -2,7 +2,7 @@
 // Support Texts Module
 // ===============================
 import { getMood } from "../state.js";
-import { addSessionEntry } from "../services/memory.js";
+import { addSessionEntry, getLastRealMood } from "../services/memory.js";
 import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
@@ -49,7 +49,7 @@ export function initSupportTexts(cont) {
   currentType = null;
   currentIndex = 0;
   sessionStartTime = Date.now();
-  moodBeforeSession = getMood();
+  moodBeforeSession = getLastRealMood() ?? getMood();
   render();
   bindEvents();
 }
@@ -58,7 +58,7 @@ export function onEnter() {
   currentType = null;
   currentIndex = 0;
   sessionStartTime = Date.now();
-  moodBeforeSession = getMood();
+  moodBeforeSession = getLastRealMood() ?? getMood();
   render();
   bindEvents();
 }
@@ -173,7 +173,7 @@ async function selectType(type) {
   currentType = type;
   currentIndex = 0;
   sessionStartTime = Date.now();
-  moodBeforeSession = getMood();
+  moodBeforeSession = getLastRealMood() ?? getMood();
   const analysis = await SystemCore.analyzeMoodOnly(moodBeforeSession);
   stateBeforeSession = analysis ? analysis.state : null;
   render();

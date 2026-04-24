@@ -2,7 +2,7 @@
 // Breathing Wave Module
 // ===============================
 import { getMood } from "../state.js";
-import { addSessionEntry } from "../services/memory.js";
+import { addSessionEntry, getLastRealMood } from "../services/memory.js";
 import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
@@ -37,7 +37,7 @@ export function initBreathing(container) {
     box-sizing:border-box;
     text-align:center;
   ">
-    <h2 style="margin:0 0 10px;">${t("breath_title") || "Дыхание"}</h2>
+    <h2 style="margin:0 0 10px;">${t("tools_breathing_title")}</h2>
 
     <!-- РЕЖИМЫ -->
     <div id="breathModes" style="margin-bottom:8px;">
@@ -220,7 +220,7 @@ async function startBreathing() {
   if (running) return;
   running = true;
   sessionStartTime  = Date.now();
-  moodBeforeSession = getMood();
+  moodBeforeSession = getLastRealMood() ?? getMood();
   stateBeforeSession = (await SystemCore.analyzeMoodOnly(moodBeforeSession)).state;
   phaseIndex        = 0;
   phaseStartTime    = performance.now();

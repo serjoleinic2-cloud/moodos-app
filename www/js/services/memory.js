@@ -457,3 +457,14 @@ export async function migrateVoiceStorage() {
     console.error('[VOICE MIGRATION] Error:', e);
   }
 }
+
+export function getLastRealMood() {
+  try {
+    const history = getMoodHistory();
+    if (!history || history.length === 0) return null;
+    const sorted = [...history].sort((a, b) => b.time - a.time);
+    const last = sorted[0];
+    if (Date.now() - last.time > 12 * 3600000) return null;
+    return last.value;
+  } catch(e) { return null; }
+}

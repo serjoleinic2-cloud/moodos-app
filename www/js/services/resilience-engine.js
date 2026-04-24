@@ -41,9 +41,21 @@ export function getMoodStability() {
   const recent = history.filter(e => Date.now() - e.time <= 14 * 24 * 3600000);
   if (recent.length < 4) return null;
 
-  const avg      = recent.reduce((s, e) => s + e.value, 0) / recent.length;
-  const variance = recent.reduce((s, e) => s + Math.pow(e.value - avg, 2), 0) / recent.length;
-  return Math.max(0, Math.round(100 - (Math.sqrt(variance) / 30) * 100));
+  const values = recent.map(e => e.value).sort((a, b) => a - b);
+  const avg = values.reduce((s, v) => s + v, 0) / values.length;
+  const sd  = Math.sqrt(values.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / values.length);
+
+  const filtered = values.filter(v => Math.abs(v - avg) <= sd * 1.5);
+  if (filtered.length < 3) return null;
+
+  const filteredAvg = filtered.reduce((s, v) => s + v, 0) / filtered.length;
+  const filteredSd  = Math.sqrt(filtered.reduce((s, v) => s + Math.pow(v - filteredAvg, 2), 0) / filtered.length);
+
+  const stability = Math.max(0, Math.round(100 - (filteredSd / 20) * 100));
+
+  const avgBonus = avg >= 75 ? 10 : avg >= 60 ? 5 : 0;
+
+  return Math.min(100, stability + avgBonus);
 }
 
 // ---- ВОЛАТИЛЬНОСТЬ ----
@@ -88,6 +100,7 @@ export function getResilienceIndex() {
   const trend     = getResilienceTrend();
   const recovery  = getRecoverySpeed();
   const sessions  = getSessionHistory();
+  const history   = getMoodHistory();
 
   if (stability === null) return null;
 
@@ -98,8 +111,21 @@ export function getResilienceIndex() {
   if (recentSessions.length >= 7)  score += 5;
   if (recentSessions.length >= 14) score += 5;
 
-  if (trend?.direction === "up")         score += 10;
-  if (recovery !== null && recovery < 12) score += 10;
+  if (trend?.direction === "up") score += 8;
+
+  if (recovery !== null && recovery < 12) score += 8;
+
+  const recent14 = history.filter(e => Date.now() - e.time <= 14 * 24 * 3600000);
+  if (recent14.length >= 5) {
+    const avg14 = recent14.reduce((s, e) => s + e.value, 0) / recent14.length;
+    const lowCount = recent14.filter(e => e.value < 40).length;
+    const lowRatio = lowCount / recent14.length;
+
+    if (avg14 >= 70 && lowRatio < 0.2) score += 10;
+    else if (avg14 >= 60 && lowRatio < 0.15) score += 5;
+
+    if (lowCount > 0 && avg14 >= 65) score += 5;
+  }
 
   return Math.min(100, Math.max(0, Math.round(score)));
 }

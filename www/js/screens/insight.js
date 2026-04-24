@@ -643,7 +643,7 @@ export async function onEnter() {
     '.practice-main-value{font-size:20px;font-weight:600;color:#3a3530;}' +
     '.practice-subtext{font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;line-height:1.4;opacity:0.8;}' +
     '.flip-sub{font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;line-height:1.4;}' +
-    '.flip-hint{font-size:11px;color:#4caf87;font-weight:600;text-align:right;}' +
+    '.flip-hint{font-size:9px;color:#4caf87;font-weight:600;text-align:right;margin-top:6px;letter-spacing:0.3px;}' +
     '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
     '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +

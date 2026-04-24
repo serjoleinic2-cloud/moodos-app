@@ -64,7 +64,7 @@ function shareItem(item) {
   try {
     const Share = window.Capacitor?.Plugins?.Share;
     if (Share) {
-      Share.share({ title: "Neyra", text, dialogTitle: "Поделиться" });
+      Share.share({ title: "Neyra", text, dialogTitle: t('hist_share_dialog') });
       return;
     }
   } catch(e) {}
@@ -75,7 +75,7 @@ function shareItem(item) {
   }
 
   navigator.clipboard?.writeText(text).then(() => {
-    showToast("✓ Скопировано");
+    showToast("✓ " + t('hist_copied'));
   }).catch(() => {});
 }
 
@@ -130,7 +130,7 @@ async function sharePhoto(item) {
       Filesystem.writeFile({ path: fileName, data: base64, directory: "CACHE" })
         .then(() => Filesystem.getUri({ path: fileName, directory: "CACHE" }))
         .then(fileUri => {
-          return Share.share({ title: "Neyra", text, url: fileUri.uri, dialogTitle: "Поделиться" });
+          return Share.share({ title: "Neyra", text, url: fileUri.uri, dialogTitle: t('hist_share_dialog') });
         })
         .catch(err => {
           if (err.name !== "AbortError") {
@@ -665,7 +665,7 @@ function renderDetail(item, filterDate) {
       ${body}
     </div>
     <div style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom));left:0;width:100%;display:flex;justify-content:center;gap:12px;z-index:50;padding:0 16px;box-sizing:border-box;">
-      ${canShare ? `<div id="histShareBtn" style="padding:14px 20px;border-radius:20px;background:rgba(126,184,212,0.15);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#7eb8d4;cursor:pointer;white-space:nowrap;">↗ Поделиться</div>` : ""}
+      ${canShare ? `<div id="histShareBtn" style="padding:14px 20px;border-radius:20px;background:rgba(126,184,212,0.15);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#7eb8d4;cursor:pointer;white-space:nowrap;">↗ ${t('hist_share_btn')}</div>` : ""}
       <div id="histBackBtn" style="flex:1;padding:14px;border-radius:20px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;font-size:16px;color:#555;cursor:pointer;text-align:center;">${t("hist_back")}</div>
     </div>`;
 

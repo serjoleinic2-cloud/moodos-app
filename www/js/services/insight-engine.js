@@ -10,52 +10,55 @@ import { getBestToolForState, getPersonalRecommendation } from "./session-analyt
 import { showAvatarForInsight } from "../avatar.js";
 import { generateAvatarMessage, shouldShowAvatarInsight } from "../ai/avatar-brain.js";
 import { getMedContext } from "./user-profile.js";
+import { t } from "../i18n.js";
 
 // ---- ОБЪЯСНЕНИЕ ТЕКУЩЕГО СОСТОЯНИЯ ----
 export function explainCurrentState(currentMood) {
   const history = getMoodHistory();
   const reasons = [];
 
-  if (history.length < 3) return ["Недостаточно данных для анализа."];
+  if (history.length < 3) return [t('insight_exp_not_enough') || "Продолжай отслеживать — скоро появятся наблюдения."];
 
-  const sorted     = [...history].sort((a, b) => b.time - a.time);
-  const recent     = sorted.slice(0, 5);
-  const avgRecent  = recent.reduce((s, e) => s + e.value, 0) / recent.length;
+  const sorted    = [...history].sort((a, b) => b.time - a.time);
+  const recent    = sorted.slice(0, 5);
+  const avgRecent = recent.reduce((s, e) => s + e.value, 0) / recent.length;
 
   if (currentMood < avgRecent - 15) {
-    reasons.push("Резкое снижение относительно последних дней");
+    reasons.push(t('insight_exp_dip') || "Сегодня чуть сложнее чем обычно — это нормально.");
   }
 
   const hour = new Date().getHours();
   if (hour >= 18 && currentMood < 50) {
     if (hasEveningDip()) {
-      reasons.push("Вечернее снижение — это твоя обычная закономерность");
+      reasons.push(t('insight_exp_evening_pattern') || "Вечером у тебя обычно чуть тише — ты это уже знаешь о себе.");
     } else {
-      reasons.push("Вечернее время — уровень энергии естественно снижается");
+      reasons.push(t('insight_exp_evening') || "К вечеру энергия естественно снижается — это физиология.");
     }
   }
 
   const lastThreeDays = sorted.filter(e => Date.now() - e.time < 3 * 24 * 3600000);
   if (lastThreeDays.length >= 3) {
     const avgThree = lastThreeDays.reduce((s, e) => s + e.value, 0) / lastThreeDays.length;
-    if (avgThree < 50) reasons.push("Накопленная усталость за последние дни");
+    if (avgThree < 50) reasons.push(t('insight_exp_tired') || "Последние дни требовали усилий — дай себе восстановиться.");
   }
 
   const sessions    = getSessionHistory();
   const lastSession = sessions.sort((a, b) => b.timestamp - a.timestamp)[0];
   if (!lastSession || Date.now() - lastSession.timestamp > 3 * 24 * 3600000) {
-    reasons.push("Давно не было восстановительных практик");
+    reasons.push(t('insight_exp_no_practice') || "Практика помогает — попробуй уделить себе несколько минут.");
   }
 
   if (!reasons.length) {
-    reasons.push(currentMood >= 60 ? "Состояние выглядит стабильным" : "Обычные колебания настроения");
+    reasons.push(currentMood >= 60
+      ? (t('insight_exp_stable_good') || "Состояние стабильное — хороший знак.")
+      : (t('insight_exp_stable') || "Обычные колебания — ты справляешься.")
+    );
   }
 
-  // Контекст лекарств
   const medContext = getMedContext();
   if (medContext) reasons.push(medContext);
 
-  return reasons;
+return reasons;
 }
 
 // ---- ПРОГНОЗ НА СЕГОДНЯ ----
@@ -69,17 +72,19 @@ export function getTodayForecast() {
   const hour     = now.getHours();
   const lines    = [];
 
-  const dayNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
   if (patterns.bestDay !== null && patterns.bestDay === today) {
-    lines.push(`${dayNames[today]} обычно твой хороший день`);
+    lines.push(t('forecast_best_day') || "Сегодня обычно твой хороший день");
   }
 
   if (patterns.eveningDip && hour < 17) {
-    lines.push("Вечером возможно снижение — запланируй практику после 17:00");
+    lines.push(t('forecast_evening_dip') || "Вечером возможно снижение — запланируй практику заранее");
   }
 
   if (patterns.bestHour !== null && Math.abs(patterns.bestHour - hour) <= 1) {
-    lines.push(`Сейчас твоё обычное пиковое время (около ${patterns.bestHour}:00)`);
+    lines.push(
+      (t('forecast_peak_hour') || "Сейчас твоё пиковое время (около {h}:00)")
+        .replace('{h}', patterns.bestHour)
+    );
   }
 
   const sorted  = [...history].sort((a, b) => b.time - a.time);
@@ -87,10 +92,12 @@ export function getTodayForecast() {
   if (recent3.length >= 2) {
     const avg3      = recent3.reduce((s, e) => s + e.value, 0) / recent3.length;
     const globalAvg = history.reduce((s, e) => s + e.value, 0) / history.length;
-    if (avg3 < globalAvg - 10) lines.push("Последние дни сложнее обычного — продолжай наблюдать за собой");
+    if (avg3 < globalAvg - 10) {
+      lines.push(t('forecast_harder_days') || "Последние дни чуть сложнее — продолжай замечать себя");
+    }
   }
 
-  if (!lines.length) return "День выглядит обычным по твоей истории.";
+  if (!lines.length) return t('forecast_normal') || "День выглядит обычным по твоей истории.";
   return lines.join(". ") + ".";
 }
 
@@ -131,24 +138,28 @@ export function getMicroHabit(currentState) {
   const bestTool = getBestToolForState(currentState);
   const hour     = new Date().getHours();
 
+  const toolNames = () => ({
+    "breathing":      t("tools_breathing").replace(/^[^\s]+\s/, ""),
+    "meditation":     t("tools_meditation").replace(/^[^\s]+\s/, ""),
+    "visual-focus":   t("tools_visual").replace(/^[^\s]+\s/, ""),
+    "mind-dump":      t("tools_mind").replace(/^[^\s]+\s/, ""),
+    "tap-calm":       t("tools_tap").replace(/^[^\s]+\s/, ""),
+    "support_texts":  t("support_texts_title").replace(/^[^\s]+\s/, "")
+  });
+
   if (bestTool) {
-    const toolNames = {
-      "breathing":      "дыхательную практику",
-      "meditation":     "медитацию",
-      "visual-focus":   "зрительный якорь",
-      "mind-dump":      "выгрузку мыслей",
-      "tap-calm":       "тактильную разрядку",
-      "support_texts":  "тексты поддержки"
-    };
-    return `Попробуй ${toolNames[bestTool] || bestTool} — она лучше всего работает для тебя в этом состоянии`;
+    const name = toolNames()[bestTool] || bestTool;
+    return t('insight_micro_best')?.replace('{tool}', name)
+      || `${name} — это твой лучший инструмент прямо сейчас`;
   }
 
   if (patterns.eveningDip && hour >= 15 && hour <= 17) {
-    return "Сейчас хороший момент для короткой практики — до вечернего снижения";
+    return t('insight_micro_evening') || "Сейчас хороший момент для короткой практики";
   }
 
   if (patterns.bestBreathTime) {
-    return `Дыхание лучше работает у тебя ${patterns.bestBreathTime}`;
+    return (t('insight_micro_breath_time') || "Дыхание лучше работает у тебя {time}")
+      .replace('{time}', patterns.bestBreathTime);
   }
 
   return getPersonalRecommendation(currentState);

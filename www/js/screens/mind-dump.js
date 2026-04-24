@@ -3,7 +3,7 @@
 // Выгрузка мыслей — 60 секунд
 // ===============================
 import { getMood } from "../state.js";
-import { addSessionEntry } from "../services/memory.js";
+import { addSessionEntry, getLastRealMood } from "../services/memory.js";
 import SystemCore from "../system-core.js";
 import { t } from "../i18n.js";
 
@@ -198,7 +198,7 @@ async function startSession() {
   
   running = true;
   sessionStartTime = Date.now();
-  moodBeforeSession = getMood();
+  moodBeforeSession = getLastRealMood() ?? getMood();
   const analysisResult = await SystemCore.analyzeMoodOnly(moodBeforeSession);
   stateBeforeSession = analysisResult ? analysisResult.state : null;
   

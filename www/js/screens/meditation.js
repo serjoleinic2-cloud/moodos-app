@@ -3,7 +3,7 @@
 // ===============================
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
-import { addSessionEntry } from "../services/memory.js";
+import { addSessionEntry, getLastRealMood } from "../services/memory.js";
 import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
 import { AppRuntime } from "../core/appRuntime.js";
@@ -721,7 +721,7 @@ function toggleMeditation() {
     running = true;
     trackingActive = false;
     sessionStartTime = Date.now();
-    moodBeforeSession = getMood();
+    moodBeforeSession = getLastRealMood() ?? getMood();
     
     const allTracks = getAllTracks();
     if (currentIndex < 0 || currentIndex >= allTracks.length) {
