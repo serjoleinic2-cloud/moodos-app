@@ -396,6 +396,16 @@ function initResilienceCard() {
       }
     }
 
+    // Добавляем цветную боковинку в зависимости от значения
+    const frontEl = card.querySelector('.flip-front') || card.querySelector('[class*="flip-front"]');
+    if (frontEl) {
+      frontEl.classList.add('resilience-flip-front');
+      if (index !== null) {
+        if (index < 40) frontEl.classList.add('alert');
+        else if (index < 70) frontEl.classList.add('warn');
+      }
+    }
+
     // Удаляем старый обработчик через замену ноды
     const newCard = card.cloneNode(true);
     card.parentNode.replaceChild(newCard, card);

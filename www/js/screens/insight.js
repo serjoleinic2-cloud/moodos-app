@@ -604,7 +604,7 @@ export async function onEnter() {
         
         return '<div class="flip-wrap" id="flip-' + p.key + '">' +
           '<div class="flip-inner">' +
-            '<div class="flip-front">' +
+            '<div class="flip-front has-accent" style="--accent-color:' + valueColor + '">' +
               '<div class="flip-label">' + p.icon + ' ' + practiceShortLabel(p.key) + '</div>' +
               '<div class="practice-main-value" style="color:' + valueColor + '">' + displayValue + '</div>' +
               (cardData.mainDisplay.subtitle ? '<div class="practice-subtext">' + safe(cardData.mainDisplay.subtitle, '') + '</div>' : '') +
@@ -677,7 +677,7 @@ export async function onEnter() {
 
         '<div class="flip-wrap" id="flip-stability">' +
           '<div class="flip-inner">' +
-            '<div class="flip-front">' +
+            '<div class="flip-front has-accent" style="--accent-color:' + sColor(stability) + '">' +
               '<div class="flip-label">' + t("stability_lbl") + '</div>' +
               '<div class="flip-value" style="color:' + sColor(stability) + '">' + (stability !== null ? stability : formatInsightValue(null)) + '%</div>' +
               '<div class="flip-sub">' + sText(stability) + '</div>' +
@@ -690,44 +690,11 @@ export async function onEnter() {
 
         '<div class="flip-wrap" id="flip-mood">' +
           '<div class="flip-inner">' +
-            '<div class="flip-front">' +
+            '<div class="flip-front has-accent" style="--accent-color:' + mColor(avgMood) + '">' +
               '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
               '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
               '<div class="flip-sub">' + mText(avgMood) + '</div>' +
               '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_mood_explain") + '</div>' +
-              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
-            '</div>' +
-
-        '<div class="flip-wrap" id="flip-trend">' +
-          '<div class="flip-inner">' +
-            '<div class="flip-front">' +
-              '<div class="flip-label">' + t("trend_lbl") + '</div>' +
-              '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
-              '<div class="flip-sub">' + t("trend_sub") + '</div>' +
-              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
-              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
-            '</div>' +
-
-        '<div class="flip-wrap" id="flip-golden">' +
-          '<div class="flip-inner">' +
-            '<div class="flip-front">' +
-              '<div class="flip-label">' + t("golden_lbl") + '</div>' +
-              '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
-              '<div class="flip-sub">' + t("golden_sub") + '</div>' +
-              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
-              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
-            '</div>' +
-            '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
-          '</div>' +
-        '</div>' +
-
-        '<div class="flip-wrap" id="flip-mood">' +
-          '<div class="flip-inner">' +
-            '<div class="flip-front">' +
-              '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
-              '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
-              '<div class="flip-sub">' + mText(avgMood) + '</div>' +
-              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_mood_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>' +
@@ -736,11 +703,11 @@ export async function onEnter() {
 
         '<div class="flip-wrap" id="flip-trend">' +
           '<div class="flip-inner">' +
-            '<div class="flip-front">' +
+            '<div class="flip-front has-accent" style="--accent-color:#7eb8d4">' +
               '<div class="flip-label">' + t("trend_lbl") + '</div>' +
               '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
               '<div class="flip-sub">' + t("trend_sub") + '</div>' +
-              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back" style="padding:20px;">' +
@@ -751,11 +718,55 @@ export async function onEnter() {
 
         '<div class="flip-wrap" id="flip-golden">' +
           '<div class="flip-inner">' +
-            '<div class="flip-front">' +
+            '<div class="flip-front has-accent" style="--accent-color:#7eb8d4">' +
               '<div class="flip-label">' + t("golden_lbl") + '</div>' +
               '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
               '<div class="flip-sub">' + t("golden_sub") + '</div>' +
-              '<div style="font-size:11px;color:#bbb;margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
+            '<div class="flip-back"><canvas id="chartStability" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="flip-wrap" id="flip-mood">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front has-accent" style="--accent-color:' + mColor(avgMood) + '">' +
+              '<div class="flip-label">' + t("avg_mood_lbl") + '</div>' +
+              '<div class="flip-value" style="color:' + mColor(avgMood) + '">' + avgMood + '%</div>' +
+              '<div class="flip-sub">' + mText(avgMood) + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_mood_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back"><canvas id="chartMood" style="width:100%;height:160px;"></canvas></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="flip-wrap" id="flip-trend">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front has-accent" style="--accent-color:#7eb8d4">' +
+              '<div class="flip-label">' + t("trend_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
+              '<div class="flip-sub">' + t("trend_sub") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
+              '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
+            '</div>' +
+            '<div class="flip-back" style="padding:20px;">' +
+              '<div style="font-size:15px;color:#555;text-align:center;line-height:1.6;">' + trendExplain(trend) + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="flip-wrap" id="flip-golden">' +
+          '<div class="flip-inner">' +
+            '<div class="flip-front has-accent" style="--accent-color:#7eb8d4">' +
+              '<div class="flip-label">' + t("golden_lbl") + '</div>' +
+              '<div class="flip-value" style="font-size:18px;">⭐ ' + (golden ? goldenShort(golden) : formatInsightValue(null)) + '</div>' +
+              '<div class="flip-sub">' + t("golden_sub") + '</div>' +
+              '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_golden_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>' +
