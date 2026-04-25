@@ -210,7 +210,7 @@ function renderSettings() {
           </div>
           <span class="neo-row-arrow">›</span>
         </div>
-        <input type="file" id="restoreFileInput" accept=".zip,.json" style="display:none;">
+        <input type="file" id="restoreFileInput" accept=".zip,.json,.txt" style="display:none;">
       </div>
 
 
@@ -351,6 +351,10 @@ function bindEvents(el) {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
+    if (!file.name.includes('neyra') && !file.name.endsWith('.zip') && !file.name.endsWith('.json') && !file.name.endsWith('.txt')) {
+      alert(t('backup_err_invalid_format'));
+      return;
+    }
     showRestoreConfirmModal(file);
   });
 
@@ -361,9 +365,9 @@ function bindEvents(el) {
     let confirmText = "";
     
     if (isPrem) {
-      confirmText = `${t("export_premium_title")}\n\n${t("export_premium_list")}\n\n${t("export_premium_subtitle")}\n\n${t("exit_warning")}`;
+      confirmText = `${t("export_premium_title")}\n\n${t("export_premium_list")}\n\n${t("export_premium_subtitle")}`;
     } else {
-      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}\n\n${t("exit_warning")}`;
+      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}`;
     }
     
     const ok = confirm(confirmText);

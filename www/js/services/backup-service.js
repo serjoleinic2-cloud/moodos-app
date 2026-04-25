@@ -183,6 +183,7 @@ export async function exportData() {
     }
 
     const data = collectAllData();
+    console.log('[EXPORT] isPremium:', isPremium(), 'data keys:', Object.keys(data).length);
 
     if (Object.keys(data).length === 0) {
       return { success: false, error: 'no_data' };
@@ -516,7 +517,7 @@ export async function importData(file) {
         }
 
         // Detect by extension OR by magic bytes (PK = ZIP)
-        const isZip = file.name.endsWith('.zip');
+        const isZip = file.name.endsWith('.zip') || file.name.endsWith('.txt');
         
         // Read first 4 bytes to detect ZIP magic
         const slice = file.slice(0, 4);
