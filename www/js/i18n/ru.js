@@ -48,6 +48,25 @@ export const ru = {
     backup_hours_suffix: "ч.",
     backup_premium_unlimited: "без ограничений",
     
+    // Backup i18n
+    backup_success_msg: "Резервная копия создана.\nСохраните файл в безопасном месте.",
+    backup_success_no_media: "Резервная копия создана (без медиа).\nСохраните файл в безопасном месте.",
+    backup_confirm_overwrite: "Текущие данные будут объединены с резервной копией. Продолжить?",
+    backup_size_exceeded: "Размер резервной копии слишком большой ({size}MB). Максимум: {max}MB.",
+    backup_share_text: "Резервная копия данных Neyra",
+    backup_share_dialog: "Сохранить резервную копию",
+    backup_restore_success: "Данные успешно восстановлены!",
+    backup_err_no_file: "Файл не выбран",
+    backup_err_invalid_format: "Неверный формат файла резервной копии",
+    backup_err_invalid_structure: "Структура файла повреждена",
+    backup_err_missing_version: "Файл слишком старый или повреждён",
+    backup_err_parse: "Не удалось прочитать содержимое файла",
+    backup_err_read: "Ошибка чтения файла",
+    backup_err_size: "Файл слишком большой",
+    backup_err_restore_media: "Не удалось восстановить медиа: память переполнена.",
+    backup_free_limit: "Free версия: экспорт раз в 24 часа",
+    backup_premium_full: "Premium: без ограничений + медиафайлы",
+    
     // Paywall
     paywall_title: "Полный доступ к себе",
     paywall_subtitle: "Разблокируй все функции приложения",

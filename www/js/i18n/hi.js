@@ -789,6 +789,25 @@ export const hi = {
     backup_hours_suffix: "घंटे में।",
     backup_premium_unlimited: "असीमित",
     
+    // Backup i18n
+    backup_success_msg: "बैकअप बनाया गया।\nइस फ़ाइल को सुरक्षित स्थान पर रखें।",
+    backup_success_no_media: "बैकअप बनाया गया (मीडिया के बिना)।\nइस फ़ाइल को सुरक्षित स्थान पर रखें।",
+    backup_confirm_overwrite: "वर्तमान डेटा बैकअप के साथ मर्ज किया जाएगा। जारी रखें?",
+    backup_size_exceeded: "बैकअप बहुत बड़ा है ({size}MB)। अधिकतम: {max}MB।",
+    backup_share_text: "Neyra डेटा बैकअप",
+    backup_share_dialog: "बैकअप सहेजें",
+    backup_restore_success: "डेटा सफलतापूर्वक पुनर्स्थापित किया गया!",
+    backup_err_no_file: "कोई फ़ाइल नहीं चुनी गई",
+    backup_err_invalid_format: "अमान्य बैकअप फ़ाइल प्रारूप",
+    backup_err_invalid_structure: "फ़ाइल संरचना दूषित है",
+    backup_err_missing_version: "फ़ाइल बहुत पुरानी या दूषित है",
+    backup_err_parse: "फ़ाइल सामग्री नहीं पढ़ी जा सकी",
+    backup_err_read: "फ़ाइल पढ़ने में त्रुटि",
+    backup_err_size: "फ़ाइल बहुत बड़ी है",
+    backup_err_restore_media: "मीडिया पुनर्स्थापित नहीं हो सका: स्टोरेज भरा हुआ है।",
+    backup_free_limit: "Free: 24 घंटे में एक बार निर्यात",
+    backup_premium_full: "Premium: असीमित + मीडिया फ़ाइलें",
+    
     // Paywall
     paywall_title: "अपने आप में पूर्ण पहुंच",
     paywall_subtitle: "ऐप के सभी फ़ीचर्स अनलॉक करें",

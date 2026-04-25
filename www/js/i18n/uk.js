@@ -49,6 +49,25 @@ export const uk = {
     backup_hours_suffix: "год.",
     backup_premium_unlimited: "без обмежень",
     
+    // Backup i18n
+    backup_success_msg: "Резервну копію створено.\nЗбережіть файл у безпечному місці.",
+    backup_success_no_media: "Резервну копію створено (без медіа).\nЗбережіть файл у безпечному місці.",
+    backup_confirm_overwrite: "Поточні дані будуть об'єднані з резервною копією. Продовжити?",
+    backup_size_exceeded: "Резервна копія занадто велика ({size}МБ). Максимум: {max}МБ.",
+    backup_share_text: "Резервна копія даних Neyra",
+    backup_share_dialog: "Зберегти резервну копію",
+    backup_restore_success: "Дані успішно відновлено!",
+    backup_err_no_file: "Файл не вибрано",
+    backup_err_invalid_format: "Невірний формат файлу резервної копії",
+    backup_err_invalid_structure: "Структура файлу пошкоджена",
+    backup_err_missing_version: "Файл застарілий або пошкоджений",
+    backup_err_parse: "Не вдалося прочитати вміст файлу",
+    backup_err_read: "Помилка читання файлу",
+    backup_err_size: "Файл занадто великий",
+    backup_err_restore_media: "Не вдалося відновити медіа: сховище заповнене.",
+    backup_free_limit: "Free: експорт раз на 24 години",
+    backup_premium_full: "Premium: без обмежень + медіафайли",
+    
     // Paywall
     paywall_title: "Повний доступ до себе",
     paywall_subtitle: "Розблокуй усі функції додатку",

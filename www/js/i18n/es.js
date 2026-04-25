@@ -49,6 +49,25 @@ export const es = {
     backup_hours_suffix: "h.",
     backup_premium_unlimited: "ilimitado",
     
+    // Backup i18n
+    backup_success_msg: "Copia de seguridad creada.\nGuarda este archivo en un lugar seguro.",
+    backup_success_no_media: "Copia de seguridad creada (sin medios).\nGuarda este archivo en un lugar seguro.",
+    backup_confirm_overwrite: "Los datos actuales se combinarán con la copia de seguridad. ¿Continuar?",
+    backup_size_exceeded: "La copia de seguridad es demasiado grande ({size}MB). Máximo: {max}MB.",
+    backup_share_text: "Copia de seguridad de datos de Neyra",
+    backup_share_dialog: "Guardar copia de seguridad",
+    backup_restore_success: "¡Datos restaurados con éxito!",
+    backup_err_no_file: "Ningún archivo seleccionado",
+    backup_err_invalid_format: "Formato de archivo de copia de seguridad no válido",
+    backup_err_invalid_structure: "La estructura del archivo está dañada",
+    backup_err_missing_version: "El archivo es demasiado antiguo o está dañado",
+    backup_err_parse: "No se pudo leer el contenido del archivo",
+    backup_err_read: "Error de lectura del archivo",
+    backup_err_size: "El archivo es demasiado grande",
+    backup_err_restore_media: "No se pudo restaurar el medio: almacenamiento lleno.",
+    backup_free_limit: "Gratis: exportar una vez cada 24 horas",
+    backup_premium_full: "Premium: ilimitado + archivos multimedia",
+    
     // Paywall
     paywall_title: "Acceso completo a ti",
     paywall_subtitle: "Desbloquea todas las funciones de la aplicación",

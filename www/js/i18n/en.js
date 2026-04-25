@@ -49,6 +49,25 @@ export const en = {
     backup_hours_suffix: "h.",
     backup_premium_unlimited: "unlimited",
     
+    // Backup i18n
+    backup_success_msg: "Backup created.\nKeep this file in a safe place.",
+    backup_success_no_media: "Backup created (without media).\nKeep this file in a safe place.",
+    backup_confirm_overwrite: "Current data will be merged with the backup. Continue?",
+    backup_size_exceeded: "Backup is too large ({size}MB). Maximum: {max}MB.",
+    backup_share_text: "Neyra data backup",
+    backup_share_dialog: "Save backup",
+    backup_restore_success: "Data successfully restored!",
+    backup_err_no_file: "No file selected",
+    backup_err_invalid_format: "Invalid backup file format",
+    backup_err_invalid_structure: "File structure is corrupted",
+    backup_err_missing_version: "File is too old or corrupted",
+    backup_err_parse: "Could not read file contents",
+    backup_err_read: "File read error",
+    backup_err_size: "File is too large",
+    backup_err_restore_media: "Could not restore media: storage full.",
+    backup_free_limit: "Free: export once per 24 hours",
+    backup_premium_full: "Premium: unlimited + media files",
+    
     // Paywall
     paywall_title: "Full Access to Yourself",
     paywall_subtitle: "Unlock all app features",

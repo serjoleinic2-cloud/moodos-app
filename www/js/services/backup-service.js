@@ -287,7 +287,7 @@ export async function exportData() {
     console.log('[BACKUP] Estimated size:', estimatedSize.toFixed(2), 'MB');
 
     if (estimatedSize > MAX_BACKUP_SIZE_MB) {
-      alert(`Размер резервной копии слишком большой (${estimatedSize.toFixed(1)}MB). Максимум: ${MAX_BACKUP_SIZE_MB}MB. Удалите часть медиа или старые записи.`);
+      alert(t('backup_size_exceeded').replace('{size}', estimatedSize.toFixed(1)).replace('{max}', MAX_BACKUP_SIZE_MB));
       return { success: false, error: 'size_exceeded' };
     }
 
@@ -369,9 +369,9 @@ export async function exportData() {
             const file = new File([blob], fileName, { type: 'application/zip' });
             await SharePlugin.share({
               title: 'Neyra Backup',
-              text: 'Резервная копия данных Neyra',
+              text: t('backup_share_text'),
               files: [file],
-              dialogTitle: 'Сохранить резервную копию'
+              dialogTitle: t('backup_share_dialog')
             });
             console.log('[EXPORT] Share success');
           } catch (shareErr) {
@@ -379,9 +379,9 @@ export async function exportData() {
             const url = URL.createObjectURL(blob);
             await SharePlugin.share({
               title: 'Neyra Backup',
-              text: 'Резервная копия данных Neyra',
+              text: t('backup_share_text'),
               url: url,
-              dialogTitle: 'Сохранить резервную копию'
+              dialogTitle: t('backup_share_dialog')
             });
             setTimeout(() => URL.revokeObjectURL(url), 3000);
           }
@@ -393,7 +393,7 @@ export async function exportData() {
           }).catch(() => {});
           
           markBackupSuccess();
-          alert('Резервная копия создана.\nСохраните файл в безопасном месте.');
+          alert(t('backup_success_msg'));
           return { success: true };
         }
         
@@ -402,9 +402,9 @@ export async function exportData() {
         try {
           await SharePlugin.share({
             title: 'Neyra Backup',
-            text: 'Резервная копия данных Neyra',
+            text: t('backup_share_text'),
             url: url,
-            dialogTitle: 'Сохранить резервную копию'
+            dialogTitle: t('backup_share_dialog')
           });
           console.log('[EXPORT] Share success (blob)');
         } catch (err) {
@@ -414,7 +414,7 @@ export async function exportData() {
         setTimeout(() => URL.revokeObjectURL(url), 3000);
         
         markBackupSuccess();
-        alert('Резервная копия создана.\nСохраните файл в безопасном месте.');
+        alert(t('backup_success_msg'));
         return { success: true };
       } catch (err) {
         console.warn('[BACKUP] Share failed:', err.message);
@@ -431,7 +431,7 @@ export async function exportData() {
         setTimeout(() => URL.revokeObjectURL(url), 3000);
         
         markBackupSuccess();
-        alert('Резервная копия создана.\nСохраните файл в безопасном месте.');
+        alert(t('backup_success_msg'));
         return { success: true };
       }
 
@@ -449,7 +449,7 @@ export async function exportData() {
       const date = new Date().toISOString().split('T')[0];
       downloadJSON(fallback, `neyra-backup-${date}.json`);
       markBackupSuccess();
-      alert('Резервная копия создана (без медиа).\nСохраните файл в безопасном месте.');
+      alert(t('backup_success_no_media'));
       return { success: true, warning: 'media_skipped' };
     }
 
@@ -470,24 +470,24 @@ export function showImportPicker() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const ok = confirm('Текущие данные будут заменены. Продолжить?');
+    const ok = confirm(t('backup_confirm_overwrite'));
     if (!ok) return;
 
     const result = await importData(file);
 
     if (result.error) {
       const messages = {
-        'no_file': 'Файл не выбран',
-        'invalid_format': 'Неверный формат файла резервной копии',
-        'invalid_structure': 'Структура файла повреждена',
-        'missing_version': 'Файл слишком старый или повреждён',
-        'parse_error': 'Не удалось прочитать содержимое файла',
-        'read_error': 'Ошибка чтения файла',
-        'size_exceeded': 'Файл слишком большой'
+        'no_file':           t('backup_err_no_file'),
+        'invalid_format':    t('backup_err_invalid_format'),
+        'invalid_structure': t('backup_err_invalid_structure'),
+        'missing_version':   t('backup_err_missing_version'),
+        'parse_error':       t('backup_err_parse'),
+        'read_error':        t('backup_err_read'),
+        'size_exceeded':     t('backup_err_size')
       };
       alert(messages[result.error] || 'Ошибка импорта: ' + result.error);
     } else {
-      alert('Данные успешно восстановлены!');
+      alert(t('backup_restore_success'));
       disableExitGuardForReload();
       window.location.reload();
     }
@@ -510,7 +510,7 @@ export async function importData(file) {
         console.log('[BACKUP] Import file size:', importSizeMB.toFixed(2), 'MB');
 
         if (importSizeMB > MAX_IMPORT_SIZE_MB) {
-          alert(`Файл слишком большой (${importSizeMB.toFixed(1)}MB). Максимум: ${MAX_IMPORT_SIZE_MB}MB.`);
+          alert(t('backup_err_size'));
           resolve({ success: false, error: 'size_exceeded' });
           return;
         }
@@ -736,7 +736,7 @@ function restoreMediaFromMap(mediaMap) {
     localStorage.setItem('photo_history', JSON.stringify(photoHistory));
   } catch (quotaErr) {
     console.error('[BACKUP] Quota error during restore:', quotaErr);
-    alert('Не удалось восстановить медиа: память переполнена.');
+    alert(t('backup_err_restore_media'));
     localStorage.setItem('voice_history', JSON.stringify(voiceHistory.filter(i => !i.audio)));
     localStorage.setItem('photo_history', JSON.stringify(photoHistory.filter(i => !i.dataUrl)));
   }
