@@ -351,10 +351,6 @@ function bindEvents(el) {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
-    if (!file.name.includes('neyra') && !file.name.endsWith('.zip') && !file.name.endsWith('.json') && !file.name.endsWith('.txt')) {
-      alert(t('backup_err_invalid_format'));
-      return;
-    }
     showRestoreConfirmModal(file);
   });
 

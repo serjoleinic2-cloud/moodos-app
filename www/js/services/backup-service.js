@@ -56,7 +56,10 @@ const VALID_KEYS = [
   'cloud_enabled',
   'onboarding_done',
   'med_reminder',
-  'med_monthly_check'
+  'med_monthly_check',
+  'med_reminders_v2',
+  'app_version',
+  'neyra_sound_prompt_shown'
 ];
 
 function collectAllData() {
@@ -377,14 +380,22 @@ export async function exportData() {
             console.log('[EXPORT] Share success');
           } catch (shareErr) {
             console.warn('[EXPORT] Share with files failed, trying url:', shareErr);
-            const url = URL.createObjectURL(blob);
-            await SharePlugin.share({
-              title: 'Neyra Backup',
-              text: t('backup_share_text'),
-              url: url,
-              dialogTitle: t('backup_share_dialog')
-            });
-            setTimeout(() => URL.revokeObjectURL(url), 3000);
+            try {
+              const base64 = await blobToBase64(blob);
+              const fileName2 = `neyra-backup-${new Date().toISOString().slice(0,10)}.zip`;
+              await FilesystemPlugin.writeFile({
+                path: fileName2, data: base64, directory: 'CACHE'
+              });
+              await SharePlugin.share({
+                title: 'Neyra Backup',
+                text: t('backup_share_text'),
+                url: `file://${fileName2}`,
+                dialogTitle: t('backup_share_dialog')
+              });
+              FilesystemPlugin.deleteFile({ path: fileName2, directory: 'CACHE' }).catch(() => {});
+            } catch(e2) {
+              console.warn('[EXPORT] All share attempts failed:', e2);
+            }
           }
           
           // Cleanup
@@ -398,21 +409,9 @@ export async function exportData() {
           return { success: true };
         }
         
-        // Fallback: use blob URL
-        const url = URL.createObjectURL(blob);
-        try {
-          await SharePlugin.share({
-            title: 'Neyra Backup',
-            text: t('backup_share_text'),
-            url: url,
-            dialogTitle: t('backup_share_dialog')
-          });
-          console.log('[EXPORT] Share success (blob)');
-        } catch (err) {
-          console.warn('[EXPORT] Share fallback failed:', err);
-        }
-        
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        // Fallback без FilesystemPlugin — используем downloadFallback с правильным именем
+        const fileNameFb2 = `neyra-backup-${new Date().toISOString().slice(0,10)}.zip`;
+        downloadFallback(blob, fileNameFb2);
         
         markBackupSuccess();
         alert(t('backup_success_msg'));
@@ -420,16 +419,7 @@ export async function exportData() {
       } catch (err) {
         console.warn('[BACKUP] Share failed:', err.message);
         // Fallback to download
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        downloadFallback(blob, filename);
         
         markBackupSuccess();
         alert(t('backup_success_msg'));
@@ -664,8 +654,15 @@ async function importFromJson(file, resolve) {
       const backup = JSON.parse(content);
       console.log('[BACKUP] JSON parsed, keys:', Object.keys(backup || {}));
 
-      if (!backup || backup.app !== 'neyra') {
-        console.error('[BACKUP] Invalid app:', backup?.app);
+      // Принимаем файлы Neyra (поле app) И старые файлы без поля app но с полем data
+      if (!backup) {
+        resolve({ success: false, error: 'invalid_format' });
+        return;
+      }
+      const isNeyraBackup = backup.app === 'neyra' || 
+        (backup.data && typeof backup.data === 'object' && backup.version);
+      if (!isNeyraBackup) {
+        console.error('[BACKUP] Not a Neyra backup:', backup?.app, backup?.version);
         resolve({ success: false, error: 'invalid_format' });
         return;
       }
