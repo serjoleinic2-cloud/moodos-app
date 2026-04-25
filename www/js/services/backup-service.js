@@ -447,8 +447,19 @@ export async function exportData() {
         data: data
       };
 
-      const date = new Date().toISOString().split('T')[0];
-      downloadJSON(fallback, `neyra-backup-${date}.json`);
+      // Сохраняем как ZIP без медиа — чтобы импорт работал корректно
+      try {
+        const fallbackZip = new JSZip();
+        fallbackZip.file('data.json', JSON.stringify(fallback, null, 2));
+        const fallbackBlob = await fallbackZip.generateAsync({ type: 'blob' });
+        const date = new Date().toISOString().split('T')[0];
+        downloadFallback(fallbackBlob, `neyra-backup-${date}.zip`);
+      } catch(zipErr) {
+        // Совсем крайний случай — JSON
+        const date = new Date().toISOString().split('T')[0];
+        downloadJSON(fallback, `neyra-backup-${date}.json`);
+      }
+      
       markBackupSuccess();
       alert(t('backup_success_no_media'));
       return { success: true, warning: 'media_skipped' };
@@ -465,7 +476,7 @@ export async function exportData() {
 export function showImportPicker() {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.zip,.json';
+  input.accept = '.zip,.json,.txt';
 
   input.onchange = async (e) => {
     const file = e.target.files[0];
@@ -516,19 +527,26 @@ export async function importData(file) {
           return;
         }
 
-        // Detect by extension OR by magic bytes (PK = ZIP)
-        const isZip = file.name.endsWith('.zip') || file.name.endsWith('.txt');
+        // Определяем формат: сначала по расширению, затем по magic bytes
+        const isZipByExtension = file.name.endsWith('.zip');
         
-        // Read first 4 bytes to detect ZIP magic
-        const slice = file.slice(0, 4);
-        const buffer = await slice.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        const magic = String.fromCharCode(...bytes);
-        const isZipByMagic = magic.startsWith('PK');
-        
-        console.log('[BACKUP] Magic:', magic, 'isZip:', isZip || isZipByMagic);
-        
-        const doImport = isZip || isZipByMagic;
+        // Читаем первые 4 байта для определения ZIP magic (PK\x03\x04)
+        let isZipByMagic = false;
+        try {
+          const buffer = await file.slice(0, 4).arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          // ZIP magic: 50 4B 03 04
+          isZipByMagic = bytes[0] === 0x50 && bytes[1] === 0x4B;
+          console.log('[BACKUP] Magic bytes:', Array.from(bytes).map(b => b.toString(16)).join(' '));
+        } catch(e) {
+          console.warn('[BACKUP] Magic bytes read failed:', e);
+        }
+
+        console.log('[BACKUP] ext:', file.name.split('.').pop(), 'isZipByMagic:', isZipByMagic);
+
+        // Если magic bytes говорят ZIP — всегда обрабатываем как ZIP
+        // независимо от расширения (.txt, .zip, .json)
+        const doImport = isZipByMagic || isZipByExtension;
         
         if (doImport) {
           console.log('[BACKUP] Importing as ZIP');
@@ -624,8 +642,10 @@ async function importFromZip(file, resolve) {
     setTimeout(() => window.location.reload(), 300);
   } catch (e) {
     console.error('[BACKUP] ZIP import error:', e.message, e.stack);
-    if (e.message?.includes('Invalid') || e.message?.includes('not a zip')) {
-      resolve({ success: false, error: 'invalid_format' });
+    // Если файл оказался не ZIP — пробуем как JSON (на случай .txt с JSON внутри)
+    if (e.message?.includes('Invalid') || e.message?.includes('not a zip') || e.message?.includes('End of central')) {
+      console.log('[BACKUP] ZIP failed, trying as JSON fallback...');
+      await importFromJson(file, resolve);
     } else {
       resolve({ success: false, error: 'parse_error' });
     }
