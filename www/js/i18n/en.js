@@ -48,6 +48,7 @@ export const en = {
     backup_cooldown_message: "Backup is available once every 3 days.\nNext in",
     backup_hours_suffix: "h.",
     backup_premium_unlimited: "unlimited",
+    backup_cooldown_full: "Next export available in {hours} hours.\n\nPremium — unlimited exports",
     
     // Backup i18n
     backup_success_msg: "Backup created.\nKeep this file in a safe place.",
@@ -67,6 +68,16 @@ export const en = {
     backup_err_restore_media: "Could not restore media: storage full.",
     backup_free_limit: "Free: export once per 24 hours",
     backup_premium_full: "Premium: unlimited + media files",
+    backup_reminder_title: "Backup",
+    backup_reminder_body1: "You haven't saved your data in a while.",
+    backup_reminder_body2: "A backup will help you keep your entries safe if you reinstall.",
+    backup_reminder_btn: "Create backup",
+    backup_reminder_later: "Remind me later",
+    backup_confirm_responsibility: "Save a copy of your data in a safe place.\nYou are responsible for keeping it safe.",
+    backup_hint_title: "Tip",
+    backup_hint_body: "You can save all your data using the backup feature.",
+    backup_hint_path: "Settings → Backup",
+    backup_hint_ok: "Got it",
     
     // Paywall
     paywall_title: "Full Access to Yourself",
@@ -739,10 +750,10 @@ export const en = {
     premium_feature_practices_desc: "Deep recovery techniques",
     premium_feature_music: "Music & atmosphere",
     premium_feature_music_desc: "Background for focus and calm",
-    premium_feature_themes: "Themes",
+premium_feature_themes: "Themes",
     premium_feature_themes_desc: "Interface personalization",
-    premium_feature_ai: "Local AI",
-    premium_feature_ai_desc: "Analysis without internet",
+    premium_feature_insights: "Deep analytics",
+    premium_feature_insights_desc: "Patterns by time of day, day of week, and how practices affect your mood",
     
     // Settings backup section
     settings_backup_info: "Data is stored only on your device. To avoid loss: — create backups regularly — save file to cloud (Google Drive)",
@@ -955,6 +966,7 @@ export const en = {
     pattern_sleep_negative: "Sleep is affecting your state more than it might seem — worth paying attention to",
     pattern_combo_positive: "When {label} happen together — you feel better",
     pattern_combo_positive_time: "When {label} happens {time} — it especially helps",
+    pattern_based_on: "Based on {count} entries · impact {diff}",
     warning_stress_sleep: "I notice a repeating pattern: stress + poor sleep. This is an important signal — your body is asking for help",
     warning_stress_repeat: "Stress appears too often in your entries. Try a breathing practice right now",
     warning_sleep_repeat: "Sleep has been affecting your state for several days in a row. Worth looking into",

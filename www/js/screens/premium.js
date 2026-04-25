@@ -33,7 +33,7 @@ const features = [
   { icon: "🧘", title: t("premium_feature_practices"), desc: t("premium_feature_practices_desc") },
   { icon: "🎵", title: t("premium_feature_music"), desc: t("premium_feature_music_desc") },
   { icon: "🎨", title: t("premium_feature_themes"), desc: t("premium_feature_themes_desc") },
-  { icon: "🤖", title: t("premium_feature_ai"), desc: t("premium_feature_ai_desc") }
+  { icon: "🧠", title: t("premium_feature_insights"), desc: t("premium_feature_insights_desc") }
 ];
 
 function renderPremium() {

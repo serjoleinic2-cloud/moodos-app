@@ -764,10 +764,10 @@ export const hi = {
     premium_feature_practices_desc: "गहरी पुनर्प्राप्ति तकनीक",
     premium_feature_music: "संगीत और वातावरण",
     premium_feature_music_desc: "एकाग्रता और शांति के लिए पृष्ठभूमि",
-    premium_feature_themes: "थीम्स",
+premium_feature_themes: "थीम्स",
     premium_feature_themes_desc: "इंटरफ़ेस अनुकूलन",
-    premium_feature_ai: "स्थानीय AI",
-    premium_feature_ai_desc: "इंटरनेट के बिना विश्लेषण",
+    premium_feature_insights: "गहरी विश्लेषणात्मकता",
+    premium_feature_insights_desc: "दिन के समय, सप्ताह के दिन और अभ्यासों का मनोदशा पर प्रभाव के पैटर्न",
     
     // Settings backup section
     settings_backup_info: "डेटा केवल आपके डिवाइस पर संग्रहीत है। हानि से बचने के लिए: — नियमित रूप से बैकअप बनाएं — फ़ाइल को क्लाउड (Google Drive) में सहेजें",
@@ -788,6 +788,7 @@ export const hi = {
     backup_cooldown_message: "बैकअप हर 3 दिन में एक बार उपलब्ध है।\nअगला",
     backup_hours_suffix: "घंटे में।",
     backup_premium_unlimited: "असीमित",
+    backup_cooldown_full: "अगला निर्यात {hours} घंटे में उपलब्ध होगा।\n\nPremium — असीमित निर्यात",
     
     // Backup i18n
     backup_success_msg: "बैकअप बनाया गया।\nइस फ़ाइल को सुरक्षित स्थान पर रखें।",
@@ -807,6 +808,16 @@ export const hi = {
     backup_err_restore_media: "मीडिया पुनर्स्थापित नहीं हो सका: स्टोरेज भरा हुआ है।",
     backup_free_limit: "Free: 24 घंटे में एक बार निर्यात",
     backup_premium_full: "Premium: असीमित + मीडिया फ़ाइलें",
+    backup_reminder_title: "बैकअप",
+    backup_reminder_body1: "आपने काफी समय से डेटा सहेजा नहीं है।",
+    backup_reminder_body2: "बैकअप आपकी प्रविष्टियों को पुनः इंस्टॉल करने पर सुरक्षित रखेगा।",
+    backup_reminder_btn: "बैकअप बनाएं",
+    backup_reminder_later: "बाद में याद दिलाएं",
+    backup_confirm_responsibility: "अपने डेटा की एक प्रति सुरक्षित स्थान पर सहेजें।\nइसे सुरक्षित रखना आपकी जिम्मेदारी है।",
+    backup_hint_title: "सुझाव",
+    backup_hint_body: "आप बैकअप सुविधा का उपयोग करके अपना सारा डेटा सहेज सकते हैं।",
+    backup_hint_path: "सेटिंग्स → बैकअप",
+    backup_hint_ok: "समझ गया",
     
     // Paywall
     paywall_title: "अपने आप में पूर्ण पहुंच",
@@ -1002,6 +1013,7 @@ export const hi = {
     pattern_sleep_negative: "नींद आपकी स्थिति को उससे अधिक प्रभावित कर रही है जितना लगता है — इस पर ध्यान देना उचित है",
     pattern_combo_positive: "जब {label} एक साथ होता है — आप बेहतर महसूस करते हैं",
     pattern_combo_positive_time: "जब {label} {time} होता है — यह विशेष रूप से मदद करता है",
+    pattern_based_on: "{count} प्रविष्टियों के आधार पर · प्रभाव {diff}",
     warning_stress_sleep: "मैं एक बार-बार आने वाला पैटर्न देख रहा हूं: तनाव + खराब नींद। यह एक महत्वपूर्ण संकेत है — शरीर मदद मांग रहा है",
     warning_stress_repeat: "तनाव आपकी प्रविष्टियों में बहुत बार आता है। अभी श्वास अभ्यास करें",
     warning_sleep_repeat: "कई दिनों से नींद आपकी स्थिति को प्रभावित कर रही है। इस पर ध्यान देना उचित है",

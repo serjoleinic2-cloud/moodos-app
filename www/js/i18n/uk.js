@@ -48,6 +48,7 @@ export const uk = {
     backup_cooldown_message: "Резервна копія доступна раз на 3 дні.\nНаступна через",
     backup_hours_suffix: "год.",
     backup_premium_unlimited: "без обмежень",
+    backup_cooldown_full: "Наступний експорт доступний через {hours} год.\n\nPremium — без обмежень",
     
     // Backup i18n
     backup_success_msg: "Резервну копію створено.\nЗбережіть файл у безпечному місці.",
@@ -67,6 +68,16 @@ export const uk = {
     backup_err_restore_media: "Не вдалося відновити медіа: сховище заповнене.",
     backup_free_limit: "Free: експорт раз на 24 години",
     backup_premium_full: "Premium: без обмежень + медіафайли",
+    backup_reminder_title: "Резервна копія",
+    backup_reminder_body1: "Ви давно не зберігали дані.",
+    backup_reminder_body2: "Резервна копія допоможе не втратити записи при перевстановленні.",
+    backup_reminder_btn: "Створити копію",
+    backup_reminder_later: "Нагадати пізніше",
+    backup_confirm_responsibility: "Збережіть копію ваших даних у безпечному місці.\nВи самі відповідаєте за її збереження.",
+    backup_hint_title: "Порада",
+    backup_hint_body: "Ви можете зберегти всі свої дані за допомогою резервної копії.",
+    backup_hint_path: "Налаштування → Резервне копіювання",
+    backup_hint_ok: "Зрозуміло",
     
     // Paywall
     paywall_title: "Повний доступ до себе",
@@ -737,10 +748,10 @@ export const uk = {
     premium_feature_practices_desc: "Глибокі техніки відновлення стану",
     premium_feature_music: "Музика та атмосфера",
     premium_feature_music_desc: "Фон для концентрації та спокою",
-    premium_feature_themes: "Теми",
+premium_feature_themes: "Теми",
     premium_feature_themes_desc: "Персоналізація інтерфейсу",
-    premium_feature_ai: "Локальний AI",
-    premium_feature_ai_desc: "Аналіз без відправки даних в інтернет",
+    premium_feature_insights: "Глибока аналітика",
+    premium_feature_insights_desc: "Паттерни за часом доби, днями тижня та впливом практик на настрій",
     
     // Settings backup section
     settings_backup_info: "Дані зберігаються лише на пристрої. Щоб не втратити: — створюйте резервну копію регулярно — зберігайте файл у хмарі (Google Drive)",
@@ -942,6 +953,7 @@ export const uk = {
     pattern_sleep_negative: "Сон впливає на твій стан сильніше ніж здається — варто приділити йому увагу",
     pattern_combo_positive: "Коли {label} відбувається разом — тобі краще",
     pattern_combo_positive_time: "Коли {label} відбувається {time} — це особливо допомагає",
+    pattern_based_on: "На основі {count} записів · вплив {diff}",
     warning_stress_sleep: "Помічаю повторюваний паттерн: стрес + поганий сон. Це важливий сигнал — тіло просить допомоги",
     warning_stress_repeat: "Стрес зустрічається у твоїх записах занадто часто. Спробуй дихальну практику прямо зараз",
     warning_sleep_repeat: "Кілька днів поспіль сон впливає на твій стан. Варто звернути на це увагу",

@@ -178,7 +178,7 @@ export async function exportData() {
       return { 
         success: false, 
         error: 'cooldown',
-        message: `${t("backup_cooldown_message")} ${hours} ${t("backup_hours_suffix")}\n\nPremium — ${t("backup_premium_unlimited")}`
+        message: t('backup_cooldown_full').replace('{hours}', hours)
       };
     }
 

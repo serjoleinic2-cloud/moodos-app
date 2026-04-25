@@ -3,6 +3,8 @@
 // Smart reminders for backup
 // =====================================
 
+import { t } from '../i18n.js';
+
 const BACKUP_REMINDER_DAYS = 7;
 const FREE_BACKUP_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
 
@@ -68,15 +70,15 @@ export function showBackupReminderModal(onExport) {
   overlay.className = 'health-modal-overlay';
   overlay.innerHTML = `
     <div class="health-modal">
-      <div class="modal-title">📦 Резервная копия</div>
+      <div class="modal-title">📦 ${t('backup_reminder_title')}</div>
       <div style="text-align:center; padding: 16px 0; font-size:14px; color:#555; line-height:1.6;">
-        <p>Вы давно не сохраняли данные.</p>
-        <p>Резервная копия поможет не потерять<br>ваши записи при переустановке.</p>
+        <p>${t('backup_reminder_body1')}</p>
+        <p>${t('backup_reminder_body2')}</p>
       </div>
       <button class="modal-save-btn" id="backupReminderExport" style="background: linear-gradient(145deg, #4caf87, #45a070);">
-        📦 Создать копию
+        📦 ${t('backup_reminder_btn')}
       </button>
-      <div class="modal-cancel" id="backupReminderDismiss">Напомнить позже</div>
+      <div class="modal-cancel" id="backupReminderDismiss">${t('backup_reminder_later')}</div>
     </div>`;
   
   document.body.appendChild(overlay);
@@ -84,10 +86,7 @@ export function showBackupReminderModal(onExport) {
   overlay.querySelector('#backupReminderExport')?.addEventListener('click', () => {
     overlay.remove();
     localStorage.removeItem('backup_reminder_dismissed');
-    // Add confirm before calling export
-    const ok = confirm(
-      "Сохраните копию ваших данных в безопасном месте.\nВы сами отвечаете за её сохранность."
-    );
+    const ok = confirm(t('backup_confirm_responsibility'));
     if (!ok) return;
     if (onExport) onExport();
   });
@@ -124,12 +123,12 @@ export function showFirstBackupHint() {
     overlay.className = 'health-modal-overlay';
     overlay.innerHTML = `
       <div class="health-modal">
-        <div class="modal-title">💡 Совет</div>
+        <div class="modal-title">💡 ${t('backup_hint_title')}</div>
         <div style="text-align:center; padding: 16px 0; font-size:14px; color:#555; line-height:1.6;">
-          <p>Вы можете сохранить все свои данные<br>с помощью резервной копии.</p>
-          <p style="color:#888; font-size:12px;">Настройки → Резервное копирование</p>
+          <p>${t('backup_hint_body')}</p>
+          <p style="color:#888; font-size:12px;">${t('backup_hint_path')}</p>
         </div>
-        <button class="modal-save-btn" id="firstBackupGotIt">Понятно</button>
+        <button class="modal-save-btn" id="firstBackupGotIt">${t('backup_hint_ok')}</button>
       </div>`;
     
     document.body.appendChild(overlay);

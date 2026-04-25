@@ -728,6 +728,7 @@ export async function onEnter() {
             '<div class="flip-back"><canvas id="chartHours" style="width:100%;height:160px;"></canvas></div>' +
           '</div>' +
         '</div>' +
+      '</div>' +
 
       yearComparisonHTML +
       periodComparisonHTML +

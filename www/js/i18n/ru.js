@@ -47,6 +47,7 @@ export const ru = {
     backup_cooldown_message: "Резервная копия доступна раз в 3 дня.\nСледующая через",
     backup_hours_suffix: "ч.",
     backup_premium_unlimited: "без ограничений",
+    backup_cooldown_full: "Следующий экспорт доступен через {hours} ч.\n\nPremium — без ограничений",
     
     // Backup i18n
     backup_success_msg: "Резервная копия создана.\nСохраните файл в безопасном месте.",
@@ -66,6 +67,16 @@ export const ru = {
     backup_err_restore_media: "Не удалось восстановить медиа: память переполнена.",
     backup_free_limit: "Free версия: экспорт раз в 24 часа",
     backup_premium_full: "Premium: без ограничений + медиафайлы",
+    backup_reminder_title: "Резервная копия",
+    backup_reminder_body1: "Вы давно не сохраняли данные.",
+    backup_reminder_body2: "Резервная копия поможет не потерять ваши записи при переустановке.",
+    backup_reminder_btn: "Создать копию",
+    backup_reminder_later: "Напомнить позже",
+    backup_confirm_responsibility: "Сохраните копию ваших данных в безопасном месте.\nВы сами отвечаете за её сохранность.",
+    backup_hint_title: "Совет",
+    backup_hint_body: "Вы можете сохранить все свои данные с помощью резервной копии.",
+    backup_hint_path: "Настройки → Резервное копирование",
+    backup_hint_ok: "Понятно",
     
     // Paywall
     paywall_title: "Полный доступ к себе",
@@ -657,10 +668,10 @@ baseline_learning: "Накапливаю данные для сравнения"
     premium_feature_practices_desc: "Глубокие техники восстановления состояния",
     premium_feature_music: "Музыка и атмосфера",
     premium_feature_music_desc: "Фон для концентрации и спокойствия",
-    premium_feature_themes: "Темы",
+premium_feature_themes: "Темы",
     premium_feature_themes_desc: "Персонализация интерфейса",
-    premium_feature_ai: "Локальный AI",
-    premium_feature_ai_desc: "Анализ без отправки данных в интернет",
+    premium_feature_insights: "Глубокая аналитика",
+    premium_feature_insights_desc: "Паттерны по времени суток, дням недели и влиянию практик на настроение",
     
     // Settings backup section
     settings_backup_info: "Данные хранятся только на устройстве. Чтобы не потерять: — создавайте резервную копию регулярно — сохраняйте файл в облаке (Google Drive)",
@@ -754,6 +765,7 @@ baseline_learning: "Накапливаю данные для сравнения"
     pattern_rest_negative: "Отдых пока не приносит ожидаемого восстановления — возможно нужен другой формат",
     pattern_sleep_negative: "Сон влияет на твоё состояние сильнее чем кажется — стоит уделить ему внимание",
     pattern_neutral: "\"{label}\" пока не даёт заметного эффекта.",
+    pattern_based_on: "На основе {count} записей · влияние {diff}",
     warning_stress_sleep: "⚠️ Несколько дней подряд — стресс и плохой сон вместе. Это важный сигнал. Дай себе паузу.",
     warning_stress_repeat: "Стресс повторяется уже несколько дней. Что можно убрать из нагрузки хотя бы на завтра?",
     warning_sleep_repeat: "Сон и настроение связаны у тебя сильнее чем кажется. Последние дни это заметно.",

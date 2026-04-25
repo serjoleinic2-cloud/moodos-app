@@ -48,6 +48,7 @@ export const es = {
     backup_cooldown_message: "La copia de seguridad está disponible una vez cada 3 días.\nSiguiente en",
     backup_hours_suffix: "h.",
     backup_premium_unlimited: "ilimitado",
+    backup_cooldown_full: "Próxima exportación disponible en {hours} h.\n\nPremium — sin límites",
     
     // Backup i18n
     backup_success_msg: "Copia de seguridad creada.\nGuarda este archivo en un lugar seguro.",
@@ -67,6 +68,16 @@ export const es = {
     backup_err_restore_media: "No se pudo restaurar el medio: almacenamiento lleno.",
     backup_free_limit: "Gratis: exportar una vez cada 24 horas",
     backup_premium_full: "Premium: ilimitado + archivos multimedia",
+    backup_reminder_title: "Copia de seguridad",
+    backup_reminder_body1: "Hace tiempo que no guardas tus datos.",
+    backup_reminder_body2: "Una copia de seguridad te ayudará a no perder tus entradas al reinstalar.",
+    backup_reminder_btn: "Crear copia",
+    backup_reminder_later: "Recordarme más tarde",
+    backup_confirm_responsibility: "Guarda una copia de tus datos en un lugar seguro.\nEres responsable de mantenerla a salvo.",
+    backup_hint_title: "Consejo",
+    backup_hint_body: "Puedes guardar todos tus datos usando la función de copia de seguridad.",
+    backup_hint_path: "Ajustes → Copia de seguridad",
+    backup_hint_ok: "Entendido",
     
     // Paywall
     paywall_title: "Acceso completo a ti",
@@ -737,10 +748,10 @@ export const es = {
     premium_feature_practices_desc: "Técnicas profundas de recuperación",
     premium_feature_music: "Música y ambiente",
     premium_feature_music_desc: "Fondo para concentración y calma",
-    premium_feature_themes: "Temas",
+premium_feature_themes: "Temas",
     premium_feature_themes_desc: "Personalización de interfaz",
-    premium_feature_ai: "IA local",
-    premium_feature_ai_desc: "Análisis sin internet",
+    premium_feature_insights: "Analítica profunda",
+    premium_feature_insights_desc: "Patrones por hora del día, día de la semana y cómo las prácticas afectan tu estado",
     
     // Settings backup section
     settings_backup_info: "Los datos se almacenan solo en tu dispositivo. Para evitar pérdidas: — crea copias de seguridad regularmente — guarda el archivo en la nube (Google Drive)",
@@ -942,6 +953,7 @@ export const es = {
     pattern_sleep_negative: "El sueño afecta tu estado más de lo que parece — vale la pena prestarle atención",
     pattern_combo_positive: "Cuando {label} ocurre junto — te sientes mejor",
     pattern_combo_positive_time: "Cuando {label} ocurre {time} — especialmente te ayuda",
+    pattern_based_on: "Basado en {count} entradas · impacto {diff}",
     warning_stress_sleep: "Noto un patrón repetido: estrés + mal sueño. Esta es una señal importante — tu cuerpo pide ayuda",
     warning_stress_repeat: "El estrés aparece demasiado seguido en tus entradas. Prueba una práctica de respiración ahora",
     warning_sleep_repeat: "El sueño ha estado afectando tu estado varios días seguidos. Vale la pena atenderlo",

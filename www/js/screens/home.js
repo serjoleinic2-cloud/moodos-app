@@ -254,7 +254,9 @@ function showInsightCard(insight) {
   if (insight.meta) {
     const metaEl = document.createElement('div');
     metaEl.style.cssText = 'font-size:10px;color:#888;margin-top:4px;';
-    metaEl.textContent = `Основано на ${insight.meta.count} записях • влияние ${insight.meta.impact > 0 ? '+' : ''}${insight.meta.impact}`;
+    metaEl.textContent = t('pattern_based_on')
+      .replace('{count}', insight.meta.count)
+      .replace('{diff}', (insight.meta.impact > 0 ? '+' : '') + insight.meta.impact);
     patternText.appendChild(metaEl);
   }
   
