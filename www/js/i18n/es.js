@@ -722,11 +722,11 @@ export const es = {
     how_footer: "Comienza simple — registra tu estado hoy",
     
     // Smart warnings
-    export_free_warning_title: "FREE: Solo se guardan registros",
-    export_free_warning_text: "Las fotos y notas de voz permanecerán en este dispositivo. Usa Premium para transferir a un nuevo teléfono.",
-    export_premium_title: "Premium: Incluido en copia",
-    export_premium_list: "• Todos los registros\n• Fotos\n• Notas de voz",
-    export_premium_subtitle: "Puedes restaurar completamente los datos en otro dispositivo.",
+    export_free_warning_title: "Copia de seguridad (Free)",
+    export_free_warning_text: "Se guardarán todas tus entradas y ajustes. El próximo export estará disponible en 3 días.\n\nGuarda el archivo en un lugar seguro.",
+    export_premium_title: "Copia de seguridad (Premium)",
+    export_premium_list: "✓ Todas las entradas\n✓ Notas de voz\n✓ Fotos",
+    export_premium_subtitle: "Exportaciones ilimitadas. Guarda el archivo en un lugar seguro.",
     first_media_save_title: "Archivos guardados en memoria del teléfono",
     first_media_save_text: "No se eliminarán con la aplicación. Están en el álbum 'Neyra'.",
     restore_preview_title: "Se restaurará:",

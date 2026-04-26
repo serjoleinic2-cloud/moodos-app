@@ -724,11 +724,11 @@ export const en = {
     how_footer: "Start simple — log your mood today",
     
     // Smart warnings
-    export_free_warning_title: "FREE: Only records are saved",
-    export_free_warning_text: "Photos and voice notes stay on this device. Use Premium to transfer to a new phone.",
-    export_premium_title: "Premium: Included in backup",
-    export_premium_list: "• All records\n• Photos\n• Voice notes",
-    export_premium_subtitle: "You can fully restore data on another device.",
+    export_free_warning_title: "Backup (Free)",
+    export_free_warning_text: "All your entries and settings will be saved. Next export will be available in 3 days.\n\nKeep the file in a safe place.",
+    export_premium_title: "Backup (Premium)",
+    export_premium_list: "✓ All entries\n✓ Voice notes\n✓ Photos",
+    export_premium_subtitle: "Unlimited exports. Keep the file in a safe place.",
     first_media_save_title: "Files saved to phone memory",
     first_media_save_text: "They won't be deleted with the app. Located in 'Neyra' album.",
     restore_preview_title: "Will be restored:",

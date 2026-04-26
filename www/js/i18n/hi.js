@@ -738,11 +738,11 @@ export const hi = {
     how_footer: "सरल से शुरू करें — आज अपनी स्थिति दर्ज करें",
     
     // Smart warnings
-    export_free_warning_title: "FREE: केवल रिकॉर्ड सहेजे जाते हैं",
-    export_free_warning_text: "फ़ोटो और वॉइस नोट्स इस डिवाइस पर रहेंगे। नए फोन में ट्रांसफर के लिए Premium का उपयोग करें।",
-    export_premium_title: "Premium: बैकअप में शामिल",
-    export_premium_list: "• सभी रिकॉर्ड\n• फ़ोटो\n• वॉइस नोट्स",
-    export_premium_subtitle: "आप दूसरे डिवाइस पर पूरी तरह डेटा रिस्टोर कर सकते हैं।",
+    export_free_warning_title: "बैकअप (Free)",
+    export_free_warning_text: "आपकी सभी प्रविष्टियां और सेटिंग्स सहेजी जाएंगी। अगला निर्यात 3 दिनों में उपलब्ध होगा।\n\nफ़ाइल को सुरक्षित स्थान पर रखें।",
+    export_premium_title: "बैकअप (Premium)",
+    export_premium_list: "✓ सभी प्रविष्टियां\n✓ वॉइस नोट्स\n✓ फ़ोटो",
+    export_premium_subtitle: "असीमित निर्यात। फ़ाइल को सुरक्षित स्थान पर रखें।",
     first_media_save_title: "फ़ाइलें फोन मेमोरी में सहेजी गईं",
     first_media_save_text: "वे ऐप्लिकेशन के साथ हटाई नहीं जाएंगी। 'Neyra' एल्बम में हैं।",
     restore_preview_title: "रिस्टोर होगा:",

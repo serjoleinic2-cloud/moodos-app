@@ -357,52 +357,29 @@ export async function exportData() {
         }
         
         if (FilesystemPlugin) {
-          // Write file to filesystem first
-          const base64 = await blobToBase64(blob);
-          const fileName = `neyra-backup-${new Date().toISOString().slice(0,10)}.zip`;
+          const base64zip = await blobToBase64(blob);
+          const zipFileName = `neyra-backup-${new Date().toISOString().slice(0,10)}.zip`;
           
           const savedFile = await FilesystemPlugin.writeFile({
-            path: fileName,
-            data: base64,
+            path: zipFileName,
+            data: base64zip,
             directory: 'CACHE'
           });
           
-          console.log('[EXPORT] File saved:', savedFile.uri);
+          console.log('[EXPORT] ZIP saved to:', savedFile.uri);
           
-          try {
-            const file = new File([blob], fileName, { type: 'application/zip' });
-            await SharePlugin.share({
-              title: 'Neyra Backup',
-              text: t('backup_share_text'),
-              files: [file],
-              dialogTitle: t('backup_share_dialog')
-            });
-            console.log('[EXPORT] Share success');
-          } catch (shareErr) {
-            console.warn('[EXPORT] Share with files failed, trying url:', shareErr);
-            try {
-              const base64 = await blobToBase64(blob);
-              const fileName2 = `neyra-backup-${new Date().toISOString().slice(0,10)}.zip`;
-              await FilesystemPlugin.writeFile({
-                path: fileName2, data: base64, directory: 'CACHE'
-              });
-              await SharePlugin.share({
-                title: 'Neyra Backup',
-                text: t('backup_share_text'),
-                url: `file://${fileName2}`,
-                dialogTitle: t('backup_share_dialog')
-              });
-              FilesystemPlugin.deleteFile({ path: fileName2, directory: 'CACHE' }).catch(() => {});
-            } catch(e2) {
-              console.warn('[EXPORT] All share attempts failed:', e2);
-            }
-          }
+          await SharePlugin.share({
+            title: 'Neyra Backup',
+            url: savedFile.uri,
+            dialogTitle: t('backup_share_dialog')
+          });
           
-          // Cleanup
-          FilesystemPlugin.deleteFile({
-            path: fileName,
-            directory: 'CACHE'
-          }).catch(() => {});
+          setTimeout(() => {
+            FilesystemPlugin.deleteFile({
+              path: zipFileName,
+              directory: 'CACHE'
+            }).catch(() => {});
+          }, 30000);
           
           markBackupSuccess();
           alert(t('backup_success_msg'));

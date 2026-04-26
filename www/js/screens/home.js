@@ -180,7 +180,9 @@ export function onEnter() {
       
       showAvatarForMood(moodValue);
       avatarReact();
-      
+
+      setTimeout(() => initResilienceCard(), 300);
+
       if (selectedEvents.length > 0) {
         console.log('[INSIGHT PAYLOAD]', {
           mood: moodValue,

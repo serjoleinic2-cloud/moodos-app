@@ -722,11 +722,11 @@ export const uk = {
     how_footer: "Почни з простого — відзнач свій стан сьогодні",
     
     // Smart warnings
-    export_free_warning_title: "FREE: Зберігаються лише записи",
-    export_free_warning_text: "Фото та голосові нотатки залишаться на цьому пристрої. Для переносу на новий телефон використовуйте Premium.",
-    export_premium_title: "Premium: Включено в копію",
-    export_premium_list: "• Всі записи\n• Фото\n• Голосові нотатки",
-    export_premium_subtitle: "Ви зможете повністю відновити дані на іншому пристрої.",
+    export_free_warning_title: "Резервна копія (Free)",
+    export_free_warning_text: "Будуть збережені всі ваші записи та налаштування. Наступний експорт буде доступний через 3 дні.\n\nЗбережіть файл у надійному місці.",
+    export_premium_title: "Резервна копія (Premium)",
+    export_premium_list: "✓ Всі записи\n✓ Голосові нотатки\n✓ Фото",
+    export_premium_subtitle: "Експорт без обмежень. Збережіть файл у надійному місці.",
     first_media_save_title: "Файли збережені в пам'ять телефону",
     first_media_save_text: "Вони не видаляться з додатком. Знаходяться в альбомі «Neyra».",
     restore_preview_title: "Буде відновлено:",

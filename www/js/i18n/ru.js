@@ -642,11 +642,11 @@ baseline_learning: "Накапливаю данные для сравнения"
     how_cloud_text: "Автоматический backup в облако. Перенос между устройствами. Без ограничений.",
     
     // Smart warnings
-    export_free_warning_title: "FREE: Сохраняются только записи",
-    export_free_warning_text: "Фото и голосовые заметки останутся на этом устройстве. Для переноса на новый телефон используйте Premium.",
-    export_premium_title: "Premium: Включено в копию",
-    export_premium_list: "• Все записи\n• Фото\n• Голосовые заметки",
-    export_premium_subtitle: "Вы сможете полностью восстановить данные на другом устройстве.",
+    export_free_warning_title: "Резервная копия (Free)",
+    export_free_warning_text: "Будут сохранены все ваши записи и настройки. Следующий экспорт будет доступен через 3 дня.\n\nСохраните файл в надёжном месте.",
+    export_premium_title: "Резервная копия (Premium)",
+    export_premium_list: "✓ Все записи\n✓ Голосовые заметки\n✓ Фото",
+    export_premium_subtitle: "Экспорт без ограничений. Сохраните файл в надёжном месте.",
     first_media_save_title: "Файлы сохранены в память телефона",
     first_media_save_text: "Они не удалятся вместе с приложением. Находятся в альбоме «Neyra».",
     restore_preview_title: "Будет восстановлено:",
