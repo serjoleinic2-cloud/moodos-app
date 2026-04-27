@@ -829,6 +829,7 @@ premium_feature_themes: "Темы",
     privacy_rights_title: "Ваши права",
     privacy_rights_text: "Вы можете отключить синхронизацию и удалить данные в любой момент.",
     privacy_full_policy: "Читать полностью →",
+    terms_full_policy: "Условия использования →",
 
     // Privacy Policy sections
     privacy_title: "Политика конфиденциальности",

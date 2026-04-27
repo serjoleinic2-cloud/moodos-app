@@ -671,6 +671,7 @@ export const es = {
     privacy_rights_title: "Tus derechos",
     privacy_rights_text: "Puedes desactivar la sincronización y eliminar datos en cualquier momento.",
     privacy_full_policy: "Leer política completa →",
+    terms_full_policy: "Términos de uso →",
 
     // Privacy Policy sections
     privacy_title: "Política de privacidad",

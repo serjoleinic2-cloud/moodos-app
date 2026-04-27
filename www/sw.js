@@ -1,4 +1,4 @@
-const CACHE_NAME = "moodos-v1";
+const CACHE_NAME = "moodos-v2";
 
 const urlsToCache = [
     "/",

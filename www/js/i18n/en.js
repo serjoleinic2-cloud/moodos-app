@@ -673,6 +673,7 @@ export const en = {
     privacy_rights_title: "Your Rights",
     privacy_rights_text: "You can disable sync and delete data at any time.",
     privacy_full_policy: "Read full policy →",
+    terms_full_policy: "Terms of Use →",
 
     // Privacy Policy sections
     privacy_title: "Privacy Policy",

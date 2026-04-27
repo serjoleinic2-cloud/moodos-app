@@ -671,6 +671,7 @@ export const uk = {
     privacy_rights_title: "Ваші права",
     privacy_rights_text: "Ви можете вимкнути синхронізацію та видалити дані в будь-який момент.",
     privacy_full_policy: "Читати повністю →",
+    terms_full_policy: "Умови використання →",
 
     // Privacy Policy sections
     privacy_title: "Політика конфіденційності",

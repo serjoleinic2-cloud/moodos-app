@@ -687,6 +687,7 @@ export const hi = {
     privacy_rights_title: "आपके अधिकार",
     privacy_rights_text: "आप किसी भी समय सिंक अक्षम कर सकते हैं और डेटा हटा सकते हैं।",
     privacy_full_policy: "पूर्ण नीति पढ़ें →",
+    terms_full_policy: "उपयोग की शर्तें →",
 
     // Privacy Policy sections
     privacy_title: "गोपनीयता नीति",
