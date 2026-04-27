@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { readFileSync } from 'fs';
+import { readFileSync, cpSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
@@ -21,5 +21,18 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[hash].[ext]'
       }
     }
-  }
+  },
+  plugins: [
+    {
+      name: 'copy-docs',
+      closeBundle() {
+        const src = resolve(__dirname, 'www/docs');
+        const dst = resolve(__dirname, 'dist/docs');
+        if (existsSync(src)) {
+          cpSync(src, dst, { recursive: true });
+          console.log('[copy-docs] www/docs → dist/docs ✓');
+        }
+      }
+    }
+  ]
 });
