@@ -592,12 +592,13 @@ export function initOnboarding(onComplete) {
 
 // Показ Terms/Privacy из HTML файлов
 async function showTextModal(title, type) {
-  const file = type === 'terms' ? 'docs/terms.html' : 'docs/privacy.html';
+  const fileName = type === 'terms' ? 'terms.html' : 'privacy.html';
+  const file = new URL('docs/' + fileName, document.baseURI).href;
   const m = document.createElement("div");
   m.style.cssText = "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;";
   
   try {
-    const res = await fetch(file);
+    const res = await fetch(file + '?v=' + Date.now());
     const html = await res.text();
     let content = html.replace(/<body[^>]*>|<\/body>|<html[^>]*>|<\/html>|<head>[\s\S]*<\/head>/gi, "");
     

@@ -60,6 +60,7 @@ export async function startVoiceRecording(statusEl, onFinish) {
           
           const savedAudio = await saveAudioToFile(audioData);
           
+          if (statusEl) statusEl.textContent = t("voice_done");
           if (onFinish) {
             onFinish({ audio: savedAudio, duration, mood: getMood(), date: Date.now() });
           }
@@ -71,7 +72,7 @@ export async function startVoiceRecording(statusEl, onFinish) {
 
       let prep = 3;
       const prepInterval = setInterval(() => {
-        if (statusEl) statusEl.textContent = `Подготовка ${prep}...`;
+        if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${prep}...`;
         prep--;
         if (prep < 0) {
           clearInterval(prepInterval);
@@ -83,7 +84,7 @@ export async function startVoiceRecording(statusEl, onFinish) {
         sec++;
         const m = String(Math.floor(sec/60)).padStart(2,'0');
         const s = String(sec%60).padStart(2,'0');
-        if (statusEl) statusEl.textContent = `⏺ ${m}:${s}`;
+        if (statusEl) statusEl.textContent = `${t("voice_recording")} ${m}:${s}`;
       }, 1000);
 
       setTimeout(() => {
