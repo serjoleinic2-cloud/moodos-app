@@ -154,6 +154,7 @@ export function initNavigation() {
   document.querySelectorAll(".menuItem").forEach(item => {
     item.addEventListener("click", () => { 
       closeMenu();
+      if (item.dataset.nav === "contact") return;
       if (window._activeMeditationModule) {
         if (typeof window._activeMeditationModule.onExit === 'function') {
           window._activeMeditationModule.onExit();

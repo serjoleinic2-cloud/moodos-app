@@ -93,8 +93,8 @@ export function initOnboarding(onComplete) {
           checkbox.style.background = checked ? "#d4ede8" : "#e0e8de";
           row._checked = checked;
         });
-        overlay.querySelector("#readTermsBtn").addEventListener("click", () => showTextModal(t("terms_read_terms"), t("terms_text")));
-        overlay.querySelector("#readPrivacyBtn").addEventListener("click", () => showTextModal(t("terms_read_privacy"), t("privacy_text")));
+        overlay.querySelector("#readTermsBtn").addEventListener("click", () => showTextModal(t("terms_read_terms"), "terms"));
+        overlay.querySelector("#readPrivacyBtn").addEventListener("click", () => showTextModal(t("terms_read_privacy"), "privacy"));
       },
       onNext: () => {
         const row = overlay.querySelector("#termsCheckRow");
@@ -590,19 +590,38 @@ export function initOnboarding(onComplete) {
   render();
 }
 
-// Модалка с текстом Terms/Privacy
-function showTextModal(title, text) {
+// Показ Terms/Privacy из HTML файлов
+async function showTextModal(title, type) {
+  const file = type === 'terms' ? 'docs/terms.html' : 'docs/privacy.html';
   const m = document.createElement("div");
   m.style.cssText = "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;";
-  m.innerHTML = `
-    <div style="width:100%;max-height:80vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 48px;box-sizing:border-box;animation:slideUp 0.3s ease;">
-      <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
-      <div style="font-size:18px;font-weight:700;color:#3a3530;margin-bottom:16px;">${title}</div>
-      <div style="font-size:14px;color:#666;line-height:1.7;white-space:pre-line;">${text}</div>
-      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:14px;border:none;border-radius:14px;margin-top:24px;background:rgba(232,237,230,0.9);box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;font-size:15px;font-weight:700;color:#7eb8d4;cursor:pointer;">
-        ✕
-      </button>
-    </div>`;
+  
+  try {
+    const res = await fetch(file);
+    const html = await res.text();
+    let content = html.replace(/<body[^>]*>|<\/body>|<html[^>]*>|<\/html>|<head>[\s\S]*<\/head>/gi, "");
+    
+    m.innerHTML = `
+      <div style="width:100%;max-height:80vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 48px;box-sizing:border-box;animation:slideUp 0.3s ease;">
+        <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+        <div style="font-size:18px;font-weight:700;color:#3a3530;margin-bottom:16px;">${title}</div>
+        <div style="font-size:14px;color:#666;line-height:1.7;">${content}</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:14px;border:none;border-radius:14px;margin-top:24px;background:rgba(232,237,230,0.9);box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;font-size:15px;font-weight:700;color:#7eb8d4;cursor:pointer;">
+          ✕
+        </button>
+      </div>`;
+  } catch (e) {
+    m.innerHTML = `
+      <div style="width:100%;max-height:80vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:24px 20px 48px;box-sizing:border-box;animation:slideUp 0.3s ease;">
+        <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+        <div style="font-size:18px;font-weight:700;color:#3a3530;margin-bottom:16px;">${title}</div>
+        <div style="font-size:14px;color:#666;">Loading...</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%;padding:14px;border:none;border-radius:14px;margin-top:24px;background:rgba(232,237,230,0.9);box-shadow:5px 5px 10px #b8c4b4,-5px -5px 10px #ffffff;font-size:15px;font-weight:700;color:#7eb8d4;cursor:pointer;">
+          ✕
+        </button>
+      </div>`;
+  }
+  
   document.body.appendChild(m);
   m.addEventListener("click", e => { if (e.target === m) m.remove(); });
 }
