@@ -1,56 +1,3 @@
-NEYRA — PROJECT CHECKPOINT
-1. CORE IDEA
-- Что делает: Mood tracking + AI анализ + практики (медитация, дыхание, EFT)
-- Главная боль: Пользователь не понимает свои эмоции, нет инструмента для работы с ними офлайн
----
-2. USER FLOW
-- Первый запуск: Онбординг → выбор языка → первый mood slider → предложение практики
-- Осценарий дня: Открыл → записал настроение (slider 0-100%) → получил инсайт → практика → снова настроение
-- Возврат: Стартует с последнего экрана / checkpoint recovery
----
-3. AI / AVATAR
-- Аватар: SVG анимированный, реагирует на настроение, даёт подсказки
-- Где используется: Home screen, после практик
-- Инсайты: Text sentiment, mood patterns, лучшие практики для состояния
-- Локальный ИИ: Да, офлайн-first — offline-ai.js анализирует текст локально
----
-4. DATA SYSTEM
-- Хранилище: localStorage (JSON)
-- Сущности: mood_history, notes_history, reflections, voice_history, session_history, user_profile
-- Ограничения: photo_history (20 фото), voice (последние записи), free backup = 7 дней
----
-5. BACKUP SYSTEM
-- Формат: ZIP (JSZip) или JSON fallback
-- Сохраняется: всё из localStorage, media (audio/photo base64)
-- НЕ сохраняется: большие файлы (>5MB), external references
-- Восстановление: Import → restoreData() → reload
----
-6. MEDIA
-- Фото: Filesystem (Documents) → uri в localStorage
-- Аудио: data:url в voice_history
-- Отображение: img src=uri, audio player
-- Restore: mediaMap по timestamp →匹配записей
----
-7. PREMIUM
-- Что даёт: Premium темы, unlimited backup, кастомные треки медитации
-- Активируется: Google Play Billing
-- Ограничения free: 1 backup / 3 дня, 7 дней данных в backup, limited themes
----
-8. UX ОСОБЕННОСТИ
-- Отличие: Офлайн-first, аватар-компаньон, никаких облачных обязательств
-- Вау: Avatar реагирует на mood в реальном времени
-- Слабое место: Backup UX непонятен для обычных пользователей
----
-9. РИСКИ (честно)
-- Потеря данных: localStorage переполнение (quota ~5MB) — есть prune, но могут потеряться старые записи
-- UX: Exit guard может раздражать, backup提示 непонятны
-- Сомнения: restoreData merge логика, cloud sync полностью удалён — нужно протестировать
----
-10. ГОТОВНОСТЬ К РЕЛИЗУ
-- Стабильно: Mood tracking, практики (breathing, meditation), базовый backup ZIP
-- На авось: restoreData (не тестировано много), photo restore (новое)
-- После релиза: Добавить больше debug логов, собирать crash reports, улучшить restore testing
-
 Структура проекта
 D:\moodos-app\
 ├── CLAUDE.md                    # Rules for AI
@@ -103,7 +50,8 @@ D:\moodos-app\
 │       │   ├── audit-logger.js
 │       │   ├── event-queue.js
 │       │   ├── migration-registry.js
-│       │   └── state-governance.js
+│       │   ├── state-governance.js
+│       │   └── state-execution-engine.js
 │       ├── screens/                 # UI screens
 │       │   ├── home.js
 │       │   ├── insight.js
@@ -123,7 +71,8 @@ D:\moodos-app\
 │       │   ├── pdf-report.js
 │       │   ├── support-texts.js
 │       │   ├── how-it-works.js
-│       │   └── data-storage.js
+│       │   ├── data-storage.js
+│       │   └── medals.js
 │       ├── services/               # Business logic
 │       │   ├── user-profile.js     # ⭐ Premium logic
 │       │   ├── billing-service.js # ⭐ In-app purchases
@@ -146,7 +95,9 @@ D:\moodos-app\
 │       │   ├── exit-guard.js
 │       │   ├── backup-reminder.js
 │       │   ├── userId.js
-│       │   └── reminders-service.js
+│       │   ├── reminders-service.js
+│       │   ├── challenge-engine.js
+│       │   └── medals-engine.js
 │       ├── i18n/                  # Translations (5 langs)
 │       │   ├── ru.js
 │       │   ├── en.js
