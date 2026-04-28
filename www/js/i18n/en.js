@@ -103,7 +103,7 @@ export const en = {
     home_studying: "studying...",
     home_ok: "OK",
     voice_preparing: "Preparing",
-    voice_recording: "⏺",
+    voice_recording: "🔴 Recording",
     voice_done: "✓ Done",
     voice_sec: "sec",
     voice_start: "Start Recording",

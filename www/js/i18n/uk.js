@@ -103,7 +103,7 @@ export const uk = {
     home_studying: "вивчаю...",
     home_ok: "ОК",
     voice_preparing: "Підготовка",
-    voice_recording: "⏺",
+    voice_recording: "🔴 Запис",
     voice_done: "✓ Готово",
     voice_sec: "сек",
     voice_start: "Почати запис",

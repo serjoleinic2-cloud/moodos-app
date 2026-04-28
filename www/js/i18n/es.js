@@ -103,7 +103,7 @@ export const es = {
     home_studying: "estudiando...",
     home_ok: "OK",
     voice_preparing: "Preparando",
-    voice_recording: "⏺",
+    voice_recording: "🔴 Grabando",
     voice_done: "✓ Listo",
     voice_sec: "seg",
     voice_start: "Iniciar grabación",
