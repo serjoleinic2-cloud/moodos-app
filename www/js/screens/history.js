@@ -560,14 +560,14 @@ function renderCard(item) {
   }
 if (item.type==="session") {
     const col=moodColor(item.moodAfter);
-    const m=meta[item.sessionType]||{label:item.sessionType||"—",emoji:"🧘",rc:col};
+    const m=meta[item.sessionType]||{label:item.sessionType||"—",icon:"🧘",rc:col};
     const dur=fmtSec(item.duration);
     const rt=item.result==="positive"?"😊":item.result==="negative"?"😔":"😐";
     const extra=item.tapCount?`· ${item.tapCount} taps`:"";
     const rc = col;
 
     return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1">
-      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.emoji || '🧘'}</span></div>
+      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.icon || '🧘'}</span></div>
       <div class="hist-card-body">
         <div class="hist-card-title">${m.label || '—'}</div>
         <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>

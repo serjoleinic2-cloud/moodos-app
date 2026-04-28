@@ -731,7 +731,7 @@ if (!window.__neyraAppRunning) {
         
         if (voiceStatus) {
           voiceStatus.classList.add('recording');
-          voiceStatus.textContent = '⏺ Запись...';
+          voiceStatus.textContent = '⏺ ' + (t('voice_recording') || 'Запись...');
         }
         voiceBtn.disabled = true;
 
@@ -748,7 +748,7 @@ if (!window.__neyraAppRunning) {
           if (existingTimer) existingTimer.remove();
           if (voiceStatus) {
             voiceStatus.classList.remove('recording');
-            voiceStatus.textContent = saved ? '✓ Готово' : '';
+            voiceStatus.textContent = saved ? '✓ ' + (t('voice_done') || 'Готово') : '';
           }
           voiceBtn.disabled = false;
           setRecordingUI(false);

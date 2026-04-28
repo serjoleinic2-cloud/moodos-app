@@ -37,7 +37,7 @@ export function onEnter() {
         }
         const durationStr = mins > 0 
           ? `${mins}:${String(secs).padStart(2, "0")}` 
-          : `${secs} сек`;
+          : `${secs} ${t('voice_sec')}`;
         
         return `
           <div class="neyra-card neyra-card-voice">
