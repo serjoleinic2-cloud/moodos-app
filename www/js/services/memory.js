@@ -468,3 +468,25 @@ export function getLastRealMood() {
     return last.value;
   } catch(e) { return null; }
 }
+
+/* ---------- RESOLVE TIMESTAMP ---------- */
+
+export function resolveTimestamp(entry) {
+  if (!entry) return null;
+  const ts = entry.timestamp || entry.time || entry.date || null;
+  if (!ts) return null;
+  const n = Number(ts);
+  if (!isNaN(n) && n > 0) return n;
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? null : d.getTime();
+}
+
+/* ---------- REFLECTIONS ---------- */
+
+export function getReflections() {
+  return JSON.parse(localStorage.getItem("reflections")) || [];
+}
+
+export function saveReflections(data) {
+  localStorage.setItem("reflections", JSON.stringify(data));
+}
