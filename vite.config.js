@@ -33,7 +33,8 @@ export default defineConfig({
           console.log('[copy-docs] www/docs → dist/docs ✓');
         }
       }
-    ,{
+    },
+    {
       name: 'copy-pwa-files',
       closeBundle() {
         const swSrc = resolve(__dirname, 'www/sw.js');
