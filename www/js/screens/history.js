@@ -562,7 +562,7 @@ if (item.type==="session") {
     const col=moodColor(item.moodAfter);
     const m=meta[item.sessionType]||{label:item.sessionType||"—",icon:"🧘",rc:col};
     const dur=fmtSec(item.duration);
-    const rt=item.result==="positive"?"😊":item.result==="negative"?"😔":"😐";
+    const rt=item.result==="positive"?"👍":item.result==="negative"?"👎":"😐";
     const extra=item.tapCount?`· ${item.tapCount} taps`:"";
     const rc = col;
 

@@ -68,31 +68,31 @@ export async function startVoiceRecording(statusEl, onFinish) {
         reader.readAsDataURL(blob);
       };
 
-      mediaRecorder.start();
+mediaRecorder.start();
 
-      let prep = 3;
-      const prepInterval = setInterval(() => {
-        if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${prep}...`;
-        prep--;
-        if (prep < 0) {
-          clearInterval(prepInterval);
-        }
-      }, 1000);
-      
-      let sec = 0;
-      const timerInterval = setInterval(() => {
-        sec++;
-        const m = String(Math.floor(sec/60)).padStart(2,'0');
-        const s = String(sec%60).padStart(2,'0');
-        if (statusEl) statusEl.textContent = `${t("voice_recording")} ${m}:${s}`;
-      }, 1000);
+  let sec = 0;
+  const PREP_SECONDS = 3;
 
-      setTimeout(() => {
-        clearInterval(timerInterval);
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-          mediaRecorder.stop();
-        }
-      }, 10000);
+  if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${PREP_SECONDS}...`;
+
+  const timerInterval = setInterval(() => {
+    sec++;
+    if (sec < PREP_SECONDS) {
+      if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${PREP_SECONDS - sec}...`;
+    } else {
+      const elapsed = sec - PREP_SECONDS;
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      if (statusEl) statusEl.textContent = `${t("voice_recording")} ${m}:${s}`;
+    }
+  }, 1000);
+
+  setTimeout(() => {
+    clearInterval(timerInterval);
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+  }, 10000);
 
     }).catch(err => {
       console.error(err);

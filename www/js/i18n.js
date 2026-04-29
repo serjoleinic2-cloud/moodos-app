@@ -14,11 +14,8 @@ let CURRENT_LANG = null;
 export function getLang() {
   if (CURRENT_LANG !== null) return CURRENT_LANG;
   const stored = localStorage.getItem(LANG_KEY);
-  if (stored) {
-    CURRENT_LANG = stored;
+    CURRENT_LANG = stored || "en";
     return CURRENT_LANG;
-  }
-  return stored || "en";
 }
 
 export function setLang(lang) {

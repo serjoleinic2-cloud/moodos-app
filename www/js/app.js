@@ -517,6 +517,15 @@ if (!window.__neyraAppRunning) {
     const detectedLang = getLang();
     setLang(detectedLang);
     
+    const recordBtn = document.getElementById('recordVoiceBtn');
+    if (recordBtn) recordBtn.textContent = t('home_start_recording');
+    
+    document.addEventListener('languageChanged', () => {
+      const btn = document.getElementById('recordVoiceBtn');
+      if (btn && !btn.disabled) btn.textContent = t('home_start_recording');
+      applyDomTranslations();
+    });
+    
     stateGovernance.enable();
     
     initBilling();
@@ -731,7 +740,7 @@ if (!window.__neyraAppRunning) {
         
         if (voiceStatus) {
           voiceStatus.classList.add('recording');
-          voiceStatus.textContent = '⏺ ' + (t('voice_recording') || 'Запись...');
+          voiceStatus.textContent = t('voice_recording');
         }
         voiceBtn.disabled = true;
 
@@ -748,7 +757,7 @@ if (!window.__neyraAppRunning) {
           if (existingTimer) existingTimer.remove();
           if (voiceStatus) {
             voiceStatus.classList.remove('recording');
-            voiceStatus.textContent = saved ? '✓ ' + (t('voice_done') || 'Готово') : '';
+            voiceStatus.textContent = saved ? t('voice_done') : '';
           }
           voiceBtn.disabled = false;
           setRecordingUI(false);

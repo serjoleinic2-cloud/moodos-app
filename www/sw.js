@@ -1,4 +1,4 @@
-const CACHE_NAME = "neyra-v10";
+const CACHE_NAME = "neyra-v11";
 
 // Не кэшируем index.html — он должен всегда быть свежим
 const urlsToCache = [
