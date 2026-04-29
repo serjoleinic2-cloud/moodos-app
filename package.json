@@ -5,7 +5,8 @@
   "scripts": {
     "start": "npx cap serve",
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "deploy:android": "vite build && npx cap copy android && npx cap sync android"
   },
   "dependencies": {
     "@capacitor-community/media": "^9.1.0",
