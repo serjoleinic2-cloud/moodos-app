@@ -70,20 +70,17 @@ export async function startVoiceRecording(statusEl, onFinish) {
 
 mediaRecorder.start();
 
-  let sec = 0;
-  const PREP_SECONDS = 3;
+  const TOTAL_SECONDS = 10;
+  let remaining = TOTAL_SECONDS;
 
-  if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${PREP_SECONDS}...`;
+  if (statusEl) statusEl.textContent = `${t("voice_recording")} ${remaining}`;
 
   const timerInterval = setInterval(() => {
-    sec++;
-    if (sec < PREP_SECONDS) {
-      if (statusEl) statusEl.textContent = `${t("voice_preparing")} ${PREP_SECONDS - sec}...`;
+    remaining--;
+    if (remaining > 0) {
+      if (statusEl) statusEl.textContent = `${t("voice_recording")} ${remaining}`;
     } else {
-      const elapsed = sec - PREP_SECONDS;
-      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-      const s = String(elapsed % 60).padStart(2, '0');
-      if (statusEl) statusEl.textContent = `${t("voice_recording")} ${m}:${s}`;
+      clearInterval(timerInterval);
     }
   }, 1000);
 
