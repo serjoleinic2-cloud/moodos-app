@@ -430,7 +430,7 @@ function showMoodCalendarOverlay() {
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/assets/assets/icons/player/pause.svg";
+          if (icon) icon.src = "/icons/player/pause.svg";
         } else {
           audio.pause();
           if (icon) icon.src = "/icons/player/play.svg";
@@ -503,7 +503,7 @@ function showMoodCalendarOverlay() {
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/assets/assets/icons/player/pause.svg";
+          if (icon) icon.src = "/icons/player/pause.svg";
         } else {
           audio.pause();
           if (icon) icon.src = "/icons/player/play.svg";

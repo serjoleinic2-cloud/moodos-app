@@ -204,8 +204,17 @@ function deleteItem(item) {
       const arr = getNotesHistory().filter(e => (e.timestamp||new Date(e.time).getTime()) !== item.ts);
       localStorage.setItem("notes_history", JSON.stringify(arr));
     } else if (item.type==="voice_note") {
-      const arr = getVoiceHistory().filter(e => (e.date||e.timestamp||e.time) !== item.ts);
-      localStorage.setItem("voice_history", JSON.stringify(arr));
+      const arr = getVoiceHistory();
+      const entry = arr.find(e => (e.date||e.timestamp||e.time) === item.ts);
+      if (entry?.audio && entry.audio.startsWith("file://")) {
+        const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+        if (Filesystem) {
+          const match = entry.audio.match(/\/([^\/]+)$/);
+          if (match) Filesystem.deleteFile({ path: `Neyra/${match[1]}`, directory: "Documents" }).catch(()=>{});
+        }
+      }
+      const filtered = arr.filter(e => (e.date||e.timestamp||e.time) !== item.ts);
+      localStorage.setItem("voice_history", JSON.stringify(filtered));
     } else if (item.type==="photo") {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
       const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
