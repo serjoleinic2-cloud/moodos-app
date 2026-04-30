@@ -218,12 +218,21 @@ function deleteItem(item) {
     } else if (item.type==="photo") {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
       const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
-      if (toDelete?.uri && toDelete.uri.startsWith("file://")) {
+      if (toDelete) {
         const Filesystem = window.Capacitor?.Plugins?.Filesystem;
         if (Filesystem) {
-          const pathMatch = toDelete.uri.match(/\/([^\/]+)$/);
-          if (pathMatch) {
-            Filesystem.deleteFile({ path: pathMatch[1], directory: "Documents" }).catch(() => {});
+          // Удаляем по uri
+          if (toDelete.uri && toDelete.uri.startsWith("file://")) {
+            const m = toDelete.uri.match(/\/([^\/]+)$/);
+            if (m) Filesystem.deleteFile({ path: m[1], directory: "Documents" }).catch(()=>{});
+          }
+          // Удаляем по fileName напрямую
+          if (toDelete.fileName) {
+            Filesystem.deleteFile({ path: toDelete.fileName, directory: "Documents" }).catch(()=>{});
+          }
+          // Удаляем по паттерну имени из dataUrl timestamp
+          if (!toDelete.uri && !toDelete.fileName && toDelete.timestamp) {
+            Filesystem.deleteFile({ path: `neyra-${toDelete.timestamp}.jpg`, directory: "Documents" }).catch(()=>{});
           }
         }
       }

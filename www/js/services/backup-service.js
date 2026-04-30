@@ -77,6 +77,9 @@ function collectAllData(premiumMode = false) {
       const value = localStorage.getItem(key);
       if (!value) return;
 
+      // Free: исключаем voice_history и photo_history полностью
+      if (!premiumMode && (key === 'voice_history' || key === 'photo_history')) return;
+
       if (!premiumMode && ARRAY_KEYS.includes(key)) {
         try {
           const arr = JSON.parse(value);
@@ -93,8 +96,6 @@ function collectAllData(premiumMode = false) {
         } catch(e) {}
       }
 
-      // Free: исключаем voice_history и photo_history полностью
-      if (!premiumMode && (key === 'voice_history' || key === 'photo_history')) return;
       data[key] = value;
     } catch (e) {
       console.warn('[BACKUP] Failed to read:', key, e);

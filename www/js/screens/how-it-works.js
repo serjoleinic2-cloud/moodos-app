@@ -9,138 +9,168 @@ export function onEnter() {
   });
 }
 
-function section(title, text) {
-  if (!title && !text) return '';
-  return `
-    <div class="how-section">
-      ${title ? `<div class="how-section-title">${title}</div>` : ''}
-      ${text ? `<div class="how-section-text">${text}</div>` : ''}
-    </div>
-  `;
-}
-
-function featureBlock(icon, title, text) {
-  return `
-    <div class="how-block">
-      <div class="how-icon">${icon}</div>
-      <div class="how-content">
-        <div class="how-title">${title}</div>
-        <div class="how-text">${text}</div>
-      </div>
-    </div>
-  `;
-}
-
 function render() {
   return `
     <style>
-      .how-container {
-        padding: 20px 16px 80px;
-      }
-      .how-hero {
+      .info-screen { padding: 20px 16px 100px; }
+      .info-hero {
         text-align: center;
-        padding: 20px 10px 30px;
+        padding: 24px 8px 28px;
       }
-      .how-hero-title {
-        font-size: 24px;
+      .info-hero-title {
+        font-size: 22px;
         font-weight: 700;
-        margin-bottom: 16px;
+        color: #3a3530;
         line-height: 1.3;
+        margin-bottom: 10px;
       }
-      .how-hero-text {
+      .info-hero-sub {
         font-size: 14px;
+        color: #888;
         line-height: 1.6;
-        opacity: 0.85;
       }
-      .how-section {
-        margin-bottom: 24px;
+      .info-section {
+        margin-bottom: 12px;
         padding: 16px;
-        border-radius: 14px;
-        background: rgba(76,175,135,0.08);
+        border-radius: 18px;
+        background: rgba(232,237,230,0.9);
+        box-shadow: 4px 4px 10px #c8d4c4, -4px -4px 10px #ffffff;
       }
-      .how-section-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #4caf87;
+      .info-section-accent {
+        border-left: 3px solid #4caf87;
       }
-      .how-section-text {
-        font-size: 14px;
-        line-height: 1.6;
-      }
-      .how-block {
+      .info-row {
         display: flex;
-        gap: 12px;
-        margin-bottom: 18px;
-        padding: 14px;
-        border-radius: 14px;
-        background: rgba(255,255,255,0.04);
+        gap: 14px;
+        align-items: flex-start;
       }
-      .how-icon {
-        font-size: 20px;
+      .info-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+        margin-top: 1px;
       }
-      .how-title {
-        font-size: 15px;
-        font-weight: 600;
+      .info-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #4caf87;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: 4px;
       }
-      .how-text {
-        font-size: 13px;
-        opacity: 0.85;
-        line-height: 1.4;
+      .info-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #3a3530;
+        margin-bottom: 4px;
       }
-      .how-footer {
+      .info-text {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.55;
+      }
+      .info-divider {
+        height: 1px;
+        background: rgba(0,0,0,0.06);
+        margin: 10px 0;
+      }
+      .info-footer {
         text-align: center;
         font-size: 13px;
         color: #aaa;
-        margin-top: 24px;
+        margin-top: 20px;
         padding: 16px;
-        border-radius: 14px;
-        background: rgba(255,255,255,0.04);
       }
-      .how-premium-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+      .info-back-btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #9f7aea, #805ad5);
         color: #fff;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-left: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 8px;
+        box-shadow: 4px 4px 10px #c8d4c4, -4px -4px 10px #ffffff;
       }
     </style>
-    <div class="how-container">
-      <div class="how-hero">
-        <div class="how-hero-title">${t("how_hero_title")}</div>
-        <div class="how-hero-text">${t("how_hero_text")}</div>
+
+    <div class="info-screen">
+
+      <div class="info-hero">
+        <div class="info-hero-title">${t("how_hero_title")}</div>
+        <div class="info-hero-sub">${t("how_hero_text")}</div>
       </div>
-      
-      ${section(t("how_sec_1_title"), t("how_sec_1_text"))}
-      ${section(t("how_sec_2_title"), t("how_sec_2_text"))}
-      ${section(t("how_sec_3_title"), t("how_sec_3_text"))}
-      ${section(t("how_sec_4_title"), t("how_sec_4_text"))}
-      
-      <div style="margin-top: 20px;">
-        ${featureBlock("📱", t("how_device_title"), t("how_device_text"))}
-        ${featureBlock("☁️", t("how_cloud_title"), t("how_cloud_text"))}
+
+      <div class="info-section info-section-accent">
+        <div class="info-row">
+          <div class="info-icon">🔄</div>
+          <div>
+            <div class="info-label">Принцип работы</div>
+            <div class="info-text">${t("how_sec_1_text")}</div>
+          </div>
+        </div>
       </div>
-      
-      <div style="margin-top: 20px;">
-        ${featureBlock("🔒", t("how_data_local_title"), t("how_data_local_text"))}
-        ${featureBlock("💾", t("how_export_title"), t("how_export_text"))}
-        ${featureBlock("📄", t("how_pdf_title"), t("how_pdf_text"))}
+
+      <div class="info-section">
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_device_title")}</div>
+            <div class="info-text">${t("how_device_text")}</div>
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_sec_2_title")}</div>
+            <div class="info-text">${t("how_sec_2_text")}</div>
+          </div>
+        </div>
       </div>
-      
-      <div class="how-footer">
-        ${t("how_footer")}
+
+      <div class="info-section">
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_sec_3_title")}</div>
+            <div class="info-text">${t("how_sec_3_text")}</div>
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_sec_4_title")}</div>
+            <div class="info-text">${t("how_sec_4_text")}</div>
+          </div>
+        </div>
       </div>
-      
-      <button id="howBackBtn" style="
-        width:100%;padding:14px;border:none;border-radius:14px;
-        background:linear-gradient(145deg,#9f7aea,#805ad5);
-        color:#fff;font-size:15px;font-weight:700;cursor:pointer;
-        margin-top:20px;
-      ">${t('back') || '← Back'}</button>
+
+      <div class="info-section">
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_cloud_title")}</div>
+            <div class="info-text">${t("how_cloud_text")}</div>
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_pdf_title")}</div>
+            <div class="info-text">${t("how_pdf_text")}</div>
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-row">
+          <div>
+            <div class="info-title">${t("how_export_title")}</div>
+            <div class="info-text">${t("how_export_text")}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-footer">${t("how_footer")}</div>
+
+      <button id="howBackBtn" class="info-back-btn">${t('back') || '← Назад'}</button>
+
     </div>
   `;
 }

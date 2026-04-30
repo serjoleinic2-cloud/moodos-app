@@ -50,112 +50,149 @@ async function doExport() {
   if (btn) { btn.textContent = t("btn_export") || "Создать копию"; btn.disabled = false; }
 }
 
-function block(icon, title, text) {
-  return `
-    <div class="ds-block">
-      <div class="ds-icon">${icon}</div>
-      <div class="ds-content">
-        <div class="ds-title">${title}</div>
-        <div class="ds-text">${text}</div>
-      </div>
-    </div>
-  `;
-}
-
 function render() {
   return `
     <style>
-      .ds-container {
-        padding: 20px 16px 80px;
+      .info-screen { padding: 20px 16px 100px; }
+      .info-hero {
+        text-align: center;
+        padding: 24px 8px 28px;
       }
-      .ds-block {
+      .info-hero-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #3a3530;
+        line-height: 1.3;
+        margin-bottom: 10px;
+      }
+      .info-hero-sub {
+        font-size: 14px;
+        color: #888;
+        line-height: 1.6;
+      }
+      .info-section {
+        margin-bottom: 12px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(232,237,230,0.9);
+        box-shadow: 4px 4px 10px #c8d4c4, -4px -4px 10px #ffffff;
+      }
+      .info-section-accent { border-left: 3px solid #4caf87; }
+      .info-section-warning { border-left: 3px solid #e05555; }
+      .info-row {
         display: flex;
-        gap: 12px;
-        margin-bottom: 16px;
-        padding: 14px;
-        border-radius: 14px;
-        background: rgba(255,255,255,0.04);
+        gap: 14px;
+        align-items: flex-start;
       }
-      .ds-icon {
-        font-size: 20px;
-      }
-      .ds-title {
-        font-size: 15px;
-        font-weight: 600;
+      .info-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+      .info-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #4caf87;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: 4px;
       }
-      .ds-text {
-        font-size: 13px;
-        opacity: 0.85;
-        line-height: 1.4;
+      .info-label-warn { color: #e05555; }
+      .info-title { font-size: 15px; font-weight: 600; color: #3a3530; margin-bottom: 4px; }
+      .info-text { font-size: 13px; color: #666; line-height: 1.55; }
+      .info-premium-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 10px;
       }
-      .ds-block.highlight {
-        background: rgba(76,175,135,0.1);
-        border: 1px solid rgba(76,175,135,0.3);
-      }
-      .ds-block.warning {
-        background: rgba(255,107,107,0.1);
-        border: 1px solid rgba(255,107,107,0.3);
-      }
-      .ds-block.warning .ds-title {
-        color: #ff6b6b;
-      }
-      .ds-footer {
-        text-align: center;
-        font-size: 13px;
-        color: #aaa;
-        margin-top: 24px;
-        padding: 16px;
-      }
-      .ds-btn {
-        display: block;
+      .info-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 0; }
+      .info-export-btn {
         width: 100%;
-        padding: 14px;
-        margin-top: 16px;
+        padding: 15px;
+        border: none;
+        border-radius: 16px;
         background: linear-gradient(145deg, #4caf87, #45a070);
         color: #fff;
-        border: none;
-        border-radius: 12px;
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        text-align: center;
+        margin-top: 8px;
+        box-shadow: 4px 4px 10px #c8d4c4, -4px -4px 10px #ffffff;
       }
-      .ds-btn:active {
-        opacity: 0.9;
+      .info-back-btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #9f7aea, #805ad5);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        box-shadow: 4px 4px 10px #c8d4c4, -4px -4px 10px #ffffff;
       }
     </style>
-    <div class="ds-container">
-      <h2>${t("data_storage_title")}</h2>
-      
-      ${block("📱", t("data_storage_local"), 
-        t("data_storage_records_desc"))}
-      
-      ${block("🔒", t("data_storage_control"),
-        t("data_storage_control_desc"))
-      }
-      
-      ${block("💾", t("backup_section"),
-        t("data_storage_backup_desc"))
-      }
-      
-      ${block("👑", t("data_storage_cloud_premium"),
-        t("data_storage_cloud_premium_desc"))
-      }
-      
-      ${block("⚠️", t("data_storage_responsibility"),
-        t("data_storage_responsibility_desc"), true)}
-      
-      <button class="ds-btn" id="dsBackupBtn">
-        ${t("btn_export")}
+
+    <div class="info-screen">
+
+      <div class="info-hero">
+        <div class="info-hero-title">${t("data_storage_title")}</div>
+        <div class="info-hero-sub">${t("data_storage_records_desc")}</div>
+      </div>
+
+      <div class="info-section info-section-accent">
+        <div class="info-row">
+          <div class="info-icon">📱</div>
+          <div>
+            <div class="info-label">Хранение</div>
+            <div class="info-title">${t("data_storage_local")}</div>
+            <div class="info-text">${t("data_storage_control_desc")}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-row">
+          <div class="info-icon">💾</div>
+          <div>
+            <div class="info-label">Free</div>
+            <div class="info-title">Резервная копия</div>
+            <div class="info-text">Данные за последние 7 дней — без фото и голосовых заметок. Создаётся вручную раз в 3 дня. Сохрани файл сам в надёжном месте.</div>
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div>
+          <div class="info-premium-tag">👑 Premium</div>
+          <div class="info-row">
+            <div class="info-icon">📦</div>
+            <div>
+              <div class="info-title">Полный архив</div>
+              <div class="info-text">Вся история без ограничений по времени. Голосовые заметки и фото включены. Перенос на новый телефон одним файлом. Без ограничений по частоте.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section info-section-warning">
+        <div class="info-row">
+          <div class="info-icon">⚠️</div>
+          <div>
+            <div class="info-label info-label-warn">Важно</div>
+            <div class="info-text">${t("data_storage_responsibility_desc")}</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="info-export-btn" id="dsBackupBtn">
+        ${t("btn_export") || "Создать резервную копию"}
       </button>
-      
-      <button id="dsBackBtn" style="
-        width:100%;padding:14px;border:none;border-radius:14px;
-        background:linear-gradient(145deg,#9f7aea,#805ad5);
-        color:#fff;font-size:15px;font-weight:700;cursor:pointer;
-        margin-top:12px;
-      ">${t('back') || '← Back'}</button>
+
+      <button id="dsBackBtn" class="info-back-btn">
+        ${t('back') || '← Назад'}
+      </button>
+
     </div>
   `;
 }
