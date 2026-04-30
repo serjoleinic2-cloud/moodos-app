@@ -1,4 +1,4 @@
-import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory, resolveTimestamp } from "../services/memory.js";
+import { getMoodHistory, getNotesHistory, getSessionHistory, getVoiceHistory, resolveTimestamp, getReflections } from "../services/memory.js";
 import Chart from 'chart.js/auto';
 
 window.Chart = Chart;
@@ -198,38 +198,77 @@ function showMoodCalendarOverlay() {
   const existing = document.getElementById("moodCalendarOverlay");
   if (existing) existing.remove();
 
-  const history = getMoodHistory();
-  const notesHistory = getNotesHistory();
-  const sessionHistory = getSessionHistory();
-  const voiceHistory = getVoiceHistory();
-  
+  // Строим единый timeline как в history.js
+  const allItems = [];
+  getMoodHistory().forEach(e => {
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    allItems.push({ type: "mood", ts, value: e.value });
+  });
+  getNotesHistory().forEach(e => {
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    allItems.push({ type: "note", ts });
+  });
+  getSessionHistory().forEach(e => {
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    allItems.push({ type: "session", ts,
+      sessionType: e.type || e.sessionType,
+      result: e.result });
+  });
+  getVoiceHistory().forEach(e => {
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    allItems.push({ type: "voice_note", ts, audio: e.audio || null });
+  });
+  getReflections().forEach(e => {
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    allItems.push({ type: "reflection", ts });
+  });
+
+  // dayAvg только из mood записей
   const byDay = {};
-  history.forEach(e => {
-    const d = new Date(e.time);
+  allItems.filter(i => i.type === "mood").forEach(i => {
+    const d = new Date(i.ts);
     const key = d.getFullYear() + "-" +
       String(d.getMonth()+1).padStart(2,"0") + "-" +
       String(d.getDate()).padStart(2,"0");
     if (!byDay[key]) byDay[key] = [];
-    byDay[key].push(e.value);
+    byDay[key].push(i.value);
   });
   const dayAvg = {};
   Object.keys(byDay).forEach(k => {
     dayAvg[k] = Math.round(byDay[k].reduce((a,b)=>a+b,0)/byDay[k].length);
   });
-  
+
+  // daySessions и dayPracticeCounts из allItems
   const daySessions = {};
   const dayPracticeCounts = {};
-  sessionHistory.forEach(e => {
-    const ts = resolveTimestamp(e);
-    if (!ts) return;
-    const d = new Date(ts);
+  allItems.filter(i => i.type === "session").forEach(i => {
+    const d = new Date(i.ts);
     const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
     daySessions[key] = (daySessions[key] || 0) + 1;
-    const type = normalizePracticeType(e.type || e.practiceType || '');
+    const type = normalizePracticeType(i.sessionType || '');
     if (!dayPracticeCounts[key]) dayPracticeCounts[key] = {};
     dayPracticeCounts[key][type] = (dayPracticeCounts[key][type] || 0) + 1;
   });
-  
+
+  // dayVoiceMap из allItems
+  const dayVoiceMap = {};
+  allItems.filter(i => i.type === "voice_note" && i.audio).forEach(i => {
+    const d = new Date(i.ts);
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    if (!dayVoiceMap[key]) dayVoiceMap[key] = [];
+    let audioSrc = i.audio;
+    const Capacitor = window.Capacitor;
+    if (Capacitor?.convertFileSrc && audioSrc.startsWith("file://")) {
+      audioSrc = Capacitor.convertFileSrc(audioSrc);
+    }
+    dayVoiceMap[key].push(audioSrc);
+  });
+
   const PRACTICE_NAMES = {
     breathing:      '🫁 ' + (t('tools_breathing') || 'Дыхание').replace(/^\S+\s/, ''),
     meditation:     '🧘 ' + (t('tools_meditation') || 'Медитация').replace(/^\S+\s/, ''),
@@ -250,23 +289,6 @@ function showMoodCalendarOverlay() {
     if (normalized.includes('support') || normalized.includes('text')) return 'support_texts';
     return type;
   }
-  
-  const dayVoiceMap = {};
-  voiceHistory.forEach(e => {
-    const ts = resolveTimestamp(e);
-    if (!ts) return;
-    const d = new Date(ts);
-    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-    if (!dayVoiceMap[key]) dayVoiceMap[key] = [];
-    if (e.audio) {
-      let audioSrc = e.audio;
-      const Capacitor = window.Capacitor;
-      if (Capacitor?.convertFileSrc && audioSrc.startsWith("file://")) {
-        audioSrc = Capacitor.convertFileSrc(audioSrc);
-      }
-      dayVoiceMap[key].push(audioSrc);
-    }
-  });
 
   function moodBg(v) {
     if (v === undefined) return "rgba(0,0,0,0.04)";
@@ -552,7 +574,9 @@ function drawChart(filtered) {
 
   const byDay = {};
   filtered.forEach(e => {
-    const d = new Date(e.time);
+    const ts = resolveTimestamp(e);
+    if (!ts) return;
+    const d = new Date(ts);
     const k = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}`;
     if (!byDay[k]) byDay[k] = [];
     byDay[k].push(e.value);

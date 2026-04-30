@@ -2,7 +2,8 @@
 // Neyra PDF Report — Share API + Push
 // =====================================
 import { getMoodHistory, getSessionHistory } from "../services/memory.js";
-import { getProfile } from "../services/user-profile.js";
+import { getProfile, isPremium } from "../services/user-profile.js";
+import { showPremiumModal } from "../premium-modal.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
 import { t, getLang } from "../i18n.js";
 import { canPlaySound } from "../services/reminders-service.js";
@@ -185,8 +186,15 @@ export function checkAutoReminder() {
 }
 
 export function showPdfReportModal() {
-  const existing = document.getElementById("pdfReportScreen");
-  if (existing) existing.remove();
+    if (!isPremium()) {
+      showPremiumModal({
+        title: "📄 Отчёт для врача",
+        desc: "Формирование PDF-отчёта доступно в Premium. Подключи подписку чтобы делиться данными с врачом."
+      });
+      return;
+    }
+    const existing = document.getElementById("pdfReportScreen");
+    if (existing) existing.remove();
 
   const s = loadSettings();
   const now  = new Date();
