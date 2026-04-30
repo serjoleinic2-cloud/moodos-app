@@ -328,13 +328,16 @@ function renderHistory(filterDate=null) {
   container.querySelectorAll(".voice-play-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      let url = btn.dataset.url;
+      let url = btn.dataset.url || btn._audioUrl;
+      if (!url && btn.dataset.isBase64 === '1') {
+        const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
+        const ts = btn.dataset.ts;
+        const entry = voiceHistory.find(e => String(e.date || e.timestamp || e.time) === String(ts));
+        if (entry?.audio) url = entry.audio;
+      }
       if (!url) return;
-      
-      // Convert Capacitor file:// URL to web-accessible URL
-      const Capacitor = window.Capacitor;
-      if (Capacitor?.convertFileSrc && url.startsWith("file://")) {
-        url = Capacitor.convertFileSrc(url);
+      if (url.startsWith("file://") && window.Capacitor?.convertFileSrc) {
+        url = window.Capacitor.convertFileSrc(url);
       }
       
       const ts     = btn.dataset.ts;
@@ -544,7 +547,7 @@ function renderCard(item) {
       ${hasAudio?`
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl}" data-saved-dur="${item.audioDuration||0}"
+          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl && !item.audioUrl.startsWith('data:') ? item.audioUrl : ''}" data-is-base64="${item.audioUrl && item.audioUrl.startsWith('data:') ? '1' : '0'}" data-saved-dur="${item.audioDuration||0}"
             style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#9f7aea22;box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
             <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">
           </div>
