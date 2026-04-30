@@ -84,7 +84,7 @@ export function initOnboarding(onComplete) {
       <p>Neyra is intended for users aged 18 and older.</p>
 
       <h3 style="margin:20px 0 8px;color:#3a3530;">10. Contact</h3>
-      <p>ideas@neyra-app.com<br><a href="https://www.neyra-app.com" style="color:#4a7c59;">www.neyra-app.com</a></p>
+      <p>ideas@neyra-app.com<br><a href="http://www.neyra-app.com" style="color:#4a7c59;">neyra-app.com</a></p>
 
       <p style="margin-top:20px;font-size:12px;color:#aaa;">Effective date: 20.04.2026</p>
     `;
@@ -114,7 +114,7 @@ export function initOnboarding(onComplete) {
       <p>You may stop using the app at any time by deleting it.</p>
 
       <h3 style="margin:20px 0 8px;color:#3a3530;">8. Changes</h3>
-      <p>We may update these Terms from time to time. Continued use of the app means you accept the updated version. The latest version is always available at <a href="https://www.neyra-app.com" style="color:#4a7c59;">www.neyra-app.com</a></p>
+      <p>We may update these Terms from time to time. Continued use of the app means you accept the updated version. The latest version is always available at <a href="http://www.neyra-app.com" style="color:#4a7c59;">neyra-app.com</a></p>
 
       <h3 style="margin:20px 0 8px;color:#3a3530;">9. Contact</h3>
       <p>ideas@neyra-app.com</p>
