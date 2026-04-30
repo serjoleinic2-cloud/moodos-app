@@ -426,16 +426,17 @@ function showMoodCalendarOverlay() {
       btn.onclick = () => {
         const idx = btn.dataset.index;
         const audio = document.getElementById("voice-player-" + idx);
-        const icon = btn.querySelector("img");
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/icons/player/pause.svg";
+          btn.querySelector("img").src = "/icons/player/pause.svg?v=2";
         } else {
           audio.pause();
-          if (icon) icon.src = "/icons/player/play.svg";
+          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
         }
-        audio.onended = () => { if (icon) icon.src = "/icons/player/play.svg"; };
+        audio.onended = () => {
+          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
+        };
       };
     });
   }
@@ -499,16 +500,17 @@ function showMoodCalendarOverlay() {
       btn.onclick = () => {
         const idx = btn.dataset.index;
         const audio = document.getElementById("voice-player-" + idx);
-        const icon = btn.querySelector("img");
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/icons/player/pause.svg";
+          btn.querySelector("img").src = "/icons/player/pause.svg?v=2";
         } else {
           audio.pause();
-          if (icon) icon.src = "/icons/player/play.svg";
+          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
         }
-        audio.onended = () => { if (icon) icon.src = "/icons/player/play.svg"; };
+        audio.onended = () => {
+          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
+        };
       };
     });
   }
