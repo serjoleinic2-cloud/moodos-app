@@ -358,7 +358,10 @@ function renderHistory(filterDate=null) {
         });
       }
       if (!btn._audio) {
-        const audio = new Audio(url);
+        const playUrl = (window.Capacitor?.convertFileSrc)
+          ? window.Capacitor.convertFileSrc(url)
+          : url;
+        const audio = new Audio(playUrl);
         btn._audio = audio;
         const savedDur = parseFloat(btn.dataset.savedDur) || 0;
         if (totEl && savedDur) totEl.textContent = fmtSec(savedDur);
