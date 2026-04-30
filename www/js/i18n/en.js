@@ -727,7 +727,7 @@ export const en = {
     how_device_title: "Local Storage",
     how_device_text: "All records are stored on your device. You have full control.",
     how_cloud_title: "Premium: Cloud",
-    how_cloud_text: "Automatic cloud backup. Transfer between devices. No limits.",
+    how_cloud_text: "Manually create a backup and save it to Google Drive or anywhere else. There is no automatic sync — you are responsible for keeping the file safe.",
     how_pdf_title: "PDF Report for Doctor",
     how_pdf_text: "Generate a detailed PDF report with mood history and practice statistics to share with your doctor.",
     how_export_title: "Full Export",
