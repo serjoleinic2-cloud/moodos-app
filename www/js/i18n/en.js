@@ -40,9 +40,9 @@ export const en = {
     screen_load_error: "Screen load error",
     
     // Data storage hardcoded texts
-    data_storage_records_desc: "All your records, photos and audio are stored only on your device.",
-    data_storage_backup_desc: "To not lose data during reinstall, create a backup and save it yourself.",
-    data_storage_responsibility_desc: "You are responsible for the safety of your backup. If the file is lost — data cannot be recovered.",
+    data_storage_records_desc: "All your records — mood, notes, voice memos, practice sessions — are stored only on this device. Neyra has no servers and shares no data anywhere.",
+    data_storage_backup_desc: "You can save data from the last 7 days, except photos and audio notes. Backup is created manually — once every 3 days. Save the file to Google Drive, your computer, or a messenger — Neyra doesn't store it for you.",
+    data_storage_responsibility_desc: "The backup file is your responsibility. Lost the file — data cannot be recovered. Back up regularly and store it in a safe place.",
     
     // Backup cooldown
     backup_cooldown_message: "Backup is available once every 3 days.\nNext in",
@@ -690,7 +690,7 @@ export const en = {
     privacy_section_changes: "Policy may be updated. Users will be informed via app updates.",
     
     // Backup
-    backup_section: "Backup",
+    backup_section: "💾 Backup (Free)",
     backup_error: "Error",
     backup_data_local: "Export Data",
     backup_local_info: "Your data is stored only on your device. Create a backup and save it yourself.",
@@ -705,36 +705,36 @@ export const en = {
     
     // Data storage
     data_storage_title: "Data Storage",
-    data_storage_local: "All data is stored locally on your device.",
-    data_storage_backup: "Use backup to protect against data loss.",
-    data_storage_responsibility: "You are responsible for the safety of your backup.",
+    data_storage_local: "📱 Where your data is stored",
+    data_storage_backup: "💾 Backup (Free)",
+    data_storage_responsibility: "⚠️ Important",
 
     // Home
     home_events_hint: "This helps understand your state",
     home_insight_label: "Insight",
     home_pattern_label: "Pattern noticed",
     close: "Close",
-    how_hero_title: "Neyra is more than just a mood tracker",
-    how_hero_text: "It's a tool that helps you understand and manage your state — right on your device.",
-    how_sec_1_title: "How it works",
-    how_sec_1_text: "You log your mood → Neyra analyzes → gives insights → suggests practices.",
-    how_sec_2_title: "Your data is yours",
-    how_sec_2_text: "All data stays with you. No clouds. No servers. Nothing is shared.",
-    how_sec_3_title: "Photos & Voice Notes",
-    how_sec_3_text: "Saved to phone memory (Neyra album). Even if you delete the app — they stay.",
-    how_sec_4_title: "Backup",
-    how_sec_4_text: "Create a copy and save it wherever you want. With Premium — transfer to new device including photos and voice.",
-    how_device_title: "Local Storage",
-    how_device_text: "All records are stored on your device. You have full control.",
-    how_cloud_title: "Premium: Cloud",
-    how_cloud_text: "Manually create a backup and save it to Google Drive or anywhere else. There is no automatic sync — you are responsible for keeping the file safe.",
-    how_pdf_title: "PDF Report for Doctor",
-    how_pdf_text: "Generate a detailed PDF report with mood history and practice statistics to share with your doctor.",
-    how_export_title: "Full Export",
-    how_export_text: "Export all your data including voice notes and photos. Transfer to another device.",
-    how_data_local_title: "All data stays on your device",
-    how_data_local_text: "Neyra does not send your records to any server. Mood, notes, voice recordings and photos are stored exclusively in your phone's memory. The developer has no access to your data.",
-    how_footer: "Start simple — log your mood today",
+    how_hero_title: "Neyra is more than a mood tracker",
+    how_hero_text: "Your personal emotional intelligence. No internet. No judgment. No limits.",
+    how_sec_1_title: "Why Neyra is different",
+    how_sec_1_text: "Most apps assume you're fine by default. Neyra doesn't. From the very first launch, Neyra asks how you feel right now. Your baseline state, medications, patterns and pace — all of this shapes every insight, every recommendation, every chart.",
+    how_sec_2_title: "🤖 Living avatar",
+    how_sec_2_text: "The only app with a reactive avatar that changes with your mood in real time. No server, no internet needed — everything runs on your device. When you earn a reward — the avatar celebrates it.",
+    how_sec_3_title: "📊 Analytics deeper than a color calendar",
+    how_sec_3_text: "Stability Index — how steady you are, not just how happy. Golden Hours — the exact time of day when you consistently feel best. Pattern system detects triggers with explanations: 'Weekday evenings are harder for you — here's the 3-week pattern'. Year-over-year comparison and 2+ years of history — nothing gets deleted.",
+    how_sec_4_title: "🧘 6 practices — offline, personalized by your data",
+    how_sec_4_text: "Breathing, Meditation, Visual Anchor, Mind Dump, Tap Calm, Support Texts. Every practice tracks mood before and after. Over time Neyra tells you which tools work best for you — in your states, at your time of day.",
+    how_device_title: "📱 Three types of notes",
+    how_device_text: "Voice — record how you feel out loud. Photo — attach a moment to a memory. Text — with a 60-second mind dump mode. Everything is stored locally.",
+    how_cloud_title: "💊 Medication tracking",
+    how_cloud_text: "Taking antidepressants, sedatives or other medications? Neyra factors this into your baseline, insights and recommendations — to understand you better than any generic tracker.",
+    how_data_local_title: "🔒 No cloud. No ads. No tracking.",
+    how_data_local_text: "Everything stays on your device. No account. No server. No mandatory subscription. Neyra works completely offline — on a plane, in the mountains, with zero signal.",
+    how_export_title: "🏅 Achievement system",
+    how_export_text: "29 medals in 7 categories: regularity, mood, practices, awareness, resilience, challenges and special achievements. The daily challenge is generated from your own patterns: 'Evenings tend to be harder for you — try a breathing practice before 6 PM'.",
+    how_pdf_title: "📄 PDF report",
+    how_pdf_text: "Generate a detailed state report for any period. Includes mood trend, practice effectiveness, trigger analysis and stability index. Share with your therapist or save to archive.",
+    how_footer: "5 languages · Color themes · Custom meditation tracks · Fully offline",
     
     // Smart warnings
     export_free_warning_title: "Backup (Free)",
@@ -778,10 +778,10 @@ premium_feature_themes: "Themes",
     settings_backup_free_limit: "Free: 1 copy every 3 days • Premium: unlimited",
     
     // Data storage screen
-    data_storage_control: "Control",
-    data_storage_control_desc: "Only you have access to your data. The app doesn't send it to servers.",
-    data_storage_cloud_premium: "Cloud (Premium)",
-    data_storage_cloud_premium_desc: "Automatic backup to Google Drive. Transfer data between devices.",
+    data_storage_control: "🔒 Only you control your data",
+    data_storage_control_desc: "No cloud sync, no accounts. If you delete the app — the data inside it will be gone. Photos remain in your phone gallery in the 'Neyra' album.",
+    data_storage_cloud_premium: "👑 Full Archive (Premium)",
+    data_storage_cloud_premium_desc: "Full history with no time limits. Voice notes and photos included. Transfer to a new phone in one file. No export frequency limits.",
     
     // Settings photo info
     settings_photo_saved_info: "📷 Photos are saved to 'Neyra' album in gallery and are not deleted with the app",

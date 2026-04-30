@@ -40,9 +40,9 @@ export const es = {
     screen_load_error: "Error al cargar la pantalla",
     
     // Data storage hardcoded texts
-    data_storage_records_desc: "Todos tus registros, fotos y audio se almacenan solo en tu dispositivo.",
-    data_storage_backup_desc: "Para no perder datos al reinstalar, crea una copia de seguridad y guárdala tú mismo.",
-    data_storage_responsibility_desc: "Eres responsable de la seguridad de tu copia de seguridad. Si el archivo se pierde — los datos no se pueden recuperar.",
+    data_storage_records_desc: "Todos tus registros — estado de ánimo, notas, audios, sesiones de práctica — se almacenan solo en este dispositivo. Neyra no tiene servidores y no comparte datos con nadie.",
+    data_storage_backup_desc: "Puedes guardar los datos de los últimos 7 días, excepto fotos y notas de audio. La copia se crea manualmente — una vez cada 3 días. Guarda el archivo en Google Drive, tu computadora o un mensajero — Neyra no lo guarda por ti.",
+    data_storage_responsibility_desc: "El archivo de copia de seguridad es tu responsabilidad. Si pierdes el archivo — los datos no se pueden recuperar. Haz copias regularmente y guárdalas en un lugar seguro.",
     
     // Backup cooldown
     backup_cooldown_message: "La copia de seguridad está disponible una vez cada 3 días.\nSiguiente en",
@@ -688,7 +688,7 @@ export const es = {
     privacy_section_changes: "La política puede actualizarse. Los usuarios serán informados a través de actualizaciones de la aplicación.",
     
     // Backup
-    backup_section: "Copia de seguridad",
+    backup_section: "💾 Copia de seguridad (Free)",
     backup_error: "Error",
     backup_data_local: "Exportar datos",
     backup_local_info: "Tus datos se almacenan solo en tu dispositivo. Crea una copia de seguridad y guárdala tú mismo.",
@@ -703,9 +703,9 @@ export const es = {
     
     // Data storage
     data_storage_title: "Almacenamiento de datos",
-    data_storage_local: "Todos los datos se almacenan localmente en tu dispositivo.",
+    data_storage_local: "📱 Dónde se guardan tus datos",
     data_storage_backup: "Usa la copia de seguridad para protegerte contra la pérdida de datos.",
-    data_storage_responsibility: "Tú eres responsable de la seguridad de tu copia de seguridad.",
+    data_storage_responsibility: "⚠️ Importante",
 
     // Home
     home_events_hint: "Esto ayuda a entender tu estado",
@@ -713,26 +713,26 @@ export const es = {
     home_pattern_label: "Patrón notado",
     close: "Cerrar",
     how_hero_title: "Neyra es más que un rastreador de estado de ánimo",
-    how_hero_text: "Es una herramienta que te ayuda a entender y manejar tu estado — directamente en tu dispositivo.",
-    how_sec_1_title: "Cómo funciona",
-    how_sec_1_text: "Registras tu estado de ánimo → Neyra analiza → ofrece ideas → sugiere prácticas.",
-    how_sec_2_title: "Tus datos son tuyos",
-    how_sec_2_text: "Todos los datos permanecen contigo. Sin nubes. Sin servidores. No se comparten nada.",
-    how_sec_3_title: "Fotos y notas de voz",
-    how_sec_3_text: "Guardadas en la memoria del teléfono (álbum Neyra). Incluso si eliminas la app — permanecen.",
-    how_sec_4_title: "Copia de seguridad",
-    how_sec_4_text: "Crea una copia y guárdala donde quieras. Con Premium — transferir a nuevo dispositivo incluyendo fotos y voz.",
-    how_device_title: "Almacenamiento local",
-    how_device_text: "Todos los registros se almacenan en tu dispositivo. Tienes control total.",
-    how_cloud_title: "Premium: Nube",
-    how_cloud_text: "Copia de seguridad automática en la nube. Transferencia entre dispositivos. Sin límites.",
-    how_pdf_title: "Informe PDF para el médico",
-    how_pdf_text: "Genera un informe PDF detallado con historial de ánimo y estadísticas de prácticas para compartir con tu médico.",
-    how_export_title: "Exportación completa",
-    how_export_text: "Exporta todos tus datos incluyendo notas de voz y fotos. Transfiere a otro dispositivo.",
-    how_data_local_title: "Todos los datos permanecen en tu dispositivo",
-    how_data_local_text: "Neyra no envía tus registros a ningún servidor. El estado de ánimo, notas, grabaciones de voz y fotos se almacenan exclusivamente en la memoria de tu teléfono.",
-    how_footer: "Comienza simple — registra tu estado hoy",
+    how_hero_text: "Tu inteligencia emocional personal. Sin internet. Sin juicios. Sin límites.",
+    how_sec_1_title: "Por qué Neyra es diferente",
+    how_sec_1_text: "La mayoría de las apps asumen que estás bien por defecto. Neyra no. Desde el primer inicio, Neyra pregunta cómo te sientes ahora mismo. Tu estado base, medicamentos, patrones y ritmo — todo esto forma cada conclusión, cada recomendación, cada gráfico.",
+    how_sec_2_title: "🤖 Avatar vivo",
+    how_sec_2_text: "La única app con un avatar reactivo que cambia con tu estado de ánimo en tiempo real. Sin servidor, sin internet — todo funciona en el dispositivo. Cuando ganas una recompensa — el avatar lo celebra.",
+    how_sec_3_title: "📊 Análisis más profundo que un calendario de colores",
+    how_sec_3_text: "Índice de estabilidad — qué tan estable eres, no solo qué tan feliz. Horas doradas — el momento exacto del día en que te sientes mejor. El sistema de patrones detecta disparadores con explicaciones: 'Las noches de semana son más difíciles para ti — aquí está el patrón de 3 semanas'. Comparación año a año e historial de 2+ años — nada se elimina.",
+    how_sec_4_title: "🧘 6 prácticas — sin conexión, personalizadas con tus datos",
+    how_sec_4_text: "Respiración, Meditación, Ancla visual, Volcado mental, Calma táctil, Textos de apoyo. Cada práctica registra el estado de ánimo antes y después. Con el tiempo Neyra te dice qué herramientas funcionan mejor para ti — en tus estados, a tu hora del día.",
+    how_device_title: "📱 Tres tipos de notas",
+    how_device_text: "Voz — graba cómo te sientes en voz alta. Foto — adjunta un momento a un recuerdo. Texto — con modo de volcado mental de 60 segundos. Todo se almacena localmente.",
+    how_cloud_title: "💊 Seguimiento de medicamentos",
+    how_cloud_text: "¿Tomas antidepresivos, sedantes u otros medicamentos? Neyra lo tiene en cuenta en tu línea base, perspectivas y recomendaciones — para entenderte mejor que cualquier rastreador genérico.",
+    how_data_local_title: "🔒 Sin nube. Sin anuncios. Sin rastreo.",
+    how_data_local_text: "Todo queda en tu dispositivo. Sin cuenta. Sin servidor. Sin suscripción obligatoria. Neyra funciona completamente sin conexión — en un avión, en las montañas, sin señal.",
+    how_export_title: "🏅 Sistema de logros",
+    how_export_text: "29 medallas en 7 categorías: regularidad, estado de ánimo, prácticas, consciencia, resiliencia, desafíos y logros especiales. El desafío diario se genera desde tus propios patrones: 'Las noches suelen ser más difíciles — prueba una práctica de respiración antes de las 18:00'.",
+    how_pdf_title: "📄 Informe PDF",
+    how_pdf_text: "Genera un informe detallado de tu estado para cualquier período. Incluye tendencia del estado de ánimo, efectividad de prácticas, análisis de disparadores e índice de estabilidad. Compártelo con tu terapeuta o guárdalo en el archivo.",
+    how_footer: "5 idiomas · Temas de color · Pistas de meditación propias · Totalmente sin conexión",
     
     // Smart warnings
     export_free_warning_title: "Copia de seguridad (Free)",
@@ -775,10 +775,10 @@ premium_feature_themes: "Temas",
     settings_backup_free_limit: "Free: 1 copia cada 3 días • Premium: ilimitado",
     
     // Data storage screen
-    data_storage_control: "Control",
-    data_storage_control_desc: "Solo tú tienes acceso a tus datos. La aplicación no los envía a servidores.",
-    data_storage_cloud_premium: "Nube (Premium)",
-    data_storage_cloud_premium_desc: "Copia de seguridad automática a Google Drive. Transferencia de datos entre dispositivos.",
+    data_storage_control: "🔒 Solo tú controlas tus datos",
+    data_storage_control_desc: "Sin sincronización en la nube, sin cuentas. Si eliminas la app — los datos dentro desaparecerán. Las fotos permanecen en la galería del teléfono en el álbum 'Neyra'.",
+    data_storage_cloud_premium: "👑 Archivo completo (Premium)",
+    data_storage_cloud_premium_desc: "Todo el historial sin límite de tiempo. Notas de voz y fotos incluidas. Transferencia a un nuevo teléfono en un solo archivo. Sin límites de frecuencia de exportación.",
     
     // Settings photo info
     settings_photo_saved_info: "📷 Las fotos se guardan en el álbum 'Neyra' en la galería y no se eliminan con la aplicación",

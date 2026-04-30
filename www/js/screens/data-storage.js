@@ -139,7 +139,7 @@ function render() {
         t("data_storage_backup_desc"))
       }
       
-      ${block("☁️", t("data_storage_cloud_premium"),
+      ${block("👑", t("data_storage_cloud_premium"),
         t("data_storage_cloud_premium_desc"))
       }
       
