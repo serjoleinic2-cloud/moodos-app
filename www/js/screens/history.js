@@ -341,19 +341,17 @@ function renderHistory(filterDate=null) {
       const seekEl = container.querySelector(`.voice-seek[data-ts="${ts}"]`);
       const curEl  = container.querySelector(`.voice-cur[data-ts="${ts}"]`);
       const totEl  = container.querySelector(`.voice-tot[data-ts="${ts}"]`);
-      const icon   = btn.querySelector("img");
 
       if (btn._audio && !btn._audio.paused) {
         btn._audio.pause();
-        if (icon) icon.src = "/assets/icons/player/play.svg";
+        if (btn) btn.innerHTML = '<img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">';
         return;
       }
       if (currentAudio && currentAudio !== btn._audio) {
         currentAudio.pause(); currentAudio.currentTime = 0;
         container.querySelectorAll(".voice-play-btn").forEach(b => {
           if (b._audio === currentAudio) {
-            const ic = b.querySelector("img");
-            if (ic) ic.src = "/assets/icons/player/play.svg";
+            b.innerHTML = '<img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">';
           }
         });
       }
@@ -377,14 +375,14 @@ function renderHistory(filterDate=null) {
           if (seekEl && !seekEl._seeking) seekEl.value = (cur / dur) * 100;
         });
         audio.addEventListener("ended", () => {
-          if (icon) icon.src = "/assets/icons/player/play.svg";
+          btn.innerHTML = '<img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">';
           if (seekEl) seekEl.value = 0;
           if (curEl)  curEl.textContent = "0:00";
           if (totEl && savedDur) totEl.textContent = fmtSec(savedDur);
         });
       }
       btn._audio.play(); currentAudio = btn._audio;
-      if (icon) icon.src = "/assets/icons/player/pause.svg";
+      btn.innerHTML = '<img src="/icons/player/pause.svg" style="width:18px;height:18px;" alt="⏸">';
     });
   });
 
@@ -548,7 +546,7 @@ function renderCard(item) {
         <div style="display:flex;align-items:center;gap:10px;">
           <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl}" data-saved-dur="${item.audioDuration||0}"
             style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#9f7aea22;box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-            <img src="/assets/icons/player/play.svg" style="width:14px;height:14px;" alt="Play">
+            <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">
           </div>
           <div style="flex:1;">
             <input type="range" class="voice-seek" data-ts="${ts}" min="0" max="100" value="0" step="0.1" style="width:100%;accent-color:#9f7aea;cursor:pointer;">

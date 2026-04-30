@@ -548,6 +548,16 @@ if (!window.__neyraAppRunning) {
       console.error('[APP ERROR] initNavigation:', e);
     }
     
+    // Миграция старых голосовых записей из base64 в файлы
+    setTimeout(async () => {
+      try {
+        const { migrateVoiceStorage } = await import("./services/memory.js");
+        await migrateVoiceStorage();
+      } catch(e) {
+        console.warn("[VOICE MIGRATE]", e);
+      }
+    }, 2000);
+    
     // Восстановление уведомлений — откладываем чтобы Capacitor успел инициализироваться
     setTimeout(() => {
       checkAutoReminder();

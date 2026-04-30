@@ -17,8 +17,3 @@ npm run deploy:android → Android Studio Clean → Run
 - premium.js — добавлены фичи PDF и export
 - how-it-works.js — добавлены блоки про данные/экспорт/PDF
 - i18n 5 языков — новые ключи
-
-## Открытые вопросы
-- Голосовые заметки в истории и календаре — проверить после деплоя
-- autoRestoreOnFirstInstall — задание написано но не применено
-- MODULE_MAP.md и FREEZE_PROTOCOL.md — актуализированы частично
