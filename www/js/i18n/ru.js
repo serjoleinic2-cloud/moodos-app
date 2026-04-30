@@ -39,9 +39,9 @@ export const ru = {
     screen_load_error: "Ошибка загрузки экрана",
     
     // Data storage hardcoded texts
-    data_storage_records_desc: "Все ваши записи, фото и аудио хранятся только на вашем устройстве.",
-    data_storage_backup_desc: "Чтобы не потерять данные при переустановке, создайте резервную копию и сохраните её самостоятельно.",
-    data_storage_responsibility_desc: "Вы самостоятельно отвечаете за сохранность резервной копии. Если файл будет утерян — восстановить данные будет невозможно.",
+    data_storage_records_desc: "Все твои записи — настроение, заметки, голосовые, сессии практик — хранятся только на этом устройстве. Neyra не имеет серверов и не передаёт данные никуда.",
+    data_storage_backup_desc: "Ты можешь сохранить данные за последние 7 дней, кроме фото и аудио заметок. Копия создаётся вручную — раз в 3 дня. Сохрани файл в Google Drive, на компьютер или в мессенджер — Neyra не хранит его за тебя.",
+    data_storage_responsibility_desc: "Файл резервной копии — твоя ответственность. Потерял файл — данные не восстановить. Делай копию регулярно и храни в надёжном месте.",
     
     // Backup cooldown
     backup_cooldown_message: "Резервная копия доступна раз в 3 дня.\nСледующая через",
@@ -473,7 +473,7 @@ export const ru = {
     settings_backup_saved: "сохранено",
     settings_backup_pending: "ожидает сохранения",
     settings_backup_last_at: "Последний: ",
-    backup_section: "Резервное копирование",
+    backup_section: "Резервная копия (Free)",
     backup_last: "Последний backup",
     backup_limit_info: "Хранится",
     btn_create_backup: "Создать локальную резервную копию",
@@ -695,10 +695,10 @@ premium_feature_themes: "Темы",
     settings_backup_free_limit: "Free: 1 копия в 3 дня • Premium: без ограничений",
     
     // Data storage screen
-    data_storage_control: "Контроль",
-    data_storage_control_desc: "Только вы имеете доступ к своим данным. Приложение не передаёт их на сервер.",
-    data_storage_cloud_premium: "Облако (Premium)",
-    data_storage_cloud_premium_desc: "Автоматический backup в Google Drive. Перенос данных между устройствами.",
+    data_storage_control: "Только ты управляешь данными",
+    data_storage_control_desc: "Никакой облачной синхронизации, никаких аккаунтов. Если удалишь приложение — данные внутри него исчезнут. Фото остаются в галерее телефона в альбоме «Neyra».",
+    data_storage_cloud_premium: "Полный архив (Premium)",
+    data_storage_cloud_premium_desc: "Вся история без ограничений по времени. Голосовые заметки и фото включены в архив. Перенос на новый телефон одним файлом. Без ограничений по частоте экспорта.",
     
     // Settings photo info
     settings_photo_saved_info: "📷 Фото сохраняются в альбом «Neyra» в галерее и не удаляются вместе с приложением",
@@ -870,9 +870,9 @@ premium_feature_themes: "Темы",
     
     // Data storage
     data_storage_title: "Хранение данных",
-    data_storage_local: "Все данные хранятся локально на устройстве.",
-    data_storage_backup: "Для защиты от потери используйте резервное копирование.",
-    data_storage_responsibility: "Вы самостоятельно отвечаете за сохранность резервной копии.",
+    data_storage_local: "Где хранятся данные",
+    data_storage_backup: "Резервная копия (Free)",
+    data_storage_responsibility: "Важно",
 
     // Exit guard
     exit_warning: "Вы давно не сохраняли данные.\n\nРекомендуем создать резервную копию перед выходом.",
