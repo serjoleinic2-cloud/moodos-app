@@ -742,6 +742,12 @@ export const hi = {
     how_device_text: "सभी रिकॉर्ड आपके डिवाइस पर संग्रहीत हैं। आपका पूरा नियंत्रण।",
     how_cloud_title: "Premium: क्लाउड",
     how_cloud_text: "स्वचालित क्लाउड बैकअप। डिवाइस के बीच ट्रांसफर। बिना सीमा।",
+    how_pdf_title: "डॉक्टर के लिए PDF रिपोर्ट",
+    how_pdf_text: "अपने डॉक्टर के साथ साझा करने के लिए मनोदशा इतिहास और अभ्यास आँकड़ों के साथ विस्तृत PDF रिपोर्ट बनाएं।",
+    how_export_title: "पूर्ण निर्यात",
+    how_export_text: "अपना सारा डेटा निर्यात करें जिसमें आवाज़ नोट्स और फ़ोटो शामिल हैं। दूसरे डिवाइस पर ट्रांसफर करें।",
+    how_data_local_title: "सभी डेटा केवल आपके डिवाइस पर",
+    how_data_local_text: "Neyra आपके रिकॉर्ड किसी सर्वर पर नहीं भेजती। मूड, नोट्स, वॉइस रिकॉर्डिंग और फ़ोटो केवल आपके फ़ोन की मेमोरी में संग्रहीत होते हैं।",
     how_footer: "सरल से शुरू करें — आज अपनी स्थिति दर्ज करें",
     
     // Smart warnings
@@ -775,6 +781,10 @@ premium_feature_themes: "थीम्स",
     premium_feature_themes_desc: "इंटरफ़ेस अनुकूलन",
     premium_feature_insights: "गहरी विश्लेषणात्मकता",
     premium_feature_insights_desc: "दिन के समय, सप्ताह के दिन और अभ्यासों का मनोदशा पर प्रभाव के पैटर्न",
+    premium_feature_pdf: "डॉक्टर के लिए PDF रिपोर्ट",
+    premium_feature_pdf_desc: "पेशेवर PDF रिपोर्ट बनाएं और साझा करें",
+    premium_feature_export: "पूर्ण डेटा निर्यात",
+    premium_feature_export_desc: "आवाज़ और फ़ोटो सहित पूरा इतिहास निर्यात करें",
     
     // Settings backup section
     settings_backup_info: "डेटा केवल आपके डिवाइस पर संग्रहीत है। हानि से बचने के लिए: — नियमित रूप से बैकअप बनाएं — फ़ाइल को क्लाउड (Google Drive) में सहेजें",

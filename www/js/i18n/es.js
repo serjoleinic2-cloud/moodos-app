@@ -726,6 +726,12 @@ export const es = {
     how_device_text: "Todos los registros se almacenan en tu dispositivo. Tienes control total.",
     how_cloud_title: "Premium: Nube",
     how_cloud_text: "Copia de seguridad automática en la nube. Transferencia entre dispositivos. Sin límites.",
+    how_pdf_title: "Informe PDF para el médico",
+    how_pdf_text: "Genera un informe PDF detallado con historial de ánimo y estadísticas de prácticas para compartir con tu médico.",
+    how_export_title: "Exportación completa",
+    how_export_text: "Exporta todos tus datos incluyendo notas de voz y fotos. Transfiere a otro dispositivo.",
+    how_data_local_title: "Todos los datos permanecen en tu dispositivo",
+    how_data_local_text: "Neyra no envía tus registros a ningún servidor. El estado de ánimo, notas, grabaciones de voz y fotos se almacenan exclusivamente en la memoria de tu teléfono.",
     how_footer: "Comienza simple — registra tu estado hoy",
     
     // Smart warnings
@@ -759,6 +765,10 @@ premium_feature_themes: "Temas",
     premium_feature_themes_desc: "Personalización de interfaz",
     premium_feature_insights: "Analítica profunda",
     premium_feature_insights_desc: "Patrones por hora del día, día de la semana y cómo las prácticas afectan tu estado",
+    premium_feature_pdf: "Informe PDF para el médico",
+    premium_feature_pdf_desc: "Generar y compartir informes PDF profesionales",
+    premium_feature_export: "Exportación completa de datos",
+    premium_feature_export_desc: "Exportar todo el historial incluyendo voz y fotos",
     
     // Settings backup section
     settings_backup_info: "Los datos se almacenan solo en tu dispositivo. Para evitar pérdidas: — crea copias de seguridad regularmente — guarda el archivo en la nube (Google Drive)",

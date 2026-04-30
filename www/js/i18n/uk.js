@@ -726,6 +726,12 @@ export const uk = {
     how_device_text: "Всі записи зберігаються на вашому пристрої. Ви повністю контролюєте свої дані.",
     how_cloud_title: "Premium: Хмара",
     how_cloud_text: "Автоматичний backup у хмару. Перенос між пристроями. Без обмежень.",
+    how_pdf_title: "PDF-звіт для лікаря",
+    how_pdf_text: "Створіть детальний PDF-звіт з історією настрою та статистикою практик для лікаря.",
+    how_export_title: "Повний експорт",
+    how_export_text: "Експорт усіх даних включаючи голосові нотатки та фото. Перенос на інший пристрій.",
+    how_data_local_title: "Всі дані — лише на вашому пристрої",
+    how_data_local_text: "Neyra не передає ваші записи на сервери. Настрій, нотатки, голосові записи та фото зберігаються виключно в пам'яті вашого телефону.",
     how_footer: "Почни з простого — відзнач свій стан сьогодні",
     
     // Smart warnings
@@ -759,6 +765,10 @@ premium_feature_themes: "Теми",
     premium_feature_themes_desc: "Персоналізація інтерфейсу",
     premium_feature_insights: "Глибока аналітика",
     premium_feature_insights_desc: "Паттерни за часом доби, днями тижня та впливом практик на настрій",
+    premium_feature_pdf: "PDF-звіт для лікаря",
+    premium_feature_pdf_desc: "Створення та надсилання професійних PDF-звітів",
+    premium_feature_export: "Повний експорт даних",
+    premium_feature_export_desc: "Експорт усієї історії включаючи голос та фото",
     
     // Settings backup section
     settings_backup_info: "Дані зберігаються лише на пристрої. Щоб не втратити: — створюйте резервну копію регулярно — зберігайте файл у хмарі (Google Drive)",

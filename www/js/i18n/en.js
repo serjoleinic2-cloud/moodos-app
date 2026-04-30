@@ -728,6 +728,12 @@ export const en = {
     how_device_text: "All records are stored on your device. You have full control.",
     how_cloud_title: "Premium: Cloud",
     how_cloud_text: "Automatic cloud backup. Transfer between devices. No limits.",
+    how_pdf_title: "PDF Report for Doctor",
+    how_pdf_text: "Generate a detailed PDF report with mood history and practice statistics to share with your doctor.",
+    how_export_title: "Full Export",
+    how_export_text: "Export all your data including voice notes and photos. Transfer to another device.",
+    how_data_local_title: "All data stays on your device",
+    how_data_local_text: "Neyra does not send your records to any server. Mood, notes, voice recordings and photos are stored exclusively in your phone's memory. The developer has no access to your data.",
     how_footer: "Start simple — log your mood today",
     
     // Smart warnings
@@ -762,6 +768,10 @@ premium_feature_themes: "Themes",
     premium_feature_themes_desc: "Interface personalization",
     premium_feature_insights: "Deep analytics",
     premium_feature_insights_desc: "Patterns by time of day, day of week, and how practices affect your mood",
+    premium_feature_pdf: "PDF report for doctor",
+    premium_feature_pdf_desc: "Generate and share professional PDF reports",
+    premium_feature_export: "Full data export",
+    premium_feature_export_desc: "Export all history including voice and photos",
     
     // Settings backup section
     settings_backup_info: "Data is stored only on your device. To avoid loss: — create backups regularly — save file to cloud (Google Drive)",

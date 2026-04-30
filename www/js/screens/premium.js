@@ -33,7 +33,9 @@ const features = [
   { icon: "🧘", title: t("premium_feature_practices"), desc: t("premium_feature_practices_desc") },
   { icon: "🎵", title: t("premium_feature_music"), desc: t("premium_feature_music_desc") },
   { icon: "🎨", title: t("premium_feature_themes"), desc: t("premium_feature_themes_desc") },
-  { icon: "🧠", title: t("premium_feature_insights"), desc: t("premium_feature_insights_desc") }
+  { icon: "🧠", title: t("premium_feature_insights"), desc: t("premium_feature_insights_desc") },
+  { icon: "📄", title: t("premium_feature_pdf"), desc: t("premium_feature_pdf_desc") },
+  { icon: "📤", title: t("premium_feature_export"), desc: t("premium_feature_export_desc") }
 ];
 
 function renderPremium() {

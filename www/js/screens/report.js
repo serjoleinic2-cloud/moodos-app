@@ -393,9 +393,9 @@ function showMoodCalendarOverlay() {
           ${voices.map((src, i) => `
             <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:6px;">
               <audio id="voice-player-${i}" src="${src}" preload="none" style="display:none;"></audio>
-              <button class="voice-btn" data-index="${i}" style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="Play">
-              </button>
+                <button class="voice-btn" data-index="${i}" style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:18px;">▶</span>
+                </button>
               <div style="font-size:12px;color:#555;">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
             </div>
           `).join('')}
@@ -426,16 +426,16 @@ function showMoodCalendarOverlay() {
       btn.onclick = () => {
         const idx = btn.dataset.index;
         const audio = document.getElementById("voice-player-" + idx);
-        const icon = btn.querySelector("img");
+        const icon = btn.querySelector("span");
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/icons/player/pause.svg";
+          if (icon) icon.textContent = "⏸";
         } else {
           audio.pause();
-          if (icon) icon.src = "/icons/player/play.svg";
+          if (icon) icon.textContent = "▶";
         }
-        audio.onended = () => { if (icon) icon.src = "/icons/player/play.svg"; };
+        audio.onended = () => { if (icon) icon.textContent = "▶"; };
       };
     });
   }
@@ -499,16 +499,16 @@ function showMoodCalendarOverlay() {
       btn.onclick = () => {
         const idx = btn.dataset.index;
         const audio = document.getElementById("voice-player-" + idx);
-        const icon = btn.querySelector("img");
+        const icon = btn.querySelector("span");
         if (!audio) return;
         if (audio.paused) {
           audio.play();
-          if (icon) icon.src = "/icons/player/pause.svg";
+          if (icon) icon.textContent = "⏸";
         } else {
           audio.pause();
-          if (icon) icon.src = "/icons/player/play.svg";
+          if (icon) icon.textContent = "▶";
         }
-        audio.onended = () => { if (icon) icon.src = "/icons/player/play.svg"; };
+        audio.onended = () => { if (icon) icon.textContent = "▶"; };
       };
     });
   }

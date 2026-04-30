@@ -125,6 +125,12 @@ function render() {
         ${featureBlock("☁️", t("how_cloud_title"), t("how_cloud_text"))}
       </div>
       
+      <div style="margin-top: 20px;">
+        ${featureBlock("🔒", t("how_data_local_title"), t("how_data_local_text"))}
+        ${featureBlock("💾", t("how_export_title"), t("how_export_text"))}
+        ${featureBlock("📄", t("how_pdf_title"), t("how_pdf_text"))}
+      </div>
+      
       <div class="how-footer">
         ${t("how_footer")}
       </div>
