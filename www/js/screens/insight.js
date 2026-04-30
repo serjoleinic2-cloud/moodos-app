@@ -880,6 +880,7 @@ function initChartFor(id, history, stats, practiceData) {
 
 function drawPieChart(canvasId, rate, color) {
   const c = document.getElementById(canvasId); if (!c||!window.Chart) return;
+  const existing = window.Chart.getChart(c); if (existing) existing.destroy();
   new window.Chart(c, {
     type:"doughnut",
     data:{datasets:[{data:[rate,100-rate],backgroundColor:[color,"#d0d5de"],borderWidth:0}]},

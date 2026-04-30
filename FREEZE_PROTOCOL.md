@@ -47,6 +47,8 @@ state-execution-engine.js
 - Backup influencing state
 
 ### ✅ ВСЁ ЭТО = только DATA PROVIDERS
+### 🗑️ УДАЛИТЬ:
+- voice-service.js — дублирует ai/voice.js, не используется
 
 ---
 
@@ -139,7 +141,7 @@ BILLING ALWAYS WINS — NO EXCEPTIONS
 | event-queue.js | Event delivery |
 | audit-logger.js | Essential audit trail |
 | migration-registry.js | Backup version migrations |
-
+| voice.js (ai/) | ЕДИНСТВЕННАЯ реализация записи голоса |
 ---
 
 ## 11. KEY RULE

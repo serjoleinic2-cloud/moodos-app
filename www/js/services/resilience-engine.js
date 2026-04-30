@@ -106,7 +106,7 @@ export function getResilienceIndex() {
 
   let score = stability;
 
-  const recentSessions = sessions.filter(s => Date.now() - s.timestamp < 14 * 24 * 3600000);
+  const recentSessions = sessions.filter(s => Date.now() - (s.timestamp || s.time || 0) < 14 * 24 * 3600000);
   if (recentSessions.length >= 3)  score += 5;
   if (recentSessions.length >= 7)  score += 5;
   if (recentSessions.length >= 14) score += 5;
