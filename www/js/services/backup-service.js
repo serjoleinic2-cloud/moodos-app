@@ -93,6 +93,8 @@ function collectAllData(premiumMode = false) {
         } catch(e) {}
       }
 
+      // Free: исключаем voice_history и photo_history полностью
+      if (!premiumMode && (key === 'voice_history' || key === 'photo_history')) return;
       data[key] = value;
     } catch (e) {
       console.warn('[BACKUP] Failed to read:', key, e);
@@ -883,6 +885,18 @@ function restoreData(data) {
       console.warn('[BACKUP] restore failed:', key, e);
     }
   });
+
+  // Очищаем битые file:// ссылки на аудио — они не работают после переустановки
+  try {
+    const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
+    const cleaned = vh.map(item => {
+      if (item.audio && item.audio.startsWith('file://')) {
+        item.audio = null;
+      }
+      return item;
+    });
+    localStorage.setItem('voice_history', JSON.stringify(cleaned));
+  } catch(e) {}
 }
 
 export function getBackupInfo() {
