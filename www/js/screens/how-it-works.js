@@ -106,7 +106,7 @@ function render() {
         <div class="info-row">
           <div class="info-icon">🔄</div>
           <div>
-            <div class="info-label">Принцип работы</div>
+            <div class="info-label">${t("how_label_how_it_works")}</div>
             <div class="info-text">${t("how_sec_1_text")}</div>
           </div>
         </div>

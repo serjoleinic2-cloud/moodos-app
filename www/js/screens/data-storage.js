@@ -146,7 +146,7 @@ function render() {
         <div class="info-row">
           <div class="info-icon">📱</div>
           <div>
-            <div class="info-label">Хранение</div>
+            <div class="info-label">${t("ds_label_storage")}</div>
             <div class="info-title">${t("data_storage_local")}</div>
             <div class="info-text">${t("data_storage_control_desc")}</div>
           </div>
@@ -157,19 +157,19 @@ function render() {
         <div class="info-row">
           <div class="info-icon">💾</div>
           <div>
-            <div class="info-label">Free</div>
-            <div class="info-title">Резервная копия</div>
-            <div class="info-text">Данные за последние 7 дней — без фото и голосовых заметок. Создаётся вручную раз в 3 дня. Сохрани файл сам в надёжном месте.</div>
+            <div class="info-label">${t("ds_label_free")}</div>
+            <div class="info-title">${t("ds_free_backup_title")}</div>
+            <div class="info-text">${t("ds_free_backup_text")}</div>
           </div>
         </div>
         <div class="info-divider"></div>
         <div>
-          <div class="info-premium-tag">👑 Premium</div>
+          <div class="info-premium-tag">👑 ${t("premium_label_tag")}</div>
           <div class="info-row">
             <div class="info-icon">📦</div>
             <div>
-              <div class="info-title">Полный архив</div>
-              <div class="info-text">Вся история без ограничений по времени. Голосовые заметки и фото включены. Перенос на новый телефон одним файлом. Без ограничений по частоте.</div>
+              <div class="info-title">${t("ds_premium_archive_title")}</div>
+              <div class="info-text">${t("ds_premium_archive_text")}</div>
             </div>
           </div>
         </div>
@@ -179,7 +179,7 @@ function render() {
         <div class="info-row">
           <div class="info-icon">⚠️</div>
           <div>
-            <div class="info-label info-label-warn">Важно</div>
+            <div class="info-label info-label-warn">${t("ds_label_important")}</div>
             <div class="info-text">${t("data_storage_responsibility_desc")}</div>
           </div>
         </div>

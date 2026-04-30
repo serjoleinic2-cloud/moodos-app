@@ -43,6 +43,15 @@ export const es = {
     data_storage_records_desc: "Todos tus registros — estado de ánimo, notas, audios, sesiones de práctica — se almacenan solo en este dispositivo. Neyra no tiene servidores y no comparte datos con nadie.",
     data_storage_backup_desc: "Puedes guardar los datos de los últimos 7 días, excepto fotos y notas de audio. La copia se crea manualmente — una vez cada 3 días. Guarda el archivo en Google Drive, tu computadora o un mensajero — Neyra no lo guarda por ti.",
     data_storage_responsibility_desc: "El archivo de copia de seguridad es tu responsabilidad. Si pierdes el archivo — los datos no se pueden recuperar. Haz copias regularmente y guárdalas en un lugar seguro.",
+    ds_label_storage: "Almacenamiento",
+    ds_label_free: "Free",
+    ds_free_backup_title: "Copia de seguridad",
+    ds_free_backup_text: "Datos de los últimos 7 días — sin fotos ni notas de voz. Se crea manualmente cada 3 días. Guarda el archivo tú mismo en un lugar seguro.",
+    ds_premium_archive_title: "Archivo completo",
+    ds_premium_archive_text: "Historial completo sin límites de tiempo. Notas de voz y fotos incluidas. Transferencia a un nuevo teléfono con un solo archivo. Sin límites de frecuencia.",
+    ds_label_important: "Importante",
+    premium_label_tag: "Premium",
+    how_label_how_it_works: "Cómo funciona",
     
     // Backup cooldown
     backup_cooldown_message: "La copia de seguridad está disponible una vez cada 3 días.\nSiguiente en",
