@@ -650,6 +650,7 @@ baseline_learning: "Накапливаю данные для сравнения"
     // Smart warnings
     export_free_warning_title: "Резервная копия (Free)",
     export_free_warning_text: "Будут сохранены все ваши записи и настройки. Следующий экспорт будет доступен через 3 дня.\n\nСохраните файл в надёжном месте.",
+    export_free_7days: "Будут экспортированы данные только за последние 7 дней. Для полного экспорта — Premium.",
     export_premium_title: "Резервная копия (Premium)",
     export_premium_list: "✓ Все записи\n✓ Голосовые заметки\n✓ Фото",
     export_premium_subtitle: "Экспорт без ограничений. Сохраните файл в надёжном месте.",

@@ -31,29 +31,6 @@ export function shouldShowBackupReminder() {
 }
 
 export function canExportBackup() {
-  const isPremium = window.isPremium?.() || false;
-  
-  if (isPremium) {
-    return { allowed: true, reason: null };
-  }
-
-  const lastBackup = localStorage.getItem('last_backup_time');
-  if (!lastBackup) {
-    return { allowed: true, reason: null };
-  }
-
-  const now = Date.now();
-  const diff = now - Number(lastBackup);
-
-  if (diff < FREE_BACKUP_COOLDOWN_MS) {
-    const remainingHours = Math.ceil((FREE_BACKUP_COOLDOWN_MS - diff) / (1000 * 60 * 60));
-    return { 
-      allowed: false, 
-      reason: 'cooldown',
-      remainingHours: remainingHours
-    };
-  }
-
   return { allowed: true, reason: null };
 }
 

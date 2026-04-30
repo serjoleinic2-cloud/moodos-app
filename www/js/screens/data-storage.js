@@ -19,7 +19,7 @@ function bindEvents(el) {
     if (isPrem) {
       confirmText = `${t("export_premium_title")}\n\n${t("export_premium_list")}\n\n${t("export_premium_subtitle")}`;
     } else {
-      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}`;
+      confirmText = `${t("export_free_warning_title")}\n\n${t("export_free_warning_text")}\n\n⚠️ ${t("export_free_7days") || "Будут экспортированы данные только за последние 7 дней. Для полного экспорта нужен Premium."}`;
     }
     
     const ok = confirm(confirmText);

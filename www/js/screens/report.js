@@ -163,8 +163,8 @@ function renderReport() {
 
       <div class="mo-section-title">${t("report_moments")}</div>
       <div class="mo-grid-2">
-        ${metricCard(t("report_best"),  `<span style="color:#4caf87">${best.value}%</span>`,  formatDate(best.time),  "best")}
-        ${metricCard(t("report_worst"), `<span style="color:#e05555">${worst.value}%</span>`, formatDate(worst.time), "worst")}
+  ${metricCard(t("report_best"),  `<span style="color:#4caf87">${best.value}%</span>`,  formatDate(resolveTimestamp(best)),  "best")}
+  ${metricCard(t("report_worst"), `<span style="color:#e05555">${worst.value}%</span>`, formatDate(resolveTimestamp(worst)), "worst")}
       </div>
 
       <div class="mo-section-title" style="margin-top:16px;">${t("report_conclusion")}</div>

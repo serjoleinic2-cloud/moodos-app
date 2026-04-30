@@ -62,14 +62,38 @@ const VALID_KEYS = [
   'neyra_sound_prompt_shown'
 ];
 
-function collectAllData() {
+function collectAllData(premiumMode = false) {
   const data = {};
+  const CUTOFF_DAYS = 7;
+  const cutoff = Date.now() - CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+
+  const ARRAY_KEYS = [
+    'mood_history', 'notes_history', 'reflections',
+    'voice_history', 'session_history', 'photo_history'
+  ];
+
   VALID_KEYS.forEach(key => {
     try {
       const value = localStorage.getItem(key);
-      if (value) {
-        data[key] = value;
+      if (!value) return;
+
+      if (!premiumMode && ARRAY_KEYS.includes(key)) {
+        try {
+          const arr = JSON.parse(value);
+          if (Array.isArray(arr)) {
+            const filtered = arr.filter(item => {
+              const ts = item?.timestamp ?? item?.time ?? item?.date ?? item?.ts ?? null;
+              if (!ts) return true;
+              const n = Number(ts);
+              return !isNaN(n) ? n >= cutoff : new Date(ts).getTime() >= cutoff;
+            });
+            data[key] = JSON.stringify(filtered);
+            return;
+          }
+        } catch(e) {}
       }
+
+      data[key] = value;
     } catch (e) {
       console.warn('[BACKUP] Failed to read:', key, e);
     }
@@ -185,7 +209,7 @@ export async function exportData() {
       };
     }
 
-    const data = collectAllData();
+    const data = collectAllData(isPremium());
     console.log('[EXPORT] isPremium:', isPremium(), 'data keys:', Object.keys(data).length);
 
     if (Object.keys(data).length === 0) {

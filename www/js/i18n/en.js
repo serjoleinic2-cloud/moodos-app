@@ -733,6 +733,7 @@ export const en = {
     // Smart warnings
     export_free_warning_title: "Backup (Free)",
     export_free_warning_text: "All your entries and settings will be saved. Next export will be available in 3 days.\n\nKeep the file in a safe place.",
+    export_free_7days: "Only the last 7 days of data will be exported. Full export requires Premium.",
     export_premium_title: "Backup (Premium)",
     export_premium_list: "✓ All entries\n✓ Voice notes\n✓ Photos",
     export_premium_subtitle: "Unlimited exports. Keep the file in a safe place.",
