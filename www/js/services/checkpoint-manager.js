@@ -88,11 +88,9 @@ export const CheckpointManager = {
     if (!profile) return null;
     
     return {
-      isPremium: profile.isPremium,
+      isPremium: window.__NEYRA_SECURITY__?.billingPremium === true,
       premium_type: profile.premium_type,
-      premiumTrial: profile.premiumTrial,
       premiumPlan: profile.premiumPlan,
-      premiumExpiresAt: profile.premiumExpiresAt,
       colorTheme: profile.colorTheme,
       updatedAt: profile.updatedAt
     };

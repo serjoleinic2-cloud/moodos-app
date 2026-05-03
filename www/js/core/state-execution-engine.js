@@ -9,7 +9,6 @@
 // =====================================
 
 import { auditLogger, AuditEvent } from "./audit-logger.js";
-import { stateGovernance } from "./state-governance.js";
 
 export const ExecutionEvent = {
   PREMIUM_CHANGED: 'PREMIUM_CHANGED',
@@ -77,10 +76,7 @@ class StateExecutionEngine {
 
     switch (event.type) {
       case ExecutionEvent.PREMIUM_CHANGED:
-        isPremium = stateGovernance.resolvePremiumState(
-          window.__NEYRA_SECURITY__?.billingPremium ?? false,
-          false
-        );
+        isPremium = window.__NEYRA_SECURITY__?.billingPremium === true;
         break;
 
       case ExecutionEvent.BILLING_SYNC:
@@ -95,10 +91,7 @@ class StateExecutionEngine {
         break;
 
       default:
-        isPremium = stateGovernance.resolvePremiumState(
-          window.__NEYRA_SECURITY__?.billingPremium ?? false,
-          false
-        );
+        isPremium = window.__NEYRA_SECURITY__?.billingPremium === true;
     }
 
     if (window.systemState) {

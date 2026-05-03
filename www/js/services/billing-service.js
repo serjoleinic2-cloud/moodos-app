@@ -1,3 +1,4 @@
+import { t } from "../i18n.js";
 import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./user-profile.js";
 import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
 import { enqueueBillingStateUpdate } from "../core/event-queue.js";
@@ -86,6 +87,7 @@ export async function buyMonthly() {
   const product = store.get("premium_monthly", Platform.GOOGLE_PLAY);
   if (!product) {
     console.warn('[billing] product premium_monthly not found');
+    alert(t('billing_product_not_ready') || 'Платёжная система загружается. Попробуйте через несколько секунд.');
     return;
   }
   const offer = product.getOffer();
@@ -107,6 +109,7 @@ export async function buyYearly() {
   const product = store.get("premium_yearly", Platform.GOOGLE_PLAY);
   if (!product) {
     console.warn('[billing] product premium_yearly not found');
+    alert(t('billing_product_not_ready') || 'Платёжная система загружается. Попробуйте через несколько секунд.');
     return;
   }
   const offer = product.getOffer();

@@ -60,7 +60,6 @@ import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isP
 
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
-import { stateGovernance } from "./core/state-governance.js";
 import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 import { runReconciliation } from "./core/state-execution-engine.js";
 import { checkAutoReminder } from './screens/pdf-report.js';
@@ -524,7 +523,8 @@ if (!window.__neyraAppRunning) {
       applyDomTranslations();
     });
     
-    stateGovernance.enable();
+    // stateGovernance удалён по Freeze Protocol — execution engine единственная точка решения
+    // Billing инициализируется через initBilling() ниже
     
     initBilling();
     

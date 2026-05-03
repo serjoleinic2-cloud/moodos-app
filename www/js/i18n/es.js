@@ -984,4 +984,5 @@ premium_feature_themes: "Temas",
     warning_stress_repeat: "El estrés aparece demasiado seguido en tus entradas. Prueba una práctica de respiración ahora",
     warning_sleep_repeat: "El sueño ha estado afectando tu estado varios días seguidos. Vale la pena atenderlo",
     storage_quota_exceeded: "La memoria del dispositivo está llena. Exporta tus datos en ajustes para liberar espacio.",
+    billing_product_not_ready: "El sistema de pago se está cargando. Inténtalo de nuevo en unos segundos.",
   };

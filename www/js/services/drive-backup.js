@@ -332,7 +332,8 @@ export async function shareBackup() {
     const Filesystem = window.Capacitor?.Plugins?.Filesystem;
 
     if (Share && Filesystem) {
-      const base64 = btoa(unescape(encodeURIComponent(json)));
+      const base64 = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, 
+        (match, p1) => String.fromCharCode('0x' + p1)));
       await Filesystem.writeFile({
         path: fileName,
         data: base64,
