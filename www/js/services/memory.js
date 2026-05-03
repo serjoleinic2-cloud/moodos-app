@@ -4,6 +4,8 @@
 // Отвечает ТОЛЬКО за localStorage
 // =====================================
 
+import { t } from "../i18n.js";
+
 function dedupeByTime(arr) {
   const map = new Map();
   arr.forEach(item => {
@@ -84,6 +86,9 @@ export function saveMoodHistory(history) {
     localStorage.setItem("mood_history", JSON.stringify(deduped));
   } catch(e) {
     console.error('[memory] saveMoodHistory failed (quota?):', e);
+    if (e.name === 'QuotaExceededError') {
+      alert(t('storage_quota_exceeded') || 'Память устройства заполнена. Экспортируйте данные в настройках, чтобы освободить место.');
+    }
   }
 }
 
@@ -113,6 +118,9 @@ export function saveNotesHistory(history) {
     localStorage.setItem("notes_history", JSON.stringify(history));
   } catch(e) {
     console.error('[memory] saveNotesHistory failed:', e);
+    if (e.name === 'QuotaExceededError') {
+      alert(t('storage_quota_exceeded') || 'Память устройства заполнена. Экспортируйте данные в настройках, чтобы освободить место.');
+    }
   }
 }
 
@@ -145,6 +153,9 @@ export function saveReflection(entry) {
     localStorage.setItem("reflections", JSON.stringify(data));
   } catch(e) {
     console.error('[memory] saveReflection failed:', e);
+    if (e.name === 'QuotaExceededError') {
+      alert(t('storage_quota_exceeded') || 'Память устройства заполнена. Экспортируйте данные в настройках, чтобы освободить место.');
+    }
   }
 }
 
@@ -225,6 +236,9 @@ export function saveSessionHistory(history) {
     localStorage.setItem("session_history", JSON.stringify(history));
   } catch(e) {
     console.error('[memory] saveSessionHistory failed (quota?):', e);
+    if (e.name === 'QuotaExceededError') {
+      alert(t('storage_quota_exceeded') || 'Память устройства заполнена. Экспортируйте данные в настройках, чтобы освободить место.');
+    }
   }
 }
 
@@ -302,7 +316,7 @@ function emergencyPrune(key, ratio) {
     console.log('[MEMORY] Emergency prune:', key);
     
     if (key === 'photo_history') {
-      alert('Память заполнена. Старые фото удалены.');
+      console.warn('[MEMORY] Старые фото удалены при emergency prune.');
     }
   } catch (e) {
     console.error('[MEMORY] Prune failed:', e);
@@ -473,4 +487,15 @@ export function getLastRealMood() {
 
 export function saveReflections(data) {
   localStorage.setItem("reflections", JSON.stringify(data));
+}
+
+export function checkStorageQuota() {
+  try {
+    const testKey = '__quota_test__';
+    localStorage.setItem(testKey, 'x'.repeat(1024 * 100));
+    localStorage.removeItem(testKey);
+    return { ok: true };
+  } catch(e) {
+    return { ok: false, error: 'quota' };
+  }
 }

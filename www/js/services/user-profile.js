@@ -150,17 +150,8 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  const info = getPremiumInfo();
-
-  if (info?.isExpired) {
-    deactivateExpiredPremium();
-    return false;
-  }
-
-  return info?.isPremium === true;
+  return window.__NEYRA_SECURITY__?.billingPremium === true;
 }
-
-window.isPremium = isPremium;
 
 Object.defineProperty(window, "__internalPremium", {
   get: () => false,
@@ -323,3 +314,5 @@ export function reconcileSystemState() {
   
   document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: currentPremium } }));
 }
+
+window._trustedSetBillingPremium = setBillingPremium;

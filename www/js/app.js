@@ -58,8 +58,6 @@ import { showPremiumModal } from "./premium-modal.js";
 import { safeGenerateInsight, generateInsight } from "./ai/offline-ai.js";
 import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
 
-// Make isPremium globally accessible
-window.isPremium = isPremium;
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
 import { stateGovernance } from "./core/state-governance.js";
