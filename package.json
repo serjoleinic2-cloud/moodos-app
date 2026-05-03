@@ -1,6 +1,6 @@
 {
   "name": "moodos-app",
-  "version": "1.0.10",
+  "version": "1.0.17",
   "description": "Neyra Emotional AI App",
   "scripts": {
     "start": "npx cap serve",
