@@ -152,6 +152,37 @@ BILLING ALWAYS WINS — NO EXCEPTIONS
 
 ---
 
+## 12. DATA STORAGE POLICY (Local-Only)
+
+### Принцип:
+- Все данные хранятся ТОЛЬКО на устройстве пользователя
+- Нет серверной синхронизации, нет Firebase, нет облака
+- Пользователь сам отвечает за сохранность данных через экспорт
+
+### Ограничения:
+- localStorage ~5-10MB (зависит от устройства)
+- При переполнении — предупреждение пользователю + предложение экспортировать
+- НЕ удалять данные автоматически без предупреждения
+
+### Graceful Degradation:
+- При QuotaExceededError — показать UI-уведомление
+- НЕ использовать emergencyPrune для пользовательских данных без explicit consent
+
+---
+
+## 13. BILLING POLICY (No Backend)
+
+### Принцип:
+- Валидация подписок только через Google Play (capacitor-plugin-cdv-purchase)
+- Нет server-side verification (согласовано с архитектурой local-only)
+- Billing truth = `window.__NEYRA_SECURITY__.billingPremium`
+
+### Защита:
+- `transaction.finish()` вызывается ДО активации premium (защита от потери ack)
+- При ошибке активации — пользователь может восстановить покупку через UI
+
+---
+
 **Version:** v1
 **Created:** 2026-04-03
 **Tasks:** 51-79
