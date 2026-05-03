@@ -990,4 +990,5 @@ premium_feature_themes: "Themes",
     warning_stress_sleep: "I notice a repeating pattern: stress + poor sleep. This is an important signal — your body is asking for help",
     warning_stress_repeat: "Stress appears too often in your entries. Try a breathing practice right now",
     warning_sleep_repeat: "Sleep has been affecting your state for several days in a row. Worth looking into",
+    storage_quota_exceeded: "Device memory is full. Export your data in settings to free up space.",
   };

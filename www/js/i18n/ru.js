@@ -1009,4 +1009,5 @@ premium_feature_themes: "Темы",
     resilience_label_moderate: "Умеренная устойчивость",
     resilience_label_forming: "Формируется",
     resilience_label_no_data: "Недостаточно данных",
+    storage_quota_exceeded: "Память устройства заполнена. Экспортируйте данные в настройках, чтобы освободить место.",
   };
