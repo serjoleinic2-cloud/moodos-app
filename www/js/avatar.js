@@ -439,11 +439,11 @@ const MSG = {
   },
 
   actions: {
-    ru: { low:[{label:'Подышать',action:'breathing'},{label:'Выгрузить',action:'mind-dump'}], high:[{label:'Зафиксировать',action:'home'}] },
-    en: { low:[{label:'Breathe',action:'breathing'},{label:'Mind dump',action:'mind-dump'}], high:[{label:'Save this',action:'home'}] },
-    es: { low:[{label:'Respirar',action:'breathing'},{label:'Vaciar mente',action:'mind-dump'}], high:[{label:'Guardar',action:'home'}] },
-    uk: { low:[{label:'Подихати',action:'breathing'},{label:'Вивантажити',action:'mind-dump'}], high:[{label:'Зберегти',action:'home'}] },
-    hi: { low:[{label:'श्वास लें',action:'breathing'},{label:'मन खाली करें',action:'mind-dump'}], high:[{label:'सहेजें',action:'home'}] },
+    ru: { low:[{label:'Подышать',action:'breathing'},{label:'Выгрузить',action:'mind-dump'}], high:[] },
+    en: { low:[{label:'Breathe',action:'breathing'},{label:'Mind dump',action:'mind-dump'}], high:[] },
+    es: { low:[{label:'Respirar',action:'breathing'},{label:'Vaciar mente',action:'mind-dump'}], high:[] },
+    uk: { low:[{label:'Подихати',action:'breathing'},{label:'Вивантажити',action:'mind-dump'}], high:[] },
+    hi: { low:[{label:'श्वास लें',action:'breathing'},{label:'मन खाली करें',action:'mind-dump'}], high:[] },
   },
 };
 

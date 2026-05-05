@@ -150,6 +150,7 @@ export function initNavigation() {
   });
   menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); });
   menuPanel.addEventListener("click", (e) => e.stopPropagation());
+  document.getElementById("menuBack").onclick = () => closeMenu();
 
   document.querySelectorAll(".menuItem").forEach(item => {
     item.addEventListener("click", () => { 
@@ -178,6 +179,7 @@ export function initNavigation() {
   });
   toolsOverlay.addEventListener("click", () => closeToolsMenu());
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
+  document.getElementById("toolsBack").onclick = () => closeToolsMenu();
 
   document.getElementById("toolsBreathing").onclick = async () => {
     openScreen("tools");

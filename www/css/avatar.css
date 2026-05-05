@@ -213,6 +213,7 @@
   flex-wrap: wrap;
 }
 
+/*
 .avatar-action-btn {
   padding: 5px 10px;
   border: none;
@@ -227,6 +228,7 @@
 }
 
 .avatar-action-btn:active { transform: scale(0.95); }
+*/
 
 /* ─── Effects ─────────────────────────────────────────────────────────────── */
 #avatar-effects {
