@@ -90,6 +90,10 @@ class StateExecutionEngine {
         isPremium = next;
         break;
 
+      case 'RECONCILE':
+        isPremium = window.__NEYRA_SECURITY__?.billingPremium === true;
+        break;
+
       default:
         isPremium = window.__NEYRA_SECURITY__?.billingPremium === true;
     }

@@ -1,5 +1,5 @@
 import { t } from "../i18n.js";
-import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./user-profile.js";
+import { activatePremiumPaid, deactivateExpiredPremium, reconcileSystemState, isPremium, restorePremiumFromProfile, getProfile } from "./user-profile.js";
 import { logPremiumGranted, logPremiumRevoked } from "../core/audit-logger.js";
 import { enqueueBillingStateUpdate } from "../core/event-queue.js";
 import { store, ProductType, Platform } from 'capacitor-plugin-cdv-purchase';
@@ -15,6 +15,14 @@ export function initBilling() {
   window._billingInitialized = true;
   
   window._billingInitializing = true;
+  
+  try {
+    const profile = getProfile();
+    if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now()) {
+      window._trustedSetBillingPremium?.(true);
+      if (window.systemState) window.systemState.premium = true;
+    }
+  } catch(e) {}
   
   window.store = store;
 
@@ -46,6 +54,7 @@ export function initBilling() {
     .then(() => {
       console.log('[billing] initialized successfully');
       storeReady = true;
+      restorePremiumFromProfile();
       getPremiumFromBilling();
     })
     .catch(err => {
@@ -124,8 +133,12 @@ export async function buyYearly() {
 }
 
 export async function restorePurchases() {
-  if (!store) return;
-  await store.refresh();
+  if (!store || !storeReady) return;
+  try {
+    await store.restorePurchases();
+  } catch(e) {
+    console.warn('[billing] restorePurchases error:', e);
+  }
 }
 
 export function activatePremiumForTesting(plan = "premium_monthly") {

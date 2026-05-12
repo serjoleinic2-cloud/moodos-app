@@ -127,7 +127,7 @@ export function getPremiumStatus() {
 
 export function getPremiumInfo() {
   const profile = getProfile();
-  const status = getPremiumStatus();
+  let status = getPremiumStatus();
   let plan = null;
   let expiresAt = null;
   let isExpired = false;
@@ -137,6 +137,7 @@ export function getPremiumInfo() {
     expiresAt = profile?.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
     if (expiresAt && Date.now() > expiresAt.getTime()) {
       isExpired = true;
+      deactivateExpiredPremium();
     }
   }
   
@@ -179,6 +180,8 @@ export function activatePremiumPaid(productId = "premium_monthly") {
 
     saveProfile(profile);
 
+    setBillingPremium(true);
+
     if (window.systemState) {
       window.systemState.premium = true;
     }
@@ -187,22 +190,6 @@ export function activatePremiumPaid(productId = "premium_monthly") {
   } catch (e) {
     console.error('[premium] activation failed', e);
   }
-}
-
-function activatePremium(plan = "monthly") {
-  const profile = getProfile() || {};
-  const durationMs = plan === "yearly" ? 365 : 30;
-  const expiresAt = new Date(Date.now() + durationMs * 24 * 60 * 60 * 1000);
-  
-  profile.isPremium = true;
-  profile.premiumTrial = { active: false };
-  profile.premiumPlan = plan;
-  profile.premiumExpiresAt = expiresAt.getTime();
-  saveProfile(profile);
-  if (window.systemState) {
-    window.systemState.premium = true;
-  }
-  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'premium', plan } }));
 }
 
 export function getGeminiCounter() {
@@ -244,17 +231,35 @@ export function checkPremiumExpiry() {
 }
 
 export function deactivateExpiredPremium() {
+  const profile = getProfile() || {};
+  if (profile.premium_type !== "paid" || !profile.premiumExpiresAt) return false;
+  
+  const expiresAt = profile.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
+  if (!expiresAt || Date.now() <= expiresAt.getTime()) return false;
+  
+  profile.premiumExpiresAt = null;
+  profile.premium_type = null;
+  profile.premium = false;
+  saveProfile(profile);
+  setBillingPremium(false);
+  localStorage.removeItem('med_custom_tracks');
+  resetThemeToDefault();
+  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
+  return true;
+}
+
+export function restorePremiumFromProfile() {
+  const profile = getProfile();
+  if (!profile) return;
+  
   const info = getPremiumInfo();
-  if (info.isExpired) {
-    const profile = getProfile() || {};
-    profile.premiumExpiresAt = null;
-    saveProfile(profile);
-    localStorage.removeItem('med_custom_tracks');
-    resetThemeToDefault();
-    document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
-    return true;
+  if (info.isPremium) {
+    setBillingPremium(true);
+    if (window.systemState) window.systemState.premium = true;
+  } else {
+    setBillingPremium(false);
+    if (window.systemState) window.systemState.premium = false;
   }
-  return false;
 }
 
 export function deactivatePremiumForTest() {

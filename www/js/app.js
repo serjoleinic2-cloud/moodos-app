@@ -56,7 +56,7 @@ import { getSelectedEvents } from "./events.js";
 import { showAvatar, initAvatarTap, maybeShowAvatarProactive, trackUserActivity } from "./avatar.js";
 import { showPremiumModal } from "./premium-modal.js";
 import { safeGenerateInsight, generateInsight } from "./ai/offline-ai.js";
-import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium } from "./services/user-profile.js";
+import { checkPremiumExpiry, deactivateExpiredPremium, reconcileSystemState, isPremium, restorePremiumFromProfile } from "./services/user-profile.js";
 
 import { initCheckpointRecovery } from "./services/checkpoint-manager.js";
 import { refreshBilling, initBilling } from "./services/billing-service.js";
@@ -430,6 +430,8 @@ if (!window.__neyraAppRunning) {
   document.addEventListener("DOMContentLoaded", () => {
     document.body.style.visibility = 'visible';
     console.log('[BOOT] DOMContentLoaded fired');
+    
+    restorePremiumFromProfile();
     
     // Используем trusted setter
     window._trustedSetBillingPremium(false);
