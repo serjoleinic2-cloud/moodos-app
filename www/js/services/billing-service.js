@@ -37,12 +37,16 @@ export function initBilling() {
     })
     .approved((transaction) => {
       console.log('[billing] approved:', transaction.products[0]?.id);
-      transaction.finish();
-      const productId = transaction.products[0]?.id;
+      transaction.verify();
+    })
+    .verified((receipt) => {
+      console.log('[billing] verified');
+      receipt.finish();
+      const productId = receipt.transactions?.[0]?.products?.[0]?.id;
       if (productId) {
         activatePremiumPaid(productId);
         enqueueBillingStateUpdate(true);
-        logPremiumGranted('billing_approved', { productId });
+        logPremiumGranted('billing_verified', { productId });
       }
     });
 
@@ -71,11 +75,19 @@ export function getPremiumFromBilling() {
     const monthly = store.get("premium_monthly");
     const yearly = store.get("premium_yearly");
     const isPremiumBilling = store.owned(monthly) || store.owned(yearly);
+
+    if (!isPremiumBilling) {
+      const profileSaysPremium = isPremium();
+      if (profileSaysPremium) {
+        console.warn('[billing] billing says false but profile says premium — skipping revoke');
+        return true;
+      }
+    }
+
     enqueueBillingStateUpdate(!!isPremiumBilling);
     return !!isPremiumBilling;
   } catch(e) {
     console.warn('[billing] getPremiumFromBilling error:', e);
-    enqueueBillingStateUpdate(false);
     return false;
   }
 }
