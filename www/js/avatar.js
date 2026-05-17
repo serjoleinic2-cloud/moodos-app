@@ -46,7 +46,7 @@ let _initialized      = false;
 let _enabled          = true;
 let _lastShowTime     = 0;
 let _lastShowType     = 'default';
-let _lastSliderTime   = 0;
+let lastSliderReaction = 0;
 let _lastEffectTime   = 0;
 let _lastActivityTime = 0;
 let _currentPriority  = 99;
@@ -560,6 +560,8 @@ const MSG = {
   },
 };
 
+const sliderHintMessages = MSG.mood;
+
 // ─── Drag ─────────────────────────────────────────────────────────────────────
 
 function _initDrag(container) {
@@ -784,11 +786,11 @@ export function showAvatarForMood(mood) {
 
 export function showAvatarHint(mood) {
   const now = Date.now();
-  if (now - _lastSliderTime < SLIDER_COOLDOWN) return;
-  _lastSliderTime = now;
+  if (now - lastSliderReaction < SLIDER_COOLDOWN) return;
+  lastSliderReaction = now;
 
   const lang = getLang();
-  const msgs = MSG.mood[lang] || MSG.mood.ru;
+  const msgs = sliderHintMessages[lang] || sliderHintMessages.ru;
 
   let type = 'mid';
   if (mood < 30) type = 'low';
@@ -797,11 +799,10 @@ export function showAvatarHint(mood) {
   const typeMsgs = msgs[type] || msgs.mid;
   const text = typeMsgs[Math.floor(Math.random() * typeMsgs.length)];
 
-  // Только текст — без кнопок
   showAvatar(text, true);
 
-  if (mood >= 70) _showConfetti();
-  else if (mood < 30) _showCloud();
+  if (mood >= 70) showConfetti();
+  else if (mood < 30) showCloud();
 }
 
 // Вызывается после завершения практики
@@ -1065,6 +1066,9 @@ export function showAvatarIdle() {
 }
 
 // ─── Effects ──────────────────────────────────────────────────────────────────
+
+function showConfetti() { _showConfetti(); }
+function showCloud() { _showCloud(); }
 
 function _showConfetti() {
   const c = document.getElementById('avatar-effects');
