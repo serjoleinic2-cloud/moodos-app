@@ -145,42 +145,48 @@ function renderReport() {
       </div>`;
   }
 
+  // Цвета секций
+  const BG_LIGHT  = 'rgba(245, 248, 244, 0.95)'; // светлее -30%
+  const BG_BASE   = 'rgba(232, 237, 230, 0.90)'; // базовый
+  const BG_DARK   = 'rgba(210, 218, 207, 0.95)'; // темнее +10%
+
   container.innerHTML = `
-    <div style="padding:4px 0 60px;">
-      <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("report_period_label")} ${periodLabel}</div>
+    <div style="padding:4px 0 100px;">
+      <div style="font-size:13px;color:#888;margin-bottom:16px;">За ${periodLabel}</div>
 
       ${periodBtns}
 
       ${yearComparisonHTML}
 
-      <div class="mo-section-title">${t("report_summary")}</div>
+      <div class="mo-section-title">📊 Сводка</div>
       <div class="mo-grid-2">
-        ${metricCard(t("report_avg"), `<span style="color:${mc(average)}">${average}%</span>`, t("report_per_period"), "avg")}
-        ${metricCard(t("report_stab"), `<span style="color:${sc(stability)}">${stability??'—'}%</span>`, t("report_index"), "stab")}
-        ${metricCard(t("report_entries"), `<span style="color:#4db8ff">${filtered.length}</span>`, t("report_total"), "entries")}
-        ${metricCard(t("report_active_days"), `<span style="color:#9f7aea">${activeDays}</span>`, t("report_with_entries"), "days")}
+        ${metricCard("Среднее настроение", `<span style="color:${mc(average)}">${average}%</span>`, "за период", "avg", BG_LIGHT)}
+        ${metricCard("Стабильность", `<span style="color:${sc(stability)}">${stability??'—'}%</span>`, "индекс", "stab", BG_LIGHT)}
+        ${metricCard("Записей", `<span style="color:#4db8ff">${filtered.length}</span>`, "всего", "entries", BG_LIGHT)}
+        ${metricCard("Активных дней", `<span style="color:#9f7aea">${activeDays}</span>`, "с записями", "days", BG_LIGHT)}
       </div>
 
-      <button id="rptCalendarBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:linear-gradient(135deg,#6667AB,#9f7aea);box-shadow:6px 6px 14px rgba(102,103,171,0.4),-4px -4px 10px rgba(255,255,255,0.3);font-size:16px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent;letter-spacing:0.3px;">
-        📅 ${t("cal_title")}
-      </button>
-
-      <div class="mo-section-title" style="margin-top:16px;">${t("report_dynamics")}</div>
-      <div class="mo-metric" style="padding:12px;margin-bottom:16px;">
+      <div class="mo-section-title" style="margin-top:16px;">📈 Динамика настроения</div>
+      <div class="mo-metric" style="padding:12px;margin-bottom:16px;background:${BG_BASE};">
         <canvas id="reportChart" height="130"></canvas>
       </div>
 
-      <div class="mo-section-title">${t("report_moments")}</div>
-      <div class="mo-grid-2">
-  ${best  ? metricCard(t("report_best"),  `<span style="color:#4caf87">${best.value}%</span>`,  formatDate(resolveTimestamp(best)),  "best")  : ""}
-  ${worst ? metricCard(t("report_worst"), `<span style="color:#e05555">${worst.value}%</span>`, formatDate(resolveTimestamp(worst)), "worst") : ""}
+      <div class="mo-section-title">📅 Календарь настроений</div>
+      <div class="mo-metric" style="padding:14px 16px;background:${BG_BASE};display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="font-size:14px;color:#666;">История по дням</div>
+        <button class="mo-btn" id="openCalendarBtn" style="padding:8px 16px;font-size:13px;">Открыть</button>
       </div>
 
-      <div class="mo-section-title" style="margin-top:16px;">${t("report_conclusion")}</div>
-      <div class="mo-metric">
+      <div class="mo-section-title" style="margin-top:16px;">🏆 Моменты</div>
+      <div class="mo-grid-2">
+        ${metricCard("Лучший момент", `<span style="color:#4caf87">${bestEntry.value}%</span>`, formatDate(resolveTimestamp(bestEntry)), "best", BG_DARK)}
+        ${metricCard("Сложный момент", `<span style="color:#e05555">${worstEntry.value}%</span>`, formatDate(resolveTimestamp(worstEntry)), "worst", BG_DARK)}
+      </div>
+
+      <div class="mo-section-title" style="margin-top:16px;">💬 Вывод</div>
+      <div class="mo-metric" style="background:${BG_LIGHT};">
         <div style="font-size:15px;color:#444;line-height:1.6;">${stateText}</div>
       </div>
-
       ${hasEventInsights ? `
       <div class="mo-section-title" style="margin-top:16px;">🔍 Что я замечаю о себе</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -206,9 +212,14 @@ function renderReport() {
   bindPeriodBtns(container);
   bindTooltips(container);
   requestAnimationFrame(() => drawChart(filtered));
-  container.querySelector("#rptCalendarBtn").addEventListener("click", () => {
-    showMoodCalendarOverlay(getMoodHistory());
-  });
+
+  // Кнопка открытия календаря
+  const calBtn = container.querySelector('#openCalendarBtn');
+  if (calBtn) {
+    calBtn.onclick = () => {
+      if (window.navigateTo) window.navigateTo('calendar');
+    };
+  }
   
   const lockedBtn = container.querySelector("#yearComparisonLocked");
   if (lockedBtn) {
@@ -548,12 +559,12 @@ function showMoodCalendarOverlay() {
 }
 
 
-function metricCard(label, valueHTML, sub, tooltipKey) {
-  const tips = getTooltips();
+function metricCard(label, valueHTML, sub, tooltipKey, bgColor = 'rgba(232, 237, 230, 0.9)') {
+  const TOOLTIPS = getTooltips();
   return `
-    <div class="mo-metric" style="position:relative;">
+    <div class="mo-metric" style="position:relative;background:${bgColor};box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
       <div class="mo-info-btn" data-tip="${tooltipKey}">i</div>
-      <div class="mo-tooltip">${tips[tooltipKey]||''}</div>
+      <div class="mo-tooltip">${TOOLTIPS[tooltipKey]||''}</div>
       <div class="mo-metric-label">${label}</div>
       <div class="mo-metric-value">${valueHTML}</div>
       <div class="mo-metric-sub">${sub}</div>
