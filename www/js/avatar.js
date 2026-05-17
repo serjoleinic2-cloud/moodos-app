@@ -284,11 +284,59 @@ const MSG = {
   },
 
   mood: {
-    ru: { low:['Похоже, сейчас непросто','Я рядом, не спеши','Ты можешь немного замедлиться'], mid:['Ты держишь баланс','Неплохое состояние','Можно зафиксировать это'], high:['Хороший момент','Ты сейчас в ресурсе','Это важно — ты здесь'] },
-    en: { low:["Seems tough right now","I'm here, no rush","You can slow down"], mid:["You're holding balance","Not bad","You can note this"], high:["Good moment","You're resourced","This matters — you're here"] },
-    es: { low:['Parece difícil ahora','Estoy aquí, sin prisa','Puedes ralentizar'], mid:['Mantienes el equilibrio','No está mal','Puedes anotar esto'], high:['Buen momento','Estás con recursos','Esto importa — estás aquí'] },
-    uk: { low:['Схоже, зараз непросто','Я поруч, не квапся','Ти можеш трохи сповільнитись'], mid:['Ти тримаєш баланс','Непоганий стан','Можна зафіксувати це'], high:['Гарний момент','Ти зараз у ресурсі','Це важливо — ти тут'] },
-    hi: { low:['ऐसा लगता है अभी कठिन है','मैं यहां हूं, जल्दी नहीं','आप थोड़ा धीमे हो सकते हैं'], mid:['आप संतुलन बनाए हुए हैं','बुरा नहीं','आप इसे नोट कर सकते हैं'], high:['अच्छा पल','आप संसाधन में हैं','यह स्थिति याद रखने योग्य है'] },
+    ru: {
+      low: [
+        "Ты сейчас справляешься — это уже много",
+        "Трудный момент пройдёт",
+        "Я рядом — можно просто дышать"
+      ],
+      mid: ['Ты держишь баланс','Неплохое состояние','Можно зафиксировать это'],
+      high: ['Хороший момент','Ты сейчас в ресурсе','Это важно — ты здесь']
+    },
+    en: {
+      low: [
+        "You're getting through it — that's already a lot",
+        "This hard moment will pass",
+        "I'm here — you can just breathe"
+      ],
+      mid: ["You're holding balance","Not bad","You can note this"],
+      high: ["Good moment","You're resourced","This matters — you're here"]
+    },
+    es: {
+      low: [
+        "Lo estás superando — eso ya es mucho",
+        "Este momento difícil pasará",
+        "Estoy aquí — puedes simplemente respirar"
+      ],
+      mid: ['Mantienes el equilibrio','No está mal','Puedes anotar esto'],
+      high: ['Buen momento','Estás con recursos','Esto importa — estás aquí']
+    },
+    uk: {
+      low: [
+        "Ти зараз справляєшся — це вже багато",
+        "Важкий момент мине",
+        "Я поруч — можна просто дихати"
+      ],
+      mid: ['Ти тримаєш баланс','Непоганий стан','Можна зафіксувати це'],
+      high: ['Гарний момент','Ти зараз у ресурсі','Це важливо — ти тут']
+    },
+    hi: {
+      low: [
+        "आप इससे गुजर रहे हैं — यह पहले से बहुत है",
+        "यह कठिन पल गुजर जाएगा",
+        "मैं यहां हूं — बस सांस लें"
+      ],
+      mid: [
+        "आप संतुलन बनाए हुए हैं",
+        "ठीक-ठाक स्थिति है",
+        "इसे नोट कर सकते हैं"
+      ],
+      high: [
+        "अच्छा पल है",
+        "यह स्थिति याद रखने लायक है",
+        "आप अभी संसाधनपूर्ण हैं"
+      ]
+    }
   },
 
   trend: {
@@ -300,11 +348,76 @@ const MSG = {
   },
 
   proactive: {
-    ru: { inactive:['Ты давно не заходил','Можешь зафиксировать состояние'], noEntry:['Сегодня ещё нет записи','Как ты сейчас?'], decline:['Последнее время тяжеловато','Хочешь зафиксировать состояние?'] },
-    en: { inactive:["You haven't been here for a while","You can note your state"], noEntry:['No entry today yet','How are you now?'], decline:['These days have been tough','Want to note your state?'] },
-    es: { inactive:['Hace tiempo que no vienes','Puedes anotar tu estado'], noEntry:['Aún no hay registro hoy','¿Cómo estás ahora?'], decline:['Últimamente ha sido difícil','¿Quieres anotar tu estado?'] },
-    uk: { inactive:['Ти давно не заходив','Можеш зафіксувати стан'], noEntry:['Сьогодні ще немає запису','Як ти зараз?'], decline:['Останнім часом важкувато','Хочеш зафіксувати стан?'] },
-    hi: { inactive:['आप काफी समय से यहां नहीं आए','आप अपनी स्थिति नोट कर सकते हैं'], noEntry:['आज अभी तक कोई प्रविष्टि नहीं','अभी कैसे हैं?'], decline:['पिछले दिनों कठिन रहा','अपनी स्थिति नोट करना चाहेंगे?'] },
+    ru: {
+      inactive: [
+        "Давно не виделись — как ты сейчас?",
+        "Зайди на минуту — зафиксируй как себя чувствуешь"
+      ],
+      noEntry: [
+        "Сегодня ещё нет записи — как день прошёл?",
+        "Одна отметка в день помогает замечать паттерны"
+      ],
+      decline: [
+        "Последние дни чуть сложнее — и это нормально. Как сейчас?",
+        "Замечаю небольшой спад — попробуй дыхание, обычно помогает"
+      ]
+    },
+    en: {
+      inactive: [
+        "Haven't seen you in a while — how are you now?",
+        "Drop in for a minute — note how you're feeling"
+      ],
+      noEntry: [
+        "No entry today yet — how did the day go?",
+        "One check-in a day helps you spot your patterns"
+      ],
+      decline: [
+        "Past few days a bit harder — that's okay. How are you now?",
+        "Noticing a small dip — try breathing, it usually helps"
+      ]
+    },
+    es: {
+      inactive: [
+        "Hace tiempo que no te veo — ¿cómo estás ahora?",
+        "Entra un momento — anota cómo te sientes"
+      ],
+      noEntry: [
+        "Aún no hay registro hoy — ¿cómo fue el día?",
+        "Un registro al día ayuda a notar tus patrones"
+      ],
+      decline: [
+        "Los últimos días un poco más difíciles — es normal. ¿Cómo estás ahora?",
+        "Noto una pequeña caída — prueba respiración, suele ayudar"
+      ]
+    },
+    uk: {
+      inactive: [
+        "Давно не бачилися — як ти зараз?",
+        "Зайди на хвилину — зафіксуй як себе почуваєш"
+      ],
+      noEntry: [
+        "Сьогодні ще немає запису — як пройшов день?",
+        "Одна відмітка на день допомагає помічати паттерни"
+      ],
+      decline: [
+        "Останні дні трохи складніше — і це нормально. Як зараз?",
+        "Помічаю невеликий спад — спробуй дихання, зазвичай допомагає"
+      ]
+    },
+    hi: {
+      inactive: [
+        "काफी समय हो गया — आप अभी कैसे हैं?",
+        "एक मिनट के लिए आएं — बताएं कैसा महसूस कर रहे हैं"
+      ],
+      noEntry: [
+        "आज अभी तक कोई एंट्री नहीं — दिन कैसा रहा?",
+        "दिन में एक चेक-इन आपके पैटर्न पहचानने में मदद करता है"
+      ],
+      decline: [
+        "पिछले कुछ दिन थोड़े कठिन रहे — यह सामान्य है। अभी कैसे हैं?",
+        "एक छोटी गिरावट दिख रही है — श्वास अभ्यास आज़माएं, आमतौर पर मदद करता है"
+      ]
+    }
   },
 
   afterSave: {
@@ -826,6 +939,78 @@ export function checkAndShowReturnAfterPause() {
 export function maybeShowAvatarProactive() {
   const now           = Date.now();
   const lastProactive = parseInt(localStorage.getItem('avatar_last_proactive') || '0');
+
+  // ПРИОРИТЕТ 0: 3+ дня подряд ниже 35% — режим мягкой поддержки
+  try {
+    const history = JSON.parse(localStorage.getItem('mood_history') || '[]');
+    const lang = getLang();
+
+    if (history.length >= 3) {
+      const sorted = [...history].sort((a, b) => (b.time || b.date) - (a.time || a.date));
+
+      const dayMap = {};
+      sorted.forEach(e => {
+        const day = new Date(e.time || e.date).toDateString();
+        if (!dayMap[day]) dayMap[day] = [];
+        dayMap[day].push(e.value);
+      });
+
+      const days = Object.keys(dayMap).slice(0, 3);
+      const allLow = days.length >= 3 && days.every(day => {
+        const avg = dayMap[day].reduce((s, v) => s + v, 0) / dayMap[day].length;
+        return avg < 35;
+      });
+
+      if (allLow) {
+        const lastSupport = parseInt(localStorage.getItem('avatar_last_support') || '0');
+        if (now - lastSupport > 12 * 60 * 60 * 1000) {
+          const supportMessages = {
+            ru: [
+              "Последние дни даются тяжело — это я вижу. Ты не один с этим.",
+              "Три дня непросто — это требует сил. Попробуй дыхательную практику, она реально помогает.",
+              "Я замечаю что тебе сейчас тяжело. Один маленький шаг — уже много.",
+              "Тяжёлые дни проходят. Хочешь попробовать что-то что помогало раньше?"
+            ],
+            en: [
+              "These past days have been hard — I see that. You're not alone in this.",
+              "Three tough days takes real strength. Try a breathing practice — it genuinely helps.",
+              "I notice things have been heavy lately. One small step is already a lot.",
+              "Hard days pass. Want to try something that helped before?"
+            ],
+            es: [
+              "Los últimos días han sido difíciles — lo veo. No estás solo en esto.",
+              "Tres días difíciles requieren mucha fuerza. Prueba la práctica de respiración.",
+              "Noto que las cosas han estado pesadas últimamente. Un pequeño paso ya es mucho.",
+              "Los días difíciles pasan. ¿Quieres intentar algo que ayudó antes?"
+            ],
+            uk: [
+              "Останні дні даються важко — я це бачу. Ти не один з цим.",
+              "Три дні непросто — це потребує сил. Спробуй дихальну практику.",
+              "Я помічаю що тобі зараз важко. Один маленький крок — це вже багато.",
+              "Важкі дні минають. Хочеш спробувати щось що допомагало раніше?"
+            ],
+            hi: [
+              "पिछले कुछ दिन कठिन रहे हैं — मैं यह देख रहा हूं। आप इसमें अकेले नहीं हैं।",
+              "तीन कठिन दिन बहुत ताकत लेते हैं। श्वास अभ्यास आज़माएं — यह सच में मदद करता है।",
+              "मैं देख रहा हूं कि चीजें भारी हैं। एक छोटा कदम भी बहुत है।",
+              "कठिन दिन गुजर जाते हैं। कुछ आज़माना चाहते हैं जो पहले मदद करता था?"
+            ]
+          };
+
+          const msgs = supportMessages[lang] || supportMessages.ru;
+          const text = msgs[Math.floor(Math.random() * msgs.length)];
+
+          localStorage.setItem('avatar_last_support', String(now));
+          localStorage.setItem('avatar_last_proactive', String(now));
+          showAvatar({ text, force: true, source: 'support' });
+          return;
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('[avatar] support check error:', e);
+  }
+
   if (now - lastProactive < PROACTIVE_COOLDOWN) return;
   try {
     const history = JSON.parse(localStorage.getItem('mood_history') || '[]');

@@ -528,10 +528,24 @@ function renderCard(item) {
   const shareBtn = (item) => `<div class="hist-share-btn" data-ts="${item.ts}" data-type="${item.type}" style="padding:6px 10px;border-radius:10px;background:rgba(76,175,135,0.1);color:#4caf87;font-size:16px;cursor:pointer;flex-shrink:0;">📤</div>`;
 
   if (item.type==="mood") {
-    const col=moodColor(item.value), emo=moodEmoji(item.value);
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1">
+    const col = moodColor(item.value), emo = moodEmoji(item.value);
+
+    let accentStyle = "";
+    let sizeStyle = "";
+    if (item.value >= 75) {
+      accentStyle = `border-left: 3px solid #4caf87;`;
+      sizeStyle = `font-size:22px;`;
+    } else if (item.value <= 35) {
+      accentStyle = `border-left: 3px solid #e05555;`;
+      sizeStyle = `font-size:22px;`;
+    }
+
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1" style="${accentStyle}">
       <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_mood")}</div><div class="hist-card-sub" style="color:${col};font-size:20px;font-weight:700;">${item.value}%</div></div>
+      <div class="hist-card-body">
+        <div class="hist-card-title">${t("hist_mood")}</div>
+        <div class="hist-card-sub" style="color:${col};${sizeStyle}font-weight:700;">${item.value}%</div>
+      </div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
   }
   if (item.type==="note") {
