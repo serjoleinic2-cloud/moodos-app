@@ -50,7 +50,6 @@ D:\moodos-app\
 │       │   ├── audit-logger.js
 │       │   ├── event-queue.js
 │       │   ├── migration-registry.js
-│       │   ├── state-governance.js
 │       │   └── state-execution-engine.js
 │       ├── screens/                 # UI screens
 │       │   ├── home.js
@@ -78,10 +77,10 @@ D:\moodos-app\
 │       │   ├── billing-service.js # ⭐ In-app purchases
 │       │   ├── memory.js
 │       │   ├── analytics.js
+│       │   ├── daily-snapshots.js
 │       │   ├── insight-engine.js
 │       │   ├── pattern-engine.js
 │       │   ├── resilience-engine.js
-│       │   ├── daily-snapshots.js
 │       │   ├── weekly-analytics.js
 │       │   ├── year-comparison.js
 │       │   ├── session-analytics.js
@@ -89,12 +88,10 @@ D:\moodos-app\
 │       │   ├── backup-service.js
 │       │   ├── drive-backup.js
 │       │   ├── cloud-restore.js
-│       │   ├── storage-wrapper.js
 │       │   ├── checkpoint-manager.js
 │       │   ├── voice-service.js
 │       │   ├── exit-guard.js
 │       │   ├── backup-reminder.js
-│       │   ├── userId.js
 │       │   ├── reminders-service.js
 │       │   ├── challenge-engine.js
 │       │   └── medals-engine.js
