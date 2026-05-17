@@ -177,11 +177,21 @@ export function onEnter() {
       const time = now.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit" });
       const date = now.toLocaleDateString(locale, { day:"2-digit", month:"2-digit", year:"numeric" });
       if (savedLabel) savedLabel.textContent = `${time} (${date})`;
-      
+      setTimeout(() => {
+        if (savedLabel) savedLabel.textContent = "";
+      }, 2000);
+
       showAvatarForMood(moodValue);
       avatarReact();
 
       setTimeout(() => initResilienceCard(), 300);
+
+      try {
+        const { showAvatarForMood: showAvatarForMood2 } = await import("../avatar.js");
+        showAvatarForMood2(moodValue);
+      } catch(e) {
+        console.warn('[home] avatar insight error:', e);
+      }
 
       if (selectedEvents.length > 0) {
         console.log('[INSIGHT PAYLOAD]', {

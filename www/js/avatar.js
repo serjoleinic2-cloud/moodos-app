@@ -284,10 +284,10 @@ const MSG = {
   },
 
   mood: {
-    ru: { low:['Похоже, сейчас непросто','Я рядом, не спеши','Ты можешь немного замедлиться'], mid:['Ты держишь баланс','Неплохое состояние','Можно зафиксировать это'], high:['Хороший момент','Ты сейчас в ресурсе','Это состояние можно запомнить'] },
-    en: { low:["Seems tough right now","I'm here, no rush","You can slow down"], mid:["You're holding balance","Not bad","You can note this"], high:["Good moment","You're resourced","This state is worth remembering"] },
-    es: { low:['Parece difícil ahora','Estoy aquí, sin prisa','Puedes ralentizar'], mid:['Mantienes el equilibrio','No está mal','Puedes anotar esto'], high:['Buen momento','Estás con recursos','Este estado vale la pena recordar'] },
-    uk: { low:['Схоже, зараз непросто','Я поруч, не квапся','Ти можеш трохи сповільнитись'], mid:['Ти тримаєш баланс','Непоганий стан','Можна зафіксувати це'], high:['Гарний момент','Ти зараз у ресурсі','Цей стан можна запам\'ятати'] },
+    ru: { low:['Похоже, сейчас непросто','Я рядом, не спеши','Ты можешь немного замедлиться'], mid:['Ты держишь баланс','Неплохое состояние','Можно зафиксировать это'], high:['Хороший момент','Ты сейчас в ресурсе','Это важно — ты здесь'] },
+    en: { low:["Seems tough right now","I'm here, no rush","You can slow down"], mid:["You're holding balance","Not bad","You can note this"], high:["Good moment","You're resourced","This matters — you're here"] },
+    es: { low:['Parece difícil ahora','Estoy aquí, sin prisa','Puedes ralentizar'], mid:['Mantienes el equilibrio','No está mal','Puedes anotar esto'], high:['Buen momento','Estás con recursos','Esto importa — estás aquí'] },
+    uk: { low:['Схоже, зараз непросто','Я поруч, не квапся','Ти можеш трохи сповільнитись'], mid:['Ти тримаєш баланс','Непоганий стан','Можна зафіксувати це'], high:['Гарний момент','Ти зараз у ресурсі','Це важливо — ти тут'] },
     hi: { low:['ऐसा लगता है अभी कठिन है','मैं यहां हूं, जल्दी नहीं','आप थोड़ा धीमे हो सकते हैं'], mid:['आप संतुलन बनाए हुए हैं','बुरा नहीं','आप इसे नोट कर सकते हैं'], high:['अच्छा पल','आप संसाधन में हैं','यह स्थिति याद रखने योग्य है'] },
   },
 
@@ -673,12 +673,10 @@ export function showAvatarHint(mood) {
   const now = Date.now();
   if (now - _lastSliderTime < 5000) return;
   _lastSliderTime = now;
-  const lang    = getLang();
-  const type    = getMoodType(mood);
-  const text    = pickRandom((MSG.mood[lang] || MSG.mood.ru)[type]);
-  let   actions = null;
-  if (type !== 'mid') actions = (MSG.actions[lang] || MSG.actions.ru)[type] || null;
-  showAvatar(text, true, actions, 'support');
+  const lang = getLang();
+  const type = getMoodType(mood);
+  const text = pickRandom((MSG.mood[lang] || MSG.mood.ru)[type]);
+  showAvatar(text, true);
   if (mood >= 70) _showConfetti();
   else if (mood < 30) _showCloud();
 }

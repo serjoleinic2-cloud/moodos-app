@@ -21,6 +21,19 @@ export async function onEnter() {
 
     console.log('[paywall] isStoreReady:', isStoreReady());
     
+    if (!isStoreReady()) {
+      await new Promise((resolve) => {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (isStoreReady() || attempts >= 50) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
     if (isStoreReady()) {
       const monthly = store.get("premium_monthly");
       const yearly = store.get("premium_yearly");
