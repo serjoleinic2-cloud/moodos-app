@@ -7,6 +7,7 @@ import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { getYearComparison } from "../services/year-comparison.js";
+import { getEventPatterns, getEventCombinations } from "../services/pattern-engine.js";
 
 let currentPeriod = 7;
 
@@ -82,10 +83,18 @@ function renderReport() {
   }
 
   const average   = Math.round(filtered.reduce((s,h)=>s+h.value,0)/filtered.length);
-  const best      = filtered.reduce((a,b)=>a.value>b.value?a:b);
-  const worst     = filtered.reduce((a,b)=>a.value<b.value?a:b);
+  const bestEntry  = filtered.reduce((a,b) => a.value > b.value ? a : b);
+  const worstEntry = filtered.reduce((a,b) => a.value < b.value ? a : b);
+  const best  = bestEntry.value  >= 60 ? bestEntry  : null;
+  const worst = worstEntry.value <= 50 ? worstEntry : null;
   const stability = calculateStabilityScore(filtered);
   const activeDays = countActiveDays(filtered);
+
+  const eventPatterns = getEventPatterns();
+  const eventCombos   = getEventCombinations();
+  const hasEventInsights = (eventPatterns?.single?.length > 0) || 
+                           (eventPatterns?.cross?.length  > 0) || 
+                           (eventCombos?.length > 0);
 
   function mc(v){ return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
   function sc(s){ if(!s) return "#888"; return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
@@ -163,14 +172,35 @@ function renderReport() {
 
       <div class="mo-section-title">${t("report_moments")}</div>
       <div class="mo-grid-2">
-  ${metricCard(t("report_best"),  `<span style="color:#4caf87">${best.value}%</span>`,  formatDate(resolveTimestamp(best)),  "best")}
-  ${worst.value < 50 ? metricCard(t("report_worst"), `<span style="color:#e05555">${worst.value}%</span>`, formatDate(resolveTimestamp(worst)), "worst") : ""}
+  ${best  ? metricCard(t("report_best"),  `<span style="color:#4caf87">${best.value}%</span>`,  formatDate(resolveTimestamp(best)),  "best")  : ""}
+  ${worst ? metricCard(t("report_worst"), `<span style="color:#e05555">${worst.value}%</span>`, formatDate(resolveTimestamp(worst)), "worst") : ""}
       </div>
 
       <div class="mo-section-title" style="margin-top:16px;">${t("report_conclusion")}</div>
       <div class="mo-metric">
         <div style="font-size:15px;color:#444;line-height:1.6;">${stateText}</div>
       </div>
+
+      ${hasEventInsights ? `
+      <div class="mo-section-title" style="margin-top:16px;">🔍 Что я замечаю о себе</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+
+        ${eventPatterns?.cross?.map(i => `
+        <div class="mo-metric" style="padding:14px 16px;">
+          <div style="font-size:14px;color:#444;line-height:1.5;">💡 ${i.text}</div>
+        </div>`).join('') || ''}
+
+        ${eventPatterns?.single?.map(i => `
+        <div class="mo-metric" style="padding:14px 16px;">
+          <div style="font-size:14px;color:#444;line-height:1.5;">${i.diff > 0 ? '✅' : '⚠️'} ${i.text}</div>
+        </div>`).join('') || ''}
+
+        ${eventCombos?.map(i => `
+        <div class="mo-metric" style="padding:14px 16px;">
+          <div style="font-size:14px;color:#444;line-height:1.5;">${i.diff > 0 ? '🔗' : '⚡'} ${i.text}</div>
+        </div>`).join('') || ''}
+
+      </div>` : ''}
     </div>`;
 
   bindPeriodBtns(container);

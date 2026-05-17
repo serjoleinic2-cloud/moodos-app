@@ -36,6 +36,11 @@ export const ru = {
     event_food: "Еда",
     event_rest: "Отдых",
     event_stress: "Стресс",
+    event_alcohol:  "Алкоголь",
+    event_nature:   "Природа",
+    event_screen:   "Экраны",
+    event_period:   "Цикл",
+    event_creative: "Творчество",
     screen_load_error: "Ошибка загрузки экрана",
     
     // Data storage hardcoded texts

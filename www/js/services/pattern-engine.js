@@ -199,9 +199,180 @@ export function getPatternSummary() {
     eveningDip:     hasEveningDip(),
     volatileRate:   getVolatileDaysRate(),
     noteTriggers:   getNoteTriggers(),
+    eventPatterns:  getEventPatterns(),
+    eventCombos:    getEventCombinations(),
     bestBreathTime: getBestPracticeTime("breathing"),
     bestMeditTime:  getBestPracticeTime("meditation"),
   };
+}
+
+// ---- АНАЛИТИКА СОБЫТИЙ ПО ПЕРИОДАМ ДНЯ ----
+export function getEventPatterns() {
+  const history = getMoodHistory();
+  if (history.length < 5) return [];
+
+  const globalAvg = history.reduce((s, e) => s + e.value, 0) / history.length;
+  const eventData = {};
+
+  history.forEach(entry => {
+    if (!entry.events || !entry.events.length) return;
+    const hour = new Date(entry.time).getHours();
+    const period = hour >= 6 && hour < 12 ? 'morning'
+                 : hour >= 12 && hour < 17 ? 'afternoon'
+                 : hour >= 17 && hour < 22 ? 'evening' : 'night';
+
+    entry.events.forEach(eventId => {
+      const key = `${eventId}::${period}`;
+      if (!eventData[key]) eventData[key] = { sum: 0, count: 0, eventId, period };
+      eventData[key].sum   += entry.value;
+      eventData[key].count += 1;
+    });
+  });
+
+  const periodLabel = {
+    morning: { ru:"утром", en:"in the morning", es:"por la mañana", uk:"вранці", hi:"सुबह" },
+    afternoon:{ ru:"днём",  en:"in the afternoon",es:"por la tarde", uk:"вдень",  hi:"दोपहर में" },
+    evening: { ru:"вечером",en:"in the evening", es:"por la noche",  uk:"ввечері",hi:"शाम को" },
+    night:   { ru:"ночью",  en:"at night",       es:"de noche",      uk:"вночі",  hi:"रात को" }
+  };
+
+  const eventLabel = {
+    coffee: { ru:"кофе",     en:"coffee",   es:"café",     uk:"кава",    hi:"कॉफी" },
+    walk:   { ru:"прогулка", en:"walking",  es:"caminar",  uk:"прогулянка",hi:"वॉक" },
+    work:   { ru:"работа",   en:"work",     es:"trabajo",  uk:"робота",  hi:"काम" },
+    sport:  { ru:"спорт",    en:"sport",    es:"deporte",  uk:"спорт",   hi:"स्पोर्ट" },
+    social: { ru:"общение",  en:"socializing",es:"socializar",uk:"спілкування",hi:"मेलजोल" },
+    sleep:  { ru:"сон",      en:"sleep",    es:"sueño",    uk:"сон",     hi:"नींद" },
+    music:  { ru:"музыка",   en:"music",    es:"música",   uk:"музика",  hi:"संगीत" },
+    food:   { ru:"еда",      en:"food",     es:"comida",   uk:"їжа",     hi:"खाना" },
+    rest:   { ru:"отдых",    en:"rest",     es:"descanso", uk:"відпочинок",hi:"आराम" },
+    stress: { ru:"стресс",   en:"stress",   es:"estrés",   uk:"стрес",   hi:"तनाव" },
+    alcohol: { ru:"алкоголь", en:"alcohol",  es:"alcohol",  uk:"алкоголь",hi:"शराब" },
+    nature: { ru:"природа",   en:"nature",   es:"naturaleza",uk:"природа", hi:"प्रकृति" },
+    screen: { ru:"экраны",    en:"screens",  es:"pantallas",uk:"екрани",  hi:"स्क्रीन" },
+    period: { ru:"цикл",      en:"cycle",    es:"ciclo",    uk:"цикл",    hi:"साइकिल" },
+    creative:{ ru:"творчество",en:"creative",es:"creatividad",uk:"творчість",hi:"रचनात्मकता" }
+  };
+
+  const lang = localStorage.getItem('app_language') || 'ru';
+  const insights = [];
+
+  Object.values(eventData).forEach(d => {
+    if (d.count < 2) return;
+    const avg  = d.sum / d.count;
+    const diff = Math.round(avg - globalAvg);
+    if (Math.abs(diff) < 6) return;
+
+    const evName  = eventLabel[d.eventId]?.[lang]  || d.eventId;
+    const perName = periodLabel[d.period]?.[lang]   || d.period;
+    const sign    = diff > 0 ? '+' : '';
+
+    const text = {
+      ru: `${evName.charAt(0).toUpperCase()+evName.slice(1)} ${perName} влияет на тебя ${diff > 0 ? 'хорошо' : 'тяжелее'} — настроение ${sign}${diff} пунктов`,
+      en: `${evName.charAt(0).toUpperCase()+evName.slice(1)} ${perName} affects you ${diff > 0 ? 'positively' : 'negatively'} — mood ${sign}${diff} pts`,
+      es: `${evName.charAt(0).toUpperCase()+evName.slice(1)} ${perName} te afecta ${diff > 0 ? 'bien' : 'negativamente'} — estado ${sign}${diff} pts`,
+      uk: `${evName.charAt(0).toUpperCase()+evName.slice(1)} ${perName} впливає на тебе ${diff > 0 ? 'добре' : 'важче'} — настрій ${sign}${diff} балів`,
+      hi: `${perName} ${evName} आपको ${diff > 0 ? 'अच्छा' : 'कठिन'} लगता है — मूड ${sign}${diff} पॉइंट`
+    };
+
+    insights.push({
+      eventId: d.eventId,
+      period:  d.period,
+      diff,
+      count:   d.count,
+      text:    text[lang] || text.ru
+    });
+  });
+
+  const byEvent = {};
+  insights.forEach(i => {
+    if (!byEvent[i.eventId]) byEvent[i.eventId] = [];
+    byEvent[i.eventId].push(i);
+  });
+
+  const crossInsights = [];
+  Object.entries(byEvent).forEach(([eventId, arr]) => {
+    if (arr.length < 2) return;
+    const sorted = [...arr].sort((a, b) => b.diff - a.diff);
+    const best   = sorted[0];
+    const worst  = sorted[sorted.length - 1];
+    if (best.period === worst.period) return;
+    if (Math.abs(best.diff - worst.diff) < 8) return;
+
+    const evName    = eventLabel[eventId]?.[lang] || eventId;
+    const bestPer   = periodLabel[best.period]?.[lang]  || best.period;
+    const worstPer  = periodLabel[worst.period]?.[lang] || worst.period;
+
+    const crossText = {
+      ru: `Заметил: ${evName} ${bestPer} влияет на тебя лучше, чем ${worstPer}`,
+      en: `Noticed: ${evName} ${bestPer} works better for you than ${worstPer}`,
+      es: `Notado: ${evName} ${bestPer} te funciona mejor que ${worstPer}`,
+      uk: `Помітив: ${evName} ${bestPer} впливає на тебе краще, ніж ${worstPer}`,
+      hi: `देखा: ${evName} ${bestPer} आपके लिए ${worstPer} से बेहतर काम करता है`
+    };
+
+    crossInsights.push({
+      eventId,
+      text: crossText[lang] || crossText.ru,
+      diff: best.diff - worst.diff
+    });
+  });
+
+  return {
+    single: insights.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff)).slice(0, 4),
+    cross:  crossInsights.sort((a, b) => b.diff - a.diff).slice(0, 2)
+  };
+}
+
+// ---- ПАРНЫЕ ЗАВИСИМОСТИ ----
+export function getEventCombinations() {
+  const history = getMoodHistory().filter(e => e.events && e.events.length >= 2);
+  if (history.length < 3) return [];
+
+  const globalAvg = getMoodHistory().reduce((s, e) => s + e.value, 0) / getMoodHistory().length;
+  const lang      = localStorage.getItem('app_language') || 'ru';
+  const combos    = {};
+
+  history.forEach(entry => {
+    const evs = entry.events;
+    for (let i = 0; i < evs.length; i++) {
+      for (let j = i + 1; j < evs.length; j++) {
+        const key = [evs[i], evs[j]].sort().join('+');
+        if (!combos[key]) combos[key] = { sum: 0, count: 0 };
+        combos[key].sum   += entry.value;
+        combos[key].count += 1;
+      }
+    }
+  });
+
+  const eventEmoji = {
+    coffee:"☕", walk:"🚶", work:"💼", sport:"🏃",
+    social:"👥", sleep:"😴", music:"🎵", food:"🍽", rest:"😌", stress:"😤",
+    alcohol:"🍷", nature:"🌿", screen:"📱", period:"🌸", creative:"🎨"
+  };
+
+  const results = [];
+  Object.entries(combos).forEach(([key, d]) => {
+    if (d.count < 2) return;
+    const avg  = d.sum / d.count;
+    const diff = Math.round(avg - globalAvg);
+    if (Math.abs(diff) < 8) return;
+
+    const [a, b] = key.split('+');
+    const ea = eventEmoji[a] || '•', eb = eventEmoji[b] || '•';
+
+    const text = {
+      ru: `${ea}+${eb} вместе ${diff > 0 ? 'поднимают' : 'снижают'} настроение на ${Math.abs(diff)} пунктов`,
+      en: `${ea}+${eb} together ${diff > 0 ? 'boost' : 'lower'} your mood by ${Math.abs(diff)} pts`,
+      es: `${ea}+${eb} juntos ${diff > 0 ? 'suben' : 'bajan'} tu estado en ${Math.abs(diff)} pts`,
+      uk: `${ea}+${eb} разом ${diff > 0 ? 'піднімають' : 'знижують'} настрій на ${Math.abs(diff)} балів`,
+      hi: `${ea}+${eb} साथ में आपका मूड ${Math.abs(diff)} पॉइंट ${diff > 0 ? 'बढ़ाते' : 'घटाते'} हैं`
+    };
+
+    results.push({ combo: [a, b], diff, count: d.count, text: text[lang] || text.ru });
+  });
+
+  return results.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff)).slice(0, 3);
 }
 
 export async function detect(currentState) {

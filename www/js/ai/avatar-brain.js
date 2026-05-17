@@ -8,6 +8,37 @@
 
 import { t } from '../i18n.js';
 
+const eventReactions = {
+  ru: {
+    alcohol:  ["Алкоголь отмечен — буду учитывать в паттерне", "Зафиксировал"],
+    nature:   ["Природа — хороший выбор для восстановления", "Зафиксировал"],
+    screen:   ["Много экранного времени — отмечено", "Зафиксировал"],
+    period:   ["Зафиксировал — это важно для понимания паттернов", "Отмечено"],
+    creative: ["Творчество отмечено — посмотрим как влияет", "Зафиксировал"],
+  },
+  en: {
+    alcohol:  ["Alcohol noted — I'll factor this in", "Logged"],
+    nature:   ["Nature — good choice for recovery", "Logged"],
+    screen:   ["Screen time noted", "Logged"],
+    period:   ["Noted — important for understanding your patterns", "Logged"],
+    creative: ["Creative time noted — let's see how it affects you", "Logged"],
+  },
+  es: {
+    alcohol:  ["Alcohol anotado — lo tendré en cuenta", "Registrado"],
+    nature:   ["Naturaleza — buena elección para recuperarte", "Registrado"],
+    screen:   ["Tiempo de pantalla anotado", "Registrado"],
+    period:   ["Anotado — importante para entender tus patrones", "Registrado"],
+    creative: ["Tiempo creativo anotado — veamos cómo te afecta", "Registrado"],
+  },
+  uk: {
+    alcohol:  ["Алкоголь відмічено — врахую в паттерні", "Зафіксував"],
+    nature:   ["Природа — гарний вибір для відновлення", "Зафіксував"],
+    screen:   ["Багато екранного часу — відмічено", "Зафіксував"],
+    period:   ["Зафіксував — це важливо для розуміння паттернів", "Відмічено"],
+    creative: ["Творчість відмічено — подивимось як впливає", "Зафіксував"],
+  }
+};
+
 export function generateAvatarMessage(data) {
   const { mood, insight, result, practice } = data;
 

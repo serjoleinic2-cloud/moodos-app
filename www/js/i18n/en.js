@@ -37,6 +37,11 @@ export const en = {
     event_food: "Food",
     event_rest: "Rest",
     event_stress: "Stress",
+    event_alcohol:  "Alcohol",
+    event_nature:   "Nature",
+    event_screen:   "Screens",
+    event_period:   "Cycle",
+    event_creative: "Creative",
     screen_load_error: "Screen load error",
     
     // Data storage hardcoded texts

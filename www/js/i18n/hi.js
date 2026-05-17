@@ -37,6 +37,11 @@ export const hi = {
     event_food: "खाना",
     event_rest: "आराम",
     event_stress: "तनाव",
+    event_alcohol:  "शराब",
+    event_nature:   "प्रकृति",
+    event_screen:   "स्क्रीन",
+    event_period:   "साइकिल",
+    event_creative: "रचनात्मकता",
     screen_load_error: "स्क्रीन लोड त्रुटि",
     
     // Data storage hardcoded texts

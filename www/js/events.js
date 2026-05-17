@@ -17,6 +17,11 @@ export const EVENTS = [
   { id: 'food',   icon: 'food.svg',   labelKey: 'event_food' },
   { id: 'rest',   icon: 'rest.svg',   labelKey: 'event_rest' },
   { id: 'stress', icon: 'stress.svg', labelKey: 'event_stress' },
+  { id: 'alcohol',  icon: 'alcohol.svg',  labelKey: 'event_alcohol' },
+  { id: 'nature',   icon: 'nature.svg',   labelKey: 'event_nature' },
+  { id: 'screen',   icon: 'screen.svg',   labelKey: 'event_screen' },
+  { id: 'period',   icon: 'period.svg',   labelKey: 'event_period' },
+  { id: 'creative', icon: 'creative.svg', labelKey: 'event_creative' },
 ];
 
 const MODULE_NAME = 'home';

@@ -37,6 +37,11 @@ export const uk = {
     event_food: "Їжа",
     event_rest: "Відпочинок",
     event_stress: "Стрес",
+    event_alcohol:  "Алкоголь",
+    event_nature:   "Природа",
+    event_screen:   "Екрани",
+    event_period:   "Цикл",
+    event_creative: "Творчість",
     screen_load_error: "Помилка завантаження екрану",
     
     // Data storage hardcoded texts
