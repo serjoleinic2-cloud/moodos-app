@@ -784,12 +784,22 @@ export function showAvatarForMood(mood) {
 
 export function showAvatarHint(mood) {
   const now = Date.now();
-  if (now - _lastSliderTime < 5000) return;
+  if (now - _lastSliderTime < SLIDER_COOLDOWN) return;
   _lastSliderTime = now;
+
   const lang = getLang();
-  const type = getMoodType(mood);
-  const text = pickRandom((MSG.mood[lang] || MSG.mood.ru)[type]);
+  const msgs = MSG.mood[lang] || MSG.mood.ru;
+
+  let type = 'mid';
+  if (mood < 30) type = 'low';
+  else if (mood >= 70) type = 'high';
+
+  const typeMsgs = msgs[type] || msgs.mid;
+  const text = typeMsgs[Math.floor(Math.random() * typeMsgs.length)];
+
+  // Только текст — без кнопок
   showAvatar(text, true);
+
   if (mood >= 70) _showConfetti();
   else if (mood < 30) _showCloud();
 }
