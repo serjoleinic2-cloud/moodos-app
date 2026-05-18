@@ -9,17 +9,27 @@ html, body {
 
 /* ===== ГРАДИЕНТНЫЙ ФОН ===== */
 body {
-  background-color: #023859;
-  background-image: 
-    linear-gradient(160deg, #54ACBF 0%, #023859 100%),
-    url('../assets/bg/bg.jpg');
-  background-blend-mode: normal, luminosity;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-attachment: fixed;
+  background: linear-gradient(160deg, #54ACBF 0%, #023859 100%);
   min-height: 100vh;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('../assets/bg/bg.jpg');
+  background-size: cover;
+  background-position: center center;
+  opacity: 0.12;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
 }
 
 /* ===== APP ROOT ===== */
@@ -98,8 +108,8 @@ h2 { font-size: 20px; color: #3a3530; }
 /* ===== ЕДИНАЯ КАРТОЧКА-МЕТРИКА ===== */
 .mo-metric {
   padding: 14px 16px; border-radius: 18px;
-  background: rgba(232, 237, 230, 0.98);
-  box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
   position: relative;
 }
 .mo-metric-label { font-size: 12px; color: #999; margin-bottom: 4px; }
@@ -325,7 +335,7 @@ textarea {
   padding: 16px;
   box-sizing: border-box;
   background: rgba(232, 237, 230, 0.98);
-  box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
 }
 /* Лицевая сторона — в потоке, задаёт высоту */
 .flip-front {
@@ -367,7 +377,7 @@ textarea {
   display: flex; align-items: center; gap: 12px;
   padding: 12px; margin-bottom: 10px; border-radius: 16px;
   background: rgba(232, 237, 230, 0.98);
-  box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
   cursor: pointer; transition: box-shadow 0.15s;
 }
 .hist-card:active { box-shadow: inset 3px 3px 7px #b8c4b4, inset -3px -3px 7px #ffffff; }
@@ -390,7 +400,7 @@ textarea {
 /* ===== STABILITY ENTRIES ===== */
 .stab-entry {
   border-radius: 16px; background: rgba(232, 237, 230, 0.98);
-  box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
   margin-bottom: 10px; overflow: hidden;
 }
 .stab-entry-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
@@ -800,7 +810,7 @@ body[data-theme="warm-sunset"] textarea {
   padding: 14px;
   box-sizing: border-box;
   background: rgba(232,237,230,0.9);
-  box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
 }
 .flip-front-home {
   position: relative;
