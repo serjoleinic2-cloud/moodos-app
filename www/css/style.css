@@ -9,7 +9,11 @@ html, body {
 
 /* ===== ГРАДИЕНТНЫЙ ФОН ===== */
 body {
-  background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);
+  background-image: url('../assets/bg/bg.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
   min-height: 100vh;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
