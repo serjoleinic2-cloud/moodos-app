@@ -9,7 +9,11 @@ html, body {
 
 /* ===== ГРАДИЕНТНЫЙ ФОН ===== */
 body {
-  background-image: url('../assets/bg/bg.jpg');
+  background-color: #023859;
+  background-image: 
+    linear-gradient(160deg, #54ACBF 0%, #023859 100%),
+    url('../assets/bg/bg.jpg');
+  background-blend-mode: normal, luminosity;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
@@ -42,7 +46,7 @@ body {
 /* ===== ЕДИНЫЙ СТИЛЬ КАРТОЧКИ ===== */
 .card {
   margin-top: 16px; padding: 16px; border-radius: 18px;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 6px 6px 14px #b8c4b4, -6px -6px 14px #ffffff;
 }
 
@@ -50,17 +54,23 @@ body {
 .mo-btn {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 10px 22px; border: none; border-radius: 14px; cursor: pointer;
-  background: linear-gradient(145deg, #f5efe6, #ede5d8);
-  box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+  background: #e8e0d5;
+  box-shadow: 
+    4px 4px 8px rgba(180,170,158,0.7),
+    -4px -4px 8px rgba(255,255,255,0.95);
   font-size: 15px; font-weight: 600; color: #7a6a58;
   transition: box-shadow 0.18s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
+  border: 1px solid rgba(255,255,255,0.6);
 }
 .mo-btn:active {
-  box-shadow: inset 3px 3px 7px #c8bfb2, inset -3px -3px 7px #ffffff;
+  box-shadow: inset 3px 3px 6px rgba(180,170,158,0.7), inset -3px -3px 6px rgba(255,255,255,0.95);
   transform: scale(0.97);
 }
-.mo-btn.active-period { color: #4caf87; box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff; }
+.mo-btn.active-period { 
+  color: #4caf87; 
+  box-shadow: inset 3px 3px 6px rgba(180,170,158,0.7), inset -3px -3px 6px rgba(255,255,255,0.95); 
+}o-btn.active-period { color: #4caf87; box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff; }
 
 /* ===== ПЕРЕОПРЕДЕЛЯЕМ card button — больше НЕ чёрная ===== */
 .card button {
@@ -88,7 +98,7 @@ h2 { font-size: 20px; color: #3a3530; }
 /* ===== ЕДИНАЯ КАРТОЧКА-МЕТРИКА ===== */
 .mo-metric {
   padding: 14px 16px; border-radius: 18px;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
   position: relative;
 }
@@ -219,7 +229,7 @@ textarea {
   width: 44px; height: 44px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 3px 3px 7px #b8c4b4, -3px -3px 7px #ffffff;
   color: #888; transition: box-shadow 0.18s;
   -webkit-tap-highlight-color: transparent;
@@ -229,7 +239,7 @@ textarea {
 .smallBtn:active { box-shadow: inset 4px 4px 8px #b8c4b4, inset -4px -4px 8px #ffffff; }
 
 .player-btn {
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
 }
 
 .player-icon {
@@ -314,7 +324,7 @@ textarea {
   border-radius: 18px;
   padding: 16px;
   box-sizing: border-box;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
 }
 /* Лицевая сторона — в потоке, задаёт высоту */
@@ -356,7 +366,7 @@ textarea {
 .hist-card {
   display: flex; align-items: center; gap: 12px;
   padding: 12px; margin-bottom: 10px; border-radius: 16px;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
   cursor: pointer; transition: box-shadow 0.15s;
 }
@@ -372,14 +382,14 @@ textarea {
 .hist-day-label { font-size: 13px; color: #888; font-weight: 600; margin: 16px 0 8px 4px; }
 .hist-date-input {
   flex: 1; padding: 12px 16px; border: none; border-radius: 16px;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: inset 4px 4px 8px #b8c4b4, inset -4px -4px 8px #ffffff;
   font-size: 15px; color: #555; outline: none; box-sizing: border-box;
 }
 
 /* ===== STABILITY ENTRIES ===== */
 .stab-entry {
-  border-radius: 16px; background: rgba(232, 237, 230, 0.9);
+  border-radius: 16px; background: rgba(232, 237, 230, 0.98);
   box-shadow: 4px 4px 10px #b8c4b4, -4px -4px 10px #ffffff;
   margin-bottom: 10px; overflow: hidden;
 }
@@ -520,7 +530,7 @@ body[data-theme="warm-sunset"] textarea {
   justify-content: space-between;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   box-shadow: 4px 4px 8px #b8c4b4, -4px -4px 8px #ffffff;
   margin-bottom: 6px;
   cursor: pointer;
@@ -563,7 +573,7 @@ body[data-theme="warm-sunset"] textarea {
   bottom: 100px;
   left: 0;
   right: 0;
-  background: rgba(232, 237, 230, 0.97);
+  background: rgba(232, 237, 230, 0.98);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
   padding: 8px 16px 20px 16px;
@@ -627,7 +637,7 @@ body[data-theme="warm-sunset"] textarea {
   justify-content: center;
   padding: 12px 16px;
   margin: 4px 0;
-  background: rgba(232, 237, 230, 0.9);
+  background: rgba(232, 237, 230, 0.98);
   border-radius: 10px;
   cursor: pointer;
   font-size: 14px;
