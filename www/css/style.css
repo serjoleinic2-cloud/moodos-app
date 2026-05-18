@@ -109,7 +109,7 @@ h2 { font-size: 20px; color: #3a3530; }
 .mo-metric {
   padding: 14px 16px; border-radius: 18px;
   background: rgba(255,255,255,0.92);
-  box-shadow: 3px 3px 6px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.7);
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   position: relative;
 }
 .mo-metric-label { font-size: 12px; color: #999; margin-bottom: 4px; }
@@ -131,7 +131,7 @@ h2 { font-size: 20px; color: #3a3530; }
   background: rgba(50,60,80,0.92); color: #fff;
   font-size: 12px; line-height: 1.5; padding: 10px 12px;
   border-radius: 12px; max-width: 220px; z-index: 200;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   pointer-events: none;
 }
 .mo-info-btn.open + .mo-tooltip,
@@ -146,7 +146,7 @@ h2 { font-size: 20px; color: #3a3530; }
 .bottom-nav {
   display: flex; justify-content: space-around; align-items: center;
   background: rgba(232, 237, 230, 0.95);
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.07);
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   backdrop-filter: blur(10px);
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
   padding-bottom: max(env(safe-area-inset-bottom),48px);
@@ -185,7 +185,7 @@ h2 { font-size: 20px; color: #3a3530; }
   height: 24px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   cursor: pointer;
 }
 .mood-slider-wrap input[type="range"]::-moz-range-thumb {
@@ -193,7 +193,7 @@ h2 { font-size: 20px; color: #3a3530; }
   height: 24px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   cursor: pointer;
   border: none;
 }
@@ -205,7 +205,7 @@ h2 { font-size: 20px; color: #3a3530; }
 .mood-ok-btn {
   padding: 10px 28px; border: none; border-radius: 14px; cursor: pointer;
   background: linear-gradient(145deg, #f5efe6, #ede5d8);
-  box-shadow: 5px 5px 10px #c8bfb2, -5px -5px 10px #ffffff;
+  box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   font-size: 15px; font-weight: 700; color: #7a6a58;
   -webkit-tap-highlight-color: transparent;
 }
