@@ -1,0 +1,13 @@
+d:\moodos-app изучи FREEZE_PROTOCOL.md это правила для тебя и руководства.
+Изучи struktura.md
+
+Делая что либо перепроверяй работоспособность и выводи отчет.
+Я даю задания, ты выполняешь.
+Я работаю с андроид студио, павер сшелл, тесты локальные на телефоне подключенном к компу.
+
+Может пригодиться:
+
+C:\Users\Сергей\Downloads\ADB_AppControl
+
+$env:JAVA_HOME="D:\Android Studio\jbr"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
