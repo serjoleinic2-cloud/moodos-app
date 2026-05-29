@@ -151,7 +151,11 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  return window.__NEYRA_SECURITY__?.billingPremium === true;
+  if (window.__NEYRA_SECURITY__?.billingPremium === true) return true;
+  const profile = getProfile();
+  if (!profile) return false;
+  if (profile.premium_type === 'paid' && profile.premiumExpiresAt > Date.now()) return true;
+  return false;
 }
 
 Object.defineProperty(window, "__internalPremium", {
@@ -162,34 +166,21 @@ Object.defineProperty(window, "__internalPremium", {
 });
 
 export function setBillingPremium(value) {
-  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || { billingPremium: false };
+  if (!window.__NEYRA_SECURITY__) window.__NEYRA_SECURITY__ = {};
   window.__NEYRA_SECURITY__.billingPremium = value === true;
+  if (window.systemState) window.systemState.premium = value === true;
 }
 
-export function activatePremiumPaid(productId = "premium_monthly") {
-  try {
-    const profile = getProfile() || {};
-    const now = Date.now();
-    const durationDays = productId === "premium_yearly" ? 365 : 30;
-
-    profile.premium = true;
-    profile.premium_type = "paid";
-    profile.premium_since = now;
-    profile.premiumPlan = productId === "premium_yearly" ? "yearly" : "monthly";
-    profile.premiumExpiresAt = now + durationDays * 24 * 60 * 60 * 1000;
-
-    saveProfile(profile);
-
-    setBillingPremium(true);
-
-    if (window.systemState) {
-      window.systemState.premium = true;
-    }
-
-    document.dispatchEvent(new Event("premiumChanged"));
-  } catch (e) {
-    console.error('[premium] activation failed', e);
-  }
+export function activatePremiumPaid(productId) {
+  let profile = getProfile();
+  if (!profile) profile = {};
+  profile.premium = true;
+  profile.premium_type = 'paid';
+  profile.premiumProductId = productId || 'unknown';
+  const isYearly = (productId || '').includes('yearly');
+  profile.premiumExpiresAt = Date.now() + (isYearly ? 366 : 31) * 24 * 60 * 60 * 1000;
+  saveProfile(profile);
+  setBillingPremium(true);
 }
 
 export function getGeminiCounter() {
@@ -231,34 +222,22 @@ export function checkPremiumExpiry() {
 }
 
 export function deactivateExpiredPremium() {
-  const profile = getProfile() || {};
-  if (profile.premium_type !== "paid" || !profile.premiumExpiresAt) return false;
-  
-  const expiresAt = profile.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
-  if (!expiresAt || Date.now() <= expiresAt.getTime()) return false;
-  
-  profile.premiumExpiresAt = null;
-  profile.premium_type = null;
+  let profile = getProfile();
+  if (!profile) return;
   profile.premium = false;
+  profile.premium_type = null;
+  profile.premiumExpiresAt = null;
   saveProfile(profile);
   setBillingPremium(false);
-  localStorage.removeItem('med_custom_tracks');
-  resetThemeToDefault();
-  document.dispatchEvent(new CustomEvent('premiumChanged', { detail: { status: 'free' } }));
-  return true;
 }
 
 export function restorePremiumFromProfile() {
   const profile = getProfile();
   if (!profile) return;
-  
-  const info = getPremiumInfo();
-  if (info.isPremium) {
+  if (profile.premium_type === 'paid' && profile.premiumExpiresAt > Date.now()) {
     setBillingPremium(true);
-    if (window.systemState) window.systemState.premium = true;
-  } else {
-    setBillingPremium(false);
-    if (window.systemState) window.systemState.premium = false;
+  } else if (profile.premiumExpiresAt && profile.premiumExpiresAt <= Date.now()) {
+    deactivateExpiredPremium();
   }
 }
 
@@ -311,13 +290,7 @@ export function applyTheme(theme) {
 }
 
 export function reconcileSystemState() {
-  const currentPremium = isPremium();
-  
-  if (window.systemState) {
-    window.systemState.premium = currentPremium;
-  }
-  
-  document.dispatchEvent(new CustomEvent('entitlementReconciled', { detail: { isPremium: currentPremium } }));
+  restorePremiumFromProfile();
 }
 
 window._trustedSetBillingPremium = setBillingPremium;
