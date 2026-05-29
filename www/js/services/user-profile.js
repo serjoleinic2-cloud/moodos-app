@@ -178,7 +178,8 @@ export function activatePremiumPaid(productId) {
   profile.premium_type = 'paid';
   profile.premiumProductId = productId || 'unknown';
   const isYearly = (productId || '').includes('yearly');
-  profile.premiumExpiresAt = Date.now() + (isYearly ? 366 : 31) * 24 * 60 * 60 * 1000;
+  const isSandbox = (productId || '').includes('test') || (productId || '').includes('sandbox');
+  profile.premiumExpiresAt = Date.now() + (isSandbox ? 365 : isYearly ? 366 : 31) * 24 * 60 * 60 * 1000;
   saveProfile(profile);
   setBillingPremium(true);
 }
