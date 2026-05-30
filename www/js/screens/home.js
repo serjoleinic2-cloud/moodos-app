@@ -10,6 +10,8 @@ import { setAvatarMood, avatarReact, initAvatarController } from "../ui/avatar-c
 import { safeGenerateInsight } from "../ai/offline-ai.js";
 import { getResilienceIndex, getResilienceLabel, getMoodStability } from '../services/resilience-engine.js';
 import { getMoodHistory } from '../services/memory.js';
+import { initLetterEngine } from '../ai/avatar-letter-engine.js';
+import { renderLetterCard } from '../ui/letter-overlay.js';
 
 function getTimeBucket() {
   const h = new Date().getHours();
@@ -224,6 +226,11 @@ export function onEnter() {
       newBtn.disabled = false;
     }
   });
+
+  // Письма от Нейры
+  initLetterEngine();
+  const homeContainer = document.getElementById('home-screen') || document.querySelector('[data-screen="home"]');
+  if (homeContainer) renderLetterCard(homeContainer);
 }
 
 function showInsightCard(insight) {

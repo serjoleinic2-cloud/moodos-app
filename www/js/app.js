@@ -64,6 +64,7 @@ import { enqueuePremiumChanged, recoverEvents } from "./core/event-queue.js";
 import { runReconciliation } from "./core/state-execution-engine.js";
 import { checkAutoReminder } from './screens/pdf-report.js';
 import { checkRemindersOnBoot } from './services/reminders-service.js';
+import { initLetterEngine } from './ai/avatar-letter-engine.js';
 
 // =====================================
 // 🛡️ MULTI INIT GUARD
@@ -792,6 +793,7 @@ if (!window.__neyraAppRunning) {
     }
     
     initAvatar();
+    initLetterEngine();
     console.log('[BOOT] startApp done');
     
     // Cloud restore: process pending data
