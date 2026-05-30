@@ -507,6 +507,16 @@ if (!window.__neyraAppRunning) {
     console.log('[Cloud] Auth disabled (native setup phase)');
   }
 
+  function showSavedTime() {
+    const label = document.getElementById("moodSavedLabel");
+    if (!label) return;
+    const now = new Date();
+    const time = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const date = now.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+    label.textContent = `Отмечено сегодня в ${time}`;
+    label.style.opacity = "1";
+  }
+
   function startApp() {
     console.log('[APP] startApp called');
     
