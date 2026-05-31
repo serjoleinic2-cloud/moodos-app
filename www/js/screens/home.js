@@ -13,6 +13,10 @@ import { getMoodHistory } from '../services/memory.js';
 import { initLetterEngine } from '../ai/avatar-letter-engine.js';
 import { challengeUI } from '../ai/challenge-texts-ru.js';
 import { renderLetterCard } from '../ui/letter-overlay.js';
+import {
+  getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
+  skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
+} from '../services/challenge-engine.js';
 
 function getTimeBucket() {
   const h = new Date().getHours();
@@ -119,7 +123,15 @@ export function onEnter() {
   if (eventsContainer) {
     renderEventsGrid(eventsContainer);
   }
-  
+
+  // Восстанавливаем время последней отметки
+  const lastSavedTime = localStorage.getItem('neyra_last_saved_time');
+  if (lastSavedTime && savedLabel) savedLabel.textContent = lastSavedTime;
+
+  // Показываем карточку вызова сразу чтобы не мигала
+  const challengeBar = document.getElementById('dailyChallengeBar');
+  if (challengeBar) challengeBar.style.display = 'block';
+
   renderInsightCard();
   initDailyChallenge();
   initResilienceCard();
@@ -180,6 +192,7 @@ export function onEnter() {
       const time = now.toLocaleTimeString(locale, { hour:"2-digit", minute:"2-digit" });
       const date = now.toLocaleDateString(locale, { day:"2-digit", month:"2-digit", year:"numeric" });
       if (savedLabel) savedLabel.textContent = `${time} (${date})`;
+      try { localStorage.setItem('neyra_last_saved_time', `${time} (${date})`); } catch(e) {}
 
       showAvatarForMood(moodValue);
       avatarReact();
@@ -325,16 +338,11 @@ function showProfileUpdateBanner() {
 }
 
 
-async function initDailyChallenge() {
+function initDailyChallenge() {
   try {
-    const {
-      getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
-      skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
-    } = await import('../services/challenge-engine.js');
-
     const bar    = document.getElementById('dailyChallengeBar');
     const textEl = document.getElementById('challengeText');
-    const btn    = document.getElementById('challengeBtn');
+    let btn    = document.getElementById('challengeBtn');
     if (!bar || !textEl || !btn) return;
 
     bar.style.display = 'block';
@@ -342,6 +350,7 @@ async function initDailyChallenge() {
     const completed = isChallengeCompleted();
     let challenge   = getCurrentPoolChallenge();
 
+    console.log('[CHALLENGE DEBUG]', JSON.stringify(challenge));
     if (!challenge || !challenge.text) {
       bar.style.display = 'none';
       return;
@@ -380,10 +389,12 @@ async function initDailyChallenge() {
 
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
+        btn = newBtn;
 
-        newBtn.addEventListener('click', () => {
+        btn.addEventListener('click', () => {
           startChallengeTimer();
-          renderChallenge(ch);
+          // Небольшая задержка чтобы таймер успел записаться
+          setTimeout(() => renderChallenge(ch), 50);
         });
       } else {
         btn.style.display = 'none';
@@ -397,7 +408,7 @@ async function initDailyChallenge() {
 
         const skipBtn = document.createElement('button');
         skipBtn.textContent = `↻ ${challengeUI.skipped}`;
-        skipBtn.style.cssText = 'width:100%;background:transparent;color:#aaa;border:1px solid rgba(180,180,180,0.3);border-radius:14px;padding:10px;font-size:13px;cursor:pointer;';
+        skipBtn.style.cssText = 'width:100%;background:rgba(224,85,85,0.1);color:#e05555;border:1px solid rgba(224,85,85,0.35);border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;';
 
         wrap.appendChild(doneBtn);
         wrap.appendChild(skipBtn);

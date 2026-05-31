@@ -7,7 +7,7 @@ import { getMoodHistory, getSessionHistory } from './memory.js';
 import { getProfile } from './user-profile.js';
 import { t } from '../i18n.js';
 import { triggerChallenges } from '../ai/challenge-texts-ru.js';
-
+console.log('[CHALLENGE] triggerChallenges loaded:', typeof triggerChallenges, Object.keys(triggerChallenges || {}).length);
 const CHALLENGE_KEY = 'neyra_daily_challenge';
 
 // =====================================
@@ -62,6 +62,7 @@ export function isChallengeCompleted() {
 // =====================================
 function generateChallenge() {
   try {
+    console.log('[CHALLENGE] generateChallenge start');
     const patterns = getPatternSummary();
     const history = getMoodHistory();
     const sessions = getSessionHistory();
@@ -83,10 +84,12 @@ function generateChallenge() {
       'food','rest','nature','creative','work'
     ];
 
+    console.log('[CHALLENGE] recentEvents:', JSON.stringify(recentEvents));
+    console.log('[CHALLENGE] triggerChallenges keys:', Object.keys(triggerChallenges));
     recentEvents.forEach(ev => {
       if (triggerPool.includes(ev) && triggerChallenges[ev]) {
         const challenges = triggerChallenges[ev];
-        // Берём случайный из 5
+        if (!challenges || !challenges.length) return;
         const picked = challenges[Math.floor(Math.random() * challenges.length)];
         pool.push({
           type: 'trigger',
@@ -237,9 +240,18 @@ const TIMER_DURATION = 2 * 60 * 60 * 1000; // 2 часа
 
 export function getDailyPool() {
   try {
+    console.log('[CHALLENGE] getDailyPool start');
     const today = new Date().toDateString();
     const saved = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
-    if (saved && saved.date === today) return saved;
+    if (saved && saved.date === today) {
+      // Проверяем что пул валидный
+      if (saved.pool && saved.pool.length && saved.pool[0]?.text) {
+        return saved;
+      }
+      // Старая структура — сбрасываем
+      console.log('[CHALLENGE] stale pool detected, regenerating');
+      localStorage.removeItem(SKIP_KEY);
+    }
 
     // Генерируем пул из 3 заданий из разных триггеров
     const allTriggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
@@ -249,11 +261,22 @@ export function getDailyPool() {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     shuffled.length = 3;
+    console.log('[CHALLENGE] shuffled triggers:', JSON.stringify(shuffled));
+    console.log('[CHALLENGE] triggerChallenges keys in pool:', Object.keys(triggerChallenges));
     const pool = shuffled.map(trigger => {
       const challenges = triggerChallenges[trigger];
+      if (!challenges || !challenges.length) {
+        console.warn('[CHALLENGE] no challenges for trigger:', trigger);
+        return null;
+      }
       const picked = challenges[Math.floor(Math.random() * challenges.length)];
       return { icon: picked.icon, text: picked.text, type: 'trigger', trigger };
-    });
+    }).filter(Boolean);
+
+    if (!pool.length) {
+      console.warn('[CHALLENGE] pool empty — falling back');
+      return { date: today, pool: [{ icon: '🫁', text: 'Сделай дыхательную практику — 5 минут', type: 'practice', trigger: null }], index: 0 };
+    }
 
     const state = { date: today, pool, index: 0 };
     localStorage.setItem(SKIP_KEY, JSON.stringify(state));
