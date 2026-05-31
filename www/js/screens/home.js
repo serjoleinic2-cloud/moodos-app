@@ -327,9 +327,10 @@ function showProfileUpdateBanner() {
 
 async function initDailyChallenge() {
   try {
-    const { getTodayChallenge, isChallengeCompleted, completeChallenge,
-            skipChallenge, getCurrentSkipChallenge, getSkipsLeft } =
-      await import('../services/challenge-engine.js');
+    const {
+      getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
+      skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
+    } = await import('../services/challenge-engine.js');
 
     const bar    = document.getElementById('dailyChallengeBar');
     const textEl = document.getElementById('challengeText');
@@ -338,13 +339,24 @@ async function initDailyChallenge() {
 
     bar.style.display = 'block';
 
-    // Текущий вызов — скипнутый или основной
-    const skipChallengeCurrent = getCurrentSkipChallenge();
-    let challenge = skipChallengeCurrent || getTodayChallenge();
     const completed = isChallengeCompleted();
+    let challenge   = getCurrentPoolChallenge();
+    let timerInterval = null;
+
+    function fmtTime(ms) {
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
 
     function renderChallenge(ch) {
       textEl.textContent = ch.text;
+
+      // Убираем старые кнопки
+      const oldWrap = document.getElementById('challengeBtnWrap');
+      if (oldWrap) oldWrap.remove();
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
       if (completed) {
         btn.textContent   = challengeUI.done;
@@ -353,39 +365,65 @@ async function initDailyChallenge() {
         return;
       }
 
-      btn.textContent   = challengeUI.start;
-      btn.disabled      = false;
-      btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
+      const timerState = getChallengeTimerState();
 
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
+      if (!timerState.active) {
+        // Таймер не запущен — показываем кнопку Начать
+        btn.textContent   = challengeUI.start;
+        btn.disabled      = false;
+        btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
+        btn.style.display = 'block';
 
-      newBtn.addEventListener('click', () => {
-        textEl.textContent = challengeUI.action_prompt;
-        newBtn.style.display = 'none';
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
 
-        const btnWrap = document.createElement('div');
-        btnWrap.style.cssText = 'display:flex;gap:10px;margin-top:10px;';
+        newBtn.addEventListener('click', () => {
+          startChallengeTimer();
+          renderChallenge(ch);
+        });
+      } else {
+        // Таймер запущен
+        btn.style.display = 'none';
+
+        const wrap = document.createElement('div');
+        wrap.id = 'challengeBtnWrap';
+        wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-top:10px;';
 
         const doneBtn = document.createElement('button');
-        doneBtn.textContent = challengeUI.completed;
-        doneBtn.style.cssText = 'flex:1;background:linear-gradient(145deg,#4caf87,#3a9a72);color:#fff;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;';
+        doneBtn.style.cssText = 'width:100%;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;';
 
-        const skipsLeft = getSkipsLeft();
         const skipBtn = document.createElement('button');
-        skipBtn.textContent = skipsLeft > 0
-          ? `${challengeUI.skipped} (${skipsLeft})`
-          : challengeUI.skipped;
-        skipBtn.disabled = skipsLeft <= 0;
-        skipBtn.style.cssText = `flex:1;background:rgba(224,85,85,0.15);color:${skipsLeft > 0 ? '#e05555' : '#ccc'};border:1px solid rgba(224,85,85,${skipsLeft > 0 ? '0.3' : '0.1'});border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:${skipsLeft > 0 ? 'pointer' : 'default'};`;
+        skipBtn.textContent = `↻ ${challengeUI.skipped}`;
+        skipBtn.style.cssText = 'width:100%;background:transparent;color:#aaa;border:1px solid rgba(180,180,180,0.3);border-radius:14px;padding:10px;font-size:13px;cursor:pointer;';
 
-        btnWrap.appendChild(doneBtn);
-        btnWrap.appendChild(skipBtn);
-        newBtn.parentNode.insertBefore(btnWrap, newBtn.nextSibling);
+        wrap.appendChild(doneBtn);
+        wrap.appendChild(skipBtn);
+        btn.parentNode.insertBefore(wrap, btn.nextSibling);
 
-        // Сделано
+        function updateDoneBtn() {
+          const state = getChallengeTimerState();
+          if (state.ready) {
+            doneBtn.textContent = `✓ ${challengeUI.completed}`;
+            doneBtn.disabled    = false;
+            doneBtn.style.background = 'linear-gradient(145deg,#4caf87,#3a9a72)';
+            doneBtn.style.color      = '#fff';
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          } else {
+            doneBtn.textContent = `⏱ ${fmtTime(state.msLeft)}`;
+            doneBtn.disabled    = true;
+            doneBtn.style.background = 'rgba(180,180,180,0.2)';
+            doneBtn.style.color      = '#aaa';
+          }
+        }
+
+        updateDoneBtn();
+        timerInterval = setInterval(updateDoneBtn, 1000);
+
         doneBtn.addEventListener('click', async () => {
+          if (doneBtn.disabled) return;
           completeChallenge();
+          resetChallengeTimer();
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
           if (ch.trigger) {
             try {
@@ -395,12 +433,12 @@ async function initDailyChallenge() {
             } catch(e) {}
           }
 
-          btnWrap.remove();
-          newBtn.style.display = 'block';
-          newBtn.textContent   = challengeUI.done;
-          newBtn.disabled      = true;
-          newBtn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
-          textEl.textContent   = ch.text;
+          wrap.remove();
+          btn.style.display = 'block';
+          btn.textContent   = challengeUI.done;
+          btn.disabled      = true;
+          btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
+          textEl.textContent = ch.text;
 
           try {
             const { checkAndUpdateMedals } = await import('../services/medals-engine.js');
@@ -408,21 +446,14 @@ async function initDailyChallenge() {
           } catch(e) {}
         });
 
-        // Не сделано — следующий вызов
         skipBtn.addEventListener('click', () => {
-          if (getSkipsLeft() <= 0) return;
-          const next = skipChallenge();
-          btnWrap.remove();
-          newBtn.style.display = 'block';
-          if (next) {
-            challenge = next;
-            renderChallenge(next);
-          } else {
-            // Исчерпали замены — возвращаем оригинал
-            renderChallenge(getTodayChallenge());
-          }
+          resetChallengeTimer();
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          const next = skipToNext();
+          challenge  = next || challenge;
+          renderChallenge(challenge);
         });
-      });
+      }
     }
 
     renderChallenge(challenge);

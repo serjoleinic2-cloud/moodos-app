@@ -231,62 +231,75 @@ function generateChallenge() {
   }
 }
 
-const SKIP_KEY = 'neyra_challenge_skips';
+const SKIP_KEY   = 'neyra_challenge_skips';
+const TIMER_KEY  = 'neyra_challenge_timer';
+const TIMER_DURATION = 2 * 60 * 60 * 1000; // 2 часа
 
-export function getSkippedChallenges() {
+export function getDailyPool() {
   try {
+    const today = new Date().toDateString();
     const saved = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
-    const today = new Date().toDateString();
-    if (!saved || saved.date !== today) return { date: today, count: 0, used: [] };
-    return saved;
-  } catch(e) { return { date: new Date().toDateString(), count: 0, used: [] }; }
-}
+    if (saved && saved.date === today) return saved;
 
-export function skipChallenge() {
-  try {
-    const state = getSkippedChallenges();
-    if (state.count >= 3) return null;
+    // Генерируем пул из 3 заданий из разных триггеров
+    const allTriggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
+    const shuffled = allTriggers.sort(() => Math.random() - 0.5).slice(0, 3);
+    const pool = shuffled.map(trigger => {
+      const challenges = triggerChallenges[trigger];
+      const picked = challenges[Math.floor(Math.random() * challenges.length)];
+      return { icon: picked.icon, text: picked.text, type: 'trigger', trigger };
+    });
 
-    const current = getTodayChallenge();
-    state.used.push(current.trigger || current.type);
-    state.count += 1;
-    state.date = new Date().toDateString();
-
-    const newChallenge = generateAlternativeChallenge(state.used);
-    state.current = newChallenge;
+    const state = { date: today, pool, index: 0 };
     localStorage.setItem(SKIP_KEY, JSON.stringify(state));
-    return newChallenge;
-  } catch(e) { return null; }
+    return state;
+  } catch(e) {
+    return { date: new Date().toDateString(), pool: [], index: 0 };
+  }
 }
 
-function generateAlternativeChallenge(usedTriggers) {
-  const allTriggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
-  const available = allTriggers.filter(t => !usedTriggers.includes(t));
-  if (!available.length) return null;
-
-  const trigger = available[Math.floor(Math.random() * available.length)];
-  const challenges = triggerChallenges[trigger];
-  if (!challenges) return null;
-  const picked = challenges[Math.floor(Math.random() * challenges.length)];
-
-  return {
-    icon: picked.icon,
-    text: picked.text,
-    type: 'trigger',
-    trigger,
-  };
+export function getCurrentPoolChallenge() {
+  const state = getDailyPool();
+  if (!state.pool.length) return getTodayChallenge();
+  return state.pool[state.index % state.pool.length];
 }
 
-export function getCurrentSkipChallenge() {
+export function skipToNext() {
   try {
-    const state = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
-    const today = new Date().toDateString();
-    if (state && state.date === today && state.current) return state.current;
-    return null;
+    const state = getDailyPool();
+    state.index = (state.index + 1) % state.pool.length;
+    localStorage.setItem(SKIP_KEY, JSON.stringify(state));
+    return state.pool[state.index];
   } catch(e) { return null; }
 }
 
-export function getSkipsLeft() {
-  const state = getSkippedChallenges();
-  return Math.max(0, 3 - state.count);
+// ─── Таймер ───────────────────────────────────────────────
+
+export function startChallengeTimer() {
+  try {
+    const data = { startedAt: Date.now() };
+    localStorage.setItem(TIMER_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+export function getChallengeTimerState() {
+  try {
+    const data = JSON.parse(localStorage.getItem(TIMER_KEY) || 'null');
+    if (!data) return { active: false, ready: false, msLeft: 0 };
+    const elapsed = Date.now() - data.startedAt;
+    const msLeft  = Math.max(0, TIMER_DURATION - elapsed);
+    const ready   = msLeft === 0;
+    // Сбрасываем если новый день
+    const today = new Date().toDateString();
+    const timerDay = new Date(data.startedAt).toDateString();
+    if (today !== timerDay) {
+      localStorage.removeItem(TIMER_KEY);
+      return { active: false, ready: false, msLeft: 0 };
+    }
+    return { active: true, ready, msLeft };
+  } catch(e) { return { active: false, ready: false, msLeft: 0 }; }
+}
+
+export function resetChallengeTimer() {
+  localStorage.removeItem(TIMER_KEY);
 }
