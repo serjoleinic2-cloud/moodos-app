@@ -48,7 +48,7 @@ export function initBilling() {
         logPremiumGranted('billing_verified', { productId });
       }
       receipt.finish();
-    })
+    });
 
   store.error((err) => {
     console.error('[billing] error:', err);
