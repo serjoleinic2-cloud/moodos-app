@@ -386,6 +386,14 @@ async function initDailyChallenge() {
       // Сделано
       doneBtn.addEventListener('click', async () => {
         completeChallenge();
+        // Считаем триггерные вызовы отдельно
+        if (challenge.trigger) {
+          try {
+            const counts = JSON.parse(localStorage.getItem('trigger_challenges_completed') || '{}');
+            counts[challenge.trigger] = (counts[challenge.trigger] || 0) + 1;
+            localStorage.setItem('trigger_challenges_completed', JSON.stringify(counts));
+          } catch(e) {}
+        }
         btnWrap.remove();
         newBtn.style.display = 'block';
         newBtn.textContent   = challengeUI.done;

@@ -280,6 +280,88 @@ export const MEDALS_DEFINITION = [
       profile && profile.takesMeds && profile.takesMeds !== 'нет' &&
       getTotalDays(moodHistory) >= 30
   },
+
+  // 🌿 ТРИГГЕРНЫЕ ВЫЗОВЫ
+  {
+    id: 'walker',
+    category: 'triggers',
+    emoji: '🚶',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('walk') >= 5
+  },
+  {
+    id: 'athlete',
+    category: 'triggers',
+    emoji: '🏃',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('sport') >= 5
+  },
+  {
+    id: 'connector',
+    category: 'triggers',
+    emoji: '💬',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('social') >= 5
+  },
+  {
+    id: 'sleep_master',
+    category: 'triggers',
+    emoji: '😴',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('sleep') >= 5
+  },
+  {
+    id: 'music_soul',
+    category: 'triggers',
+    emoji: '🎵',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('music') >= 5
+  },
+  {
+    id: 'foodie',
+    category: 'triggers',
+    emoji: '🍽️',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('food') >= 5
+  },
+  {
+    id: 'rest_guru',
+    category: 'triggers',
+    emoji: '🛋️',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('rest') >= 5
+  },
+  {
+    id: 'nature_friend',
+    category: 'triggers',
+    emoji: '🌿',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('nature') >= 5
+  },
+  {
+    id: 'creator',
+    category: 'triggers',
+    emoji: '🎨',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('creative') >= 5
+  },
+  {
+    id: 'focused',
+    category: 'triggers',
+    emoji: '💼',
+    repeatable: false,
+    checkFn: () => getTriggerChallengeCount('work') >= 5
+  },
+  {
+    id: 'trigger_master',
+    category: 'triggers',
+    emoji: '🌈',
+    repeatable: false,
+    checkFn: () => {
+      const triggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
+      return triggers.every(t => getTriggerChallengeCount(t) >= 3);
+    }
+  },
 ];
 
 // =====================================
@@ -370,6 +452,13 @@ function hasFastRecovery(history) {
 function getChallengesCount() {
   try {
     return parseInt(localStorage.getItem('challenges_completed') || '0');
+  } catch { return 0; }
+}
+
+function getTriggerChallengeCount(trigger) {
+  try {
+    const counts = JSON.parse(localStorage.getItem('trigger_challenges_completed') || '{}');
+    return counts[trigger] || 0;
   } catch { return 0; }
 }
 
