@@ -3,15 +3,17 @@
 // =====================================
 import { t } from '../i18n.js';
 import { getAllMedalsWithState, MEDALS_DEFINITION } from '../services/medals-engine.js';
+import { medalTexts } from '../ai/medals-texts-ru.js';
 
 const CATEGORIES = [
-  { key: 'regularity',  labelKey: 'medals_category_regularity' },
-  { key: 'mood',        labelKey: 'medals_category_mood' },
-  { key: 'practice',    labelKey: 'medals_category_practice' },
-  { key: 'awareness',   labelKey: 'medals_category_awareness' },
-  { key: 'resilience',  labelKey: 'medals_category_resilience' },
-  { key: 'challenges',  labelKey: 'medals_category_challenges' },
-  { key: 'special',     labelKey: 'medals_category_special' },
+  { key: 'regularity' },
+  { key: 'mood' },
+  { key: 'practice' },
+  { key: 'awareness' },
+  { key: 'resilience' },
+  { key: 'challenges' },
+  { key: 'triggers' },
+  { key: 'special' },
 ];
 
 export function onEnter() {
@@ -33,7 +35,7 @@ function renderMedals() {
 
     return `
       <div class="medals-category">
-        <div class="medals-category-label">${t(cat.labelKey)}</div>
+        <div class="medals-category-label">${medalTexts.categories[cat.key] || cat.key}</div>
         <div class="medals-grid">${medalsHTML}</div>
       </div>
     `;
@@ -244,7 +246,7 @@ function renderMedalCard(medal) {
         : ''}
       ${isNew ? `<div class="medal-new-badge">NEW</div>` : ''}
       <div class="medal-emoji">${medal.emoji}</div>
-      <div class="medal-name">${t('medal_' + medal.id)}</div>
+      <div class="medal-name">${medalTexts[medal.id]?.name || medal.id}</div>
     </div>
   `;
 }
@@ -264,8 +266,8 @@ window.__showMedalModal = function(medalId) {
   overlay.innerHTML = `
     <div class="medal-modal">
       <span class="medal-modal-emoji">${medal.emoji}</span>
-      <div class="medal-modal-name">${t('medal_' + medal.id)}</div>
-      <div class="medal-modal-desc">${t('medal_' + medal.id + '_desc')}</div>
+      <div class="medal-modal-name">${medalTexts[medal.id]?.name || medal.id}</div>
+      <div class="medal-modal-desc">${medalTexts[medal.id]?.desc || ''}</div>
       <div class="medal-modal-status ${medal.earned ? 'earned' : 'locked'}">
         ${medal.earned
           ? `✅ ${t('medals_earned')}${medal.count > 1 ? ' · ' + medal.count + ' ' + t('medals_times') : ''}`
