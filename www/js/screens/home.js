@@ -343,10 +343,10 @@ async function initDailyChallenge() {
     let challenge   = getCurrentPoolChallenge();
 
     if (!challenge || !challenge.text) {
-      console.warn('[CHALLENGE] no challenge text, bar hidden');
       bar.style.display = 'none';
       return;
     }
+
     let timerInterval = null;
 
     function fmtTime(ms) {
@@ -359,7 +359,6 @@ async function initDailyChallenge() {
     function renderChallenge(ch) {
       textEl.textContent = ch.text;
 
-      // Убираем старые кнопки
       const oldWrap = document.getElementById('challengeBtnWrap');
       if (oldWrap) oldWrap.remove();
       if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
@@ -374,7 +373,6 @@ async function initDailyChallenge() {
       const timerState = getChallengeTimerState();
 
       if (!timerState.active) {
-        // Таймер не запущен — показываем кнопку Начать
         btn.textContent   = challengeUI.start;
         btn.disabled      = false;
         btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
@@ -388,7 +386,6 @@ async function initDailyChallenge() {
           renderChallenge(ch);
         });
       } else {
-        // Таймер запущен
         btn.style.display = 'none';
 
         const wrap = document.createElement('div');

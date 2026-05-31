@@ -76,6 +76,8 @@ function generateChallenge() {
       });
     });
 
+    const pool = [];
+
     const triggerPool = [
       'walk','sport','social','sleep','music',
       'food','rest','nature','creative','work'
@@ -120,8 +122,6 @@ function generateChallenge() {
       'tap-calm':      () => t('challenge_do_tap'),
       'support_texts': () => t('challenge_do_support'),
     };
-
-    const pool = [];
 
     // 1. Вечернее падение — предупреди заранее
     if (patterns.eveningDip && hour >= 14 && hour < 18) {
@@ -243,7 +243,12 @@ export function getDailyPool() {
 
     // Генерируем пул из 3 заданий из разных триггеров
     const allTriggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
-    const shuffled = allTriggers.sort(() => Math.random() - 0.5).slice(0, 3);
+    const shuffled = [...allTriggers];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    shuffled.length = 3;
     const pool = shuffled.map(trigger => {
       const challenges = triggerChallenges[trigger];
       const picked = challenges[Math.floor(Math.random() * challenges.length)];
