@@ -6,6 +6,7 @@ import { getPatternSummary } from './pattern-engine.js';
 import { getMoodHistory, getSessionHistory } from './memory.js';
 import { getProfile } from './user-profile.js';
 import { t } from '../i18n.js';
+import { triggerChallenges } from '../ai/challenge-texts-ru.js';
 
 const CHALLENGE_KEY = 'neyra_daily_challenge';
 
@@ -66,6 +67,34 @@ function generateChallenge() {
     const sessions = getSessionHistory();
     const profile = getProfile();
     const hour = new Date().getHours();
+
+    // Триггерные задания из истории
+    const recentEvents = [];
+    history.slice(0, 20).forEach(e => {
+      (e.events || []).forEach(ev => {
+        if (!recentEvents.includes(ev)) recentEvents.push(ev);
+      });
+    });
+
+    const triggerPool = [
+      'walk','sport','social','sleep','music',
+      'food','rest','nature','creative','work'
+    ];
+
+    recentEvents.forEach(ev => {
+      if (triggerPool.includes(ev) && triggerChallenges[ev]) {
+        const challenges = triggerChallenges[ev];
+        // Берём случайный из 5
+        const picked = challenges[Math.floor(Math.random() * challenges.length)];
+        pool.push({
+          type: 'trigger',
+          icon: picked.icon,
+          text: picked.text,
+          trigger: ev,
+          priority: 6,
+        });
+      }
+    });
 
     // Среднее настроение за последние 3 дня
     const recent = history
@@ -187,9 +216,10 @@ function generateChallenge() {
 
     return {
       icon: chosen.icon,
-      text: t(chosen.textKey) || chosen.textKey,
+      text: chosen.text || t(chosen.textKey) || chosen.textKey,
       type: chosen.type,
       practice: chosen.practice || null,
+      trigger: chosen.trigger || null,
     };
   } catch(e) {
     return {

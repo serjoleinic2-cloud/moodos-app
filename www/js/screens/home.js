@@ -11,6 +11,7 @@ import { safeGenerateInsight } from "../ai/offline-ai.js";
 import { getResilienceIndex, getResilienceLabel, getMoodStability } from '../services/resilience-engine.js';
 import { getMoodHistory } from '../services/memory.js';
 import { initLetterEngine } from '../ai/avatar-letter-engine.js';
+import { challengeUI } from '../ai/challenge-texts-ru.js';
 import { renderLetterCard } from '../ui/letter-overlay.js';
 
 function getTimeBucket() {
@@ -332,45 +333,83 @@ async function initDailyChallenge() {
     const { getTodayChallenge, isChallengeCompleted, completeChallenge } =
       await import('../services/challenge-engine.js');
 
-    const bar = document.getElementById('dailyChallengeBar');
+    const bar    = document.getElementById('dailyChallengeBar');
     const textEl = document.getElementById('challengeText');
-    const btn = document.getElementById('challengeBtn');
+    const btn    = document.getElementById('challengeBtn');
     if (!bar || !textEl || !btn) return;
 
     const challenge = getTodayChallenge();
     const completed = isChallengeCompleted();
 
-    textEl.textContent = challenge.text;
-    btn.textContent = completed ? t('challenge_done') : t('challenge_start');
-    btn.disabled = completed;
-    btn.style.background = completed
-      ? 'rgba(76,175,135,0.3)'
-      : 'linear-gradient(145deg,#9f7aea,#805ad5)';
-    btn.style.color = completed ? '#4caf87' : '#fff';
-
     bar.style.display = 'block';
 
-    if (!completed) {
-      btn.addEventListener('click', async () => {
-        // Открываем меню практик напрямую
-        if (window.openToolsMenuDirect) {
-          window.openToolsMenuDirect();
-        } else if (window.navigateTo) {
-          window.navigateTo('tools');
-        }
+    if (completed) {
+      // Уже выполнен — показываем статус
+      textEl.textContent = challenge.text;
+      btn.textContent    = challengeUI.done;
+      btn.disabled       = true;
+      btn.style.cssText  = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
+      return;
+    }
 
+    // Показываем текст вызова и кнопку Начать
+    textEl.textContent = challenge.text;
+    btn.textContent    = challengeUI.start;
+    btn.disabled       = false;
+    btn.style.cssText  = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
+
+    // Клон чтобы убрать старые слушатели
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.addEventListener('click', () => {
+      // Меняем текст и показываем две кнопки
+      textEl.textContent = challengeUI.action_prompt;
+
+      newBtn.style.display = 'none';
+
+      const btnWrap = document.createElement('div');
+      btnWrap.style.cssText = 'display:flex;gap:10px;margin-top:10px;';
+
+      const doneBtn = document.createElement('button');
+      doneBtn.textContent = challengeUI.completed;
+      doneBtn.style.cssText = 'flex:1;background:linear-gradient(145deg,#4caf87,#3a9a72);color:#fff;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;';
+
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = challengeUI.skipped;
+      skipBtn.style.cssText = 'flex:1;background:rgba(224,85,85,0.15);color:#e05555;border:1px solid rgba(224,85,85,0.3);border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;';
+
+      btnWrap.appendChild(doneBtn);
+      btnWrap.appendChild(skipBtn);
+      newBtn.parentNode.insertBefore(btnWrap, newBtn.nextSibling);
+
+      // Сделано
+      doneBtn.addEventListener('click', async () => {
         completeChallenge();
-        btn.textContent = t('challenge_done');
-        btn.disabled = true;
-        btn.style.background = 'rgba(76,175,135,0.3)';
-        btn.style.color = '#4caf87';
+        btnWrap.remove();
+        newBtn.style.display = 'block';
+        newBtn.textContent   = challengeUI.done;
+        newBtn.disabled      = true;
+        newBtn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
+        textEl.textContent   = challenge.text;
 
         try {
           const { checkAndUpdateMedals } = await import('../services/medals-engine.js');
           checkAndUpdateMedals();
         } catch(e) {}
       });
-    }
+
+      // Не сделано
+      skipBtn.addEventListener('click', () => {
+        btnWrap.remove();
+        newBtn.style.display = 'block';
+        newBtn.textContent   = challengeUI.start;
+        newBtn.disabled      = false;
+        textEl.textContent   = challenge.text;
+        newBtn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
+      });
+    });
+
   } catch(e) {
     console.warn('[CHALLENGE] init failed:', e);
   }
