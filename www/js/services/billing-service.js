@@ -50,13 +50,6 @@ export function initBilling() {
       receipt.finish();
     })
 
-    .owned((product) => {
-      console.log('[billing] owned product detected:', product.id);
-      activatePremiumPaid(product.id);
-      enqueueBillingStateUpdate(true);
-      logPremiumGranted('billing_owned_restore', { productId: product.id });
-    });
-
   store.error((err) => {
     console.error('[billing] error:', err);
   });
@@ -68,7 +61,23 @@ export function initBilling() {
         restorePremiumFromProfile();
         try { await store.update(); } catch(e) {}
         getPremiumFromBilling();
+        const isFirstRun = !localStorage.getItem('billing_restore_done');
+        const profile = getProfile();
+        if (isFirstRun && (!profile || !profile.premium_type)) {
+          localStorage.setItem('billing_restore_done', '1');
+          try {
+            await store.restorePurchases();
+          } catch(e) {
+            console.warn('[billing] restorePurchases on fresh install failed:', e);
+          }
+        }
       })
+      .catch(err => {
+        console.error('[billing] init failed:', err);
+      })
+      .finally(() => {
+        window._billingInitializing = false;
+      });
 }
 
 export function getPremiumFromBilling() {
@@ -82,7 +91,6 @@ export function getPremiumFromBilling() {
       const profileSaysPremium = isPremium();
       if (profileSaysPremium) {
         console.warn('[billing] billing says false but profile says premium — skipping revoke');
-        enqueueBillingStateUpdate(true);
         return true;
       }
     }
