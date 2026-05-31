@@ -187,6 +187,13 @@ function buildTimeline() {
     stateBefore:e.stateBefore, result:e.result, duration:e.duration, tapCount:e.tapCount||null,
   }));
   getReflections().forEach(e => items.push({ type:"reflection", ts:e.time||Date.now(), text:e.text||"", mood:e.mood||null }));
+  try {
+    getAllLetters().forEach(l => items.push({
+      type: 'letter',
+      ts: l.createdAt,
+      letter: l,
+    }));
+  } catch(e) {}
   items.sort((a,b)=>b.ts-a.ts);
   return items;
 }
@@ -669,6 +676,31 @@ if (item.type==="session") {
       <div class="hist-card-left" style="background:#10b98122;"><span style="font-size:20px;">📝</span></div>
       <div class="hist-card-body"><div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}</div><div class="hist-card-sub">${prev}${moodBadge}</div></div>
       <div style="display:flex;align-items:center;gap:8px;">${delBtn("reflection")}<div class="hist-card-time">${time}</div></div></div>`;
+  }
+  if (item.type === 'letter') {
+    const triggerNames = {
+      coffee:'☕ Кофе', walk:'🚶 Прогулки', work:'💼 Работа',
+      sport:'🏃 Спорт', social:'💬 Общение', sleep:'😴 Сон',
+      music:'🎵 Музыка', food:'🍽️ Еда', rest:'🛋️ Отдых',
+      stress:'😤 Стресс', alcohol:'🍷 Алкоголь', nature:'🌿 Природа',
+      screen:'📱 Экраны', period:'🌙 Цикл', creative:'🎨 Творчество',
+    };
+    const name = triggerNames[item.letter.trigger] || item.letter.trigger;
+    const preview = item.letter.text.substring(0, 65) + '...';
+    const unread = !item.letter.read;
+    return `<div class="hist-card letter-hist-item" data-letter-id="${item.letter.id}" data-ts="${item.ts}" data-type="letter" style="
+      background: ${unread ? 'linear-gradient(135deg,#f5f0e8,#ede5d0)' : 'rgba(245,240,228,0.7)'};
+      border: 1px solid rgba(200,170,110,${unread ? '0.45' : '0.15'});
+    ">
+      <div class="hist-card-left" style="background:#c8a96822;">
+        <span style="font-size:20px;">✉️</span>
+      </div>
+      <div class="hist-card-body">
+        <div class="hist-card-title" style="color:#6b5a3e;">${name}${unread ? ' <span style="background:#e07b3a;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;">новое</span>' : ''}</div>
+        <div class="hist-card-sub" style="color:#9a7a50;font-style:italic;">${preview}</div>
+      </div>
+      <div class="hist-card-time">${formatTime(item.ts)}</div>
+    </div>`;
   }
   return "";
 }
