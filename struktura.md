@@ -1,12 +1,14 @@
 Структура проекта
 D:\moodos-app\
-├── CLAUDE.md                    # Rules for AI
+├── FREEZE_PROTOCOL.md           # Architecture freeze rules
 ├── MODULE_MAP.md               
-├── PROJECT_BRAIN.md            
 ├── TASK_LOG_ACTIVE.md          
+├── Правила.txt                 # AI rules
 ├── package.json                # Dependencies
 ├── vite.config.js             # Vite config
 ├── capacitor.config.json      # Capacitor config
+├── gradle.properties          # Gradle config
+├── .gitignore
 ├── android/
 │   └── app/src/main/
 │       ├── java/com/neyra/app/
@@ -23,84 +25,89 @@ D:\moodos-app\
 │   │   └── design-system.css
 │   ├── assets/
 │   │   ├── avatar/
+│   │   ├── bg/
 │   │   ├── audio/meditation/
 │   │   └── icons/
-│   ├── docs/
-│   │   └── privacy.html
-│   └── js/
-│       ├── app.js
-│       ├── navigation.js
-│       ├── state.js
-│       ├── system-core.js
-│       ├── i18n.js
-│       ├── avatar.js
-│       ├── events.js
-│       ├── onboarding.js
-│       ├── ui-controller.js
-│       ├── premium-modal.js
-│       ├── monthly-check.js
-│       ├── ai/
-│       │   ├── offline-ai.js
-│       │   ├── voice.js
-│       │   ├── voice-analysis.js
-│       │   └── avatar-brain.js
-│       ├── core/                    # ARL layer
-│       │   ├── appRuntime.js
-│       │   ├── audioController.js
-│       │   ├── audit-logger.js
-│       │   ├── event-queue.js
-│       │   ├── migration-registry.js
-│       │   └── state-execution-engine.js
-│       ├── screens/                 # UI screens
-│       │   ├── home.js
-│       │   ├── insight.js
-│       │   ├── history.js
-│       │   ├── report.js
-│       │   ├── stability.js
-│       │   ├── settings.js
-│       │   ├── premium.js
-│       │   ├── paywall.js
-│       │   ├── tools.js
-│       │   ├── breathing.js
-│       │   ├── meditation.js
-│       │   ├── visual-focus.js
-│       │   ├── mind-dump.js
-│       │   ├── tap-calm.js
-│       │   ├── voice.js
-│       │   ├── pdf-report.js
-│       │   ├── support-texts.js
-│       │   ├── how-it-works.js
-│       │   ├── data-storage.js
-│       │   └── medals.js
-│       ├── services/               # Business logic
-│       │   ├── user-profile.js     # ⭐ Premium logic
-│       │   ├── billing-service.js # ⭐ In-app purchases
-│       │   ├── memory.js
-│       │   ├── analytics.js
-│       │   ├── daily-snapshots.js
-│       │   ├── insight-engine.js
-│       │   ├── pattern-engine.js
-│       │   ├── resilience-engine.js
-│       │   ├── weekly-analytics.js
-│       │   ├── year-comparison.js
-│       │   ├── session-analytics.js
-│       │   ├── state-engine.js
-│       │   ├── backup-service.js
-│       │   ├── drive-backup.js
-│       │   ├── cloud-restore.js
-│       │   ├── checkpoint-manager.js
-│       │   ├── voice-service.js
-│       │   ├── exit-guard.js
-│       │   ├── backup-reminder.js
-│       │   ├── reminders-service.js
-│       │   ├── challenge-engine.js
-│       │   └── medals-engine.js
-│       ├── i18n/                  # Translations (5 langs)
-│       │   ├── ru.js
-│       │   ├── en.js
-│       │   ├── es.js
-│       │   ├── uk.js
-│       │   └── hi.js
-│       └── ui/
-│           └── avatar-controller.js
+│   │       └── player/
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── navigation.js
+│   │   ├── state.js
+│   │   ├── system-core.js
+│   │   ├── i18n.js
+│   │   ├── avatar.js
+│   │   ├── events.js
+│   │   ├── onboarding.js
+│   │   ├── ui-controller.js
+│   │   ├── premium-modal.js
+│   │   ├── monthly-check.js
+│   │   ├── ai/
+│   │   │   ├── offline-ai.js
+│   │   │   ├── voice.js
+│   │   │   ├── voice-analysis.js
+│   │   │   ├── avatar-brain.js
+│   │   │   ├── avatar-letter-engine.js
+│   │   │   ├── avatar-letters-ru.js
+│   │   │   ├── challenge-texts-ru.js
+│   │   │   └── medals-texts-ru.js
+│   │   ├── core/                    # ARL layer
+│   │   │   ├── appRuntime.js
+│   │   │   ├── audioController.js
+│   │   │   ├── audit-logger.js
+│   │   │   ├── event-queue.js
+│   │   │   ├── migration-registry.js
+│   │   │   └── state-execution-engine.js
+│   │   ├── screens/                 # UI screens
+│   │   │   ├── home.js
+│   │   │   ├── insight.js
+│   │   │   ├── history.js
+│   │   │   ├── report.js
+│   │   │   ├── stability.js
+│   │   │   ├── settings.js
+│   │   │   ├── premium.js
+│   │   │   ├── paywall.js
+│   │   │   ├── tools.js
+│   │   │   ├── breathing.js
+│   │   │   ├── meditation.js
+│   │   │   ├── visual-focus.js
+│   │   │   ├── mind-dump.js
+│   │   │   ├── tap-calm.js
+│   │   │   ├── voice.js
+│   │   │   ├── pdf-report.js
+│   │   │   ├── support-texts.js
+│   │   │   ├── how-it-works.js
+│   │   │   ├── data-storage.js
+│   │   │   └── medals.js
+│   │   ├── services/               # Business logic
+│   │   │   ├── user-profile.js     # ⭐ Premium logic
+│   │   │   ├── billing-service.js # ⭐ In-app purchases
+│   │   │   ├── memory.js
+│   │   │   ├── analytics.js
+│   │   │   ├── daily-snapshots.js
+│   │   │   ├── insight-engine.js
+│   │   │   ├── pattern-engine.js
+│   │   │   ├── resilience-engine.js
+│   │   │   ├── weekly-analytics.js
+│   │   │   ├── year-comparison.js
+│   │   │   ├── session-analytics.js
+│   │   │   ├── state-engine.js
+│   │   │   ├── backup-service.js
+│   │   │   ├── drive-backup.js
+│   │   │   ├── cloud-restore.js
+│   │   │   ├── checkpoint-manager.js
+│   │   │   ├── voice-service.js
+│   │   │   ├── exit-guard.js
+│   │   │   ├── backup-reminder.js
+│   │   │   ├── reminders-service.js
+│   │   │   ├── challenge-engine.js
+│   │   │   └── medals-engine.js
+│   │   ├── i18n/                  # Translations (5 langs)
+│   │   │   ├── ru.js
+│   │   │   ├── en.js
+│   │   │   ├── es.js
+│   │   │   ├── uk.js
+│   │   │   └── hi.js
+│   │   └── ui/
+│   │       ├── avatar-controller.js
+│   │       └── letter-overlay.js
 └── dist/                       # Vite build output
