@@ -230,3 +230,63 @@ function generateChallenge() {
     };
   }
 }
+
+const SKIP_KEY = 'neyra_challenge_skips';
+
+export function getSkippedChallenges() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
+    const today = new Date().toDateString();
+    if (!saved || saved.date !== today) return { date: today, count: 0, used: [] };
+    return saved;
+  } catch(e) { return { date: new Date().toDateString(), count: 0, used: [] }; }
+}
+
+export function skipChallenge() {
+  try {
+    const state = getSkippedChallenges();
+    if (state.count >= 3) return null;
+
+    const current = getTodayChallenge();
+    state.used.push(current.trigger || current.type);
+    state.count += 1;
+    state.date = new Date().toDateString();
+
+    const newChallenge = generateAlternativeChallenge(state.used);
+    state.current = newChallenge;
+    localStorage.setItem(SKIP_KEY, JSON.stringify(state));
+    return newChallenge;
+  } catch(e) { return null; }
+}
+
+function generateAlternativeChallenge(usedTriggers) {
+  const allTriggers = ['walk','sport','social','sleep','music','food','rest','nature','creative','work'];
+  const available = allTriggers.filter(t => !usedTriggers.includes(t));
+  if (!available.length) return null;
+
+  const trigger = available[Math.floor(Math.random() * available.length)];
+  const challenges = triggerChallenges[trigger];
+  if (!challenges) return null;
+  const picked = challenges[Math.floor(Math.random() * challenges.length)];
+
+  return {
+    icon: picked.icon,
+    text: picked.text,
+    type: 'trigger',
+    trigger,
+  };
+}
+
+export function getCurrentSkipChallenge() {
+  try {
+    const state = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
+    const today = new Date().toDateString();
+    if (state && state.date === today && state.current) return state.current;
+    return null;
+  } catch(e) { return null; }
+}
+
+export function getSkipsLeft() {
+  const state = getSkippedChallenges();
+  return Math.max(0, 3 - state.count);
+}

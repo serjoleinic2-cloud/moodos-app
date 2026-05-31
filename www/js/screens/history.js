@@ -272,46 +272,6 @@ function compressImage(dataUrl, maxWidth=800, quality=0.7) {
   });
 }
 
-function _renderLetterSection() {
-  const all = getAllLetters();
-  if (!all.length) return '';
-
-  const triggerNames = {
-    coffee:'☕ Кофе', walk:'🚶 Прогулки', work:'💼 Работа',
-    sport:'🏃 Спорт', social:'💬 Общение', sleep:'😴 Сон',
-    music:'🎵 Музыка', food:'🍽️ Еда', rest:'🛋️ Отдых',
-    stress:'😤 Стресс', alcohol:'🍷 Алкоголь', nature:'🌿 Природа',
-    screen:'📱 Экраны', period:'🌙 Цикл', creative:'🎨 Творчество',
-  };
-
-  const items = all.slice(0, 10).map(l => `
-    <div class="letter-hist-item" data-letter-id="${l.id}" style="
-      background: ${l.read ? 'rgba(245,240,228,0.6)' : '#f0e8d0'};
-      border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
-      cursor: pointer;
-      border: 1px solid rgba(200,170,110,${l.read ? '0.15' : '0.4'});
-      box-shadow: 2px 2px 6px rgba(160,130,80,0.1);
-    ">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <div style="font-size:13px;font-weight:600;color:#6b5a3e;">
-          ✉️ ${triggerNames[l.trigger] || l.trigger}
-        </div>
-        <div style="font-size:11px;color:#b09070;">${new Date(l.createdAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
-      </div>
-      <div style="font-size:12px;color:#8a7050;line-height:1.5;overflow:hidden;max-height:32px;">
-        ${l.text.substring(0, 70)}...
-      </div>
-    </div>
-  `).join('');
-
-  return `
-    <div style="margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:700;color:#9a7a50;letter-spacing:0.5px;margin-bottom:10px;text-transform:uppercase;">✉️ Письма от Нейры</div>
-      ${items}
-    </div>
-  `;
-}
-
 function renderHistory(filterDate=null) {
   const container = document.getElementById("history-content");
   if (!container) return;
@@ -336,7 +296,6 @@ function renderHistory(filterDate=null) {
   container.innerHTML = `
     <div style="padding:4px 0 60px 0;">
       <h2 style="margin-bottom:16px;">${t("hist_title")}</h2>
-      ${_renderLetterSection()}
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
         <input type="date" id="histDateFilter" class="hist-date-input" value="${filterDate||''}">
         <div id="histCameraBtn" style="width:48px;height:48px;border-radius:14px;flex-shrink:0;cursor:pointer;background:rgba(232,237,230,0.9);box-shadow:4px 4px 8px #b8c4b4,-4px -4px 8px #ffffff;display:flex;align-items:center;justify-content:center;font-size:22px;">📷</div>

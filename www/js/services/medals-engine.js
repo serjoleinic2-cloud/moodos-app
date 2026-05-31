@@ -281,6 +281,51 @@ export const MEDALS_DEFINITION = [
       getTotalDays(moodHistory) >= 30
   },
 
+  // 🌒 РЕДКИЕ ОСОБЫЕ
+  {
+    id: 'midnight_owl',
+    category: 'special',
+    emoji: '🌒',
+    repeatable: false,
+    checkFn: ({ moodHistory }) =>
+      moodHistory.filter(e => new Date(e.time).getHours() === 0 ||
+        new Date(e.time).getHours() === 1 ||
+        new Date(e.time).getHours() === 2).length >= 20
+  },
+  {
+    id: 'year_with_neyra',
+    category: 'special',
+    emoji: '📆',
+    repeatable: false,
+    checkFn: ({ moodHistory }) => getTotalDays(moodHistory) >= 365
+  },
+  {
+    id: 'full_range',
+    category: 'special',
+    emoji: '🎭',
+    repeatable: false,
+    checkFn: ({ moodHistory }) => {
+      const now = Date.now();
+      const week = moodHistory.filter(e => now - e.time <= 7 * 86400000);
+      const hasLow  = week.some(e => e.value <= 20);
+      const hasHigh = week.some(e => e.value >= 80);
+      return hasLow && hasHigh;
+    }
+  },
+  {
+    id: 'deep_diver',
+    category: 'special',
+    emoji: '🧬',
+    repeatable: false,
+    checkFn: ({ moodHistory, sessions, profile }) => {
+      const hasProfile = profile && profile.takesMeds && profile.moodBaseline;
+      const allPractices = ['breathing','meditation','visual-focus','mind-dump','tap-calm','support_texts'];
+      const usedTypes = new Set(sessions.map(s => s.type));
+      const hasAllPractices = allPractices.every(t => usedTypes.has(t));
+      return hasProfile && hasAllPractices && getTotalDays(moodHistory) >= 50;
+    }
+  },
+
   // 🌿 ТРИГГЕРНЫЕ ВЫЗОВЫ
   {
     id: 'walker',
