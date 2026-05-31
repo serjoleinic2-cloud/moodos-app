@@ -41,13 +41,20 @@ export function initBilling() {
     })
     .verified((receipt) => {
       console.log('[billing] verified');
-      receipt.finish();
       const productId = receipt.transactions?.[0]?.products?.[0]?.id;
       if (productId) {
         activatePremiumPaid(productId);
         enqueueBillingStateUpdate(true);
         logPremiumGranted('billing_verified', { productId });
       }
+      receipt.finish();
+    })
+
+    .owned((product) => {
+      console.log('[billing] owned product detected:', product.id);
+      activatePremiumPaid(product.id);
+      enqueueBillingStateUpdate(true);
+      logPremiumGranted('billing_owned_restore', { productId: product.id });
     });
 
   store.error((err) => {
@@ -55,18 +62,13 @@ export function initBilling() {
   });
 
   store.initialize()
-    .then(() => {
-      console.log('[billing] initialized successfully');
-      storeReady = true;
-      restorePremiumFromProfile();
-      getPremiumFromBilling();
-    })
-    .catch(err => {
-      console.error('[billing] init failed:', err);
-    })
-    .finally(() => {
-      window._billingInitializing = false;
-    });
+      .then(async () => {
+        console.log('[billing] initialized successfully');
+        storeReady = true;
+        restorePremiumFromProfile();
+        try { await store.update(); } catch(e) {}
+        getPremiumFromBilling();
+      })
 }
 
 export function getPremiumFromBilling() {
@@ -80,6 +82,7 @@ export function getPremiumFromBilling() {
       const profileSaysPremium = isPremium();
       if (profileSaysPremium) {
         console.warn('[billing] billing says false but profile says premium — skipping revoke');
+        enqueueBillingStateUpdate(true);
         return true;
       }
     }

@@ -137,7 +137,6 @@ export function getPremiumInfo() {
     expiresAt = profile?.premiumExpiresAt ? new Date(profile.premiumExpiresAt) : null;
     if (expiresAt && Date.now() > expiresAt.getTime()) {
       isExpired = true;
-      deactivateExpiredPremium();
     }
   }
   
