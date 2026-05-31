@@ -341,6 +341,12 @@ async function initDailyChallenge() {
 
     const completed = isChallengeCompleted();
     let challenge   = getCurrentPoolChallenge();
+
+    if (!challenge || !challenge.text) {
+      console.warn('[CHALLENGE] no challenge text, bar hidden');
+      bar.style.display = 'none';
+      return;
+    }
     let timerInterval = null;
 
     function fmtTime(ms) {

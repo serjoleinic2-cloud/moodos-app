@@ -119,8 +119,8 @@ function renderTodaySection(todaySummary) {
       .flip-front-stab { position:relative; width:100%; }
       .flip-back-stab  { position:absolute; top:0; left:0; width:100%; height:100%; transform:rotateY(180deg); }
     </style>
-    ${best  ? flipCard('best',  bestFront,  bestBack,  '#4caf87') : ''}
-    ${worst ? flipCard('worst', worstFront, worstBack, '#e05555') : ''}`;
+    ${best  && best.value  >= 65 ? flipCard('best',  bestFront,  bestBack,  '#4caf87') : ''}
+    ${worst && worst.value <= 45 && worst.value < (best?.value ?? 100) - 20 ? flipCard('worst', worstFront, worstBack, '#e05555') : ''}`;
 }
 
 let cachedStability = null;
