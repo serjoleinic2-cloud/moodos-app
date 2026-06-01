@@ -59,17 +59,22 @@ export function initBilling() {
         console.log('[billing] initialized successfully');
         storeReady = true;
         restorePremiumFromProfile();
-        try { await store.update(); } catch(e) {}
+        try {
+          await store.update();
+          const monthly = store.get("premium_monthly");
+          const yearly = store.get("premium_yearly");
+          console.log('[billing] monthly exists:', !!monthly);
+          console.log('[billing] yearly exists:', !!yearly);
+          console.log('[billing] monthly owned:', !!(monthly && store.owned(monthly)));
+          console.log('[billing] yearly owned:', !!(yearly && store.owned(yearly)));
+        } catch(e) {
+          console.warn('[billing] update failed:', e);
+        }
         getPremiumFromBilling();
-        const isFirstRun = !localStorage.getItem('billing_restore_done');
-        const profile = getProfile();
-        if (isFirstRun && (!profile || !profile.premium_type)) {
-          localStorage.setItem('billing_restore_done', '1');
-          try {
-            await store.restorePurchases();
-          } catch(e) {
-            console.warn('[billing] restorePurchases on fresh install failed:', e);
-          }
+        try {
+          await store.restorePurchases();
+        } catch(e) {
+          console.warn('[billing] restorePurchases failed:', e);
         }
       })
       .catch(err => {
