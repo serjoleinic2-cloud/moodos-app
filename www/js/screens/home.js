@@ -13,6 +13,7 @@ import { getMoodHistory } from '../services/memory.js';
 import { initLetterEngine } from '../ai/avatar-letter-engine.js';
 import { challengeUI } from '../ai/challenge-texts-ru.js';
 import { renderLetterCard } from '../ui/letter-overlay.js';
+import { getGreeting } from '../ai/home-greetings-ru.js';
 import {
   getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
   skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
@@ -108,6 +109,12 @@ export function onEnter() {
   if (!slider) {
     console.error('home.onEnter: slider not found');
     return;
+  }
+
+  // Приветствие по времени суток
+  const greetingEl = document.getElementById('homeGreeting');
+  if (greetingEl) {
+    greetingEl.textContent = getGreeting(getTimeBucket());
   }
 
   const currentMood = getMood();
