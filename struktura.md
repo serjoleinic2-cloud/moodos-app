@@ -48,6 +48,11 @@ D:\moodos-app\
 │   │   │   ├── avatar-brain.js
 │   │   │   ├── avatar-letter-engine.js
 │   │   │   ├── avatar-letters-ru.js
+│   │   │   ├── avatar-letters-en.js
+│   │   │   ├── avatar-letters-es.js
+│   │   │   ├── avatar-letters-uk.js
+│   │   │   ├── avatar-letters-hi.js
+│   │   │   ├── home-greetings-ru.js
 │   │   │   ├── challenge-texts-ru.js
 │   │   │   └── medals-texts-ru.js
 │   │   ├── core/                    # ARL layer
