@@ -13,8 +13,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
 
         WebView webView = this.bridge.getWebView();
 
@@ -25,8 +25,7 @@ public class MainActivity extends BridgeActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
             int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-            int top    = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            v.setPadding(0, top, 0, bottom);
+            v.setPadding(0, 0, 0, bottom);
             return insets;
         });
     }
