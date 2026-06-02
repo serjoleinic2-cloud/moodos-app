@@ -18,12 +18,13 @@
 <!-- ================= HOME ================= -->
 <div class="screen active" data-screen="home">
 
-  <h1>Neyra</h1>
+
 
   <div class="card">
     <div style="font-size:13px; color:#4caf87; font-weight:600; margin-bottom:10px;" id="daysTogether">
       Я с тобой уже 1 день
     </div>
+    <div id="homeGreeting" style="font-size:14px;color:#7a6a58;font-style:italic;margin-bottom:8px;min-height:18px;"></div>
     <div class="mood-header">
       <div style="font-size:15px; font-weight:600; color:#3a3530;" data-i18n="home_how_feeling">Как ты себя чувствуешь?</div>
       <div id="moodSavedLabel" class="saved-label"></div>
@@ -198,7 +199,7 @@
   position:fixed; bottom:-400px; left:0; width:100%;
   background: linear-gradient(160deg, #d4ede8 0%, #e8e0d5 100%);
   border-radius:24px 24px 0 0;
-  padding:20px 20px 110px 20px;
+  padding:20px 20px calc(110px + env(safe-area-inset-bottom)) 20px;
   max-height:380px; z-index:201; box-sizing:border-box;
   transition: bottom 0.35s ease;
   box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
