@@ -38,12 +38,26 @@ export function initBilling() {
     .approved((transaction) => {
       console.log('[billing] approved:', transaction.products[0]?.id);
       const productId = transaction.products?.[0]?.id;
-      if (productId) {
-        activatePremiumPaid(productId);
-        window._trustedSetBillingPremium?.(true);
-        if (window.systemState) window.systemState.premium = true;
-        enqueueBillingStateUpdate(true);
-        logPremiumGranted('billing_verified', { productId });
+      if (productId && storeReady) {
+        const monthly = store.get("premium_monthly");
+        const yearly = store.get("premium_yearly");
+        const isOwned = store.owned(monthly) || store.owned(yearly);
+        if (isOwned) {
+          activatePremiumPaid(productId);
+          window._trustedSetBillingPremium?.(true);
+          if (window.systemState) window.systemState.premium = true;
+          enqueueBillingStateUpdate(true);
+          logPremiumGranted('billing_approved_owned', { productId });
+        } else {
+          console.warn('[billing] approved but not owned — finishing without activation');
+        }
+      } else if (productId && !storeReady) {
+        // store ещё не готов — активируем осторожно только если profile подтверждает
+        const profile = getProfile();
+        if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now()) {
+          window._trustedSetBillingPremium?.(true);
+          if (window.systemState) window.systemState.premium = true;
+        }
       }
       transaction.finish();
     })
@@ -107,10 +121,15 @@ export function getPremiumFromBilling() {
       return true;
     }
 
-    const profileSaysPremium = isPremium();
-    if (profileSaysPremium) {
-      console.warn('[billing] store.owned()=false but profile says premium — trusting profile');
+    const profile = getProfile();
+    const profileHasValid = profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now();
+    if (profileHasValid) {
+      console.warn('[billing] store.owned()=false but profile has valid expiry — trusting profile');
       return true;
+    }
+    if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt <= Date.now()) {
+      console.warn('[billing] profile premium expired — deactivating');
+      deactivateExpiredPremium();
     }
 
     return false;

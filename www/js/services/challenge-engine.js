@@ -254,14 +254,15 @@ export async function getDailyPool() {
     console.log('[CHALLENGE] getDailyPool start');
     const triggerChallenges = await getTriggerChallenges();
     const today = new Date().toDateString();
+    const currentLang = localStorage.getItem('app_language') || 'ru';
     const saved = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
     if (saved && saved.date === today) {
       // Проверяем что пул валидный
-      if (saved.pool && saved.pool.length && saved.pool[0]?.text) {
+      if (saved.pool && saved.pool.length && saved.pool[0]?.text && saved.lang === currentLang) {
         return saved;
       }
       // Старая структура — сбрасываем
-      console.log('[CHALLENGE] stale pool detected, regenerating');
+      console.log('[CHALLENGE] stale pool or lang changed, regenerating');
       localStorage.removeItem(SKIP_KEY);
     }
 
@@ -290,7 +291,7 @@ export async function getDailyPool() {
       return { date: today, pool: [{ icon: '🫁', text: 'Сделай дыхательную практику — 5 минут', type: 'practice', trigger: null }], index: 0 };
     }
 
-    const state = { date: today, pool, index: 0 };
+    const state = { date: today, pool, index: 0, lang: currentLang };
     localStorage.setItem(SKIP_KEY, JSON.stringify(state));
     return state;
   } catch(e) {

@@ -547,10 +547,29 @@ if (!window.__neyraAppRunning) {
     const recordBtn = document.getElementById('recordVoiceBtn');
     if (recordBtn) recordBtn.textContent = t('home_start_recording');
     
-    document.addEventListener('languageChanged', () => {
+    document.addEventListener('languageChanged', async () => {
       const btn = document.getElementById('recordVoiceBtn');
       if (btn && !btn.disabled) btn.textContent = t('home_start_recording');
       applyDomTranslations();
+
+      // Сбросить и перерендерить вызов дня при смене языка
+      try {
+        const { getCurrentPoolChallenge, isChallengeCompleted } = await import('./services/challenge-engine.js');
+        const challengeBar = document.getElementById('dailyChallengeBar');
+        const challengeText = document.getElementById('challengeText');
+        const challengeBtn = document.getElementById('challengeBtn');
+        if (challengeBar && challengeText && challengeBtn) {
+          const challenge = await getCurrentPoolChallenge();
+          if (challenge?.text) {
+            const done = isChallengeCompleted();
+            challengeText.textContent = (challenge.icon || '') + ' ' + challenge.text;
+            challengeBtn.textContent = done ? t('challenge_done') : t('challenge_start');
+            challengeBtn.disabled = done;
+          }
+        }
+      } catch(e) {
+        console.warn('[LANG] challenge re-render failed:', e);
+      }
     });
     
     // stateGovernance удалён по Freeze Protocol — execution engine единственная точка решения
