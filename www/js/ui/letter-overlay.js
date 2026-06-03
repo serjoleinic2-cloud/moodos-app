@@ -240,6 +240,38 @@ export function openLetterOverlay(letter) {
   });
 
   // Анимация текста — слово за словом как в книге
+  if (!document.getElementById('letter-card-style')) {
+    const style = document.createElement('style');
+    style.id = 'letter-card-style';
+    style.textContent = `
+      @keyframes letterWiggle {
+        0%, 100% { transform: rotate(0deg); }
+        2%        { transform: rotate(-1.2deg); }
+        4%        { transform: rotate(1.2deg); }
+        6%        { transform: rotate(-0.8deg); }
+        8%        { transform: rotate(0.5deg); }
+        10%       { transform: rotate(0deg); }
+      }
+      @keyframes letterOpen {
+        0%   { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.04); opacity: 0; }
+      }
+      @keyframes overlayIn {
+        0%   { transform: translateY(100%); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes textReveal {
+        0%   { opacity: 0; transform: translateY(6px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes sparkle {
+        0%   { transform: scale(0) rotate(0deg);   opacity: 1; }
+        60%  { transform: scale(1.4) rotate(180deg); opacity: 0.8; }
+        100% { transform: scale(0) rotate(360deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
   _animateText(textContainer, letter.text);
   markLetterRead(letter.id);
 }

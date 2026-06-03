@@ -6,14 +6,24 @@ import { getPatternSummary } from './pattern-engine.js';
 import { getMoodHistory, getSessionHistory } from './memory.js';
 import { getProfile } from './user-profile.js';
 import { t } from '../i18n.js';
-import { triggerChallenges } from '../ai/challenge-texts-ru.js';
-console.log('[CHALLENGE] triggerChallenges loaded:', typeof triggerChallenges, Object.keys(triggerChallenges || {}).length);
+
+async function getTriggerChallenges() {
+  const lang = localStorage.getItem('app_language') || 'ru';
+  try {
+    const mod = await import(`../ai/challenge-texts-${lang}.js`);
+    return mod.triggerChallenges;
+  } catch(e) {
+    const fallback = await import('../ai/challenge-texts-ru.js');
+    return fallback.triggerChallenges;
+  }
+}
+
 const CHALLENGE_KEY = 'neyra_daily_challenge';
 
 // =====================================
 // ПОЛУЧИТЬ ИЛИ СГЕНЕРИРОВАТЬ ВЫЗОВ ДНЯ
 // =====================================
-export function getTodayChallenge() {
+export async function getTodayChallenge() {
   const today = new Date().toDateString();
   const currentLang = localStorage.getItem('app_language') || 'ru';
   try {
@@ -22,7 +32,7 @@ export function getTodayChallenge() {
     if (saved && saved.date === today && saved.lang === currentLang) return saved;
   } catch(e) {}
 
-  const challenge = generateChallenge();
+  const challenge = await generateChallenge();
   challenge.date = today;
   challenge.lang = currentLang; // сохраняем язык генерации
   challenge.completed = false;
@@ -60,9 +70,10 @@ export function isChallengeCompleted() {
 // =====================================
 // ГЕНЕРАЦИЯ ВЫЗОВА ПО ПАТТЕРНАМ
 // =====================================
-function generateChallenge() {
+async function generateChallenge() {
   try {
     console.log('[CHALLENGE] generateChallenge start');
+    const triggerChallenges = await getTriggerChallenges();
     const patterns = getPatternSummary();
     const history = getMoodHistory();
     const sessions = getSessionHistory();
@@ -238,9 +249,10 @@ const SKIP_KEY   = 'neyra_challenge_skips';
 const TIMER_KEY  = 'neyra_challenge_timer';
 const TIMER_DURATION = 2 * 60 * 60 * 1000; // 2 часа
 
-export function getDailyPool() {
+export async function getDailyPool() {
   try {
     console.log('[CHALLENGE] getDailyPool start');
+    const triggerChallenges = await getTriggerChallenges();
     const today = new Date().toDateString();
     const saved = JSON.parse(localStorage.getItem(SKIP_KEY) || 'null');
     if (saved && saved.date === today) {
@@ -286,15 +298,15 @@ export function getDailyPool() {
   }
 }
 
-export function getCurrentPoolChallenge() {
-  const state = getDailyPool();
-  if (!state.pool.length) return getTodayChallenge();
+export async function getCurrentPoolChallenge() {
+  const state = await getDailyPool();
+  if (!state.pool.length) return await getTodayChallenge();
   return state.pool[state.index % state.pool.length];
 }
 
-export function skipToNext() {
+export async function skipToNext() {
   try {
-    const state = getDailyPool();
+    const state = await getDailyPool();
     state.index = (state.index + 1) % state.pool.length;
     localStorage.setItem(SKIP_KEY, JSON.stringify(state));
     return state.pool[state.index];

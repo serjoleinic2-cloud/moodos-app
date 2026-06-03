@@ -230,7 +230,7 @@ function renderSettings() {
         <div style="font-size:11px;color:#888;padding:8px 0;line-height:1.6; background:rgba(240,240,240,0.5);border-radius:10px;padding:10px;">
           <strong>⚠️ ${t("important") || "Важно"}:</strong><br>
           ${t("settings_backup_info")}
-          — вы самостоятельно отвечаете за сохранность копии
+          — ${t("backup_confirm_responsibility_short")}
         </div>
         ${premiumInfo.isPremium 
           ? `<div style="font-size:11px;color:#805ad5;margin-top:8px;">${t("settings_photo_premium_info")}</div>` 

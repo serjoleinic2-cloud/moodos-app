@@ -344,7 +344,7 @@ function showProfileUpdateBanner() {
 }
 
 
-function initDailyChallenge() {
+async function initDailyChallenge() {
   try {
     const bar    = document.getElementById('dailyChallengeBar');
     const textEl = document.getElementById('challengeText');
@@ -354,7 +354,7 @@ function initDailyChallenge() {
     bar.style.display = 'block';
 
     const completed = isChallengeCompleted();
-    let challenge   = getCurrentPoolChallenge();
+    let challenge   = await getCurrentPoolChallenge();
 
     console.log('[CHALLENGE DEBUG]', JSON.stringify(challenge));
     if (!challenge || !challenge.text) {
@@ -467,10 +467,10 @@ function initDailyChallenge() {
           } catch(e) {}
         });
 
-        skipBtn.addEventListener('click', () => {
+        skipBtn.addEventListener('click', async () => {
           resetChallengeTimer();
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-          const next = skipToNext();
+          const next = await skipToNext();
           challenge  = next || challenge;
           renderChallenge(challenge);
         });
