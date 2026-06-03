@@ -405,6 +405,7 @@ export const uk = {
     theme_purple_pink: "🌸 Фіолетово-рожева",
     theme_ocean_blue: "🌊 Океанська (Premium)",
     theme_warm_sunset: "🌅 Теплий захід (Premium)",
+    theme_deep_ocean: "🌊 Глибокий океан (Premium)",
     settings_theme_subtitle: "Обери оформлення застосунку",
     settings_reminder_on: "Увімкнено",
     settings_reminder_off: "Вимкнено",

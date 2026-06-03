@@ -405,6 +405,7 @@ export const es = {
     theme_purple_pink: "🌸 Violeta-Rosa",
     theme_ocean_blue: "🌊 Océano (Premium)",
     theme_warm_sunset: "🌅 Atardecer cálido (Premium)",
+    theme_deep_ocean: "🌊 Océano profundo (Premium)",
     settings_theme_subtitle: "Elige la apariencia de la app",
     settings_reminder_on: "Activado",
     settings_reminder_off: "Desactivado",

@@ -405,6 +405,7 @@ export const ru = {
     theme_purple_pink: "🌸 Фиолетово-розовая",
     theme_ocean_blue: "🌊 Океанская (Premium)",
     theme_warm_sunset: "🌅 Тёплый закат (Premium)",
+    theme_deep_ocean: "🌊 Глубокий океан (Premium)",
     settings_reminder_on: "Включено",
     settings_reminder_off: "Выключено",
     reminder_medicine_default: "Лекарство",

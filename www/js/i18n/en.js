@@ -334,6 +334,7 @@ export const en = {
     theme_purple_pink: "🌸 Purple-Pink",
     theme_ocean_blue: "🌊 Ocean (Premium)",
     theme_warm_sunset: "🌅 Warm Sunset (Premium)",
+    theme_deep_ocean: "🌊 Deep Ocean (Premium)",
 
     terms_title: "Before We Start",
     terms_sub: "Please review the terms",

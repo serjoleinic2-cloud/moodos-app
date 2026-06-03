@@ -408,6 +408,13 @@ textarea {
 
 /* --- Фиолетово-синяя --- */
 body[data-theme="purple-blue"] {
+  --neyra-color-text-primary: #3a3070;
+  --neyra-color-text-secondary: #5a5090;
+  --neyra-color-text-muted: #8878b8;
+  --neyra-color-background: #d6d0f0;
+  --neyra-color-surface: rgba(214,208,240,0.97);
+  --neyra-color-surface-elevated: #e8e0f8;
+  --neyra-shadow-card: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff;
   background: linear-gradient(160deg, #d6d0f0 0%, #c8d8f5 100%) !important;
 }
 body[data-theme="purple-blue"] .card,
@@ -435,6 +442,13 @@ body[data-theme="purple-blue"] textarea {
 
 /* --- Фиолетово-розовая --- */
 body[data-theme="purple-pink"] {
+  --neyra-color-text-primary: #7a2060;
+  --neyra-color-text-secondary: #9a4080;
+  --neyra-color-text-muted: #c070a8;
+  --neyra-color-background: #f0d6ea;
+  --neyra-color-surface: rgba(240,214,234,0.97);
+  --neyra-color-surface-elevated: #f8e0f0;
+  --neyra-shadow-card: 5px 5px 10px #d4b0cc, -5px -5px 10px #ffffff;
   background: linear-gradient(160deg, #f0d6ea 0%, #ead6f0 100%) !important;
 }
 body[data-theme="purple-pink"] .card,
@@ -462,6 +476,13 @@ body[data-theme="purple-pink"] textarea {
 
 /* --- Premium: Ocean Blue --- */
 body[data-theme="ocean-blue"] {
+  --neyra-color-text-primary: #2a6070;
+  --neyra-color-text-secondary: #4a8090;
+  --neyra-color-text-muted: #80b0c0;
+  --neyra-color-background: #d0e8f0;
+  --neyra-color-surface: rgba(208,232,240,0.97);
+  --neyra-color-surface-elevated: #e0f0f8;
+  --neyra-shadow-card: 5px 5px 10px #a0c0d0, -5px -5px 10px #ffffff;
   background: linear-gradient(160deg, #d0e8f0 0%, #d8e8e0 100%) !important;
 }
 body[data-theme="ocean-blue"] .card,
@@ -489,6 +510,13 @@ body[data-theme="ocean-blue"] textarea {
 
 /* --- Premium: Warm Sunset --- */
 body[data-theme="warm-sunset"] {
+  --neyra-color-text-primary: #6a3020;
+  --neyra-color-text-secondary: #8a5040;
+  --neyra-color-text-muted: #b08070;
+  --neyra-color-background: #f8e8d8;
+  --neyra-color-surface: rgba(248,232,216,0.97);
+  --neyra-color-surface-elevated: #faf0e8;
+  --neyra-shadow-card: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff;
   background: linear-gradient(160deg, #f8e8d8 0%, #f8d8d0 100%) !important;
 }
 body[data-theme="warm-sunset"] .card,
@@ -512,6 +540,132 @@ body[data-theme="warm-sunset"] .mood-ok-btn {
 body[data-theme="warm-sunset"] .bottom-nav button.active { color: #a07050 !important; }
 body[data-theme="warm-sunset"] textarea {
   box-shadow: inset 3px 3px 7px #d0b8a0, inset -3px -3px 7px #ffffff !important;
+}
+
+/* --- Premium: Глубокий океан --- */
+body[data-theme="deep-ocean"] {
+  background: linear-gradient(160deg, #26658C 0%, #011c40 100%) !important;
+}
+body[data-theme="deep-ocean"] .card,
+body[data-theme="deep-ocean"] .mo-metric,
+body[data-theme="deep-ocean"] .hist-card,
+body[data-theme="deep-ocean"] .flip-front,
+body[data-theme="deep-ocean"] .flip-back,
+body[data-theme="deep-ocean"] .flip-front-home,
+body[data-theme="deep-ocean"] .flip-back-home,
+body[data-theme="deep-ocean"] .stab-entry,
+body[data-theme="deep-ocean"] .meditation-player-card,
+body[data-theme="deep-ocean"] .neyra-card,
+body[data-theme="deep-ocean"] .neyra-list-item {
+  background: rgba(2, 56, 89, 0.97) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(167,235,242,0.08) !important;
+}
+body[data-theme="deep-ocean"] .bottom-nav {
+  background: rgba(1, 28, 64, 0.97) !important;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
+}
+body[data-theme="deep-ocean"] .mo-btn,
+body[data-theme="deep-ocean"] .card button,
+body[data-theme="deep-ocean"] .mood-ok-btn,
+body[data-theme="deep-ocean"] .mainBtn,
+body[data-theme="deep-ocean"] .smallBtn,
+body[data-theme="deep-ocean"] .neyra-btn-secondary {
+  background: linear-gradient(145deg, #023859, #011c40) !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(167,235,242,0.1) !important;
+  color: #A7EBF2 !important;
+  border: 1px solid rgba(167,235,242,0.15) !important;
+}
+body[data-theme="deep-ocean"] .mo-btn:active,
+body[data-theme="deep-ocean"] .card button:active,
+body[data-theme="deep-ocean"] .mood-ok-btn:active,
+body[data-theme="deep-ocean"] .mainBtn:active,
+body[data-theme="deep-ocean"] .smallBtn:active {
+  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 5px rgba(167,235,242,0.08) !important;
+}
+body[data-theme="deep-ocean"] textarea {
+  background: rgba(1, 28, 64, 0.6) !important;
+  color: #A7EBF2 !important;
+  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -2px -2px 5px rgba(167,235,242,0.06) !important;
+}
+body[data-theme="deep-ocean"] textarea::placeholder {
+  color: rgba(167,235,242,0.4) !important;
+}
+body[data-theme="deep-ocean"] .bottom-nav button { color: rgba(167,235,242,0.5) !important; }
+body[data-theme="deep-ocean"] .bottom-nav button.active { color: #A7EBF2 !important; }
+
+/* Все тексты — глубокий океан */
+body[data-theme="deep-ocean"] h1,
+body[data-theme="deep-ocean"] h2,
+body[data-theme="deep-ocean"] h3,
+body[data-theme="deep-ocean"] p,
+body[data-theme="deep-ocean"] span,
+body[data-theme="deep-ocean"] div,
+body[data-theme="deep-ocean"] label,
+body[data-theme="deep-ocean"] small,
+body[data-theme="deep-ocean"] .flip-label,
+body[data-theme="deep-ocean"] .flip-value,
+body[data-theme="deep-ocean"] .flip-sub,
+body[data-theme="deep-ocean"] .flip-label-home,
+body[data-theme="deep-ocean"] .flip-value-home,
+body[data-theme="deep-ocean"] .flip-sub-home,
+body[data-theme="deep-ocean"] .mo-metric-label,
+body[data-theme="deep-ocean"] .mo-metric-value,
+body[data-theme="deep-ocean"] .mo-metric-sub,
+body[data-theme="deep-ocean"] .hist-card-sub,
+body[data-theme="deep-ocean"] .hist-card-title,
+body[data-theme="deep-ocean"] .hist-day-label,
+body[data-theme="deep-ocean"] .mo-section-title,
+body[data-theme="deep-ocean"] .neyra-text-title,
+body[data-theme="deep-ocean"] .neyra-text-subtitle,
+body[data-theme="deep-ocean"] .neyra-text-body,
+body[data-theme="deep-ocean"] .neyra-text-caption,
+body[data-theme="deep-ocean"] .neyra-card-title,
+body[data-theme="deep-ocean"] .neyra-list-item-title,
+body[data-theme="deep-ocean"] .neyra-list-item-subtitle,
+body[data-theme="deep-ocean"] #moodValue,
+body[data-theme="deep-ocean"] #todayInsight,
+body[data-theme="deep-ocean"] #goldenHours,
+body[data-theme="deep-ocean"] #stabilityValue,
+body[data-theme="deep-ocean"] #stabilityTrend,
+body[data-theme="deep-ocean"] #daysTogether {
+  color: #A7EBF2 !important;
+}
+
+/* Приглушённые тексты — чуть темнее основного */
+body[data-theme="deep-ocean"] .mo-section-title,
+body[data-theme="deep-ocean"] .hist-card-title,
+body[data-theme="deep-ocean"] .hist-card-time,
+body[data-theme="deep-ocean"] .flip-label,
+body[data-theme="deep-ocean"] .flip-label-home,
+body[data-theme="deep-ocean"] .mo-metric-label,
+body[data-theme="deep-ocean"] .neyra-text-caption,
+body[data-theme="deep-ocean"] .neyra-list-item-subtitle {
+  color: rgba(167,235,242,0.6) !important;
+}
+
+/* Карточки верхняя часть */
+body[data-theme="deep-ocean"] .neyra-card-header,
+body[data-theme="deep-ocean"] .stab-entry-header {
+  background: #023859 !important;
+  border-radius: 16px 16px 0 0;
+}
+
+/* Разделители */
+body[data-theme="deep-ocean"] .neyra-card-footer,
+body[data-theme="deep-ocean"] .neyra-divider {
+  border-color: rgba(167,235,242,0.1) !important;
+  background: rgba(167,235,242,0.1) !important;
+}
+
+/* Трек медитации */
+body[data-theme="deep-ocean"] .track {
+  background: rgba(2,56,89,0.8) !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.3), -2px -2px 6px rgba(167,235,242,0.06) !important;
+  color: #A7EBF2 !important;
+}
+body[data-theme="deep-ocean"] .track.active {
+  background: rgba(167,235,242,0.12) !important;
+  color: #A7EBF2 !important;
 }
 
 /* ===== MEDITATION TRACK LIST ===== */

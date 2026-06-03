@@ -347,6 +347,7 @@ export const hi = {
     theme_purple_pink: "🌸 बैंगनी-गुलाबी",
     theme_ocean_blue: "🌊 सागर (प्रीमियम)",
     theme_warm_sunset: "🌅 गर्म सूर्यास्त (प्रीमियम)",
+    theme_deep_ocean: "🌊 गहरा सागर (प्रीमियम)",
 
     terms_title: "शुरू करने से पहले",
     terms_sub: "कृपया नियम देखें",

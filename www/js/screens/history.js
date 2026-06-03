@@ -157,7 +157,7 @@ function showToast(msg) {
 // ─── Timeline ─────────────────────────────────────────────────
 function buildTimeline() {
   const items = [];
-  getMoodHistory().forEach(e => items.push({ type:"mood", ts:new Date(e.time).getTime(), value:e.value }));
+  getMoodHistory().forEach(e => items.push({ type:"mood", ts:new Date(e.time).getTime(), value:e.value, events: e.events || [] }));
   getNotesHistory().forEach(e => {
     if (e.type==="mind-dump") return;
     items.push({ type:"note", ts:e.timestamp||new Date(e.time).getTime(), text:e.text||e.note||"" });
@@ -542,125 +542,155 @@ function renderCard(item) {
   const time = formatTime(item.ts);
   const meta = SESSION_META();
   const delBtn = (type) => `<div class="hist-delete-btn" data-ts="${item.ts}" data-type="${type}" style="padding:6px 10px;border-radius:10px;background:rgba(224,85,85,0.1);color:#e05555;font-size:16px;cursor:pointer;flex-shrink:0;">🗑</div>`;
-  const shareBtn = (item) => `<div class="hist-share-btn" data-ts="${item.ts}" data-type="${item.type}" style="padding:6px 10px;border-radius:10px;background:rgba(76,175,135,0.1);color:#4caf87;font-size:16px;cursor:pointer;flex-shrink:0;">📤</div>`;
 
-  if (item.type==="mood") {
-    const col = moodColor(item.value), emo = moodEmoji(item.value);
-
-    let accentStyle = "";
-    let sizeStyle = "";
-    if (item.value >= 75) {
-      accentStyle = `border-left: 3px solid #4caf87;`;
-      sizeStyle = `font-size:22px;`;
-    } else if (item.value <= 35) {
-      accentStyle = `border-left: 3px solid #e05555;`;
-      sizeStyle = `font-size:22px;`;
-    }
-
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1" style="${accentStyle}">
-      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${emo}</span></div>
+  if (item.type === "mood") {
+    const col = moodColor(item.value);
+    const emo = moodEmoji(item.value);
+    const borderColor = item.value >= 70 ? "#4caf87" : item.value <= 35 ? "#e05555" : "#f0a500";
+    const bgColor = item.value >= 70 ? "#e8f5e9" : item.value <= 35 ? "#fce8e8" : "#fff8e1";
+    const eventsHTML = item.events && item.events.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">
+          ${item.events.map(ev => {
+            const label = t('event_' + ev) || ev;
+            return `<span style="font-size:11px;background:${bgColor};color:${borderColor === '#f0a500' ? '#b37a00' : borderColor === '#e05555' ? '#b03030' : '#2e7d32'};padding:2px 7px;border-radius:20px;">${label}</span>`;
+          }).join('')}
+         </div>`
+      : '';
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="mood" data-clickable="1" style="border-left:3px solid ${borderColor};">
+      <div class="hist-card-left" style="background:${bgColor};"><span style="font-size:20px;">${emo}</span></div>
       <div class="hist-card-body">
         <div class="hist-card-title">${t("hist_mood")}</div>
-        <div class="hist-card-sub" style="color:${col};${sizeStyle}font-weight:700;">${item.value}%</div>
+        <div style="font-size:20px;font-weight:700;color:${col};">${item.value}%</div>
+        ${eventsHTML}
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("mood")}<div class="hist-card-time">${time}</div></div>
+    </div>`;
   }
-  if (item.type==="note") {
-    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || t("hist_no_text") || "Нет заметки");
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1">
-      <div class="hist-card-left" style="background:#5a8dee22;"><span style="font-size:20px;">📝</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_note")}</div><div class="hist-card-sub">${prev}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div></div>`;
+
+  if (item.type === "note") {
+    const prev = item.text && item.text.length > 60 ? item.text.slice(0, 60) + "..." : (item.text || t("hist_no_text") || "—");
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="note" data-clickable="1" style="border-left:3px solid #7c6af0;">
+      <div class="hist-card-left" style="background:#ede9fe;"><span style="font-size:20px;">📝</span></div>
+      <div class="hist-card-body">
+        <div class="hist-card-title">${t("hist_note")}</div>
+        <div class="hist-card-sub">${prev}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("note")}<div class="hist-card-time">${time}</div></div>
+    </div>`;
   }
-  if (item.type==="photo") {
+
+  if (item.type === "photo") {
     const previewSrc = item.thumbnail || item.uri || item.dataUrl || "";
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1">
-      <div class="hist-card-left" style="background:#f59e0b22;overflow:hidden;border-radius:12px;">
-        ${previewSrc?`<img src="${previewSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">`:`<span style="font-size:20px;">📷</span>`}
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1" style="border-left:3px solid #f0a500;">
+      <div class="hist-card-left" style="background:#fff8e1;overflow:hidden;border-radius:12px;">
+        ${previewSrc ? `<img src="${previewSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">` : `<span style="font-size:20px;">📷</span>`}
       </div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_photo")}</div><div class="hist-card-sub">${item.note||t("hist_photo_mood")}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div class="hist-card-body">
+        <div class="hist-card-title">${t("hist_photo")}</div>
+        <div class="hist-card-sub">${item.note || t("hist_photo_mood")}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("photo")}<div class="hist-card-time">${time}</div></div>
+    </div>`;
   }
-  if (item.type==="voice_note") {
-    const hasAudio=!!item.audioUrl, ts=item.ts;
-    const duration = item.audioDuration || 0;
-    const mins = Math.floor(duration / 60);
-    const secs = duration % 60;
-    const durationStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs} сек`;
-    return `<div class="hist-card" style="flex-direction:column;align-items:stretch;cursor:default;" data-ts="${ts}" data-type="voice_note">
+
+  if (item.type === "voice_note") {
+    const hasAudio = !!item.audioUrl, ts = item.ts;
+    return `<div class="hist-card" style="flex-direction:column;align-items:stretch;cursor:default;border-left:3px solid #9f7aea;" data-ts="${ts}" data-type="voice_note">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="hist-card-left" style="background:#9f7aea22;"><span style="font-size:20px;">🎙️</span></div>
-        <div class="hist-card-body"><div class="hist-card-title">${t("hist_voice")}</div><div class="hist-card-sub">${t("voice_notes_duration")}</div></div>
+        <div class="hist-card-left" style="background:#ede9fe;"><span style="font-size:20px;">🎙️</span></div>
+        <div class="hist-card-body">
+          <div class="hist-card-title">${t("hist_voice")}</div>
+          <div class="hist-card-sub">${t("voice_notes_duration")}</div>
+        </div>
         <div style="display:flex;align-items:center;gap:8px;">${delBtn("voice_note")}<div class="hist-card-time">${time}</div></div>
       </div>
-      ${hasAudio?`
+      ${hasAudio ? `
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.06);">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl && !item.audioUrl.startsWith('data:') ? item.audioUrl : ''}" data-is-base64="${item.audioUrl && item.audioUrl.startsWith('data:') ? '1' : '0'}" data-saved-dur="${item.audioDuration||0}"
-            style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#9f7aea22;box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <div class="voice-play-btn" data-ts="${ts}" data-url="${item.audioUrl && !item.audioUrl.startsWith('data:') ? item.audioUrl : ''}" data-is-base64="${item.audioUrl && item.audioUrl.startsWith('data:') ? '1' : '0'}" data-saved-dur="${item.audioDuration || 0}"
+            style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#9f7aea22;display:flex;align-items:center;justify-content:center;cursor:pointer;">
             <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="▶">
           </div>
           <div style="flex:1;">
             <input type="range" class="voice-seek" data-ts="${ts}" min="0" max="100" value="0" step="0.1" style="width:100%;accent-color:#9f7aea;cursor:pointer;">
             <div style="display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px;">
               <span class="voice-cur" data-ts="${ts}">0:00</span>
-              <span class="voice-tot" data-ts="${ts}">${item.audioDuration?fmtSec(item.audioDuration):"0:00"}</span>
+              <span class="voice-tot" data-ts="${ts}">${item.audioDuration ? fmtSec(item.audioDuration) : "0:00"}</span>
             </div>
           </div>
         </div>
-      </div>`:`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06);font-size:12px;color:#bbb;">${t("hist_voice_no_audio")}</div>`}
+      </div>` : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06);font-size:12px;color:#bbb;">${t("hist_voice_no_audio")}</div>`}
     </div>`;
   }
-if (item.type==="session") {
-    const col=moodColor(item.moodAfter);
-    const normalizedType = item.sessionType?.replace(/_/g, '-').toLowerCase();
-    const m=meta[normalizedType]||meta[item.sessionType]||{label:item.sessionType||"—",icon:"🛠",rc:col};
-    const dur=fmtSec(item.duration);
-    const rt=item.result==="positive"?"👍":item.result==="negative"?"👎":"😐";
-    const extra=item.tapCount?`· ${item.tapCount} taps`:"";
-    const rc = col;
 
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1">
-      <div class="hist-card-left" style="background:${col}22;"><span style="font-size:20px;">${m.icon || '🧘'}</span></div>
+  if (item.type === "session") {
+    const col = moodColor(item.moodAfter);
+    const normalizedType = item.sessionType?.replace(/_/g, '-').toLowerCase();
+    const m = meta[normalizedType] || meta[item.sessionType] || { label: item.sessionType || "—", icon: "🛠" };
+    const dur = fmtSec(item.duration);
+    const rt = item.result === "positive" ? "👍" : item.result === "negative" ? "👎" : "😐";
+    const extra = item.tapCount ? `· ${item.tapCount} taps` : "";
+    const sessionColors = {
+      "breathing":     { border: "#f0a500", bg: "#fff8e1" },
+      "meditation":    { border: "#9c7aea", bg: "#ede9fe" },
+      "visual-focus":  { border: "#5a9fd4", bg: "#e6f1fb" },
+      "mind-dump":     { border: "#4caf87", bg: "#e8f5e9" },
+      "tap-calm":      { border: "#e05555", bg: "#fce8e8" },
+      "support-texts": { border: "#7c6af0", bg: "#ede9fe" },
+      "support_texts": { border: "#7c6af0", bg: "#ede9fe" },
+    };
+    const sc = sessionColors[normalizedType] || sessionColors[item.sessionType] || { border: "#888", bg: "#f5f5f5" };
+    const liftText = item.moodBefore != null && item.moodAfter != null
+      ? ` · ${item.moodAfter > item.moodBefore ? '+' : ''}${item.moodAfter - item.moodBefore}`
+      : "";
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="session" data-clickable="1" style="border-left:3px solid ${sc.border};">
+      <div class="hist-card-left" style="background:${sc.bg};"><span style="font-size:20px;">${m.icon || '🧘'}</span></div>
       <div class="hist-card-body">
         <div class="hist-card-title">${m.label || '—'}</div>
-        <div class="hist-card-sub" style="color:${rc}">${rt} · ${dur}${extra}</div>
+        <div class="hist-card-sub">${rt} · ${dur}${extra}${liftText}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div></div>`;
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("session")}<div class="hist-card-time">${time}</div></div>
+    </div>`;
   }
-  if (item.type==="reflection") {
-    const prev=item.text && item.text.length>60 ? item.text.slice(0,60)+"..." : (item.text || "—");
-    const moodBadge = item.mood ? `<span style="font-size:14px;margin-left:8px;">😊 ${item.mood}%</span>` : "";
-    return `<div class="hist-card" data-ts="${item.ts}" data-type="reflection" data-clickable="1">
-      <div class="hist-card-left" style="background:#10b98122;"><span style="font-size:20px;">📝</span></div>
-      <div class="hist-card-body"><div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}</div><div class="hist-card-sub">${prev}${moodBadge}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">${delBtn("reflection")}<div class="hist-card-time">${time}</div></div></div>`;
+
+  if (item.type === "reflection") {
+    const prev = item.text && item.text.length > 60 ? item.text.slice(0, 60) + "..." : (item.text || "—");
+    const moodBadge = item.mood ? `<span style="font-size:12px;color:${moodColor(item.mood)};margin-left:6px;">${moodEmoji(item.mood)} ${item.mood}%</span>` : "";
+    return `<div class="hist-card" data-ts="${item.ts}" data-type="reflection" data-clickable="1" style="border-left:3px solid #10b981;">
+      <div class="hist-card-left" style="background:#e8f5e9;"><span style="font-size:20px;">📝</span></div>
+      <div class="hist-card-body">
+        <div class="hist-card-title">${t("hist_reflection") || "Рефлексия"}${moodBadge}</div>
+        <div class="hist-card-sub">${prev}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">${delBtn("reflection")}<div class="hist-card-time">${time}</div></div>
+    </div>`;
   }
+
   if (item.type === 'letter') {
-    const triggerNames = {
-      coffee:'☕ Кофе', walk:'🚶 Прогулки', work:'💼 Работа',
-      sport:'🏃 Спорт', social:'💬 Общение', sleep:'😴 Сон',
-      music:'🎵 Музыка', food:'🍽️ Еда', rest:'🛋️ Отдых',
-      stress:'😤 Стресс', alcohol:'🍷 Алкоголь', nature:'🌿 Природа',
-      screen:'📱 Экраны', period:'🌙 Цикл', creative:'🎨 Творчество',
+    const triggerIcons = {
+      coffee:'☕', walk:'🚶', work:'💼', sport:'🏃', social:'💬', sleep:'😴',
+      music:'🎵', food:'🍽️', rest:'🛋️', stress:'😤', alcohol:'🍷', nature:'🌿',
+      screen:'📱', period:'🌙', creative:'🎨',
     };
-    const name = triggerNames[item.letter.trigger] || item.letter.trigger;
-    const preview = item.letter.text.substring(0, 65) + '...';
+    const icon = triggerIcons[item.letter.trigger] || '✉️';
+    const triggerLabel = t('event_' + item.letter.trigger) || item.letter.trigger;
+    const preview = item.letter.text ? item.letter.text.substring(0, 65) + '...' : '—';
     const unread = !item.letter.read;
-    return `<div class="hist-card letter-hist-item" data-letter-id="${item.letter.id}" data-ts="${item.ts}" data-type="letter" style="
-      background: ${unread ? 'linear-gradient(135deg,#f5f0e8,#ede5d0)' : 'rgba(245,240,228,0.7)'};
-      border: 1px solid rgba(200,170,110,${unread ? '0.45' : '0.15'});
-    ">
-      <div class="hist-card-left" style="background:#c8a96822;">
+    return `<div class="hist-card letter-hist-item" data-letter-id="${item.letter.id}" data-ts="${item.ts}" data-type="letter" style="border-left:3px solid #5a9fd4;${unread ? 'background:rgba(230,241,251,0.6);' : ''}">
+      <div class="hist-card-left" style="background:#e6f1fb;">
         <span style="font-size:20px;">✉️</span>
       </div>
       <div class="hist-card-body">
-        <div class="hist-card-title" style="color:#6b5a3e;">${name}${unread ? ' <span style="background:#e07b3a;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;">новое</span>' : ''}</div>
-        <div class="hist-card-sub" style="color:#9a7a50;font-style:italic;">${preview}</div>
+        <div class="hist-card-title" style="display:flex;align-items:center;gap:6px;">
+          <span>${icon} ${triggerLabel}</span>
+          ${unread ? `<span style="font-size:10px;background:#e6f1fb;color:#185fa5;padding:1px 6px;border-radius:20px;font-weight:500;">${t('letter_new_badge') || 'New'}</span>` : ''}
+        </div>
+        <div class="hist-card-sub" style="font-style:italic;">${preview}</div>
       </div>
-      <div class="hist-card-time">${formatTime(item.ts)}</div>
+      <div class="hist-card-time">${time}</div>
     </div>`;
   }
+
   return "";
 }
 
