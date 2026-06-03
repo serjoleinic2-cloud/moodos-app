@@ -11,9 +11,8 @@ import { safeGenerateInsight } from "../ai/offline-ai.js";
 import { getResilienceIndex, getResilienceLabel, getMoodStability } from '../services/resilience-engine.js';
 import { getMoodHistory } from '../services/memory.js';
 import { initLetterEngine } from '../ai/avatar-letter-engine.js';
-import { challengeUI } from '../ai/challenge-texts-ru.js';
 import { renderLetterCard } from '../ui/letter-overlay.js';
-import { getGreeting } from '../ai/home-greetings-ru.js';
+import { getGreeting } from '../ai/home-greetings.js';
 import {
   getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
   skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
@@ -380,7 +379,7 @@ function initDailyChallenge() {
       if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
       if (completed) {
-        btn.textContent   = challengeUI.done;
+        btn.textContent   = t('challenge_done');
         btn.disabled      = true;
         btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
         return;
@@ -389,7 +388,7 @@ function initDailyChallenge() {
       const timerState = getChallengeTimerState();
 
       if (!timerState.active) {
-        btn.textContent   = challengeUI.start;
+        btn.textContent   = t('challenge_start');
         btn.disabled      = false;
         btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
         btn.style.display = 'block';
@@ -414,7 +413,7 @@ function initDailyChallenge() {
         doneBtn.style.cssText = 'width:100%;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;';
 
         const skipBtn = document.createElement('button');
-        skipBtn.textContent = `↻ ${challengeUI.skipped}`;
+        skipBtn.textContent = `↻ ${t('challenge_skipped')}`;
         skipBtn.style.cssText = 'width:100%;background:rgba(224,85,85,0.1);color:#e05555;border:1px solid rgba(224,85,85,0.35);border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;';
 
         wrap.appendChild(doneBtn);
@@ -424,10 +423,11 @@ function initDailyChallenge() {
         function updateDoneBtn() {
           const state = getChallengeTimerState();
           if (state.ready) {
-            doneBtn.textContent = `✓ ${challengeUI.completed}`;
+            doneBtn.textContent = `✓ ${t('challenge_done')}`;
             doneBtn.disabled    = false;
             doneBtn.style.background = 'linear-gradient(145deg,#4caf87,#3a9a72)';
             doneBtn.style.color      = '#fff';
+            skipBtn.style.display = 'none';
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
           } else {
             doneBtn.textContent = `⏱ ${fmtTime(state.msLeft)}`;
@@ -456,7 +456,7 @@ function initDailyChallenge() {
 
           wrap.remove();
           btn.style.display = 'block';
-          btn.textContent   = challengeUI.done;
+          btn.textContent   = t('challenge_done');
           btn.disabled      = true;
           btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
           textEl.textContent = ch.text;

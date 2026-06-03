@@ -2,7 +2,18 @@
 // avatar-letter-engine.js — Логика генерации и хранения писем
 // ============================================================
 
-import { letters, triggerKeyMap } from './avatar-letters-ru.js';
+import { triggerKeyMap } from './avatar-letters-ru.js';
+
+async function getLettersForLang() {
+  const lang = localStorage.getItem('app_language') || 'ru';
+  try {
+    const mod = await import(`./avatar-letters-${lang}.js`);
+    return mod.letters;
+  } catch (e) {
+    const fallback = await import('./avatar-letters-ru.js');
+    return fallback.letters;
+  }
+}
 
 const LETTER_STORAGE_KEY = 'neyra_letters';
 const LETTER_CHECK_KEY   = 'neyra_letter_last_check';
@@ -79,7 +90,8 @@ function pickLetterType(triggerKey) {
 
 // ─── Генерация письма ────────────────────────────────────────
 
-export function generateLetter() {
+export async function generateLetter() {
+  const letters = await getLettersForLang();
   const triggers = getRecentTriggers(5);
   if (!triggers.length) return null;
 
@@ -166,8 +178,8 @@ export function markLetterRead(id) {
 
 // ─── Инициализация — вызывать при старте приложения ──────────
 
-export function initLetterEngine() {
+export async function initLetterEngine() {
   if (shouldGenerateLetter()) {
-    generateLetter();
+    await generateLetter();
   }
 }

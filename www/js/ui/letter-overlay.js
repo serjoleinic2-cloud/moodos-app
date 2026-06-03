@@ -2,6 +2,7 @@
 // letter-overlay.js — UI письма от Нейры
 // ============================================================
 
+import { t } from '../i18n.js';
 import { getUnreadLetters, markLetterRead, getAllLetters } from '../ai/avatar-letter-engine.js';
 
 // ─── Карточка на главном экране ──────────────────────────────
@@ -34,8 +35,8 @@ export function renderLetterCard(container) {
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="font-size:26px;line-height:1;">✉️</div>
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;color:#6b5a3e;letter-spacing:0.3px;">Письмо от Нейры</div>
-        <div style="font-size:12px;color:#9a8060;margin-top:2px;">Нашла кое-что интересное в твоих записях</div>
+        <div style="font-size:13px;font-weight:700;color:#6b5a3e;letter-spacing:0.3px;">${t('letter_card_title')}</div>
+        <div style="font-size:12px;color:#9a8060;margin-top:2px;">${t('letter_card_subtitle')}</div>
       </div>
       <div style="
         background: #e07b3a;
@@ -45,7 +46,7 @@ export function renderLetterCard(container) {
         padding:3px 9px;
         border-radius:20px;
         letter-spacing:0.3px;
-      ">Новое</div>
+      ">${t('letter_new_badge')}</div>
     </div>
     <div style="margin-top:10px;height:1px;background:linear-gradient(90deg,rgba(180,150,100,0.3),transparent);"></div>
     <div style="margin-top:8px;font-size:12px;color:#8a7050;font-style:italic;line-height:1.5;overflow:hidden;max-height:36px;">
@@ -189,7 +190,7 @@ export function openLetterOverlay(letter) {
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="font-size:28px;">✉️</div>
       <div>
-        <div style="font-size:15px;font-weight:700;color:#5a4020;">Письмо от Нейры</div>
+        <div style="font-size:15px;font-weight:700;color:#5a4020;">${t('letter_card_title')}</div>
         <div style="font-size:11px;color:#9a7a50;margin-top:1px;">${_formatDate(letter.createdAt)}</div>
       </div>
     </div>
@@ -311,25 +312,27 @@ export function openLetterHistory() {
     animation: overlayIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards;
   `;
 
-  const triggerNames = {
-    coffee: '☕ Кофе', walk: '🚶 Прогулки', work: '💼 Работа',
-    sport: '🏃 Спорт', social: '💬 Общение', sleep: '😴 Сон',
-    music: '🎵 Музыка', food: '🍽️ Еда', rest: '🛋️ Отдых',
-    stress: '😤 Стресс', alcohol: '🍷 Алкоголь', nature: '🌿 Природа',
-    screen: '📱 Экраны', period: '🌙 Цикл', creative: '🎨 Творчество',
+  const triggerIcons = {
+    coffee: '☕', walk: '🚶', work: '💼', sport: '🏃',
+    social: '💬', sleep: '😴', music: '🎵', food: '🍽️',
+    rest: '🛋️', stress: '😤', alcohol: '🍷', nature: '🌿',
+    screen: '📱', period: '🌙', creative: '🎨',
   };
+  const triggerNames = Object.fromEntries(
+    Object.entries(triggerIcons).map(([k, icon]) => [k, `${icon} ${t('event_' + k)}`])
+  );
 
   if (!all.length) {
     sheet.innerHTML = `
       <div style="text-align:center;padding:40px 20px;color:#9a7a50;font-size:15px;">
-        Писем пока нет.<br>Нейра напишет через несколько дней.
+        ${t('letter_history_empty')}
       </div>
       <div id="histCloseBtn" style="margin-top:16px;padding:14px;border-radius:16px;
         background:rgba(180,150,100,0.2);text-align:center;cursor:pointer;
         color:#7a6040;font-size:15px;">Закрыть</div>
     `;
   } else {
-    let html = `<div style="font-size:16px;font-weight:700;color:#5a4020;margin-bottom:16px;">📬 История писем</div>`;
+    let html = `<div style="font-size:16px;font-weight:700;color:#5a4020;margin-bottom:16px;">📬 ${t('letter_history_title')}</div>`;
     all.forEach(l => {
       html += `
         <div class="letter-hist-item" data-id="${l.id}" style="
@@ -390,13 +393,15 @@ function _openLetterReadOnly(letter) {
     z-index:500;display:flex;align-items:flex-end;
   `;
 
-  const triggerNames = {
-    coffee:'☕ Кофе',walk:'🚶 Прогулки',work:'💼 Работа',
-    sport:'🏃 Спорт',social:'💬 Общение',sleep:'😴 Сон',
-    music:'🎵 Музыка',food:'🍽️ Еда',rest:'🛋️ Отдых',
-    stress:'😤 Стресс',alcohol:'🍷 Алкоголь',nature:'🌿 Природа',
-    screen:'📱 Экраны',period:'🌙 Цикл',creative:'🎨 Творчество',
+  const triggerIcons = {
+    coffee: '☕', walk: '🚶', work: '💼', sport: '🏃',
+    social: '💬', sleep: '😴', music: '🎵', food: '🍽️',
+    rest: '🛋️', stress: '😤', alcohol: '🍷', nature: '🌿',
+    screen: '📱', period: '🌙', creative: '🎨',
   };
+  const triggerNames = Object.fromEntries(
+    Object.entries(triggerIcons).map(([k, icon]) => [k, `${icon} ${t('event_' + k)}`])
+  );
 
   overlay.innerHTML = `
     <div style="
@@ -438,6 +443,9 @@ function _openLetterReadOnly(letter) {
 // ─── Утилиты ─────────────────────────────────────────────────
 
 function _formatDate(ts) {
+  const lang = localStorage.getItem('app_language') || 'ru';
+  const localeMap = { ru: 'ru-RU', en: 'en-GB', es: 'es-ES', uk: 'uk-UA', hi: 'hi-IN' };
+  const locale = localeMap[lang] || 'ru-RU';
   const d = new Date(ts);
-  return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' });
 }
