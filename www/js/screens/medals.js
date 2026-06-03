@@ -2,7 +2,7 @@
 // Neyra Medals Screen
 // =====================================
 import { getAllMedalsWithState } from '../services/medals-engine.js';
-import { medalTexts } from '../ai/medals-texts-ru.js';
+import { t } from '../i18n.js';
 
 const CATEGORIES = [
   { key: 'regularity' },
@@ -32,7 +32,7 @@ function renderMedals() {
     const medalsHTML = catMedals.map(medal => renderMedalCard(medal)).join('');
     return `
       <div class="medals-category">
-        <div class="medals-category-label">${medalTexts.categories[cat.key] || cat.key}</div>
+        <div class="medals-category-label">${t('medals_category_' + cat.key) || cat.key}</div>
         <div class="medals-grid">${medalsHTML}</div>
       </div>
     `;
@@ -70,7 +70,7 @@ function renderMedals() {
 
     <div class="medals-wrap">
       <div class="medals-header">
-        <div class="medals-title">🏅 Достижения</div>
+        <div class="medals-title">🏅 ${t('medals_title') || 'Достижения'}</div>
         <div class="medals-progress-bar-wrap">
           <div class="medals-progress-bar-fill" style="width: ${Math.round(earnedCount / totalCount * 100)}%"></div>
         </div>
@@ -92,7 +92,7 @@ function renderMedalCard(medal) {
       ${medal.earned && medal.count > 1 ? `<div class="medal-count-badge">${medal.count}</div>` : ''}
       ${isNew ? `<div class="medal-new-badge">NEW</div>` : ''}
       <div class="medal-emoji">${medal.emoji}</div>
-      <div class="medal-name">${medalTexts[medal.id]?.name || medal.id}</div>
+      <div class="medal-name">${t('medal_' + medal.id) || medal.id}</div>
     </div>
   `;
 }
@@ -111,12 +111,12 @@ window.__showMedalModal = function(medalId) {
   overlay.innerHTML = `
     <div class="medal-modal">
       <span class="medal-modal-emoji">${medal.emoji}</span>
-      <div class="medal-modal-name">${medalTexts[medal.id]?.name || medal.id}</div>
-      <div class="medal-modal-desc">${medalTexts[medal.id]?.desc || ''}</div>
+      <div class="medal-modal-name">${t('medal_' + medal.id) || medal.id}</div>
+      <div class="medal-modal-desc">${t('medal_' + medal.id + '_desc') || ''}</div>
       <div class="medal-modal-status ${medal.earned ? 'earned' : 'locked'}">
         ${medal.earned
-          ? `✅ Получено${medal.count > 1 ? ' · ' + medal.count + ' раз' : ''}`
-          : '🔒 Ещё не получено'
+          ? `✅ ${t('medals_earned') || 'Получено'}${medal.count > 1 ? ' · ' + medal.count + ' ' + (t('medals_times') || 'раз') : ''}`
+          : '🔒 ' + (t('medals_locked') || 'Ещё не получено')
         }
       </div>
       ${medal.earned ? `
@@ -124,7 +124,7 @@ window.__showMedalModal = function(medalId) {
         width:100%;padding:14px;border:none;border-radius:16px;
         background:linear-gradient(145deg,#7eb8d4,#6aa8c4);
         color:#fff;font-size:15px;font-weight:700;cursor:pointer;
-        margin-bottom:10px;">↗ Поделиться</button>
+        margin-bottom:10px;">↗ ${t('medal_share_btn') || 'Поделиться'}</button>
       ` : ''}
       <button class="medal-modal-close" id="medalModalClose">OK</button>
     </div>
@@ -135,16 +135,16 @@ window.__showMedalModal = function(medalId) {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
   document.getElementById('medalModalShare')?.addEventListener('click', () => {
-    const medalName = medalTexts[medal.id]?.name || medal.id;
-    const medalDesc = medalTexts[medal.id]?.desc || '';
+    const medalName = t('medal_' + medal.id) || medal.id;
+    const medalDesc = t('medal_' + medal.id + '_desc') || '';
     const shareText = `${medal.emoji} ${medalName}\n${medalDesc}\n\n— Neyra`;
     const Share = window.Capacitor?.Plugins?.Share;
-    if (Share) { Share.share({ title: 'Neyra', text: shareText, dialogTitle: 'Поделиться достижением' }); return; }
+    if (Share) { Share.share({ title: 'Neyra', text: shareText, dialogTitle: t('medal_share_dialog') || 'Поделиться достижением' }); return; }
     if (navigator.share) { navigator.share({ title: 'Neyra', text: shareText }).catch(() => {}); return; }
     navigator.clipboard?.writeText(shareText).then(() => {
       const toast = document.createElement('div');
       toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#4caf87;color:#fff;padding:10px 20px;border-radius:14px;font-size:14px;font-weight:600;z-index:9999;';
-      toast.textContent = '✓ Скопировано';
+      toast.textContent = '✓ ' + (t('copied') || 'Скопировано');
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 2000);
     });
