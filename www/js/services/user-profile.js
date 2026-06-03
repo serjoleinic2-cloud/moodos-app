@@ -165,8 +165,11 @@ Object.defineProperty(window, "__internalPremium", {
 });
 
 export function setBillingPremium(value) {
-  if (!window.__NEYRA_SECURITY__) window.__NEYRA_SECURITY__ = {};
-  window.__NEYRA_SECURITY__.billingPremium = value === true;
+  if (window.__NEYRA_SECURITY__?._set) {
+    window.__NEYRA_SECURITY__._set(value === true);
+  } else if (window.__NEYRA_SECURITY__) {
+    window.__NEYRA_SECURITY__.billingPremium = value === true;
+  }
   if (window.systemState) window.systemState.premium = value === true;
 }
 

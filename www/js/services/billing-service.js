@@ -37,13 +37,23 @@ export function initBilling() {
     })
     .approved((transaction) => {
       console.log('[billing] approved:', transaction.products[0]?.id);
-      transaction.verify();
+      const productId = transaction.products?.[0]?.id;
+      if (productId) {
+        activatePremiumPaid(productId);
+        window._trustedSetBillingPremium?.(true);
+        if (window.systemState) window.systemState.premium = true;
+        enqueueBillingStateUpdate(true);
+        logPremiumGranted('billing_verified', { productId });
+      }
+      transaction.finish();
     })
     .verified((receipt) => {
       console.log('[billing] verified');
       const productId = receipt.transactions?.[0]?.products?.[0]?.id;
       if (productId) {
         activatePremiumPaid(productId);
+        window._trustedSetBillingPremium?.(true);
+        if (window.systemState) window.systemState.premium = true;
         enqueueBillingStateUpdate(true);
         logPremiumGranted('billing_verified', { productId });
       }
@@ -70,12 +80,12 @@ export function initBilling() {
         } catch(e) {
           console.warn('[billing] update failed:', e);
         }
-        getPremiumFromBilling();
         try {
           await store.restorePurchases();
         } catch(e) {
           console.warn('[billing] restorePurchases failed:', e);
         }
+        getPremiumFromBilling();
       })
       .catch(err => {
         console.error('[billing] init failed:', err);
@@ -92,16 +102,18 @@ export function getPremiumFromBilling() {
     const yearly = store.get("premium_yearly");
     const isPremiumBilling = store.owned(monthly) || store.owned(yearly);
 
-    if (!isPremiumBilling) {
-      const profileSaysPremium = isPremium();
-      if (profileSaysPremium) {
-        console.warn('[billing] billing says false but profile says premium — skipping revoke');
-        return true;
-      }
+    if (isPremiumBilling) {
+      enqueueBillingStateUpdate(true);
+      return true;
     }
 
-    enqueueBillingStateUpdate(!!isPremiumBilling);
-    return !!isPremiumBilling;
+    const profileSaysPremium = isPremium();
+    if (profileSaysPremium) {
+      console.warn('[billing] store.owned()=false but profile says premium — trusting profile');
+      return true;
+    }
+
+    return false;
   } catch(e) {
     console.warn('[billing] getPremiumFromBilling error:', e);
     return false;

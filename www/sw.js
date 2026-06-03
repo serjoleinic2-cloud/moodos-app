@@ -37,8 +37,8 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // JS/CSS с хэшем — кэшируем агрессивно (имя меняется при изменении)
-  if (url.pathname.match(/\.(js|css)$/) && url.pathname.includes('-')) {
+  // CSS с хэшем — кэшируем агрессивно (имя меняется при изменении)
+  if (url.pathname.match(/\.css$/) && url.pathname.includes('-')) {
     event.respondWith(
       caches.match(event.request).then(cached => {
         return cached || fetch(event.request).then(response => {
@@ -47,6 +47,18 @@ self.addEventListener("fetch", event => {
           return response;
         });
       })
+    );
+    return;
+  }
+
+  // JS файлы — всегда сеть, кэш только как fallback при offline
+  if (url.pathname.match(/\.js$/)) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      }).catch(() => caches.match(event.request))
     );
     return;
   }

@@ -12,8 +12,12 @@ if (_savedAppVersion !== __APP_VERSION__) {
 
 // ✅ Export для импорта из других модулей
 export function _trustedSetBillingPremium(val) {
-  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || { billingPremium: false };
-  window.__NEYRA_SECURITY__.billingPremium = val === true;
+  if (window.__NEYRA_SECURITY__?._set) {
+    window.__NEYRA_SECURITY__._set(val === true);
+  } else {
+    window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || {};
+    window.__NEYRA_SECURITY__.billingPremium = val === true;
+  }
 }
 
 // Cloud restore flags
@@ -73,14 +77,27 @@ if (!window.__neyraAppRunning) {
   window.__neyraAppRunning = true;
 
   // 🔐 GLOBAL SINGLETON STORAGE
-  window.__NEYRA_SECURITY__ = window.__NEYRA_SECURITY__ || {
-    billingPremium: false
-  };
+  if (!window.__NEYRA_SECURITY__) {
+    let _billingPremiumValue = false;
+    window.__NEYRA_SECURITY__ = {};
+    Object.defineProperty(window.__NEYRA_SECURITY__, 'billingPremium', {
+      get: () => _billingPremiumValue,
+      set: (val) => {
+        console.warn('[SECURITY] direct set billingPremium blocked');
+      },
+      configurable: false
+    });
+    window.__NEYRA_SECURITY__._set = function(val) {
+      _billingPremiumValue = val === true;
+    };
+  }
 
   // ❗ defineProperty ТОЛЬКО ОДИН РАЗ
   if (!Object.getOwnPropertyDescriptor(window, '_billingPremium')) {
     Object.defineProperty(window, '_billingPremium', {
-      get: () => window.__NEYRA_SECURITY__.billingPremium,
+      get: () => {
+        return window.__NEYRA_SECURITY__?.billingPremium ?? false;
+      },
       set: () => {
         console.warn('[SECURITY] BLOCKED direct write to _billingPremium');
       },
@@ -92,7 +109,7 @@ if (!window.__neyraAppRunning) {
   // ✅ TRUSTED SETTER на window
   window._trustedSetBillingPremium = function(value) {
     console.log("[SECURITY] trusted premium set:", value);
-    window.__NEYRA_SECURITY__.billingPremium = value === true;
+    window.__NEYRA_SECURITY__._set(value === true);
     window.__internalPremium = value === true;
   };
 

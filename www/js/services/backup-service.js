@@ -59,7 +59,8 @@ const VALID_KEYS = [
   'med_monthly_check',
   'med_reminders_v2',
   'app_version',
-  'neyra_sound_prompt_shown'
+  'neyra_sound_prompt_shown',
+  'neyra_letters'
 ];
 
 function collectAllData(premiumMode = false) {
@@ -69,7 +70,8 @@ function collectAllData(premiumMode = false) {
 
   const ARRAY_KEYS = [
     'mood_history', 'notes_history', 'reflections',
-    'voice_history', 'session_history', 'photo_history'
+    'voice_history', 'session_history', 'photo_history',
+    'neyra_letters'
   ];
 
   VALID_KEYS.forEach(key => {
@@ -77,8 +79,8 @@ function collectAllData(premiumMode = false) {
       const value = localStorage.getItem(key);
       if (!value) return;
 
-      // Free: исключаем voice_history и photo_history полностью
-      if (!premiumMode && (key === 'voice_history' || key === 'photo_history')) return;
+      // Free: исключаем voice_history, photo_history и neyra_letters
+      if (!premiumMode && (key === 'voice_history' || key === 'photo_history' || key === 'neyra_letters')) return;
 
       if (!premiumMode && ARRAY_KEYS.includes(key)) {
         try {
@@ -906,7 +908,8 @@ export function getBackupInfo() {
     'notes_history',
     'reflections',
     'voice_history',
-    'session_history'
+    'session_history',
+    'neyra_letters'
   ];
 
   const counts = {};
