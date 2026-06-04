@@ -994,3 +994,50 @@ body[data-theme="deep-ocean"] .track.active {
   text-align: right;
 }
 
+/* ── Neyra splash screen ── */
+#neyra-splash {
+  position: fixed;
+  inset: 0;
+  background: #f0ebe3;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#neyra-splash.hidden {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+#neyra-splash-word {
+  display: flex;
+  gap: 2px;
+}
+
+.nl {
+  display: inline-block;
+  font-family: 'Nunito', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  color: #3a3530;
+  opacity: 0;
+  transform: translateY(-80px);
+  animation: nlDrop 0.45s cubic-bezier(0.22, 1.8, 0.5, 1) forwards,
+             nlExit 0.35s ease forwards;
+}
+
+@keyframes nlDrop {
+  0%   { opacity: 0; transform: translateY(-80px); }
+  60%  { transform: translateY(6px); }
+  80%  { transform: translateY(-3px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nlExit {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(80px); opacity: 0; }
+}
+

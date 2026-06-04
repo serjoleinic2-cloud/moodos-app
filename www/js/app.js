@@ -7,6 +7,57 @@ if (_savedAppVersion !== __APP_VERSION__) {
   }
 }
 
+// ── Splash animation ──
+(function() {
+  const splash = document.getElementById('neyra-splash');
+  if (!splash) return;
+
+  const letters = splash.querySelectorAll('.nl');
+  const dropDuration  = 450;
+  const stagger       = 80;
+  const holdAfterLast = 300;
+  const exitStagger   = 60;
+
+  letters.forEach((el) => {
+    el.style.animation = 'none';
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(-80px)';
+  });
+
+  let dropPromises = [];
+  letters.forEach((el, i) => {
+    const delay = i * stagger;
+    dropPromises.push(new Promise(resolve => {
+      setTimeout(() => {
+        el.style.transition = 'none';
+        el.style.animation  = `nlDrop ${dropDuration}ms cubic-bezier(0.22,1.8,0.5,1) forwards`;
+        setTimeout(resolve, dropDuration);
+      }, delay);
+    }));
+  });
+
+  const totalDropTime = (letters.length - 1) * stagger + dropDuration;
+  setTimeout(() => {
+    setTimeout(() => {
+      letters.forEach((el, i) => {
+        setTimeout(() => {
+          el.style.animation = 'none';
+          el.style.transition = `opacity 0.3s ease ${i * exitStagger}ms, transform 0.35s cubic-bezier(0.55,0,1,0.45) ${i * exitStagger}ms`;
+          el.style.opacity   = '0';
+          el.style.transform = 'translateY(80px)';
+        }, i * exitStagger);
+      });
+
+      const hideSplash = (letters.length - 1) * exitStagger + 400;
+      setTimeout(() => {
+        splash.classList.add('hidden');
+        setTimeout(() => splash.remove(), 400);
+      }, hideSplash);
+
+    }, holdAfterLast);
+  }, totalDropTime);
+})();
+
 // app.js — Neyra boot
 // ⚠️ IMPORTS ДОЛЖНЫ быть в начале файла (ES modules requirement)
 
