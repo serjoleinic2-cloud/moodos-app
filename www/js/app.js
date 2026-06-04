@@ -48,14 +48,22 @@ if (_savedAppVersion !== __APP_VERSION__) {
         }, i * exitStagger);
       });
 
-      const hideSplash = (letters.length - 1) * exitStagger + 400;
+      const minShowTime = (letters.length - 1) * exitStagger + 400;
       setTimeout(() => {
-        splash.classList.add('hidden');
-        setTimeout(() => splash.remove(), 400);
-      }, hideSplash);
+        window._splashAnimDone = true;
+        _tryHideSplash();
+      }, minShowTime);
 
     }, holdAfterLast);
   }, totalDropTime);
+
+  window._tryHideSplash = function() {
+    if (!window._splashAnimDone || !window._splashReady) return;
+    const s = document.getElementById('neyra-splash');
+    if (!s) return;
+    s.classList.add('hidden');
+    setTimeout(() => s.remove(), 400);
+  };
 })();
 
 // app.js — Neyra boot
@@ -642,6 +650,8 @@ if (!window.__neyraAppRunning) {
     
     try {
       initNavigation();
+      window._splashReady = true;
+      _tryHideSplash();
     } catch (e) {
       console.error('[APP ERROR] initNavigation:', e);
     }
