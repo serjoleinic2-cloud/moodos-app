@@ -150,7 +150,20 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
+  // 1. Runtime-флаг (установлен billing через store.approved)
   if (window.__NEYRA_SECURITY__?.billingPremium === true) return true;
+  // 2. Store.owned() если store готов
+  try {
+    const s = window.store;
+    if (s && window._billingInitialized && !window._billingInitializing) {
+      const monthly = s.get?.('premium_monthly');
+      const yearly  = s.get?.('premium_yearly');
+      if ((monthly && s.owned(monthly)) || (yearly && s.owned(yearly))) {
+        return true;
+      }
+    }
+  } catch(e) {}
+  // 3. Profile как последний fallback (пока store загружается)
   const profile = getProfile();
   if (!profile) return false;
   if (profile.premium_type === 'paid' && profile.premiumExpiresAt > Date.now()) return true;
@@ -179,9 +192,11 @@ export function activatePremiumPaid(productId) {
   profile.premium = true;
   profile.premium_type = 'paid';
   profile.premiumProductId = productId || 'unknown';
+  // Не храним фиксированную дату — источник истины Google Play.
+  // Ставим далёкую дату как fallback, реальная проверка через store.owned()
   const isYearly = (productId || '').includes('yearly');
-  const isSandbox = (productId || '').includes('test') || (productId || '').includes('sandbox');
-  profile.premiumExpiresAt = Date.now() + (isSandbox ? 365 : isYearly ? 366 : 31) * 24 * 60 * 60 * 1000;
+  profile.premiumExpiresAt = Date.now() + (isYearly ? 400 : 35) * 24 * 60 * 60 * 1000;
+  profile.premiumActivatedAt = Date.now();
   saveProfile(profile);
   setBillingPremium(true);
 }

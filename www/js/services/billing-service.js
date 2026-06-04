@@ -38,26 +38,14 @@ export function initBilling() {
     .approved((transaction) => {
       console.log('[billing] approved:', transaction.products[0]?.id);
       const productId = transaction.products?.[0]?.id;
-      if (productId && storeReady) {
-        const monthly = store.get("premium_monthly");
-        const yearly = store.get("premium_yearly");
-        const isOwned = store.owned(monthly) || store.owned(yearly);
-        if (isOwned) {
-          activatePremiumPaid(productId);
-          window._trustedSetBillingPremium?.(true);
-          if (window.systemState) window.systemState.premium = true;
-          enqueueBillingStateUpdate(true);
-          logPremiumGranted('billing_approved_owned', { productId });
-        } else {
-          console.warn('[billing] approved but not owned — finishing without activation');
-        }
-      } else if (productId && !storeReady) {
-        // store ещё не готов — активируем осторожно только если profile подтверждает
-        const profile = getProfile();
-        if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now()) {
-          window._trustedSetBillingPremium?.(true);
-          if (window.systemState) window.systemState.premium = true;
-        }
+      if (productId) {
+        // Активируем без проверки store.owned() — approved = Google подтвердил
+        activatePremiumPaid(productId);
+        window._trustedSetBillingPremium?.(true);
+        if (window.systemState) window.systemState.premium = true;
+        enqueueBillingStateUpdate(true);
+        logPremiumGranted('billing_approved', { productId });
+        console.log('[billing] premium activated via approved:', productId);
       }
       transaction.finish();
     })
@@ -84,20 +72,24 @@ export function initBilling() {
         storeReady = true;
         restorePremiumFromProfile();
         try {
+          // update() триггерит .approved() для всех активных подписок
           await store.update();
-          const monthly = store.get("premium_monthly");
-          const yearly = store.get("premium_yearly");
-          console.log('[billing] monthly exists:', !!monthly);
-          console.log('[billing] yearly exists:', !!yearly);
-          console.log('[billing] monthly owned:', !!(monthly && store.owned(monthly)));
-          console.log('[billing] yearly owned:', !!(yearly && store.owned(yearly)));
+          console.log('[billing] update complete');
         } catch(e) {
           console.warn('[billing] update failed:', e);
         }
-        try {
-          await store.restorePurchases();
-        } catch(e) {
-          console.warn('[billing] restorePurchases failed:', e);
+        // restorePurchases() нужен только если пользователь явно нажал "восстановить"
+        // или если update() не вернул покупки (смена устройства/чистка данных)
+        const monthly = store.get('premium_monthly');
+        const yearly  = store.get('premium_yearly');
+        const alreadyOwned = (monthly && store.owned(monthly)) || (yearly && store.owned(yearly));
+        if (!alreadyOwned) {
+          console.log('[billing] not owned after update — trying restorePurchases');
+          try {
+            await store.restorePurchases();
+          } catch(e) {
+            console.warn('[billing] restorePurchases failed:', e);
+          }
         }
         getPremiumFromBilling();
       })
