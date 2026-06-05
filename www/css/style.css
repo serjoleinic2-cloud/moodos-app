@@ -724,6 +724,10 @@ body[data-theme="deep-ocean"] .event-item.active {
   background: rgba(84,172,191,0.25) !important;
   box-shadow: 0 0 0 1.5px #54ACBF !important;
 }
+body[data-theme="deep-ocean"] .event-icon {
+  filter: grayscale(1) invert(1) !important;
+  opacity: 0.7 !important;
+}
 
 /* ── Вызов дня: карточка ── */
 body[data-theme="deep-ocean"] #dailyChallengeBar > div {
@@ -759,6 +763,10 @@ body[data-theme="deep-ocean"] #homeInsightCard,
 body[data-theme="deep-ocean"] #homePatternCard {
   background: rgba(2, 56, 89, 0.95) !important;
   box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] #homeInsightCard .mo-section-title,
+body[data-theme="deep-ocean"] #homePatternCard .mo-section-title {
+  color: #ffffff !important;
 }
 
 /* ── Карточки: Индекс устойчивости, Индекс дня, Золотые часы ── */

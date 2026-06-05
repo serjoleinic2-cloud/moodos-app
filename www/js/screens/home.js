@@ -489,6 +489,23 @@ function initResilienceCard() {
     const card = document.getElementById('resilienceFlipCard');
     if (!card) return;
 
+    const isOcean = document.body.getAttribute('data-theme') === 'deep-ocean';
+    const cardBg      = isOcean ? 'rgba(20,45,70,0.95)' : 'rgba(232,237,230,0.98)';
+    const cardShadow  = isOcean ? '0 4px 16px rgba(0,0,0,0.35)' : '6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff';
+    const textMain    = isOcean ? '#ffffff' : '#3a3530';
+    const textBlue    = isOcean ? '#54ACBF' : '#666';
+    const textMuted   = isOcean ? '#4a7a9b' : '#999';
+
+    const front = card.querySelector('.flip-front-home');
+    const back = card.querySelector('.flip-back-home');
+    if (front) { front.style.background = cardBg; front.style.boxShadow = cardShadow; }
+    if (back) { back.style.background = cardBg; back.style.boxShadow = cardShadow; }
+
+    card.querySelectorAll('.flip-label-home').forEach(el => { el.style.color = textMuted; });
+    card.querySelectorAll('.flip-sub-home').forEach(el => { el.style.color = textMuted; });
+    const frontValue = card.querySelector('.flip-value-home');
+    if (frontValue) frontValue.style.color = textMain;
+
     // Сбрасываем флип при каждом входе
     card.classList.remove('flipped');
 
@@ -504,7 +521,7 @@ function initResilienceCard() {
       valEl.textContent  = index !== null ? index + '%' : '—';
       valEl.style.color  = index !== null
         ? (index >= 70 ? '#4caf87' : index >= 40 ? '#f0a500' : '#e05555')
-        : '#888';
+        : textMuted;
     }
     if (labelEl) labelEl.textContent = label || '';
 
