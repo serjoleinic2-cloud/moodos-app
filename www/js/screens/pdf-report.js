@@ -248,7 +248,12 @@ export function showPdfReportModal() {
   })();
 
   document.body.appendChild(screen);
-  screen.querySelector("#prBack").addEventListener("click", function() { screen.remove(); });
+  const prBack = screen.querySelector("#prBack");
+  if (prBack) {
+    prBack.addEventListener("click", function() { screen.remove(); });
+  } else {
+    console.warn('[pdf-report] #prBack not found');
+  }
 
   let selectedDays = autoDays.slice();
   screen.querySelectorAll(".pr-day").forEach(function(btn) {
