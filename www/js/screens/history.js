@@ -272,6 +272,37 @@ function compressImage(dataUrl, maxWidth=800, quality=0.7) {
   });
 }
 
+function showDeleteConfirm(item, filterDate) {
+  const existing = document.getElementById('deleteConfirmPopup');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'deleteConfirmPopup';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2000;display:flex;align-items:center;justify-content:center;padding:32px;';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px;padding:28px 24px;width:100%;max-width:300px;box-shadow:0 16px 48px rgba(0,0,0,0.2);text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">🗑</div>
+      <div style="font-size:17px;font-weight:700;color:#3a3530;margin-bottom:8px;">${t('hist_delete_title') || 'Удалить запись?'}</div>
+      <div style="font-size:13px;color:#888;margin-bottom:24px;">${t('hist_delete_body') || 'Это действие нельзя отменить'}</div>
+      <div style="display:flex;gap:10px;">
+        <button id="deleteConfirmNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;">${t('hist_delete_no') || 'Нет'}</button>
+        <button id="deleteConfirmYes" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#e05555,#c04040);box-shadow:4px 4px 10px rgba(224,85,85,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">${t('hist_delete_yes') || 'Да, удалить'}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('deleteConfirmNo').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('deleteConfirmYes').addEventListener('click', () => {
+    overlay.remove();
+    deleteItem(item);
+    renderHistory(filterDate);
+  });
+}
+
 function renderHistory(filterDate=null) {
   const container = document.getElementById("history-content");
   if (!container) return;
@@ -337,7 +368,9 @@ function renderHistory(filterDate=null) {
       e.stopPropagation();
       const ts=parseInt(btn.dataset.ts), type=btn.dataset.type;
       const item=allItemsCache.find(i=>i.ts===ts&&i.type===type);
-      if (item) { deleteItem(item); renderHistory(filterDate); }
+      if (item) {
+        showDeleteConfirm(item, filterDate);
+      }
     });
   });
 
