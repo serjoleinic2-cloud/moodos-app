@@ -717,16 +717,27 @@ body[data-theme="deep-ocean"] [data-i18n="home_events_hint"] {
 
 /* ── Триггеры (события) ── */
 body[data-theme="deep-ocean"] .event-item {
-  color: #54ACBF !important;
+  background: #023859 !important;
+  border: 1px solid rgba(84, 172, 191, 0.2) !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.3), -2px -2px 5px rgba(255,255,255,0.04) !important;
 }
 body[data-theme="deep-ocean"] .event-item.active {
+  background: rgba(84, 172, 191, 0.2) !important;
+  border: 1px solid rgba(84, 172, 191, 0.5) !important;
+}
+body[data-theme="deep-ocean"] .event-label {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .event-item.active .event-label {
   color: #ffffff !important;
-  background: rgba(84,172,191,0.25) !important;
-  box-shadow: 0 0 0 1.5px #54ACBF !important;
 }
 body[data-theme="deep-ocean"] .event-icon {
   filter: grayscale(1) invert(1) !important;
   opacity: 0.7 !important;
+}
+body[data-theme="deep-ocean"] .event-item.active .event-icon {
+  filter: invert(1) sepia(1) saturate(2) hue-rotate(160deg) !important;
+  opacity: 1 !important;
 }
 
 /* ── Вызов дня: карточка ── */
@@ -764,9 +775,19 @@ body[data-theme="deep-ocean"] #homePatternCard {
   background: rgba(2, 56, 89, 0.95) !important;
   box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
 }
-body[data-theme="deep-ocean"] #homeInsightCard .mo-section-title,
-body[data-theme="deep-ocean"] #homePatternCard .mo-section-title {
+/* Заголовки карточек — белым */
+body[data-theme="deep-ocean"] #homeInsightCard [data-i18n="home_insight_label"],
+body[data-theme="deep-ocean"] #homePatternCard [data-i18n="home_pattern_label"],
+body[data-theme="deep-ocean"] #resilienceFlipCard .flip-label-home,
+body[data-theme="deep-ocean"] [data-screen="home"] [data-i18n="home_insight_day"],
+body[data-theme="deep-ocean"] [data-screen="home"] [data-i18n="home_golden_hours"] {
   color: #ffffff !important;
+}
+
+/* Лампочка рядом с Инсайтом */
+body[data-theme="deep-ocean"] #homeInsightCard .mo-info-btn {
+  background: rgba(84,172,191,0.2) !important;
+  color: #54ACBF !important;
 }
 
 /* ── Карточки: Индекс устойчивости, Индекс дня, Золотые часы ── */
