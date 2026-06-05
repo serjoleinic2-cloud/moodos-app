@@ -65,7 +65,6 @@ body[data-theme="deep-ocean"] .accordion-body,
 body[data-theme="deep-ocean"] #menuPanel *,
 body[data-theme="deep-ocean"] #toolsPanel *,
 body[data-theme="deep-ocean"] #challengeText,
-body[data-theme="deep-ocean"] #homeGreeting,
 body[data-theme="deep-ocean"] .ai-message {
   color: #ffffff !important;
 }
@@ -94,6 +93,7 @@ body[data-theme="deep-ocean"] #homePatternText {
 /* ── Зелёный: оставить ── */
 body[data-theme="deep-ocean"] .flip-hint { color: #4caf87 !important; }
 body[data-theme="deep-ocean"] .mo-btn.active-period { color: #4caf87 !important; }
+body[data-theme="deep-ocean"] #homeGreeting { color: #4caf87 !important; }
 
 /* ── Кнопки ── */
 body[data-theme="deep-ocean"] .mo-btn,
@@ -144,7 +144,7 @@ body[data-theme="deep-ocean"] textarea {
 
 /* ── Слайдер настроения ── */
 body[data-theme="deep-ocean"] .mood-slider-wrap input[type="range"]::-webkit-slider-thumb {
-  background: #023859 !important;
+  background: #54ACBF !important;
   box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5) !important;
 }
 
@@ -256,3 +256,25 @@ body[data-theme="deep-ocean"] #pdfReportScreen .pr-btn {
 /* ── Splash ── */
 body[data-theme="deep-ocean"] #neyra-splash { background: #0a1a2e !important; }
 body[data-theme="deep-ocean"] .nl { color: #54ACBF !important; }
+
+/* ── Карточка Индекс устойчивости ── */
+body[data-theme="deep-ocean"] .resilience-flip-front .flip-label,
+body[data-theme="deep-ocean"] .resilience-flip-front .flip-value,
+body[data-theme="deep-ocean"] .resilience-flip-back .flip-sub,
+body[data-theme="deep-ocean"] .flip-front .flip-value,
+body[data-theme="deep-ocean"] .flip-back .flip-sub { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .flip-back .flip-label { color: #54ACBF !important; }
+
+/* ── Карточка Инсайт дня ── */
+body[data-theme="deep-ocean"] .insight-title,
+body[data-theme="deep-ocean"] .golden-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] #todayInsight,
+body[data-theme="deep-ocean"] #goldenHours { color: #54ACBF !important; }
+
+/* ── Карточка Золотые часы ── */
+body[data-theme="deep-ocean"] .golden-card .mo-section-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .golden-card #goldenHours { color: #54ACBF !important; }
+
+/* ── Как ты себя чувствуешь ── */
+body[data-theme="deep-ocean"] [data-i18n="home_how_feeling"],
+body[data-theme="deep-ocean"] .mood-header > div:first-child { color: #4caf87 !important; }
