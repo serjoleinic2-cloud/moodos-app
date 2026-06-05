@@ -513,6 +513,8 @@ body[data-theme="warm-sunset"] textarea {
 body[data-theme="deep-ocean"] {
   background: linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%) !important;
 }
+
+/* Все карточки и поверхности */
 body[data-theme="deep-ocean"] .card,
 body[data-theme="deep-ocean"] .mo-metric,
 body[data-theme="deep-ocean"] .hist-card,
@@ -521,31 +523,55 @@ body[data-theme="deep-ocean"] .flip-back,
 body[data-theme="deep-ocean"] .stab-entry,
 body[data-theme="deep-ocean"] .meditation-player-card,
 body[data-theme="deep-ocean"] .neyra-card,
-body[data-theme="deep-ocean"] .neo-row {
+body[data-theme="deep-ocean"] .neo-row,
+body[data-theme="deep-ocean"] .accordion-item,
+body[data-theme="deep-ocean"] .accordion-header,
+body[data-theme="deep-ocean"] .accordion-body {
   background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04) !important;
 }
+
+/* Нижняя навигация */
 body[data-theme="deep-ocean"] .bottom-nav {
-  background: rgba(13, 30, 50, 0.97) !important;
-  box-shadow: 0 -2px 20px rgba(0,0,0,0.4) !important;
+  background: rgba(10, 25, 45, 0.98) !important;
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.5) !important;
 }
-body[data-theme="deep-ocean"] .bottom-nav button { color: #4a7a9b !important; }
-body[data-theme="deep-ocean"] .bottom-nav button.active { color: #7eb8d4 !important; }
+body[data-theme="deep-ocean"] .bottom-nav button { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .bottom-nav button.active { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .bottom-nav button small { color: inherit !important; }
+
+/* Панели меню и практик */
+body[data-theme="deep-ocean"] #menuPanel,
+body[data-theme="deep-ocean"] #toolsPanel {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+
+/* Белый — основные заголовки, цифры, важные значения */
 body[data-theme="deep-ocean"] h1,
 body[data-theme="deep-ocean"] h2,
+body[data-theme="deep-ocean"] h3,
 body[data-theme="deep-ocean"] .settings-title,
 body[data-theme="deep-ocean"] .mo-metric-value,
 body[data-theme="deep-ocean"] .flip-value,
 body[data-theme="deep-ocean"] #moodValue,
+body[data-theme="deep-ocean"] .modal-title,
 body[data-theme="deep-ocean"] .hist-card-sub,
 body[data-theme="deep-ocean"] .neo-row-label,
-body[data-theme="deep-ocean"] .modal-title {
-  color: #e0f0ff !important;
+body[data-theme="deep-ocean"] .flip-back,
+body[data-theme="deep-ocean"] .stab-entry-header span,
+body[data-theme="deep-ocean"] .accordion-header,
+body[data-theme="deep-ocean"] .accordion-body,
+body[data-theme="deep-ocean"] #menuPanel *,
+body[data-theme="deep-ocean"] #toolsPanel * {
+  color: #ffffff !important;
 }
+
+/* Голубой — лейблы, подписи, вторичный текст */
 body[data-theme="deep-ocean"] .mo-metric-label,
 body[data-theme="deep-ocean"] .mo-metric-sub,
 body[data-theme="deep-ocean"] .flip-label,
 body[data-theme="deep-ocean"] .flip-sub,
+body[data-theme="deep-ocean"] .flip-hint,
 body[data-theme="deep-ocean"] .hist-card-title,
 body[data-theme="deep-ocean"] .hist-card-time,
 body[data-theme="deep-ocean"] .hist-day-label,
@@ -553,9 +579,18 @@ body[data-theme="deep-ocean"] .mo-section-title,
 body[data-theme="deep-ocean"] .neo-row-sub,
 body[data-theme="deep-ocean"] .neo-row-value,
 body[data-theme="deep-ocean"] .neo-row-arrow,
-body[data-theme="deep-ocean"] .settings-section-label {
-  color: #4a7a9b !important;
+body[data-theme="deep-ocean"] .settings-section-label,
+body[data-theme="deep-ocean"] .saved-label,
+body[data-theme="deep-ocean"] .insight-title,
+body[data-theme="deep-ocean"] .golden-title {
+  color: #54ACBF !important;
 }
+
+/* Зелёный — оставить как есть */
+body[data-theme="deep-ocean"] .flip-hint { color: #4caf87 !important; }
+body[data-theme="deep-ocean"] .mo-btn.active-period { color: #4caf87 !important; }
+
+/* Кнопки */
 body[data-theme="deep-ocean"] .mo-btn,
 body[data-theme="deep-ocean"] .card button,
 body[data-theme="deep-ocean"] .mood-ok-btn,
@@ -565,9 +600,9 @@ body[data-theme="deep-ocean"] .modal-option,
 body[data-theme="deep-ocean"] .modal-save-btn,
 body[data-theme="deep-ocean"] .modal-cancel,
 body[data-theme="deep-ocean"] .backup-card-btn.restore {
-  background: rgba(20, 50, 80, 0.9) !important;
+  background: #023859 !important;
   box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-  color: #7eb8d4 !important;
+  color: #54ACBF !important;
 }
 body[data-theme="deep-ocean"] .mo-btn:active,
 body[data-theme="deep-ocean"] .card button:active,
@@ -577,160 +612,78 @@ body[data-theme="deep-ocean"] .smallBtn:active {
   box-shadow: inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.04) !important;
 }
 body[data-theme="deep-ocean"] .modal-option.selected {
-  color: #7eb8d4 !important;
-  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.04) !important;
+  background: rgba(84,172,191,0.15) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4) !important;
 }
+
+/* Иконки плейеров — белые */
+body[data-theme="deep-ocean"] .player-icon {
+  filter: grayscale(1) invert(1) !important;
+  opacity: 0.85 !important;
+}
+body[data-theme="deep-ocean"] .smallBtn.active .player-icon,
+body[data-theme="deep-ocean"] .player-btn.active .player-icon {
+  filter: invert(1) sepia(1) saturate(2) hue-rotate(160deg) !important;
+  opacity: 1 !important;
+}
+body[data-theme="deep-ocean"] .player-btn.active {
+  background: rgba(84,172,191,0.15) !important;
+}
+
+/* Textarea */
 body[data-theme="deep-ocean"] textarea {
   background: rgba(10, 30, 50, 0.7) !important;
-  color: #c0d8f0 !important;
+  color: #ffffff !important;
   box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.03) !important;
 }
+
+/* Слайдер настроения */
 body[data-theme="deep-ocean"] .mood-slider-wrap input[type="range"]::-webkit-slider-thumb {
-  background: #1a4a6a !important;
+  background: #023859 !important;
   box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.1) !important;
 }
+
+/* Дата-инпут история */
 body[data-theme="deep-ocean"] .hist-date-input {
   background: rgba(20, 45, 70, 0.95) !important;
-  color: #7eb8d4 !important;
+  color: #54ACBF !important;
   box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
 }
+
+/* AI сообщение аватара */
+body[data-theme="deep-ocean"] .ai-message {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(84,172,191,0.4) !important;
+}
+
+/* Треки медитации */
 body[data-theme="deep-ocean"] .track {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.04) !important;
-  color: #4a7a9b !important;
+  color: #54ACBF !important;
 }
 body[data-theme="deep-ocean"] .track.active {
-  background: rgba(126, 184, 212, 0.15) !important;
-  color: #7eb8d4 !important;
+  background: rgba(84,172,191,0.15) !important;
+  color: #ffffff !important;
 }
-body[data-theme="deep-ocean"] .ai-message {
-  color: #c0d8f0 !important;
-  text-shadow: 0 0 8px rgba(126,184,212,0.3) !important;
-}
-body[data-theme="deep-ocean"] .flip-back { color: #e0f0ff !important; }
-body[data-theme="deep-ocean"] .mo-btn.active-period { color: #7eb8d4 !important; }
+
+/* ECS Gauge */
 body[data-theme="deep-ocean"] .ecs-gauge {
   background: rgba(10, 30, 50, 0.6) !important;
   box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
 }
-body[data-theme="deep-ocean"] #menuPanel,
-body[data-theme="deep-ocean"] #toolsPanel {
-  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
-}
-body[data-theme="deep-ocean"] #menuPanel *,
-body[data-theme="deep-ocean"] #toolsPanel * { color: #c0d8f0; }
-body[data-theme="deep-ocean"] .accordion-item,
-body[data-theme="deep-ocean"] .accordion-header,
-body[data-theme="deep-ocean"] .accordion-body {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] #neyra-splash { background: #0a1a2e !important; }
-body[data-theme="deep-ocean"] .nl { color: #7eb8d4 !important; }
-body[data-theme="deep-ocean"] [data-screen="report"] .mo-metric,
-body[data-theme="deep-ocean"] [data-screen="report"] .mo-metric * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="report"] .mo-btn {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="report"] .mo-section-title { color: #4a7a9b !important; }
-body[data-theme="deep-ocean"] #rptCalendarBtn {
-  background: linear-gradient(135deg, #1a3a5a, #2a5a8a) !important;
-  box-shadow: 6px 6px 14px rgba(0,0,0,0.4), -4px -4px 10px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] #yearComparisonLocked {
-  background: linear-gradient(135deg, rgba(255,200,50,0.05), rgba(255,140,0,0.03)) !important;
-  border-color: rgba(255,180,0,0.3) !important;
-}
-body[data-theme="deep-ocean"] #yearComparisonLocked * { color: #c0d8f0 !important; }
-body[data-theme="deep-ocean"] [data-screen="stability"] .mo-metric,
-body[data-theme="deep-ocean"] [data-screen="stability"] .mo-metric * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="stability"] .mo-section-title { color: #4a7a9b !important; }
-body[data-theme="deep-ocean"] .flip-front-stab,
-body[data-theme="deep-ocean"] .flip-back-stab {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 5px 5px 12px rgba(0,0,0,0.4), -3px -3px 8px rgba(255,255,255,0.04) !important;
-  color: #c0d8f0 !important;
-}
-body[data-theme="deep-ocean"] .flip-front-stab *,
-body[data-theme="deep-ocean"] .flip-back-stab * { color: #c0d8f0 !important; }
-body[data-theme="deep-ocean"] .stab-entry {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] .stab-entry * { color: #c0d8f0 !important; }
-body[data-theme="deep-ocean"] [data-screen="stability"] button:not(.mainBtn):not(.smallBtn) {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="tools"] button,
-body[data-theme="deep-ocean"] [data-screen="tools"] .mo-btn {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="tools"] .card,
-body[data-theme="deep-ocean"] [data-screen="tools"] .card * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #888"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#888"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #555"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#555"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #444"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#444"] {
-  color: #7eb8d4 !important;
-}
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #3a3530"],
-body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#3a3530"] {
-  color: #e0f0ff !important;
-}
 
-/* ── Главная: приветствие и тексты ── */
-body[data-theme="deep-ocean"] #homeGreeting {
-  color: #ffffff !important;
-}
-body[data-theme="deep-ocean"] #daysTogether {
-  color: #54ACBF !important;
-}
-body[data-theme="deep-ocean"] [data-i18n="home_how_feeling"],
-body[data-theme="deep-ocean"] .mood-header > div:first-child {
-  color: #54ACBF !important;
-}
-body[data-theme="deep-ocean"] [data-i18n="home_events_hint"] {
-  color: #54ACBF !important;
-  opacity: 0.7;
-}
-
-/* ── Триггеры (события) ── */
+/* Триггеры */
 body[data-theme="deep-ocean"] .event-item {
   background: #023859 !important;
-  border: 1px solid rgba(84, 172, 191, 0.2) !important;
+  border: 1px solid rgba(84,172,191,0.2) !important;
   box-shadow: 4px 4px 8px rgba(0,0,0,0.3), -2px -2px 5px rgba(255,255,255,0.04) !important;
 }
 body[data-theme="deep-ocean"] .event-item.active {
-  background: rgba(84, 172, 191, 0.2) !important;
-  border: 1px solid rgba(84, 172, 191, 0.5) !important;
+  background: rgba(84,172,191,0.2) !important;
+  border: 1px solid rgba(84,172,191,0.5) !important;
 }
-body[data-theme="deep-ocean"] .event-label {
-  color: #54ACBF !important;
-}
-body[data-theme="deep-ocean"] .event-item.active .event-label {
-  color: #ffffff !important;
-}
+body[data-theme="deep-ocean"] .event-label { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .event-item.active .event-label { color: #ffffff !important; }
 body[data-theme="deep-ocean"] .event-icon {
   filter: grayscale(1) invert(1) !important;
   opacity: 0.7 !important;
@@ -740,83 +693,93 @@ body[data-theme="deep-ocean"] .event-item.active .event-icon {
   opacity: 1 !important;
 }
 
-/* ── Вызов дня: карточка ── */
-body[data-theme="deep-ocean"] #dailyChallengeBar > div {
-  background: rgba(2, 56, 89, 0.95) !important;
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="deep-ocean"] #challengeText {
-  color: #c0d8f0 !important;
-}
-body[data-theme="deep-ocean"] [data-i18n="challenge_title"] {
-  color: #54ACBF !important;
-}
-/* Кнопка Начать */
-body[data-theme="deep-ocean"] #challengeBtn {
-  background: linear-gradient(145deg, #023859, #02507a) !important;
-  color: #54ACBF !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-/* Кнопки внутри wrap (Выполнено / Пропустить) */
-body[data-theme="deep-ocean"] #challengeBtnWrap button {
-  background: rgba(2, 56, 89, 0.95) !important;
-  color: #54ACBF !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-  border-color: rgba(84,172,191,0.3) !important;
-}
+/* Графики и диаграммы — текст белый */
+body[data-theme="deep-ocean"] canvas { filter: brightness(1.1) !important; }
 
-/* ── Инсайт: текст ── */
-body[data-theme="deep-ocean"] #homeInsightText,
-body[data-theme="deep-ocean"] #homePatternText {
+/* Попапы и оверлеи */
+body[data-theme="deep-ocean"] .modal-overlay,
+body[data-theme="deep-ocean"] #deleteConfirmPopup > div,
+body[data-theme="deep-ocean"] .letter-overlay-inner {
+  background: rgba(20, 45, 70, 0.98) !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5) !important;
+}
+body[data-theme="deep-ocean"] #deleteConfirmPopup > div * { color: #ffffff !important; }
+body[data-theme="deep-ocean"] #deleteConfirmPopup #deleteConfirmNo {
+  background: #023859 !important;
   color: #54ACBF !important;
 }
-body[data-theme="deep-ocean"] #homeInsightCard,
-body[data-theme="deep-ocean"] #homePatternCard {
-  background: rgba(2, 56, 89, 0.95) !important;
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-/* Заголовки карточек — белым */
-body[data-theme="deep-ocean"] #homeInsightCard [data-i18n="home_insight_label"],
-body[data-theme="deep-ocean"] #homePatternCard [data-i18n="home_pattern_label"],
-body[data-theme="deep-ocean"] #resilienceFlipCard .flip-label-home,
-body[data-theme="deep-ocean"] [data-screen="home"] [data-i18n="home_insight_day"],
-body[data-theme="deep-ocean"] [data-screen="home"] [data-i18n="home_golden_hours"] {
+body[data-theme="deep-ocean"] #deleteConfirmPopup #deleteConfirmYes {
+  background: linear-gradient(145deg, #e05555, #c04040) !important;
   color: #ffffff !important;
 }
 
-/* Лампочка рядом с Инсайтом */
-body[data-theme="deep-ocean"] #homeInsightCard .mo-info-btn {
+/* PDF отчёт */
+body[data-theme="deep-ocean"] #pdfReportScreen {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-card,
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-auto-card {
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-title,
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-card-title,
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-back-label { color: #ffffff !important; }
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-subtitle,
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-hint { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-input {
+  background: rgba(10, 30, 50, 0.7) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+
+/* Splash */
+body[data-theme="deep-ocean"] #neyra-splash { background: #0a1a2e !important; }
+body[data-theme="deep-ocean"] .nl { color: #54ACBF !important; }
+
+/* Письма от Нейры */
+body[data-theme="deep-ocean"] .letter-overlay-inner { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .letter-overlay-inner * { color: #ffffff !important; }
+
+/* Инсайт карточки */
+body[data-theme="deep-ocean"] #homeInsightCard,
+body[data-theme="deep-ocean"] #homePatternCard {
+  background: rgba(20, 45, 70, 0.95) !important;
+}
+body[data-theme="deep-ocean"] #homeInsightText,
+body[data-theme="deep-ocean"] #homePatternText { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .mo-info-btn {
   background: rgba(84,172,191,0.2) !important;
   color: #54ACBF !important;
 }
 
-/* ── Карточки: Индекс устойчивости, Индекс дня, Золотые часы ── */
-body[data-theme="deep-ocean"] #stabilityValue,
-body[data-theme="deep-ocean"] #stabilityTrend,
-body[data-theme="deep-ocean"] #goldenHours,
-body[data-theme="deep-ocean"] #todayInsight {
+/* Вызов дня */
+body[data-theme="deep-ocean"] #dailyChallengeBar > div {
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #challengeText { color: #ffffff !important; }
+body[data-theme="deep-ocean"] #challengeBtn {
+  background: #023859 !important;
   color: #54ACBF !important;
 }
-body[data-theme="deep-ocean"] #stabilityValue {
-  color: #ffffff !important;
-}
-/* Лейблы карточек */
-body[data-theme="deep-ocean"] .card [data-i18n="home_stability"],
-body[data-theme="deep-ocean"] .card [data-i18n="home_golden"],
-body[data-theme="deep-ocean"] .card [data-i18n="home_insight"] {
+body[data-theme="deep-ocean"] #challengeBtnWrap button {
+  background: #023859 !important;
   color: #54ACBF !important;
 }
+body[data-theme="deep-ocean"] .timerHint { color: #89CCD8 !important; }
 
-/* ── moodValue (число %) ── */
-body[data-theme="deep-ocean"] #moodValue {
-  color: #ffffff !important;
-}
-
-/* ── Кнопка ОК ── */
-body[data-theme="deep-ocean"] .mood-ok-btn {
-  background: linear-gradient(145deg, #023859, #02507a) !important;
+/* Прогресс-бар отчёт/баланс */
+body[data-theme="deep-ocean"] [data-screen="report"] .mo-section-title,
+body[data-theme="deep-ocean"] [data-screen="stability"] .mo-section-title { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] #rptCalendarBtn {
+  background: #023859 !important;
   color: #54ACBF !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
 }
 
 /* ===== MEDITATION TRACK LIST ===== */
