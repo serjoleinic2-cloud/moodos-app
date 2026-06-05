@@ -134,9 +134,10 @@ h2 { font-size: 20px; color: #3a3530; }
 /* ===== BOTTOM NAV ===== */
 .bottom-nav {
   display: flex; justify-content: space-around; align-items: center;
-  background: rgba(232, 237, 230, 0.95);
+  background: rgb(232, 237, 230);
   box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
   padding-bottom: 48px;
   height: 100px; padding-top: 3px;
