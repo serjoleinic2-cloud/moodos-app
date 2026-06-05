@@ -60,6 +60,20 @@ export function initBilling() {
         logPremiumGranted('billing_verified', { productId });
       }
       receipt.finish();
+    })
+    .expired((product) => {
+      console.log('[billing] subscription expired:', product.id);
+      const monthly = store.get('premium_monthly');
+      const yearly  = store.get('premium_yearly');
+      const stillOwned = (monthly && store.owned(monthly)) || (yearly && store.owned(yearly));
+      if (!stillOwned) {
+        console.warn('[billing] confirmed expired — deactivating premium');
+        deactivateExpiredPremium();
+        window._trustedSetBillingPremium?.(false);
+        if (window.systemState) window.systemState.premium = false;
+        enqueueBillingStateUpdate(false);
+        logPremiumRevoked('billing_expired', { productId: product.id });
+      }
     });
 
   store.error((err) => {

@@ -572,7 +572,6 @@ function showThemeModal() {
   
   if (premium) {
     themes.push(
-      { value: "ocean-blue",  label: t("theme_ocean_blue") },
       { value: "warm-sunset", label: t("theme_warm_sunset") },
       { value: "deep-ocean",  label: "🌊 " + t("theme_deep_ocean") }
     );

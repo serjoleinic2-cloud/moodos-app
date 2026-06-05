@@ -195,7 +195,9 @@ export function activatePremiumPaid(productId) {
   // Не храним фиксированную дату — источник истины Google Play.
   // Ставим далёкую дату как fallback, реальная проверка через store.owned()
   const isYearly = (productId || '').includes('yearly');
-  profile.premiumExpiresAt = Date.now() + (isYearly ? 400 : 35) * 24 * 60 * 60 * 1000;
+  // 3 дня — штамп обновляется при каждом запуске через store.update() → .approved()
+  // Если юзер офлайн 3+ дней и отменил подписку — потеряет доступ. Приемлемо.
+  profile.premiumExpiresAt = Date.now() + 3 * 24 * 60 * 60 * 1000;
   profile.premiumActivatedAt = Date.now();
   saveProfile(profile);
   setBillingPremium(true);
