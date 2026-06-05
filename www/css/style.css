@@ -698,6 +698,97 @@ body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#3a3530"] {
   color: #e0f0ff !important;
 }
 
+/* ── Главная: приветствие и тексты ── */
+body[data-theme="deep-ocean"] #homeGreeting {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #daysTogether {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] [data-i18n="home_how_feeling"],
+body[data-theme="deep-ocean"] .mood-header > div:first-child {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] [data-i18n="home_events_hint"] {
+  color: #54ACBF !important;
+  opacity: 0.7;
+}
+
+/* ── Триггеры (события) ── */
+body[data-theme="deep-ocean"] .event-item {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .event-item.active {
+  color: #ffffff !important;
+  background: rgba(84,172,191,0.25) !important;
+  box-shadow: 0 0 0 1.5px #54ACBF !important;
+}
+
+/* ── Вызов дня: карточка ── */
+body[data-theme="deep-ocean"] #dailyChallengeBar > div {
+  background: rgba(2, 56, 89, 0.95) !important;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] #challengeText {
+  color: #c0d8f0 !important;
+}
+body[data-theme="deep-ocean"] [data-i18n="challenge_title"] {
+  color: #54ACBF !important;
+}
+/* Кнопка Начать */
+body[data-theme="deep-ocean"] #challengeBtn {
+  background: linear-gradient(145deg, #023859, #02507a) !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+/* Кнопки внутри wrap (Выполнено / Пропустить) */
+body[data-theme="deep-ocean"] #challengeBtnWrap button {
+  background: rgba(2, 56, 89, 0.95) !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+  border-color: rgba(84,172,191,0.3) !important;
+}
+
+/* ── Инсайт: текст ── */
+body[data-theme="deep-ocean"] #homeInsightText,
+body[data-theme="deep-ocean"] #homePatternText {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #homeInsightCard,
+body[data-theme="deep-ocean"] #homePatternCard {
+  background: rgba(2, 56, 89, 0.95) !important;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+
+/* ── Карточки: Индекс устойчивости, Индекс дня, Золотые часы ── */
+body[data-theme="deep-ocean"] #stabilityValue,
+body[data-theme="deep-ocean"] #stabilityTrend,
+body[data-theme="deep-ocean"] #goldenHours,
+body[data-theme="deep-ocean"] #todayInsight {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #stabilityValue {
+  color: #ffffff !important;
+}
+/* Лейблы карточек */
+body[data-theme="deep-ocean"] .card [data-i18n="home_stability"],
+body[data-theme="deep-ocean"] .card [data-i18n="home_golden"],
+body[data-theme="deep-ocean"] .card [data-i18n="home_insight"] {
+  color: #54ACBF !important;
+}
+
+/* ── moodValue (число %) ── */
+body[data-theme="deep-ocean"] #moodValue {
+  color: #ffffff !important;
+}
+
+/* ── Кнопка ОК ── */
+body[data-theme="deep-ocean"] .mood-ok-btn {
+  background: linear-gradient(145deg, #023859, #02507a) !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+
 /* ===== MEDITATION TRACK LIST ===== */
 #trackList,
 .track-list {
