@@ -474,279 +474,6 @@ body[data-theme="purple-pink"] textarea {
   box-shadow: inset 3px 3px 7px #d4b0cc, inset -3px -3px 7px #ffffff !important;
 }
 
-/* --- Premium: Ocean Blue --- */
-body[data-theme="ocean-blue"] {
-  background: linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%) !important;
-}
-
-/* Карточки и поверхности */
-body[data-theme="ocean-blue"] .card,
-body[data-theme="ocean-blue"] .mo-metric,
-body[data-theme="ocean-blue"] .hist-card,
-body[data-theme="ocean-blue"] .flip-front,
-body[data-theme="ocean-blue"] .flip-back,
-body[data-theme="ocean-blue"] .stab-entry,
-body[data-theme="ocean-blue"] .meditation-player-card,
-body[data-theme="ocean-blue"] .neyra-card,
-body[data-theme="ocean-blue"] .neo-row {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-}
-
-/* Нижняя навигация */
-body[data-theme="ocean-blue"] .bottom-nav {
-  background: rgba(13, 30, 50, 0.97) !important;
-  box-shadow: 0 -2px 20px rgba(0,0,0,0.4) !important;
-}
-body[data-theme="ocean-blue"] .bottom-nav button { color: #4a7a9b !important; }
-body[data-theme="ocean-blue"] .bottom-nav button.active { color: #7eb8d4 !important; }
-
-/* Основные тексты */
-body[data-theme="ocean-blue"] h1,
-body[data-theme="ocean-blue"] h2,
-body[data-theme="ocean-blue"] .settings-title,
-body[data-theme="ocean-blue"] .mo-metric-value,
-body[data-theme="ocean-blue"] .flip-value,
-body[data-theme="ocean-blue"] #moodValue,
-body[data-theme="ocean-blue"] .hist-card-sub,
-body[data-theme="ocean-blue"] .neo-row-label,
-body[data-theme="ocean-blue"] .modal-title {
-  color: #e0f0ff !important;
-}
-
-/* Вторичные тексты */
-body[data-theme="ocean-blue"] .mo-metric-label,
-body[data-theme="ocean-blue"] .mo-metric-sub,
-body[data-theme="ocean-blue"] .flip-label,
-body[data-theme="ocean-blue"] .flip-sub,
-body[data-theme="ocean-blue"] .hist-card-title,
-body[data-theme="ocean-blue"] .hist-card-time,
-body[data-theme="ocean-blue"] .hist-day-label,
-body[data-theme="ocean-blue"] .mo-section-title,
-body[data-theme="ocean-blue"] .neo-row-sub,
-body[data-theme="ocean-blue"] .neo-row-value,
-body[data-theme="ocean-blue"] .neo-row-arrow,
-body[data-theme="ocean-blue"] .settings-section-label {
-  color: #4a7a9b !important;
-}
-
-/* Кнопки */
-body[data-theme="ocean-blue"] .mo-btn,
-body[data-theme="ocean-blue"] .card button,
-body[data-theme="ocean-blue"] .mood-ok-btn,
-body[data-theme="ocean-blue"] .mainBtn,
-body[data-theme="ocean-blue"] .smallBtn,
-body[data-theme="ocean-blue"] .modal-option,
-body[data-theme="ocean-blue"] .modal-save-btn,
-body[data-theme="ocean-blue"] .modal-cancel,
-body[data-theme="ocean-blue"] .backup-card-btn.restore {
-  background: rgba(20, 50, 80, 0.9) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-  color: #7eb8d4 !important;
-}
-body[data-theme="ocean-blue"] .mo-btn:active,
-body[data-theme="ocean-blue"] .card button:active,
-body[data-theme="ocean-blue"] .mood-ok-btn:active,
-body[data-theme="ocean-blue"] .mainBtn:active,
-body[data-theme="ocean-blue"] .smallBtn:active {
-  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] .modal-option.selected {
-  color: #7eb8d4 !important;
-  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.04) !important;
-}
-
-/* Textarea */
-body[data-theme="ocean-blue"] textarea {
-  background: rgba(10, 30, 50, 0.7) !important;
-  color: #c0d8f0 !important;
-  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.03) !important;
-}
-
-/* Слайдер настроения */
-body[data-theme="ocean-blue"] .mood-slider-wrap input[type="range"]::-webkit-slider-thumb {
-  background: #1a4a6a !important;
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.1) !important;
-}
-
-/* Дата-инпут в истории */
-body[data-theme="ocean-blue"] .hist-date-input {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #7eb8d4 !important;
-  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
-}
-
-/* Треки медитации */
-body[data-theme="ocean-blue"] .track {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.04) !important;
-  color: #4a7a9b !important;
-}
-body[data-theme="ocean-blue"] .track.active {
-  background: rgba(126, 184, 212, 0.15) !important;
-  color: #7eb8d4 !important;
-}
-
-/* Аватар — текст сообщения */
-body[data-theme="ocean-blue"] .ai-message {
-  color: #c0d8f0 !important;
-  text-shadow: 0 0 8px rgba(126,184,212,0.3) !important;
-}
-
-/* Flip-карточки — задняя сторона текст */
-body[data-theme="ocean-blue"] .flip-back {
-  color: #e0f0ff !important;
-}
-
-/* Инсайт — период и состояние */
-body[data-theme="ocean-blue"] .mo-btn.active-period {
-  color: #7eb8d4 !important;
-}
-
-/* Карточки вызова дня */
-body[data-theme="ocean-blue"] #dailyChallengeCard,
-body[data-theme="ocean-blue"] #dailyChallengeCard * {
-  background: rgba(20, 45, 70, 0.95);
-  color: #c0d8f0;
-}
-
-/* Прогресс-бар (стабильность и др.) */
-body[data-theme="ocean-blue"] .ecs-gauge {
-  background: rgba(10, 30, 50, 0.6) !important;
-  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
-}
-
-/* Панели (меню, практики) */
-body[data-theme="ocean-blue"] #menuPanel,
-body[data-theme="ocean-blue"] #toolsPanel {
-  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
-}
-body[data-theme="ocean-blue"] #menuPanel *,
-body[data-theme="ocean-blue"] #toolsPanel * {
-  color: #c0d8f0;
-}
-
-/* Аккордион меню */
-body[data-theme="ocean-blue"] .accordion-item,
-body[data-theme="ocean-blue"] .accordion-header,
-body[data-theme="ocean-blue"] .accordion-body {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-
-/* Скролл */
-body[data-theme="ocean-blue"] ::-webkit-scrollbar-track {
-  background: rgba(10, 25, 40, 0.5) !important;
-}
-body[data-theme="ocean-blue"] ::-webkit-scrollbar-thumb {
-  background: rgba(126, 184, 212, 0.3) !important;
-}
-
-/* Splash */
-body[data-theme="ocean-blue"] #neyra-splash {
-  background: #0a1a2e !important;
-}
-body[data-theme="ocean-blue"] .nl {
-  color: #7eb8d4 !important;
-}
-
-/* ── Отчёт ── */
-body[data-theme="ocean-blue"] [data-screen="report"] .mo-metric,
-body[data-theme="ocean-blue"] [data-screen="report"] .mo-metric * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="report"] canvas {
-  filter: invert(0) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="report"] .mo-btn {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="report"] .mo-section-title {
-  color: #4a7a9b !important;
-}
-body[data-theme="ocean-blue"] #rptCalendarBtn {
-  background: linear-gradient(135deg, #1a3a5a, #2a5a8a) !important;
-  box-shadow: 6px 6px 14px rgba(0,0,0,0.4), -4px -4px 10px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] #yearComparisonLocked {
-  background: linear-gradient(135deg, rgba(255,200,50,0.05), rgba(255,140,0,0.03)) !important;
-  border-color: rgba(255,180,0,0.3) !important;
-}
-body[data-theme="ocean-blue"] #yearComparisonLocked * { color: #c0d8f0 !important; }
-
-/* ── Баланс (stability) ── */
-body[data-theme="ocean-blue"] [data-screen="stability"] .mo-metric,
-body[data-theme="ocean-blue"] [data-screen="stability"] .mo-metric * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="stability"] .mo-section-title {
-  color: #4a7a9b !important;
-}
-body[data-theme="ocean-blue"] .flip-front-stab,
-body[data-theme="ocean-blue"] .flip-back-stab {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 5px 5px 12px rgba(0,0,0,0.4), -3px -3px 8px rgba(255,255,255,0.04) !important;
-  color: #c0d8f0 !important;
-}
-body[data-theme="ocean-blue"] .flip-front-stab *,
-body[data-theme="ocean-blue"] .flip-back-stab * {
-  color: #c0d8f0 !important;
-}
-body[data-theme="ocean-blue"] .stab-entry {
-  background: rgba(20, 45, 70, 0.95) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] .stab-entry * {
-  color: #c0d8f0 !important;
-}
-body[data-theme="ocean-blue"] [data-screen="stability"] canvas {
-  filter: brightness(0.9) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="stability"] button:not(.mainBtn):not(.smallBtn) {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="tools"] button,
-body[data-theme="ocean-blue"] [data-screen="tools"] .mo-btn {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="tools"] .card,
-body[data-theme="ocean-blue"] [data-screen="tools"] .card * {
-  background: rgba(20, 45, 70, 0.95) !important;
-  color: #c0d8f0 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="background: linear-gradient(145deg, #f5efe6"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="background:linear-gradient(145deg,#f5efe6"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="background: rgba(232, 237, 230"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="background:rgba(232,237,230"] {
-  background: rgba(20, 50, 80, 0.9) !important;
-  color: #7eb8d4 !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
-}
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color: #888"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color:#888"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color: #555"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color:#555"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color: #444"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color:#444"] {
-  color: #7eb8d4 !important;
-}
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color: #3a3530"],
-body[data-theme="ocean-blue"] [data-screen="tools"] [style*="color:#3a3530"] {
-  color: #e0f0ff !important;
-}
-
 /* --- Premium: Warm Sunset --- */
 body[data-theme="warm-sunset"] {
   --neyra-color-text-primary: #6a3020;
@@ -781,130 +508,194 @@ body[data-theme="warm-sunset"] textarea {
   box-shadow: inset 3px 3px 7px #d0b8a0, inset -3px -3px 7px #ffffff !important;
 }
 
-/* --- Premium: Глубокий океан --- */
+/* --- Premium: Deep Ocean --- */
 body[data-theme="deep-ocean"] {
-  background: linear-gradient(160deg, #26658C 0%, #011c40 100%) !important;
+  background: linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%) !important;
 }
 body[data-theme="deep-ocean"] .card,
 body[data-theme="deep-ocean"] .mo-metric,
 body[data-theme="deep-ocean"] .hist-card,
 body[data-theme="deep-ocean"] .flip-front,
 body[data-theme="deep-ocean"] .flip-back,
-body[data-theme="deep-ocean"] .flip-front-home,
-body[data-theme="deep-ocean"] .flip-back-home,
 body[data-theme="deep-ocean"] .stab-entry,
 body[data-theme="deep-ocean"] .meditation-player-card,
 body[data-theme="deep-ocean"] .neyra-card,
-body[data-theme="deep-ocean"] .neyra-list-item {
-  background: rgba(2, 56, 89, 0.97) !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(167,235,242,0.08) !important;
+body[data-theme="deep-ocean"] .neo-row {
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
 }
 body[data-theme="deep-ocean"] .bottom-nav {
-  background: rgba(1, 28, 64, 0.97) !important;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
+  background: rgba(13, 30, 50, 0.97) !important;
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .bottom-nav button { color: #4a7a9b !important; }
+body[data-theme="deep-ocean"] .bottom-nav button.active { color: #7eb8d4 !important; }
+body[data-theme="deep-ocean"] h1,
+body[data-theme="deep-ocean"] h2,
+body[data-theme="deep-ocean"] .settings-title,
+body[data-theme="deep-ocean"] .mo-metric-value,
+body[data-theme="deep-ocean"] .flip-value,
+body[data-theme="deep-ocean"] #moodValue,
+body[data-theme="deep-ocean"] .hist-card-sub,
+body[data-theme="deep-ocean"] .neo-row-label,
+body[data-theme="deep-ocean"] .modal-title {
+  color: #e0f0ff !important;
+}
+body[data-theme="deep-ocean"] .mo-metric-label,
+body[data-theme="deep-ocean"] .mo-metric-sub,
+body[data-theme="deep-ocean"] .flip-label,
+body[data-theme="deep-ocean"] .flip-sub,
+body[data-theme="deep-ocean"] .hist-card-title,
+body[data-theme="deep-ocean"] .hist-card-time,
+body[data-theme="deep-ocean"] .hist-day-label,
+body[data-theme="deep-ocean"] .mo-section-title,
+body[data-theme="deep-ocean"] .neo-row-sub,
+body[data-theme="deep-ocean"] .neo-row-value,
+body[data-theme="deep-ocean"] .neo-row-arrow,
+body[data-theme="deep-ocean"] .settings-section-label {
+  color: #4a7a9b !important;
 }
 body[data-theme="deep-ocean"] .mo-btn,
 body[data-theme="deep-ocean"] .card button,
 body[data-theme="deep-ocean"] .mood-ok-btn,
 body[data-theme="deep-ocean"] .mainBtn,
 body[data-theme="deep-ocean"] .smallBtn,
-body[data-theme="deep-ocean"] .neyra-btn-secondary {
-  background: linear-gradient(145deg, #023859, #011c40) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(167,235,242,0.1) !important;
-  color: #A7EBF2 !important;
-  border: 1px solid rgba(167,235,242,0.15) !important;
+body[data-theme="deep-ocean"] .modal-option,
+body[data-theme="deep-ocean"] .modal-save-btn,
+body[data-theme="deep-ocean"] .modal-cancel,
+body[data-theme="deep-ocean"] .backup-card-btn.restore {
+  background: rgba(20, 50, 80, 0.9) !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+  color: #7eb8d4 !important;
 }
 body[data-theme="deep-ocean"] .mo-btn:active,
 body[data-theme="deep-ocean"] .card button:active,
 body[data-theme="deep-ocean"] .mood-ok-btn:active,
 body[data-theme="deep-ocean"] .mainBtn:active,
 body[data-theme="deep-ocean"] .smallBtn:active {
-  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 5px rgba(167,235,242,0.08) !important;
+  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] .modal-option.selected {
+  color: #7eb8d4 !important;
+  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.04) !important;
 }
 body[data-theme="deep-ocean"] textarea {
-  background: rgba(1, 28, 64, 0.6) !important;
-  color: #A7EBF2 !important;
-  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -2px -2px 5px rgba(167,235,242,0.06) !important;
+  background: rgba(10, 30, 50, 0.7) !important;
+  color: #c0d8f0 !important;
+  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.4), inset -3px -3px 7px rgba(255,255,255,0.03) !important;
 }
-body[data-theme="deep-ocean"] textarea::placeholder {
-  color: rgba(167,235,242,0.4) !important;
+body[data-theme="deep-ocean"] .mood-slider-wrap input[type="range"]::-webkit-slider-thumb {
+  background: #1a4a6a !important;
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5), inset -2px -2px 4px rgba(255,255,255,0.1) !important;
 }
-body[data-theme="deep-ocean"] .bottom-nav button { color: rgba(167,235,242,0.5) !important; }
-body[data-theme="deep-ocean"] .bottom-nav button.active { color: #A7EBF2 !important; }
-
-/* Все тексты — глубокий океан */
-body[data-theme="deep-ocean"] h1,
-body[data-theme="deep-ocean"] h2,
-body[data-theme="deep-ocean"] h3,
-body[data-theme="deep-ocean"] p,
-body[data-theme="deep-ocean"] span,
-body[data-theme="deep-ocean"] div,
-body[data-theme="deep-ocean"] label,
-body[data-theme="deep-ocean"] small,
-body[data-theme="deep-ocean"] .flip-label,
-body[data-theme="deep-ocean"] .flip-value,
-body[data-theme="deep-ocean"] .flip-sub,
-body[data-theme="deep-ocean"] .flip-label-home,
-body[data-theme="deep-ocean"] .flip-value-home,
-body[data-theme="deep-ocean"] .flip-sub-home,
-body[data-theme="deep-ocean"] .mo-metric-label,
-body[data-theme="deep-ocean"] .mo-metric-value,
-body[data-theme="deep-ocean"] .mo-metric-sub,
-body[data-theme="deep-ocean"] .hist-card-sub,
-body[data-theme="deep-ocean"] .hist-card-title,
-body[data-theme="deep-ocean"] .hist-day-label,
-body[data-theme="deep-ocean"] .mo-section-title,
-body[data-theme="deep-ocean"] .neyra-text-title,
-body[data-theme="deep-ocean"] .neyra-text-subtitle,
-body[data-theme="deep-ocean"] .neyra-text-body,
-body[data-theme="deep-ocean"] .neyra-text-caption,
-body[data-theme="deep-ocean"] .neyra-card-title,
-body[data-theme="deep-ocean"] .neyra-list-item-title,
-body[data-theme="deep-ocean"] .neyra-list-item-subtitle,
-body[data-theme="deep-ocean"] #moodValue,
-body[data-theme="deep-ocean"] #todayInsight,
-body[data-theme="deep-ocean"] #goldenHours,
-body[data-theme="deep-ocean"] #stabilityValue,
-body[data-theme="deep-ocean"] #stabilityTrend,
-body[data-theme="deep-ocean"] #daysTogether {
-  color: #A7EBF2 !important;
+body[data-theme="deep-ocean"] .hist-date-input {
+  background: rgba(20, 45, 70, 0.95) !important;
+  color: #7eb8d4 !important;
+  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
 }
-
-/* Приглушённые тексты — чуть темнее основного */
-body[data-theme="deep-ocean"] .mo-section-title,
-body[data-theme="deep-ocean"] .hist-card-title,
-body[data-theme="deep-ocean"] .hist-card-time,
-body[data-theme="deep-ocean"] .flip-label,
-body[data-theme="deep-ocean"] .flip-label-home,
-body[data-theme="deep-ocean"] .mo-metric-label,
-body[data-theme="deep-ocean"] .neyra-text-caption,
-body[data-theme="deep-ocean"] .neyra-list-item-subtitle {
-  color: rgba(167,235,242,0.6) !important;
-}
-
-/* Карточки верхняя часть */
-body[data-theme="deep-ocean"] .neyra-card-header,
-body[data-theme="deep-ocean"] .stab-entry-header {
-  background: #023859 !important;
-  border-radius: 16px 16px 0 0;
-}
-
-/* Разделители */
-body[data-theme="deep-ocean"] .neyra-card-footer,
-body[data-theme="deep-ocean"] .neyra-divider {
-  border-color: rgba(167,235,242,0.1) !important;
-  background: rgba(167,235,242,0.1) !important;
-}
-
-/* Трек медитации */
 body[data-theme="deep-ocean"] .track {
-  background: rgba(2,56,89,0.8) !important;
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.3), -2px -2px 6px rgba(167,235,242,0.06) !important;
-  color: #A7EBF2 !important;
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.04) !important;
+  color: #4a7a9b !important;
 }
 body[data-theme="deep-ocean"] .track.active {
-  background: rgba(167,235,242,0.12) !important;
-  color: #A7EBF2 !important;
+  background: rgba(126, 184, 212, 0.15) !important;
+  color: #7eb8d4 !important;
+}
+body[data-theme="deep-ocean"] .ai-message {
+  color: #c0d8f0 !important;
+  text-shadow: 0 0 8px rgba(126,184,212,0.3) !important;
+}
+body[data-theme="deep-ocean"] .flip-back { color: #e0f0ff !important; }
+body[data-theme="deep-ocean"] .mo-btn.active-period { color: #7eb8d4 !important; }
+body[data-theme="deep-ocean"] .ecs-gauge {
+  background: rgba(10, 30, 50, 0.6) !important;
+  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -4px -4px 8px rgba(255,255,255,0.03) !important;
+}
+body[data-theme="deep-ocean"] #menuPanel,
+body[data-theme="deep-ocean"] #toolsPanel {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+body[data-theme="deep-ocean"] #menuPanel *,
+body[data-theme="deep-ocean"] #toolsPanel * { color: #c0d8f0; }
+body[data-theme="deep-ocean"] .accordion-item,
+body[data-theme="deep-ocean"] .accordion-header,
+body[data-theme="deep-ocean"] .accordion-body {
+  background: rgba(20, 45, 70, 0.95) !important;
+  color: #c0d8f0 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] #neyra-splash { background: #0a1a2e !important; }
+body[data-theme="deep-ocean"] .nl { color: #7eb8d4 !important; }
+body[data-theme="deep-ocean"] [data-screen="report"] .mo-metric,
+body[data-theme="deep-ocean"] [data-screen="report"] .mo-metric * {
+  background: rgba(20, 45, 70, 0.95) !important;
+  color: #c0d8f0 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="report"] .mo-btn {
+  background: rgba(20, 50, 80, 0.9) !important;
+  color: #7eb8d4 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="report"] .mo-section-title { color: #4a7a9b !important; }
+body[data-theme="deep-ocean"] #rptCalendarBtn {
+  background: linear-gradient(135deg, #1a3a5a, #2a5a8a) !important;
+  box-shadow: 6px 6px 14px rgba(0,0,0,0.4), -4px -4px 10px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] #yearComparisonLocked {
+  background: linear-gradient(135deg, rgba(255,200,50,0.05), rgba(255,140,0,0.03)) !important;
+  border-color: rgba(255,180,0,0.3) !important;
+}
+body[data-theme="deep-ocean"] #yearComparisonLocked * { color: #c0d8f0 !important; }
+body[data-theme="deep-ocean"] [data-screen="stability"] .mo-metric,
+body[data-theme="deep-ocean"] [data-screen="stability"] .mo-metric * {
+  background: rgba(20, 45, 70, 0.95) !important;
+  color: #c0d8f0 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="stability"] .mo-section-title { color: #4a7a9b !important; }
+body[data-theme="deep-ocean"] .flip-front-stab,
+body[data-theme="deep-ocean"] .flip-back-stab {
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 5px 5px 12px rgba(0,0,0,0.4), -3px -3px 8px rgba(255,255,255,0.04) !important;
+  color: #c0d8f0 !important;
+}
+body[data-theme="deep-ocean"] .flip-front-stab *,
+body[data-theme="deep-ocean"] .flip-back-stab * { color: #c0d8f0 !important; }
+body[data-theme="deep-ocean"] .stab-entry {
+  background: rgba(20, 45, 70, 0.95) !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] .stab-entry * { color: #c0d8f0 !important; }
+body[data-theme="deep-ocean"] [data-screen="stability"] button:not(.mainBtn):not(.smallBtn) {
+  background: rgba(20, 50, 80, 0.9) !important;
+  color: #7eb8d4 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="tools"] button,
+body[data-theme="deep-ocean"] [data-screen="tools"] .mo-btn {
+  background: rgba(20, 50, 80, 0.9) !important;
+  color: #7eb8d4 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="tools"] .card,
+body[data-theme="deep-ocean"] [data-screen="tools"] .card * {
+  background: rgba(20, 45, 70, 0.95) !important;
+  color: #c0d8f0 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.35), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #888"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#888"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #555"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#555"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #444"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#444"] {
+  color: #7eb8d4 !important;
+}
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color: #3a3530"],
+body[data-theme="deep-ocean"] [data-screen="tools"] [style*="color:#3a3530"] {
+  color: #e0f0ff !important;
 }
 
 /* ===== MEDITATION TRACK LIST ===== */

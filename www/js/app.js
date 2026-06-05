@@ -649,6 +649,8 @@ if (!window.__neyraAppRunning) {
     }, 500);
     
     try {
+      applyTheme(getTheme());
+      console.log('[THEME] applied:', getTheme(), 'body attr:', document.body.getAttribute('data-theme'));
       initNavigation();
       window._splashReady = true;
       _tryHideSplash();
