@@ -64,6 +64,15 @@ if (_savedAppVersion !== __APP_VERSION__) {
     s.classList.add('hidden');
     setTimeout(() => s.remove(), 400);
   };
+
+  // Страховка: если через 4 секунды splash ещё висит — убрать принудительно
+  setTimeout(() => {
+    const s = document.getElementById('neyra-splash');
+    if (s) {
+      s.classList.add('hidden');
+      setTimeout(() => s.remove(), 400);
+    }
+  }, 4000);
 })();
 
 // app.js — Neyra boot
@@ -653,7 +662,7 @@ if (!window.__neyraAppRunning) {
       console.log('[THEME] applied:', getTheme(), 'body attr:', document.body.getAttribute('data-theme'));
       initNavigation();
       window._splashReady = true;
-      _tryHideSplash();
+      window._tryHideSplash?.();
     } catch (e) {
       console.error('[APP ERROR] initNavigation:', e);
     }
