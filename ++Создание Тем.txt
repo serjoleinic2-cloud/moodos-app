@@ -1,0 +1,25 @@
+Создаёшь один файл www/css/theme-НАЗВАНИЕ.css
+Копируешь theme-deep-ocean.css и меняешь только переменные в начале:
+cssbody[data-theme="НАЗВАНИЕ"] {
+  background: linear-gradient(...) !important;
+
+  --theme-bg:           #...;
+  --theme-card-bg:      rgba(...);
+  --theme-btn-bg:       #...;
+  --theme-text-primary: #...;
+  --theme-text-accent:  #...;
+  --theme-text-muted:   #...;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #...;
+  --theme-chart-grid:   rgba(...);
+  --theme-shadow:       0 4px 16px rgba(...);
+}
+Остальные селекторы в файле заменяешь deep-ocean на НАЗВАНИЕ — через find & replace одним действием.
+
+Подключаешь в index.html:
+html<link rel="stylesheet" href="css/theme-НАЗВАНИЕ.css">
+
+Добавляешь в settings.js в объект themeLabels:
+js'НАЗВАНИЕ': 'Название для юзера',
+
+Всё. JS не трогаешь. Три шага — новая тема готова.

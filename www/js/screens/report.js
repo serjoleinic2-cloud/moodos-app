@@ -73,7 +73,7 @@ function renderReport() {
   const history = getMoodHistory();
 
   if (!history || history.length === 0) {
-    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">${t("report_no_data")}</div></div>`;
+    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:var(--theme-text-accent,#888);"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">${t("report_no_data")}</div></div>`;
     return;
   }
 
@@ -86,7 +86,7 @@ function renderReport() {
 
   if (filtered.length === 0) {
     container.innerHTML = `<div style="padding:4px 0 60px;">${periodBtns}
-      <div style="text-align:center;margin-top:40px;color:#888;"><div style="font-size:48px;">📭</div><div style="margin-top:12px;">${t("report_no_period")}</div></div></div>`;
+      <div style="text-align:center;margin-top:40px;color:var(--theme-text-accent,#888);"><div style="font-size:48px;">📭</div><div style="margin-top:12px;">${t("report_no_period")}</div></div></div>`;
     bindPeriodBtns(container);
     return;
   }
@@ -123,12 +123,12 @@ function renderReport() {
       }
       yearComparisonHTML = `
         <div style="margin-top:16px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#2a3a4a,#1a2530);box-shadow:4px 4px 12px rgba(0,0,0,0.2),-2px -2px 8px rgba(255,255,255,0.1);">
-          <div style="font-size:12px;color:#888;margin-bottom:8px;">${t("year_comparison_title")}</div>
+          <div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:8px;">${t("year_comparison_title")}</div>
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="font-size:28px;font-weight:700;color:${color};">${arrow}</div>
             <div>
               <div style="font-size:16px;font-weight:600;color:#fff;">${mainText}</div>
-              <div style="font-size:11px;color:#666;margin-top:2px;">${t("year_comparison_vs_period")}</div>
+              <div style="font-size:11px;color:var(--theme-text-accent,#666);margin-top:2px;">${t("year_comparison_vs_period")}</div>
             </div>
           </div>
         </div>`;
@@ -139,8 +139,8 @@ function renderReport() {
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:20px;">🔒</div>
           <div>
-            <div style="font-size:13px;color:#666;">${t("year_comparison_locked").replace("🔒 ", "")}</div>
-            <div style="font-size:11px;color:#888;margin-top:2px;">${t("year_comparison_sell")}</div>
+            <div style="font-size:13px;color:var(--theme-text-accent,#666);">${t("year_comparison_locked").replace("🔒 ", "")}</div>
+            <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-top:2px;">${t("year_comparison_sell")}</div>
           </div>
         </div>
       </div>`;
@@ -148,7 +148,7 @@ function renderReport() {
 
   container.innerHTML = `
     <div style="padding:4px 0 60px;">
-      <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("report_period_label")} ${periodLabel}</div>
+      <div style="font-size:13px;color:var(--theme-text-accent,#888);margin-bottom:16px;">${t("report_period_label")} ${periodLabel}</div>
 
       ${periodBtns}
 
@@ -329,7 +329,7 @@ function showMoodCalendarOverlay() {
 
     let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">`;
     DOW_NAMES.forEach(d => {
-      html += `<div style="text-align:center;font-size:10px;color:#aaa;font-weight:600;padding:2px 0;">${d}</div>`;
+      html += `<div style="text-align:center;font-size:10px;color:var(--theme-text-muted,#aaa);font-weight:600;padding:2px 0;">${d}</div>`;
     });
     html += `</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">`;
 
@@ -341,7 +341,7 @@ function showMoodCalendarOverlay() {
       const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
       const hasData = v !== undefined;
       html += `<div class="cal-day ${hasData ? 'cal-day-clickable' : ''}" data-key="${key}" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:${moodBg(v)};border:${isToday?"2px solid #6667AB":"1px solid rgba(0,0,0,0.06)"};box-sizing:border-box;cursor:${hasData ? 'pointer' : 'default'};">
-        <span style="font-size:9px;color:#bbb;">${day}</span>
+        <span style="font-size:9px;color:var(--theme-text-muted,#bbb);">${day}</span>
         ${v !== undefined ? `<span style="font-size:10px;font-weight:700;color:${moodFg(v)};line-height:1.1;">${v}%</span>` : ""}
       </div>`;
     }
@@ -378,42 +378,42 @@ function showMoodCalendarOverlay() {
     if (displayPractices.length > 0) {
       practicesHTML = displayPractices.map(([type, count]) => {
         const name = PRACTICE_NAMES[type] || type;
-        return `<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px;color:#555;">
+        return `<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.5);border-radius:8px;font-size:13px;color:var(--theme-text-muted,#555);">
           <span>${name}</span>
-          <span style="font-weight:600;color:#666;">×${count}</span>
+          <span style="font-weight:600;color:var(--theme-text-accent,#666);">×${count}</span>
         </div>`;
       }).join('');
       if (remainingCount > 0) {
-        practicesHTML += `<div style="font-size:11px;color:#888;text-align:center;padding:6px;">+ ${remainingCount} ещё</div>`;
+        practicesHTML += `<div style="font-size:11px;color:var(--theme-text-accent,#888);text-align:center;padding:6px;">+ ${remainingCount} ещё</div>`;
       }
     }
     
     popup.innerHTML = `
       <div style="text-align:center;margin-bottom:16px;">
-        <div style="font-size:14px;color:#888;margin-bottom:4px;">${dateFormatted}</div>
+        <div style="font-size:14px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${dateFormatted}</div>
         <div style="font-size:36px;font-weight:700;color:${moodColor};">${v}%</div>
-        <div style="font-size:12px;color:#aaa;">${t("hist_mood") || "Настроение"}</div>
+        <div style="font-size:12px;color:var(--theme-text-muted,#aaa);">${t("hist_mood") || "Настроение"}</div>
       </div>
       ${practicesHTML ? `<div style="margin-bottom:12px;">
-        <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("practices_eff") || "Практики"}</div>
+        <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">${t("practices_eff") || "Практики"}</div>
         ${practicesHTML}
       </div>` : ''}
       ${hasVoice ? `
         <div style="margin-bottom:12px;">
-          <div style="font-size:11px;color:#888;margin-bottom:6px;">🎤 ${t("hist_voice_diary")}</div>
+          <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">🎤 ${t("hist_voice_diary")}</div>
           ${voices.map((src, i) => `
             <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:6px;">
               <audio id="voice-player-${i}" src="${src}" preload="none" style="display:none;"></audio>
                 <button class="voice-btn" data-index="${i}" style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
                   <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="Play">
                 </button>
-              <div style="font-size:12px;color:#555;">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
+              <div style="font-size:12px;color:var(--theme-text-muted,#555);">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
             </div>
           `).join('')}
         </div>
       ` : ''}
-      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:#aaa;margin-bottom:12px;">${t("no_data_short")}</div>` : ''}
-      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:#888;">${t("close")}</div>
+      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:var(--theme-text-muted,#aaa);margin-bottom:12px;">${t("no_data_short")}</div>` : ''}
+      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:var(--theme-text-accent,#888);">${t("close")}</div>
     `;
     
     const overlay = document.createElement("div");
@@ -461,23 +461,23 @@ function showMoodCalendarOverlay() {
     return `
       <div style="width:100%;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 16px 120px;box-sizing:border-box;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-          <div style="font-size:17px;font-weight:700;color:#3a3530;">📅 ${t("cal_title")}</div>
-          <div id="calClose" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 10px;">✕</div>
+          <div style="font-size:17px;font-weight:700;color:var(--theme-text-primary,#3a3530);">📅 ${t("cal_title")}</div>
+          <div id="calClose" style="font-size:22px;color:var(--theme-text-muted,#aaa);cursor:pointer;padding:4px 10px;">✕</div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">‹</div>
-          <div style="font-size:16px;font-weight:600;color:#3a3530;">${monthLabel}</div>
-          <div id="calNext" style="padding:8px 18px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:#888;">›</div>
+          <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">‹</div>
+          <div style="font-size:16px;font-weight:600;color:var(--theme-text-primary,#3a3530);">${monthLabel}</div>
+          <div id="calNext" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">›</div>
         </div>
         ${gridHtml}
         <div style="display:flex;gap:14px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
             <div style="width:14px;height:14px;border-radius:4px;background:#4caf8733;border:1px solid rgba(0,0,0,0.08);"></div>≥70%
           </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
             <div style="width:14px;height:14px;border-radius:4px;background:#f0a50033;border:1px solid rgba(0,0,0,0.08);"></div>40–69%
           </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#888;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
             <div style="width:14px;height:14px;border-radius:4px;background:#e0555533;border:1px solid rgba(0,0,0,0.08);"></div>&lt;40%
           </div>
         </div>
@@ -578,7 +578,7 @@ function drawChart(filtered) {
   if (!window.Chart) {
     const parent = canvas.parentElement;
     if (parent) parent.innerHTML =
-      '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' +
+      '<div style="color:var(--theme-text-muted,#aaa);font-size:13px;text-align:center;padding:20px;">' +
       t('chart_unavailable') + '</div>';
     return;
   }

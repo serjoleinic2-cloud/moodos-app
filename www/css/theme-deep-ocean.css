@@ -347,3 +347,64 @@ body[data-theme="deep-ocean"] .card .mo-section-title,
 body[data-theme="deep-ocean"] .mo-metric .mo-section-title {
   color: #ffffff !important;
 }
+
+/* ── Перебить инлайн-цвета во всех экранах ── */
+
+/* #888 → голубой */
+body[data-theme="deep-ocean"] [style*="color:#888"],
+body[data-theme="deep-ocean"] [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+/* #555 → светло-голубой */
+body[data-theme="deep-ocean"] [style*="color:#555"],
+body[data-theme="deep-ocean"] [style*="color: #555"] {
+  color: #89CCD8 !important;
+}
+/* #bbb → светло-голубой */
+body[data-theme="deep-ocean"] [style*="color:#bbb"],
+body[data-theme="deep-ocean"] [style*="color: #bbb"] {
+  color: #89CCD8 !important;
+}
+/* #666 → голубой */
+body[data-theme="deep-ocean"] [style*="color:#666"],
+body[data-theme="deep-ocean"] [style*="color: #666"] {
+  color: #54ACBF !important;
+}
+/* #3a3530 → белый */
+body[data-theme="deep-ocean"] [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+/* #aaa → светло-голубой */
+body[data-theme="deep-ocean"] [style*="color:#aaa"],
+body[data-theme="deep-ocean"] [style*="color: #aaa"] {
+  color: #89CCD8 !important;
+}
+/* #444 → белый */
+body[data-theme="deep-ocean"] [style*="color:#444"],
+body[data-theme="deep-ocean"] [style*="color: #444"] {
+  color: #ffffff !important;
+}
+/* #333 → белый */
+body[data-theme="deep-ocean"] [style*="color:#333"],
+body[data-theme="deep-ocean"] [style*="color: #333"] {
+  color: #ffffff !important;
+}
+/* rgba(0,0,0 тексты → белый */
+body[data-theme="deep-ocean"] [style*="color:rgba(0,0,0"],
+body[data-theme="deep-ocean"] [style*="color: rgba(0,0,0"] {
+  color: #ffffff !important;
+}
+
+/* ── Перебить инлайн фоны светлых карточек ── */
+body[data-theme="deep-ocean"] [style*="background:rgba(232,237,230"],
+body[data-theme="deep-ocean"] [style*="background: rgba(232,237,230"],
+body[data-theme="deep-ocean"] [style*="background:linear-gradient(145deg,#f5efe6"],
+body[data-theme="deep-ocean"] [style*="background: linear-gradient(145deg, #f5efe6"],
+body[data-theme="deep-ocean"] [style*="background:#f5efe6"],
+body[data-theme="deep-ocean"] [style*="background: #f5efe6"],
+body[data-theme="deep-ocean"] [style*="background:#e8ede5"],
+body[data-theme="deep-ocean"] [style*="background: #e8ede5"] {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}

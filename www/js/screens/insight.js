@@ -350,7 +350,7 @@ function buildPeriodComparisonHTML(history, days) {
 
   const html = '<div class="insight-section">' +
     '<div class="insight-section-title">' + t("trend_lbl") + ' ' + t("trend_sub") + '</div>' +
-    '<div class="insight-card single" style="padding:20px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;text-align:center;">' +
+    '<div class="insight-card single" style="padding:20px;border-radius:16px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;text-align:center;">' +
       '<div class="insight-value" style="font-size:28px;font-weight:600;color:' + currentColor + ';">' + (cmp.currentAvg !== null ? cmp.currentAvg + '%' : "—") + '</div>' +
       extraBlock +
     '</div>' +
@@ -371,7 +371,7 @@ function buildYearComparisonBlock() {
   if (sessions === 0) {
     return '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
+      '<div style="padding:16px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:var(--theme-text-muted,#aaa);font-size:14px;text-align:center;">' +
         t("year_no_data") +
       '</div>' +
     '</div>';
@@ -380,7 +380,7 @@ function buildYearComparisonBlock() {
   if (sessions < 3) {
     return '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#aaa;font-size:14px;text-align:center;">' +
+      '<div style="padding:16px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:var(--theme-text-muted,#aaa);font-size:14px;text-align:center;">' +
         t("year_still_learning") +
       '</div>' +
     '</div>';
@@ -389,7 +389,7 @@ function buildYearComparisonBlock() {
   if (sessions < 7) {
     return '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#888;font-size:14px;text-align:center;">' +
+      '<div style="padding:16px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:var(--theme-text-accent,#888);font-size:14px;text-align:center;">' +
         t("year_not_enough_data") +
       '</div>' +
     '</div>';
@@ -398,7 +398,7 @@ function buildYearComparisonBlock() {
   if (!yc.lastYear || !yc.current) {
     return '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-      '<div style="padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:#888;font-size:14px;text-align:center;">' +
+      '<div style="padding:16px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;color:var(--theme-text-accent,#888);font-size:14px;text-align:center;">' +
         t("year_data_collecting") +
       '</div>' +
     '</div>';
@@ -424,22 +424,22 @@ function buildYearComparisonBlock() {
 
   return '<div class="insight-section">' +
     '<div class="insight-section-title">' + t("week_vs_year") + '</div>' +
-    '<div style="padding:18px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
+    '<div style="padding:18px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">' +
       '<div style="display:flex;gap:12px;margin-bottom:16px;">' +
         '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
-          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("year_ago") + '</div>' +
+          '<div style="font-size:11px;color:var(--theme-text-muted,#aaa);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("year_ago") + '</div>' +
           '<div style="font-size:26px;font-weight:700;color:' + prevMoodColor + ';margin-bottom:4px;">' + prevMood + '</div>' +
-          '<div style="font-size:12px;color:#888;">' + prevEntries + '</div>' +
-          '<div style="font-size:12px;color:#888;">' + prevSessions + '</div>' +
+          '<div style="font-size:12px;color:var(--theme-text-accent,#888);">' + prevEntries + '</div>' +
+          '<div style="font-size:12px;color:var(--theme-text-accent,#888);">' + prevSessions + '</div>' +
         '</div>' +
         '<div style="flex:1;padding:14px;border-radius:14px;background:rgba(220,228,218,0.6);box-shadow:inset 2px 2px 5px #c4c9c2,inset -2px -2px 5px #ffffff;">' +
-          '<div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("now_label") + '</div>' +
+          '<div style="font-size:11px;color:var(--theme-text-muted,#aaa);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">' + t("now_label") + '</div>' +
           '<div style="font-size:26px;font-weight:700;color:' + curMoodColor + ';margin-bottom:4px;">' + curMood + '</div>' +
-          '<div style="font-size:12px;color:#888;">' + curEntries + '</div>' +
-          '<div style="font-size:12px;color:#888;">' + curSessions + '</div>' +
+          '<div style="font-size:12px;color:var(--theme-text-accent,#888);">' + curEntries + '</div>' +
+          '<div style="font-size:12px;color:var(--theme-text-accent,#888);">' + curSessions + '</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;">' +
         '<div style="font-size:28px;">' + diffEmoji + '</div>' +
         '<div style="font-size:16px;font-weight:700;color:' + diffColor + ';">' + diffSign + diff + ' ' + t("pts") + '</div>' +
       '</div>' +
@@ -480,7 +480,7 @@ export async function onEnter() {
   const stats   = getFullSessionStats();
 
   if (!history || history.length === 0) {
-    container.innerHTML = '<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">' + t("no_data_insight") + '</div></div>';
+    container.innerHTML = '<div style="text-align:center;margin-top:60px;color:var(--theme-text-accent,#888);"><div style="font-size:48px;">📊</div><div style="margin-top:12px;">' + t("no_data_insight") + '</div></div>';
     return;
   }
 
@@ -560,8 +560,8 @@ export async function onEnter() {
             '<div style="display:flex;align-items:center;gap:10px;">' +
               '<div style="font-size:20px;">🔒</div>' +
               '<div>' +
-                '<div style="font-size:13px;color:#666;">' + t("year_comparison_locked").replace("🔒 ", "") + '</div>' +
-                '<div style="font-size:11px;color:#888;margin-top:2px;">' + t("year_comparison_sell") + '</div>' +
+                '<div style="font-size:13px;color:var(--theme-text-accent,#666);">' + t("year_comparison_locked").replace("🔒 ", "") + '</div>' +
+                '<div style="font-size:11px;color:var(--theme-text-accent,#888);margin-top:2px;">' + t("year_comparison_sell") + '</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -621,32 +621,32 @@ export async function onEnter() {
     '</div>'
   ) : (
     '<div class="insight-section">' +
-      '<div class="rec-card" style="text-align:center;color:#888;">' + t("no_sessions") + '</div>' +
+      '<div class="rec-card" style="text-align:center;color:var(--theme-text-accent,#888);">' + t("no_sessions") + '</div>' +
     '</div>'
   );
 
   container.innerHTML =
     '<style>' +
     '.insight-section{margin-bottom:24px;}' +
-    '.insight-section-title{font-size:13px;color:#888;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}' +
+    '.insight-section-title{font-size:13px;color:var(--theme-text-accent,#888);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}' +
     '.flip-wrap{perspective:1000px;margin-bottom:10px;cursor:pointer;}' +
     '.flip-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform 0.5s ease;border-radius:18px;}' +
     '.flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}' +
-    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:14px;box-sizing:border-box;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
+    '.flip-front,.flip-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:14px;box-sizing:border-box;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;}' +
     '.flip-front{position:relative;border-left:3px solid #4caf87;}' +
     '.flip-front.mood-low{border-left-color:#e05555;}' +
     '.flip-front.mood-mid{border-left-color:#f0a500;}' +
     '.flip-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;flex-direction:column;}' +
     '.flip-label{font-size:14px;font-weight:600;color:rgba(0,0,0,0.7);margin-bottom:2px;}' +
-    '.practice-main-value{font-size:20px;font-weight:600;color:#3a3530;}' +
+    '.practice-main-value{font-size:20px;font-weight:600;color:var(--theme-text-primary,#3a3530);}' +
     '.practice-subtext{font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;line-height:1.4;opacity:0.8;}' +
     '.flip-sub{font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;line-height:1.4;}' +
     '.flip-hint{font-size:9px;color:#4caf87;font-weight:600;text-align:right;margin-top:6px;letter-spacing:0.3px;}' +
-    '.rec-card{padding:16px;border-radius:18px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
-    '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(232,237,230,0.9);box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:#555;}' +
+    '.rec-card{padding:16px;border-radius:18px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;margin-bottom:12px;}' +
+    '.state-row{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 7px #b8c4b4,-3px -3px 7px #ffffff;margin-bottom:8px;font-size:13px;color:var(--theme-text-muted,#555);}' +
     '.state-cell{flex:1;text-align:center;font-weight:600;font-size:13px;}' +
     '.state-name{flex:2;font-size:13px;}' +
-    '.state-header{display:flex;align-items:center;gap:6px;padding:0 12px 6px;font-size:11px;color:#aaa;}' +
+    '.state-header{display:flex;align-items:center;gap:6px;padding:0 12px 6px;font-size:11px;color:var(--theme-text-muted,#aaa);}' +
     '.state-header-name{flex:2;}' +
     '.state-header-cell{flex:1;text-align:center;}' +
     '.insight-card.single{text-align:center;}' +
@@ -660,8 +660,8 @@ export async function onEnter() {
 
     '<div style="padding:4px 0 60px 0;">' +
       '<h2 style="margin-bottom:4px;">' + t("insight_title") + '</h2>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:16px;">' + (t("insight_period_label") || "Период анализа") + ': <strong style="color:#555;">' + getPeriodLabel(selectedTimeRange) + '</strong></div>' +
-      '<div style="font-size:13px;color:#888;margin-bottom:20px;">' + t("current_state") + ': <strong style="color:#3a3530;">' + stateLabelTr + '</strong></div>' +
+      '<div style="font-size:12px;color:var(--theme-text-muted,#aaa);margin-bottom:16px;">' + (t("insight_period_label") || "Период анализа") + ': <strong style="color:var(--theme-text-muted,#555);">' + getPeriodLabel(selectedTimeRange) + '</strong></div>' +
+      '<div style="font-size:13px;color:var(--theme-text-accent,#888);margin-bottom:20px;">' + t("current_state") + ': <strong style="color:var(--theme-text-primary,#3a3530);">' + stateLabelTr + '</strong></div>' +
 
       memoryBlockHTML +
 
@@ -703,13 +703,13 @@ export async function onEnter() {
           '<div class="flip-inner">' +
             '<div class="flip-front has-accent" style="--accent-color:#7eb8d4">' +
               '<div class="flip-label">' + t("trend_lbl") + '</div>' +
-              '<div class="flip-value" style="font-size:20px;color:#3a3530;">' + trendLabel(trend) + '</div>' +
+              '<div class="flip-value" style="font-size:20px;color:var(--theme-text-primary,#3a3530);">' + trendLabel(trend) + '</div>' +
               '<div class="flip-sub">' + t("trend_sub") + '</div>' +
               '<div style="font-size:11px;color:rgba(0,0,0,0.7);margin-top:4px;line-height:1.4;">' + t("metric_trend_explain") + '</div>' +
               '<div class="flip-hint">' + t("tap_for_details") + '</div>' +
             '</div>' +
             '<div class="flip-back" style="padding:20px;">' +
-              '<div style="font-size:15px;color:#555;text-align:center;line-height:1.6;">' + trendExplain(trend) + '</div>' +
+              '<div style="font-size:15px;color:var(--theme-text-muted,#555);text-align:center;line-height:1.6;">' + trendExplain(trend) + '</div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -813,7 +813,7 @@ function initChartFor(id, history, stats, practiceData) {
     const c = document.getElementById(canvasId);
     if (c) {
       const parent = c.parentElement;
-      if (parent) parent.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:20px;">' + t('chart_unavailable') + '</div>';
+      if (parent) parent.innerHTML = '<div style="color:var(--theme-text-muted,#aaa);font-size:13px;text-align:center;padding:20px;">' + t('chart_unavailable') + '</div>';
     }
     return;
   }
@@ -900,7 +900,7 @@ function buildStateTable(activePractices, practiceData) {
     return activePractices.some(function(p) { return practiceData[p.key].byState[state]; });
   });
   if (!activeStates.length) {
-    return '<div style="color:#888;font-size:14px;">' + t("no_state_data") + '</div>';
+    return '<div style="color:var(--theme-text-accent,#888);font-size:14px;">' + t("no_state_data") + '</div>';
   }
   const groups = [];
   for (let i = 0; i < activePractices.length; i += 3) {

@@ -61,7 +61,7 @@ function formatTimeBucketLabel(timeBucket) {
 function renderTodaySection(todaySummary) {
   if (!todaySummary) {
     return `<div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
-      <div class="mo-metric" style="text-align:center;padding:20px;color:#888;font-size:14px;">
+      <div class="mo-metric" style="text-align:center;padding:20px;color:var(--theme-text-accent,#888);font-size:14px;">
         ${t("stab_today_no_data") || "Сегодня пока нет записей"}
       </div>`;
   }
@@ -88,32 +88,32 @@ function renderTodaySection(todaySummary) {
   const bestLabel = best?.events?.length ? formatEventLabel(best.events) : '';
   const bestTime  = best?.timeBucket ? formatTimeBucketLabel(best.timeBucket) : '';
   const bestFront = `
-    <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_best") || "Лучший момент"}</div>
+    <div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${t("stab_today_best") || "Лучший момент"}</div>
     <div style="font-size:22px;font-weight:700;color:#4caf87;">${best?.value ?? '—'}%</div>`;
   const bestBack = `
-    <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("stab_today_best") || "Лучший момент"}</div>
-    ${bestLabel ? `<div style="font-size:13px;color:#555;margin-bottom:4px;">📍 ${bestLabel}</div>` : ''}
-    ${bestTime  ? `<div style="font-size:12px;color:#888;margin-bottom:4px;">🕐 ${bestTime}</div>` : ''}
-    ${!bestLabel && !bestTime ? `<div style="font-size:12px;color:#bbb;">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
+    <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">${t("stab_today_best") || "Лучший момент"}</div>
+    ${bestLabel ? `<div style="font-size:13px;color:var(--theme-text-muted,#555);margin-bottom:4px;">📍 ${bestLabel}</div>` : ''}
+    ${bestTime  ? `<div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:4px;">🕐 ${bestTime}</div>` : ''}
+    ${!bestLabel && !bestTime ? `<div style="font-size:12px;color:var(--theme-text-muted,#bbb);">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
     <div style="font-size:12px;color:#4caf87;font-weight:600;margin-top:4px;">${best?.value ?? '—'}% — ${t("stab_best_explain") || 'пиковое значение дня'}</div>`;
 
   // Worst moment
   const worstLabel = worst?.events?.length ? formatEventLabel(worst.events) : '';
   const worstTime  = worst?.timeBucket ? formatTimeBucketLabel(worst.timeBucket) : '';
   const worstFront = `
-    <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_worst") || "Сложный момент"}</div>
+    <div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${t("stab_today_worst") || "Сложный момент"}</div>
     <div style="font-size:22px;font-weight:700;color:#e05555;">${worst?.value ?? '—'}%</div>`;
   const worstBack = `
-    <div style="font-size:11px;color:#888;margin-bottom:6px;">${t("stab_today_worst") || "Сложный момент"}</div>
-    ${worstLabel ? `<div style="font-size:13px;color:#555;margin-bottom:4px;">📍 ${worstLabel}</div>` : ''}
-    ${worstTime  ? `<div style="font-size:12px;color:#888;margin-bottom:4px;">🕐 ${worstTime}</div>` : ''}
-    ${!worstLabel && !worstTime ? `<div style="font-size:12px;color:#bbb;">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
+    <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">${t("stab_today_worst") || "Сложный момент"}</div>
+    ${worstLabel ? `<div style="font-size:13px;color:var(--theme-text-muted,#555);margin-bottom:4px;">📍 ${worstLabel}</div>` : ''}
+    ${worstTime  ? `<div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:4px;">🕐 ${worstTime}</div>` : ''}
+    ${!worstLabel && !worstTime ? `<div style="font-size:12px;color:var(--theme-text-muted,#bbb);">${t("stab_no_triggers") || 'Триггеры не указаны'}</div>` : ''}
     <div style="font-size:12px;color:#e05555;font-weight:600;margin-top:4px;">${worst?.value ?? '—'}% — ${t("stab_worst_explain") || 'минимальное значение дня'}</div>`;
 
   return `
     <div class="mo-section-title" style="margin-top:16px;">${t("stab_today") || "Сегодня"}</div>
     <div class="mo-metric" style="margin-bottom:12px;">
-      <div style="font-size:12px;color:#888;margin-bottom:4px;">${t("stab_today_avg") || "Среднее настроение"}</div>
+      <div style="font-size:12px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${t("stab_today_avg") || "Среднее настроение"}</div>
       <div style="font-size:28px;font-weight:700;color:${avg >= 70 ? '#4caf87' : avg >= 40 ? '#f0a500' : '#e05555'}">${avg}%</div>
     </div>
     <style>
@@ -123,7 +123,7 @@ function renderTodaySection(todaySummary) {
       .flip-front-stab, .flip-back-stab {
         backface-visibility:hidden; -webkit-backface-visibility:hidden;
         border-radius:16px; padding:14px 16px; box-sizing:border-box;
-        background:rgba(232,237,230,0.9);
+        background:var(--theme-card-bg,rgba(232,237,230,0.9));
         box-shadow:5px 5px 12px #b8c4b4,-5px -5px 12px #ffffff;
       }
       .flip-front-stab { position:relative; width:100%; }
@@ -165,7 +165,7 @@ export function onEnter() {
   const { stability, history } = getStability();
 
   if (!history || history.length < 2) {
-    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:#888;"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">${t("stab_no_data")}</div></div>`;
+    container.innerHTML = `<div style="text-align:center;margin-top:60px;color:var(--theme-text-accent,#888);"><div style="font-size:48px;">🧘</div><div style="margin-top:12px;">${t("stab_no_data")}</div></div>`;
     return;
   }
 
@@ -239,13 +239,13 @@ export function onEnter() {
               </div>
             </div>
             <div style="font-size:17px;font-weight:700;color:${col};flex-shrink:0;margin-left:8px;">${e.value}%</div>
-            <div class="stab-chevron" data-idx="${idx}" style="font-size:16px;color:#bbb;margin-left:6px;transition:transform 0.2s;">›</div>
+            <div class="stab-chevron" data-idx="${idx}" style="font-size:16px;color:var(--theme-text-muted,#bbb);margin-left:6px;transition:transform 0.2s;">›</div>
           </div>
           <div class="stab-entry-detail" data-idx="${idx}" style="display:none;padding:0 14px 12px;">
-            <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.4);box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;font-size:14px;color:#555;line-height:1.6;">
+            <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.4);box-shadow:inset 3px 3px 6px #c4c9c2,inset -3px -3px 6px #ffffff;font-size:14px;color:var(--theme-text-muted,#555);line-height:1.6;">
               ${noteText
-                ? `<div style="font-size:11px;color:#aaa;margin-bottom:5px;">${t("stab_note_label")}</div>${noteText}`
-                : `<span style="color:#bbb;font-style:italic;">${t("stab_no_note")}</span>`}
+                ? `<div style="font-size:11px;color:var(--theme-text-muted,#aaa);margin-bottom:5px;">${t("stab_note_label")}</div>${noteText}`
+                : `<span style="color:var(--theme-text-muted,#bbb);font-style:italic;">${t("stab_no_note")}</span>`}
             </div>
           </div>
         </div>`;
@@ -254,7 +254,7 @@ export function onEnter() {
 
   container.innerHTML = `
     <div style="padding:4px 0 60px;">
-      <div style="font-size:13px;color:#888;margin-bottom:16px;">${t("stab_screen_sub")}</div>
+      <div style="font-size:13px;color:var(--theme-text-accent,#888);margin-bottom:16px;">${t("stab_screen_sub")}</div>
 
       <div class="mo-section-title">${t("stab_metrics")}</div>
       <div class="mo-grid-2">
