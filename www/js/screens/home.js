@@ -203,7 +203,11 @@ export function onEnter() {
       showAvatarForMood(moodValue);
       avatarReact();
 
-      setTimeout(() => initResilienceCard(), 300);
+      setTimeout(() => {
+        initResilienceCard();
+        if (window.__neyraRender) window.__neyraRender();
+        renderInsightCard();
+      }, 300);
 
       try {
         const { showAvatarForMood: showAvatarForMood2 } = await import("../avatar.js");
