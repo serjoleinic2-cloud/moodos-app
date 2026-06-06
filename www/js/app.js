@@ -551,9 +551,29 @@ if (!window.__neyraAppRunning) {
       console.warn('[BOOT] theme apply failed:', e);
     }
 
+    // ── Глобальный хелпер для чтения переменных темы ──
+    window.themeVar = function(name) {
+      return getComputedStyle(document.body).getPropertyValue(name).trim();
+    };
+
+    // ── Chart.js глобальные дефолты по теме ──
+    if (window.Chart) {
+      window.Chart.defaults.color = window.themeVar('--theme-chart-text');
+      window.Chart.defaults.borderColor = window.themeVar('--theme-chart-grid');
+      window.Chart.defaults.scale = {
+        ...window.Chart.defaults.scale,
+        ticks: { color: window.themeVar('--theme-chart-text') },
+        grid:  { color: window.themeVar('--theme-chart-grid') },
+      };
+    }
+
     // Слушаем изменение темы
     document.addEventListener("themeChanged", (e) => {
       applyTheme(e.detail.theme);
+      if (window.Chart) {
+        window.Chart.defaults.color = window.themeVar('--theme-chart-text');
+        window.Chart.defaults.borderColor = window.themeVar('--theme-chart-grid');
+      }
     });
     
     // Слушаем изменения entitlement

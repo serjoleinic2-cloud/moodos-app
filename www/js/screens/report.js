@@ -8,6 +8,16 @@ import { isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { getYearComparison } from "../services/year-comparison.js";
 
+function isOceanTheme() {
+  return document.body.getAttribute('data-theme') === 'deep-ocean';
+}
+function chartTextColor() {
+  return window.themeVar ? window.themeVar('--theme-chart-text') : '#888';
+}
+function chartGridColor() {
+  return window.themeVar ? window.themeVar('--theme-chart-grid') : 'rgba(0,0,0,0.08)';
+}
+
 let currentPeriod = 7;
 
 export function onEnter() { renderReport(); }
@@ -591,7 +601,7 @@ function drawChart(filtered) {
   new window.Chart(canvas, {
     type:"line",
     data:{labels,datasets:[{data,borderColor:"#4caf87",backgroundColor:"rgba(76,175,135,0.12)",tension:0.4,pointRadius:3,fill:true}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:45}}}}
+    options:{plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{font:{size:10},color:window.themeVar('--theme-chart-text')},grid:{color:window.themeVar('--theme-chart-grid')}},x:{ticks:{font:{size:9},maxRotation:45,color:window.themeVar('--theme-chart-text')},grid:{color:window.themeVar('--theme-chart-grid')}}}}
   });
 }
 

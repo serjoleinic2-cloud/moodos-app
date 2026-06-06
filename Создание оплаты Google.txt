@@ -1,0 +1,158 @@
+Руководство по Google Play Billing для новых Capacitor-приложений
+Сохрани — пригодится в новых сессиях.
+
+Стек
+
+Capacitor 8+
+capacitor-plugin-cdv-purchase v13+ (это cordova-plugin-purchase с Capacitor-обёрткой)
+Google Play Billing Library 7.x (внутри плагина)
+
+
+Шаг 1. Установка
+powershellnpm install capacitor-plugin-cdv-purchase
+npx cap sync android
+
+Шаг 2. android/app/build.gradle
+Убедиться что есть:
+gradledependencies {
+    implementation 'com.android.billingclient:billing:7.+'
+}
+
+Шаг 3. Создать продукты в Google Play Console
+
+Открыть приложение → Монетизация → Подписки
+Создать два продукта:
+
+ID: premium_monthly — месяц
+ID: premium_yearly — год
+
+
+Установить цены, активировать
+Важно: продукты должны быть активны прежде чем тестировать
+
+
+Шаг 4. Добавить тестовых покупателей
+Google Play Console → Настройки → Тестирование → Лицензионное тестирование → добавить Gmail-аккаунты тестировщиков.
+Тестовые подписки: месяц = 5 минут, год = 30 минут. Автоматически отменяются после 5 продлений.
+
+Шаг 5. billing-service.js — базовый шаблон
+jsimport { isPremium, activatePremiumPaid } from './user-profile.js';
+
+const PRODUCT_IDS = {
+  monthly: 'premium_monthly',
+  yearly:  'premium_yearly',
+};
+
+let storeReady = false;
+
+export async function initBilling() {
+  const { store, ProductType, Platform } = CdvPurchase;
+
+  // Регистрация продуктов
+  store.register([
+    { id: PRODUCT_IDS.monthly, type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
+    { id: PRODUCT_IDS.yearly,  type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
+  ]);
+
+  // Колбэки
+  store.when()
+    .productUpdated((product) => {
+      console.log('[billing] product updated:', product.id);
+    })
+    .approved((transaction) => {
+      const productId = transaction.products?.[0]?.id;
+      if (productId) {
+        activatePremiumPaid(productId);
+        window._trustedSetBillingPremium?.(true);
+        console.log('[billing] approved:', productId);
+      }
+      transaction.finish();
+    })
+    .verified((receipt) => {
+      const productId = receipt.transactions?.[0]?.products?.[0]?.id;
+      if (productId) {
+        activatePremiumPaid(productId);
+      }
+      receipt.finish();
+    });
+
+  // Инициализация
+  await store.initialize();
+  storeReady = true;
+  await store.update();
+
+  // Проверить есть ли активная подписка
+  const monthly = store.get(PRODUCT_IDS.monthly);
+  const yearly  = store.get(PRODUCT_IDS.yearly);
+  const owned = (monthly && store.owned(monthly)) || (yearly && store.owned(yearly));
+  if (!owned) {
+    await store.restorePurchases(); // на случай переустановки
+  }
+}
+
+// Купить подписку
+export async function purchaseMonthly() {
+  const { store } = CdvPurchase;
+  const product = store.get(PRODUCT_IDS.monthly);
+  const offer = product?.offers?.[0];
+  if (offer) await store.order(offer);
+}
+
+export async function purchaseYearly() {
+  const { store } = CdvPurchase;
+  const product = store.get(PRODUCT_IDS.yearly);
+  const offer = product?.offers?.[0];
+  if (offer) await store.order(offer);
+}
+
+// Восстановить покупки (кнопка в настройках)
+export async function restorePurchases() {
+  await CdvPurchase.store.restorePurchases();
+}
+
+Шаг 6. user-profile.js — хранение премиума
+jsexport function activatePremiumPaid(productId) {
+  let profile = getProfile() || {};
+  profile.premium = true;
+  profile.premium_type = 'paid';
+  profile.premiumProductId = productId;
+  // 3 дня — штамп обновляется при каждом запуске через store.update() → .approved()
+  profile.premiumExpiresAt = Date.now() + 3 * 24 * 60 * 60 * 1000;
+  profile.premiumActivatedAt = Date.now();
+  saveProfile(profile);
+}
+
+export function isPremium() {
+  // 1. Runtime-флаг
+  if (window.__NEYRA_SECURITY__?.billingPremium === true) return true;
+  // 2. Store напрямую
+  try {
+    const s = CdvPurchase?.store;
+    if (s) {
+      const m = s.get?.('premium_monthly');
+      const y = s.get?.('premium_yearly');
+      if ((m && s.owned(m)) || (y && s.owned(y))) return true;
+    }
+  } catch(e) {}
+  // 3. Локальный fallback (пока store загружается)
+  const profile = getProfile();
+  return !!(profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now());
+}
+
+Шаг 7. Вызов при старте
+В app.js после инициализации UI:
+jsimport { initBilling } from './services/billing-service.js';
+// ...
+initBilling().catch(e => console.warn('[billing] init error:', e));
+
+Шаг 8. Кнопка восстановления в настройках
+Обязательно по правилам Google Play — кнопка "Восстановить покупки":
+jsimport { restorePurchases } from '../services/billing-service.js';
+// ...
+restoreBtn.addEventListener('click', async () => {
+  await restorePurchases();
+  // После restore .approved() сработает автоматически если подписка активна
+});
+
+Частые ошибки
+ОшибкаПричинаРешениеПродукты не загружаютсяПриложение не опубликовано хотя бы в закрытом тестеОпубликовать APK в internal testing.approved() не срабатываетАккаунт не добавлен в тестировщикиДобавить в License TestingПремиум пропадает после чисткиisPremium() смотрит только localStorageИспользовать схему выше с 3-дневным штампомstore.owned() возвращает falseВызов до store.update()Ждать update() перед проверкой

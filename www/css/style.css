@@ -1,3 +1,17 @@
+/* ===== CSS Variables — Default Theme ===== */
+:root {
+  --theme-bg:           #e8e0d5;
+  --theme-card-bg:      rgba(232,237,230,0.9);
+  --theme-btn-bg:       rgba(232,237,230,0.9);
+  --theme-text-primary: #3a3530;
+  --theme-text-accent:  #7a6a58;
+  --theme-text-muted:   #999;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #888;
+  --theme-chart-grid:   rgba(0,0,0,0.08);
+  --theme-shadow:       6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;
+}
+
 /* ===== RESET ===== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { 

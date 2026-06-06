@@ -14,6 +14,18 @@
 /* ── Фон ── */
 body[data-theme="deep-ocean"] {
   background: linear-gradient(160deg, #0d2137 0%, #0a1a2e 100%) !important;
+
+  /* ── Переменные темы — JS читает их через getComputedStyle ── */
+  --theme-bg:           #0a1a2e;
+  --theme-card-bg:      rgba(20,45,70,0.95);
+  --theme-btn-bg:       #023859;
+  --theme-text-primary: #ffffff;
+  --theme-text-accent:  #54ACBF;
+  --theme-text-muted:   #89CCD8;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #ffffff;
+  --theme-chart-grid:   rgba(84,172,191,0.15);
+  --theme-shadow:       0 4px 16px rgba(0,0,0,0.35);
 }
 
 /* ── Карточки и поверхности ── */
@@ -278,3 +290,60 @@ body[data-theme="deep-ocean"] .golden-card #goldenHours { color: #54ACBF !import
 /* ── Как ты себя чувствуешь ── */
 body[data-theme="deep-ocean"] [data-i18n="home_how_feeling"],
 body[data-theme="deep-ocean"] .mood-header > div:first-child { color: #4caf87 !important; }
+
+/* ── Flip-карточки stability (flip-front-stab / flip-back-stab) ── */
+body[data-theme="deep-ocean"] .flip-front-stab,
+body[data-theme="deep-ocean"] .flip-back-stab {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color:#888"],
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color: #888"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color:#888"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color:#555"],
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color: #555"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color:#555"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color: #555"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color:#3a3530"] {
+  color: #ffffff !important;
+}
+
+/* ── mo-metric инлайн-цвета ── */
+body[data-theme="deep-ocean"] .mo-metric [style*="color:#888"],
+body[data-theme="deep-ocean"] .mo-metric [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .mo-metric [style*="color:#555"],
+body[data-theme="deep-ocean"] .mo-metric [style*="color: #555"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] .mo-metric [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] .mo-metric [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+
+/* ── card инлайн-цвета ── */
+body[data-theme="deep-ocean"] .card [style*="color:#888"],
+body[data-theme="deep-ocean"] .card [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .card [style*="color:#555"],
+body[data-theme="deep-ocean"] .card [style*="color: #555"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] .card [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] .card [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+
+/* ── Заголовки секций внутри карточек — белые ── */
+body[data-theme="deep-ocean"] .card .mo-section-title,
+body[data-theme="deep-ocean"] .mo-metric .mo-section-title {
+  color: #ffffff !important;
+}

@@ -12,6 +12,16 @@ import { t } from "../i18n.js";
 import { getYearComparison } from "../services/weekly-analytics.js";
 import { AppRuntime } from "../core/appRuntime.js";
 
+function isOceanTheme() {
+  return document.body.getAttribute('data-theme') === 'deep-ocean';
+}
+function chartTextColor() {
+  return window.themeVar ? window.themeVar('--theme-chart-text') : '#888';
+}
+function chartGridColor() {
+  return window.themeVar ? window.themeVar('--theme-chart-grid') : 'rgba(0,0,0,0.08)';
+}
+
 const INSIGHT_MODULE = 'insight';
 const LS_PERIOD_KEY = "insight_period";
 const DEFAULT_PERIOD = 'month';
@@ -809,7 +819,7 @@ function initChartFor(id, history, stats, practiceData) {
   }
   const lineOpts = {
     plugins: { legend: { display: false } },
-    scales: { y:{min:0,max:100,ticks:{font:{size:10}}}, x:{ticks:{font:{size:9},maxRotation:45}} }
+    scales: { y:{min:0,max:100,ticks:{font:{size:10},color:window.themeVar('--theme-chart-text')},grid:{color:window.themeVar('--theme-chart-grid')}}, x:{ticks:{font:{size:9},maxRotation:45,color:window.themeVar('--theme-chart-text')},grid:{color:window.themeVar('--theme-chart-grid')}} }
   };
 
   if (id === "flip-stability") {
@@ -877,7 +887,7 @@ function drawPieChart(canvasId, rate, color) {
       const ctx=chart.ctx, chartArea=chart.chartArea;
       const width=chartArea.width, height=chartArea.height;
       const left=chartArea.left, top=chartArea.top;
-      ctx.save(); ctx.font="bold 20px sans-serif"; ctx.fillStyle="#3a3530";
+      ctx.save(); ctx.font="bold 20px sans-serif"; ctx.fillStyle=window.themeVar('--theme-chart-text');
       ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.fillText((rate !== null ? rate : 0)+"%", left+width/2, top+height/2); ctx.restore();
     }}]
