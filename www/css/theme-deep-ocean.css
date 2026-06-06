@@ -646,3 +646,55 @@ body[data-theme="deep-ocean"] .premium-btn:disabled {
   color: #4caf87 !important;
   box-shadow: 4px 4px 10px rgba(0,0,0,0.4), 0 0 20px rgba(76,175,135,0.2) !important;
 }
+
+/* ── Настройки: экран ── */
+body[data-theme="deep-ocean"] .settings-wrap {
+  background: transparent !important;
+}
+body[data-theme="deep-ocean"] .settings-title {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .backup-card {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .backup-card-title {
+  color: #ffffff !important;
+}
+
+/* Кнопка Сохранить (зелёная) — объёмная */
+body[data-theme="deep-ocean"] .backup-card-btn.save {
+  background: linear-gradient(145deg, #4caf87, #3a9a6e) !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .backup-card-btn.save:active {
+  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.4) !important;
+}
+
+/* Кнопка Восстановить */
+body[data-theme="deep-ocean"] .backup-card-btn.restore {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+
+/* Блок Важно */
+body[data-theme="deep-ocean"] .backup-important-block {
+  background: rgba(20,45,70,0.95) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .backup-important-block strong {
+  color: #ffffff !important;
+}
+
+/* Блок премиум в настройках */
+body[data-theme="deep-ocean"] #premiumBlock {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #premiumBlock [style*="color:#aaa"],
+body[data-theme="deep-ocean"] #premiumBlock [style*="color: #aaa"] {
+  color: #54ACBF !important;
+}

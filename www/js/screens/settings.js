@@ -228,8 +228,8 @@ function renderSettings() {
           ${!premiumInfo.isPremium ? `<div style="font-size:10px;color:#805ad5;text-align:center;margin-top:6px;">${t("settings_backup_free_limit")}</div>` : ''}
         </div>
         
-        <div style="font-size:11px;color:#888;padding:8px 0;line-height:1.6; background:rgba(240,240,240,0.5);border-radius:10px;padding:10px;">
-          <strong>⚠️ ${t("important") || "Важно"}:</strong><br>
+        <div class="backup-important-block" style="font-size:13px;color:#555;background:rgba(240,240,240,0.5);border-radius:10px;padding:12px;line-height:1.7;">
+          <strong style="font-size:14px;">⚠️ ${t("important") || "Важно"}:</strong><br>
           ${t("settings_backup_info")}
           — ${t("backup_confirm_responsibility_short")}
         </div>
