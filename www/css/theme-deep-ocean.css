@@ -408,3 +408,241 @@ body[data-theme="deep-ocean"] [style*="background: #e8ede5"] {
   background: rgba(20,45,70,0.95) !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
 }
+
+/* ── Главная: заголовки карточек (инлайн color:#999) ── */
+body[data-theme="deep-ocean"] [data-i18n="home_insight_day"],
+body[data-theme="deep-ocean"] [data-i18n="home_golden_hours"],
+body[data-theme="deep-ocean"] [data-i18n="home_daily_reflection"],
+body[data-theme="deep-ocean"] [data-i18n="home_voice_reflection"] {
+  color: #ffffff !important;
+}
+
+/* ── Инсайт дня: текст значения ── */
+body[data-theme="deep-ocean"] #todayInsight {
+  color: #54ACBF !important;
+}
+
+/* ── Золотые часы: текст значения ── */
+body[data-theme="deep-ocean"] #goldenHours {
+  color: #54ACBF !important;
+}
+
+/* ── Карточка Индекс устойчивости (flip-home) ── */
+body[data-theme="deep-ocean"] .flip-front-home,
+body[data-theme="deep-ocean"] .flip-back-home {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .flip-label-home {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .flip-value-home {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .flip-sub-home {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .flip-hint-home {
+  color: #4caf87 !important;
+}
+
+/* ── Инсайт карточка (зелёный градиент → тёмная) ── */
+body[data-theme="deep-ocean"] #homeInsightCard {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #homeInsightCard [style*="color:#2e7d32"],
+body[data-theme="deep-ocean"] #homeInsightCard [style*="color: #2e7d32"] {
+  color: #4caf87 !important;
+}
+body[data-theme="deep-ocean"] #homeInsightCard [style*="color:#1b5e20"],
+body[data-theme="deep-ocean"] #homeInsightCard [style*="color: #1b5e20"] {
+  color: #54ACBF !important;
+}
+
+/* ── Pattern карточка (оранжевый градиент → тёмная) ── */
+body[data-theme="deep-ocean"] #homePatternCard {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #homePatternCard [style*="color:#e65100"],
+body[data-theme="deep-ocean"] #homePatternCard [style*="color: #e65100"] {
+  color: #f0a500 !important;
+}
+
+/* ── Меню пункты (инлайн color:#555) ── */
+body[data-theme="deep-ocean"] .menuItem {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #menuBack {
+  background: rgba(20,45,70,0.95) !important;
+  color: #54ACBF !important;
+}
+
+/* ── Tools панель пункты ── */
+body[data-theme="deep-ocean"] #toolsBreathing,
+body[data-theme="deep-ocean"] #toolsMeditation,
+body[data-theme="deep-ocean"] #toolsVisualFocus,
+body[data-theme="deep-ocean"] #toolsMindDump,
+body[data-theme="deep-ocean"] #toolsTapCalm,
+body[data-theme="deep-ocean"] #toolsSupportTexts,
+body[data-theme="deep-ocean"] #toolsBack {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+  color: #ffffff !important;
+}
+
+/* ── Вызов дня: карточка ── */
+body[data-theme="deep-ocean"] #dailyChallengeBar > div {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #dailyChallengeBar [style*="color:#555"],
+body[data-theme="deep-ocean"] #dailyChallengeBar [style*="color: #555"] {
+  color: #ffffff !important;
+}
+
+/* ── Стабильность и тренд ── */
+body[data-theme="deep-ocean"] #stabilityValue { color: #ffffff !important; }
+body[data-theme="deep-ocean"] #stabilityTrend { color: #54ACBF !important; }
+
+/* ── h1 экранов ── */
+body[data-theme="deep-ocean"] .screen h1 { color: #ffffff !important; }
+
+/* ── Календарь настроений ── */
+
+/* Фон оверлея */
+body[data-theme="deep-ocean"] #moodCalendarOverlay > div {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+
+/* Попап дня */
+body[data-theme="deep-ocean"] #dayPopup {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
+}
+
+/* Ячейки внутри попапа */
+body[data-theme="deep-ocean"] #dayPopup [style*="background:rgba(255,255,255,0.5)"],
+body[data-theme="deep-ocean"] #dayPopup [style*="background: rgba(255,255,255,0.5)"] {
+  background: rgba(84,172,191,0.1) !important;
+}
+
+/* Кнопка закрыть попап */
+body[data-theme="deep-ocean"] #dayPopupClose {
+  background: rgba(84,172,191,0.1) !important;
+  color: #54ACBF !important;
+}
+
+/* Кнопки навигации месяца (‹ ›) */
+body[data-theme="deep-ocean"] #calPrev,
+body[data-theme="deep-ocean"] #calNext {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+  color: #54ACBF !important;
+}
+
+/* Ячейки календаря — сегодняшний день */
+body[data-theme="deep-ocean"] .cal-day[style*="border:2px solid #6667AB"] {
+  border-color: #54ACBF !important;
+}
+
+/* Фон пустых ячеек */
+body[data-theme="deep-ocean"] .cal-day {
+  border-color: rgba(84,172,191,0.15) !important;
+}
+
+/* Кнопки плейера в попапе */
+body[data-theme="deep-ocean"] #dayPopup .voice-btn {
+  background: rgba(84,172,191,0.15) !important;
+}
+body[data-theme="deep-ocean"] #dayPopup .voice-btn img {
+  filter: invert(1) !important;
+}
+
+/* ── Кнопка (i) — белая с чёрной буквой ── */
+body[data-theme="deep-ocean"] .mo-info-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* ── Тултип ── */
+body[data-theme="deep-ocean"] .mo-tooltip {
+  background: rgba(20,45,70,0.98) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+}
+
+/* ── flip-stab: заголовки белые ── */
+body[data-theme="deep-ocean"] .flip-front-stab [style*="color:var(--theme-text-accent"],
+body[data-theme="deep-ocean"] .flip-back-stab [style*="color:var(--theme-text-accent"] {
+  color: #ffffff !important;
+}
+
+/* ── stab-entry: цвета ── */
+body[data-theme="deep-ocean"] .stab-entry {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .stab-entry-detail > div {
+  background: rgba(10,30,50,0.6) !important;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .stab-entry [style*="color:#999"],
+body[data-theme="deep-ocean"] .stab-entry [style*="color: #999"] {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .stab-entry [style*="color:#777"],
+body[data-theme="deep-ocean"] .stab-entry [style*="color: #777"] {
+  color: #89CCD8 !important;
+}
+
+/* ── Экран Премиум ── */
+body[data-theme="deep-ocean"] .premium-screen {
+  background: transparent !important;
+}
+body[data-theme="deep-ocean"] .premium-features {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .premium-title {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .premium-feature {
+  color: #54ACBF !important;
+  border-bottom-color: rgba(84,172,191,0.15) !important;
+}
+body[data-theme="deep-ocean"] .premium-feature > div > div:first-child {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .premium-desc {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] .premium-hook {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] .premium-trust {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .premium-free .premium-status-badge {
+  background: rgba(84,172,191,0.15) !important;
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .premium-active .premium-status-badge {
+  background: rgba(76,175,135,0.2) !important;
+  color: #4caf87 !important;
+}
+body[data-theme="deep-ocean"] .premium-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04),
+              0 0 20px rgba(84,172,191,0.2) !important;
+}
+body[data-theme="deep-ocean"] .premium-btn:disabled {
+  background: rgba(76,175,135,0.15) !important;
+  color: #4caf87 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), 0 0 20px rgba(76,175,135,0.2) !important;
+}
