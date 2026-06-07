@@ -57,8 +57,9 @@ export function initBreathing(container) {
       display:flex;
       flex-direction:column;
       align-items:center;
-      justify-content:center;
+      justify-content:space-evenly;
       min-height:0;
+      overflow:hidden;
     ">
       <canvas id="breathingCanvas" style="
         display:block;
@@ -71,7 +72,7 @@ export function initBreathing(container) {
     </div>
 
     <!-- КНОПКА — всегда внизу, не сдвигается -->
-    <div style="padding:16px 0 8px;flex-shrink:0;">
+    <div style="padding:8px 0 4px;flex-shrink:0;">
       <button id="breathingMainBtn" class="mainBtn" style="
         border:none;border-radius:50%;
         width:72px;height:72px;
@@ -103,7 +104,7 @@ export function initBreathing(container) {
   function resizeCanvas() {
     const wrap = document.getElementById("breathingCanvasWrap");
     if (!wrap) return;
-    const wrapH = wrap.clientHeight - 80;
+    const wrapH = wrap.clientHeight - 60;
     const wrapW = wrap.clientWidth;
     const size = Math.min(wrapW, wrapH, 280);
     canvas.width = size;
