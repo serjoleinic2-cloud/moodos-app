@@ -260,7 +260,7 @@ export const ru = {
     rec_breathing: "Дыхание помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
     rec_meditation: "Медитация помогает тебе в {rate}% случаев — это твой лучший инструмент сейчас.",
     rec_keep_going: "Продолжай практики — скоро увидишь персональную статистику.",
-    breath_selected: "Выбран", breath_ready: "Готово", breath_cycles: "Циклов", breath_how_feel: "Как ты себя чувствуешь?", breath_inhale: "Вдох", breath_hold: "Задержка", breath_exhale: "Выдох",
+    breath_selected: "Выбран", breath_choose_rhythm: "Выбери ритм", breath_ready: "Готово", breath_cycles: "Циклов", breath_how_feel: "Как ты себя чувствуешь?", breath_inhale: "Вдох", breath_hold: "Задержка", breath_exhale: "Выдох",
     md_title: "Выгрузка мыслей", md_subtitle: "Пиши всё что в голове · не останавливайся · 60 секунд", md_placeholder: "Начни писать — просто выгрузи всё что сейчас в голове...", md_ready: "Готово к старту", md_writing: "Пиши — не останавливайся...", md_done: "Готово", md_what_to_do: "Что сделать с текстом?", md_save: "💾 Сохранить", md_delete: "🗑 Удалить", md_how_feel: "Как ты себя чувствуешь?", md_taps: "Ты сделал",
     tc_title: "Тактильная разрядка", tc_subtitle: "Нажимай на поле в своём ритме · 60 секунд", tc_hint: "Нажми старт, затем касайся экрана", tc_taps: "Нажатий", tc_ready: "Готово к старту", tc_tapping: "Нажимай в своём ритме...", tc_done: "Готово", tc_how_feel: "Как ты себя чувствуешь?", tc_result: "Ты сделал",
     vf_title: "Зрительный якорь", vf_subtitle: "Следи глазами за шариком · 2 минуты", vf_slow: "Медленно", vf_normal: "Нормально", vf_fast: "Быстро", vf_ready: "Готово к старту", vf_watching: "Следи за шариком...", vf_stopped: "Остановлено", vf_how_feel: "Как ты себя чувствуешь?",

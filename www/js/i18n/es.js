@@ -259,7 +259,7 @@ export const es = {
     rec_breathing: "La respiración te ayuda en {rate}% de los casos — es tu mejor herramienta ahora.",
     rec_meditation: "La meditación te ayuda en {rate}% de los casos — es tu mejor herramienta ahora.",
     rec_keep_going: "Sigue practicando — pronto verás estadísticas personales.",
-    breath_selected: "Seleccionado", breath_ready: "Listo", breath_cycles: "Ciclos", breath_how_feel: "¿Cómo te sientes?", breath_inhale: "Inhalar", breath_hold: "Retener", breath_exhale: "Exhalar",
+    breath_selected: "Seleccionado", breath_choose_rhythm: "Elige el ritmo", breath_ready: "Listo", breath_cycles: "Ciclos", breath_how_feel: "¿Cómo te sientes?", breath_inhale: "Inhalar", breath_hold: "Retener", breath_exhale: "Exhalar",
     md_title: "Vaciado mental", md_subtitle: "Escribe todo lo que tengas en la cabeza · no pares · 60 segundos", md_placeholder: "Empieza a escribir — vuelca todo lo que tengas en la cabeza...", md_ready: "Listo para empezar", md_writing: "Escribe — no pares...", md_done: "Listo", md_what_to_do: "¿Qué hacer con el texto?", md_save: "💾 Guardar", md_delete: "🗑 Eliminar", md_how_feel: "¿Cómo te sientes?", md_taps: "Hiciste",
     tc_title: "Descarga táctil", tc_subtitle: "Toca el campo a tu ritmo · 60 segundos", tc_hint: "Pulsa inicio, luego toca la pantalla", tc_taps: "Toques", tc_ready: "Listo para empezar", tc_tapping: "Toca a tu ritmo...", tc_done: "Listo", tc_how_feel: "¿Cómo te sientes?", tc_result: "Hiciste",
     vf_title: "Ancla visual", vf_subtitle: "Sigue la pelota con los ojos · 2 minutos", vf_slow: "Lento", vf_normal: "Normal", vf_fast: "Rápido", vf_ready: "Listo para empezar", vf_watching: "Sigue la pelota...", vf_stopped: "Detenido", vf_how_feel: "¿Cómo te sientes?",

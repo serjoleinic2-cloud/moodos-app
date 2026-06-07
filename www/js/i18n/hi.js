@@ -215,7 +215,7 @@ export const hi = {
     rec_breathing: "श्वास ने आपको {rate}% मामलों में मदद की — यह अभी आपका सबसे अच्छा उपकरण है।",
     rec_meditation: "ध्यान ने आपको {rate}% मामलों में मदद की — यह अभी आपका सबसे अच्छा उपकरण है।",
     rec_keep_going: "अभ्यास जारी रखें — जल्द ही आपको व्यक्तिगत आंकड़े दिखेंगे।",
-    breath_selected: "चयनित", breath_ready: "तैयार", breath_cycles: "चक्र", breath_how_feel: "आप कैसा महसूस करते हैं?", breath_inhale: "श्वास भरें", breath_hold: "रोकें", breath_exhale: "छोड़ें",
+    breath_selected: "चयनित", breath_choose_rhythm: "लय चुनें", breath_ready: "तैयार", breath_cycles: "चक्र", breath_how_feel: "आप कैसा महसूस करते हैं?", breath_inhale: "श्वास भरें", breath_hold: "रोकें", breath_exhale: "छोड़ें",
     md_title: "माइंड डंप", md_subtitle: "अपने दिमाग की हर चीज़ लिखें · रुकें मत · 60 सेकंड", md_placeholder: "लिखना शुरू करें — बस अभी अपने दिमाग में जो कुछ भी है उसे बाहर निकालें...", md_ready: "शुरू करने के लिए तैयार", md_writing: "लिखें — रुकें मत...", md_done: "हो गया", md_what_to_do: "टेक्स्ट के साथ क्या करें?", md_save: "💾 सहेजें", md_delete: "🗑 हटाएं", md_how_feel: "आप कैसा महसूस करते हैं?", md_taps: "आपने बनाया",
     tc_title: "टैप काम", tc_subtitle: "अपनी गति में फ़ील्ड टैप करें · 60 सेकंड", tc_hint: "शुरू दबाएं, फिर स्क्रीन टैप करें", tc_taps: "टैप्स", tc_ready: "शुरू करने के लिए तैयार", tc_tapping: "अपनी गति में टैप करें...", tc_done: "हो गया", tc_how_feel: "आप कैसा महसूस करते हैं?", tc_result: "आपने बनाया",
     vf_title: "दृश्य लंगर", vf_subtitle: "अपनी आंखों से गेंद का अनुसरण करें · 2 मिनट", vf_slow: "धीमा", vf_normal: "सामान्य", vf_fast: "तेज़", vf_ready: "शुरू करने के लिए तैयार", vf_watching: "गेंद का अनुसरण करें...", vf_stopped: "रुका हुआ", vf_how_feel: "आप कैसा महसूस करते हैं?",

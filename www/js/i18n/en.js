@@ -262,7 +262,7 @@ export const en = {
     rec_breathing: "Breathing helps you in {rate}% of cases — it's your best tool right now.",
     rec_meditation: "Meditation helps you in {rate}% of cases — it's your best tool right now.",
     rec_keep_going: "Keep practicing — you'll see personal statistics soon.",
-    breath_selected: "Selected", breath_ready: "Ready", breath_cycles: "Cycles", breath_how_feel: "How do you feel?", breath_inhale: "Inhale", breath_hold: "Hold", breath_exhale: "Exhale",
+    breath_selected: "Selected", breath_choose_rhythm: "Choose rhythm", breath_ready: "Ready", breath_cycles: "Cycles", breath_how_feel: "How do you feel?", breath_inhale: "Inhale", breath_hold: "Hold", breath_exhale: "Exhale",
     md_title: "Mind Dump", md_subtitle: "Write everything on your mind · don't stop · 60 seconds", md_placeholder: "Start writing — just dump everything in your head right now...", md_ready: "Ready to start", md_writing: "Write — don't stop...", md_done: "Done", md_what_to_do: "What to do with the text?", md_save: "💾 Save", md_delete: "🗑 Delete", md_how_feel: "How do you feel?", md_taps: "You made",
     tc_title: "Tap Calm", tc_subtitle: "Tap the field in your own rhythm · 60 seconds", tc_hint: "Press start, then tap the screen", tc_taps: "Taps", tc_ready: "Ready to start", tc_tapping: "Tap in your own rhythm...", tc_done: "Done", tc_how_feel: "How do you feel?", tc_result: "You made",
     vf_title: "Visual Anchor", vf_subtitle: "Follow the ball with your eyes · 2 minutes", vf_slow: "Slow", vf_normal: "Normal", vf_fast: "Fast", vf_ready: "Ready to start", vf_watching: "Follow the ball...", vf_stopped: "Stopped", vf_how_feel: "How do you feel?",

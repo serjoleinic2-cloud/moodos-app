@@ -826,3 +826,49 @@ body[data-theme="deep-ocean"] #prBackBtn {
   color: #54ACBF !important;
   box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
 }
+
+/* ── Практика: Дыхание ── */
+body[data-theme="deep-ocean"] .breathing-subtitle {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  margin-bottom: 8px !important;
+}
+body[data-theme="deep-ocean"] .breathMode {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .breathMode.active,
+body[data-theme="deep-ocean"] .breathMode:active {
+  background: rgba(84,172,191,0.2) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .breathing-phase-text {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .breathing-timer {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .breathing-cycles {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #selectedMode {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] .breathing-play-icon {
+  filter: grayscale(1) invert(1) !important;
+}
+body[data-theme="deep-ocean"] #breathingHelped {
+  background: #023859 !important;
+  color: #4caf87 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #breathingNotHelped {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #breathingFeedback > div:first-child {
+  color: #ffffff !important;
+}

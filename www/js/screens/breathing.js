@@ -37,13 +37,14 @@ export function initBreathing(container) {
     box-sizing:border-box;
     text-align:center;
   ">
-    <h2 style="margin:0 0 10px;">${t("tools_breathing_title")}</h2>
+    <h2 style="margin:0 0 4px;">${t("tools_breathing_title")}</h2>
+    <div class="breathing-subtitle">${t("breath_choose_rhythm") || "Выбери ритм"}</div>
 
     <!-- РЕЖИМЫ -->
     <div id="breathModes" style="margin-bottom:8px;">
-      <button class="breathMode" data-set="2-2-4" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">2-2-4</button>
-      <button class="breathMode" data-set="4-4-6" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">4-4-6</button>
-      <button class="breathMode" data-set="4-7-8" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;background:#e0e5ec;box-shadow:4px 4px 8px #b8bec7,-4px -4px 8px #ffffff;color:#555;font-size:14px;">4-7-8</button>
+      <button class="breathMode" data-set="2-2-4" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;font-size:14px;">2-2-4</button>
+      <button class="breathMode" data-set="4-4-6" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;font-size:14px;">4-4-6</button>
+      <button class="breathMode" data-set="4-7-8" style="margin:4px;padding:8px 16px;border:none;border-radius:12px;cursor:pointer;font-size:14px;">4-7-8</button>
     </div>
 
     <div id="selectedMode" style="margin-bottom:8px;font-size:14px;color:#666;">
@@ -64,9 +65,9 @@ export function initBreathing(container) {
         max-width:100%;
         max-height:100%;
       "></canvas>
-      <div id="breathingText" style="margin:8px 0;font-size:20px;font-weight:600;">${t("breath_ready")}</div>
-      <div id="breathingTimer" style="font-size:32px;font-weight:bold;margin-bottom:4px;">0</div>
-      <div id="cycleCounter" style="font-size:14px;color:#888;">${t("breath_cycles")}: 0</div>
+      <div id="breathingText" class="breathing-phase-text" style="margin:8px 0;font-size:20px;font-weight:600;">${t("breath_ready")}</div>
+      <div id="breathingTimer" class="breathing-timer" style="font-size:32px;font-weight:bold;margin-bottom:4px;">0</div>
+      <div id="cycleCounter" class="breathing-cycles" style="font-size:14px;">${t("breath_cycles")}: 0</div>
     </div>
 
     <!-- КНОПКА — всегда внизу, не сдвигается -->
@@ -78,7 +79,7 @@ export function initBreathing(container) {
         display:flex;align-items:center;justify-content:center;
         margin:0 auto;
       ">
-        <img id="breathingPlayIcon" src="/icons/player/play.svg" style="width:28px;height:28px;">
+        <img id="breathingPlayIcon" src="/icons/player/play.svg" class="breathing-play-icon" style="width:28px;height:28px;">
       </button>
     </div>
 

@@ -259,7 +259,7 @@ export const uk = {
     rec_breathing: "Дихання допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
     rec_meditation: "Медитація допомагає тобі в {rate}% випадків — це твій найкращий інструмент зараз.",
     rec_keep_going: "Продовжуй практики — скоро побачиш персональну статистику.",
-    breath_selected: "Вибрано", breath_ready: "Готово", breath_cycles: "Циклів", breath_how_feel: "Як ти себе почуваєш?", breath_inhale: "Вдих", breath_hold: "Затримка", breath_exhale: "Видих",
+    breath_selected: "Вибрано", breath_choose_rhythm: "Обери ритм", breath_ready: "Готово", breath_cycles: "Циклів", breath_how_feel: "Як ти себе почуваєш?", breath_inhale: "Вдих", breath_hold: "Затримка", breath_exhale: "Видих",
     md_title: "Вивантаження думок", md_subtitle: "Пиши все що в голові · не зупиняйся · 60 секунд", md_placeholder: "Почни писати — просто вивантаж все що зараз в голові...", md_ready: "Готово до старту", md_writing: "Пиши — не зупиняйся...", md_done: "Готово", md_what_to_do: "Що зробити з текстом?", md_save: "💾 Зберегти", md_delete: "🗑 Видалити", md_how_feel: "Як ти себе почуваєш?", md_taps: "Ти зробив",
     tc_title: "Тактильне розвантаження", tc_subtitle: "Натискай на поле у своєму ритмі · 60 секунд", tc_hint: "Натисни старт, потім торкайся екрана", tc_taps: "Натискань", tc_ready: "Готово до старту", tc_tapping: "Натискай у своєму ритмі...", tc_done: "Готово", tc_how_feel: "Як ти себе почуваєш?", tc_result: "Ти зробив",
     vf_title: "Зоровий якір", vf_subtitle: "Стеж очима за кулькою · 2 хвилини", vf_slow: "Повільно", vf_normal: "Нормально", vf_fast: "Швидко", vf_ready: "Готово до старту", vf_watching: "Стеж за кулькою...", vf_stopped: "Зупинено", vf_how_feel: "Як ти себе почуваєш?",
