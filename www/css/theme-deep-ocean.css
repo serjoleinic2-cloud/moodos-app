@@ -168,10 +168,43 @@ body[data-theme="deep-ocean"] .hist-date-input {
 }
 
 /* ── Треки медитации ── */
-body[data-theme="deep-ocean"] .track { color: #54ACBF !important; }
-body[data-theme="deep-ocean"] .track.active {
-  background: rgba(84,172,191,0.15) !important;
+body[data-theme="deep-ocean"] .track {
+  background: #023859 !important;
   color: #ffffff !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .track.active {
+  background: rgba(84,172,191,0.2) !important;
+  color: #54ACBF !important;
+  box-shadow: 0 0 12px rgba(84,172,191,0.25), inset 2px 2px 5px rgba(0,0,0,0.3) !important;
+}
+body[data-theme="deep-ocean"] #addTrackBtn,
+body[data-theme="deep-ocean"] .med-add-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+  border: none !important;
+}
+body[data-theme="deep-ocean"] #centerButton,
+body[data-theme="deep-ocean"] #loopBtn,
+body[data-theme="deep-ocean"] #chainBtn {
+  background: #023859 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #playIcon,
+body[data-theme="deep-ocean"] #loopBtn img,
+body[data-theme="deep-ocean"] #chainBtn img {
+  filter: grayscale(1) invert(1) !important;
+}
+body[data-theme="deep-ocean"] #medHelped {
+  background: #023859 !important;
+  color: #4caf87 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #medNotHelped {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
 }
 
 /* ── ECS Gauge ── */

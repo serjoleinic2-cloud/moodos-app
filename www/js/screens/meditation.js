@@ -608,51 +608,60 @@ function drawWaveProgress() {
   const h = waveCanvas.height || 60;
   waveCtx.clearRect(0, 0, w, h);
 
-  const analyser = getAnalyser();
   const isOcean = document.body.getAttribute('data-theme') === 'deep-ocean';
+  const waveColor = isOcean ? '84,172,191' : '76,175,135';
+  const time = performance.now() * 0.001;
 
+  let amplitude = h * 0.15;
+  const analyser = getAnalyser();
   if (analyser && running) {
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
-
-    const barWidth = w / bufferLength * 2.5;
-    let x = 0;
-
-    for (let i = 0; i < bufferLength; i++) {
-      const v = dataArray[i] / 255;
-      const barHeight = v * h;
-
-      if (isOcean) {
-        const alpha = 0.4 + v * 0.6;
-        waveCtx.fillStyle = `rgba(84,172,191,${alpha})`;
-      } else {
-        waveCtx.fillStyle = `rgba(76,175,135,${0.4 + v * 0.6})`;
-      }
-
-      waveCtx.beginPath();
-      waveCtx.roundRect(x, h - barHeight, barWidth - 1, barHeight, 2);
-      waveCtx.fill();
-      x += barWidth;
-    }
-  } else {
-    const time = performance.now() * 0.001;
-    waveCtx.beginPath();
-    for (let x = 0; x <= w; x++) {
-      const y = h / 2 + Math.sin(x * 0.05 + time) * (h * 0.2) + Math.sin(x * 0.02 + time * 0.7) * (h * 0.1);
-      if (x === 0) waveCtx.moveTo(x, y);
-      else waveCtx.lineTo(x, y);
-    }
-    waveCtx.strokeStyle = isOcean ? 'rgba(84,172,191,0.5)' : 'rgba(76,175,135,0.5)';
-    waveCtx.lineWidth = 2;
-    waveCtx.stroke();
+    const bassEnd = Math.floor(dataArray.length * 0.1);
+    let bassSum = 0;
+    for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
+    const bassAvg = bassSum / bassEnd / 255;
+    let totalSum = 0;
+    for (let i = 0; i < dataArray.length; i++) totalSum += dataArray[i];
+    const totalAvg = totalSum / dataArray.length / 255;
+    amplitude = h * (0.1 + bassAvg * 0.4 + totalAvg * 0.2);
   }
+
+  const gradient = waveCtx.createLinearGradient(0, 0, w, 0);
+  gradient.addColorStop(0,   `rgba(${waveColor},0.2)`);
+  gradient.addColorStop(0.5, `rgba(${waveColor},0.8)`);
+  gradient.addColorStop(1,   `rgba(${waveColor},0.2)`);
+
+  waveCtx.beginPath();
+  waveCtx.moveTo(0, h);
+  for (let x = 0; x <= w; x++) {
+    const y = h / 2
+      + Math.sin(x * 0.04 + time * 1.2) * amplitude
+      + Math.sin(x * 0.02 + time * 0.7) * amplitude * 0.4;
+    waveCtx.lineTo(x, y);
+  }
+  waveCtx.lineTo(w, h);
+  waveCtx.closePath();
+  waveCtx.fillStyle = `rgba(${waveColor},0.15)`;
+  waveCtx.fill();
+
+  waveCtx.beginPath();
+  for (let x = 0; x <= w; x++) {
+    const y = h / 2
+      + Math.sin(x * 0.04 + time * 1.2) * amplitude
+      + Math.sin(x * 0.02 + time * 0.7) * amplitude * 0.4;
+    if (x === 0) waveCtx.moveTo(x, y);
+    else waveCtx.lineTo(x, y);
+  }
+  waveCtx.strokeStyle = gradient;
+  waveCtx.lineWidth = 2.5;
+  waveCtx.stroke();
 
   const duration = getDuration();
   const current = getCurrentTime();
   if (duration > 0) {
     const progress = current / duration;
-    waveCtx.fillStyle = isOcean ? 'rgba(84,172,191,0.25)' : 'rgba(76,175,135,0.25)';
+    waveCtx.fillStyle = `rgba(${waveColor},0.4)`;
     waveCtx.fillRect(0, h - 3, w * progress, 3);
   }
 }
