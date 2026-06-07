@@ -7,6 +7,36 @@
 let currentAudio = null;
 let currentTrackId = null;
 let currentSrc = null;
+let audioContext = null;
+let analyserNode = null;
+let sourceNode = null;
+
+export function getAnalyser() {
+  return analyserNode;
+}
+
+function connectAnalyser(audio) {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    if (sourceNode) {
+      try { sourceNode.disconnect(); } catch(e) {}
+      sourceNode = null;
+    }
+    sourceNode = audioContext.createMediaElementSource(audio);
+    analyserNode = audioContext.createAnalyser();
+    analyserNode.fftSize = 256;
+    analyserNode.smoothingTimeConstant = 0.8;
+    sourceNode.connect(analyserNode);
+    analyserNode.connect(audioContext.destination);
+  } catch(e) {
+    console.warn('[AudioController] AnalyserNode error:', e);
+  }
+}
 
 const state = {
   isPlaying: false,
@@ -77,6 +107,7 @@ export const play = (track) => {
   }
 
   currentAudio = new Audio(newSrc);
+  connectAnalyser(currentAudio);
   currentSrc = newSrc;
   currentTrackId = track.id || track.name || newSrc;
   

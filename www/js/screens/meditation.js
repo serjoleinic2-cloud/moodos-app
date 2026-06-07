@@ -12,6 +12,7 @@ import {
   destroy, getState, subscribe, syncState,
   getCurrentTime, getDuration, setCurrentTime
 } from "../core/audioController.js";
+import { getAnalyser } from '../core/audioController.js';
 
 let waveCanvas, waveCtx;
 let animationId;
@@ -467,7 +468,7 @@ function updateAddButton() {
   }
   wrap.innerHTML = `
     <input type="file" id="addTrackInput" accept="audio/*" style="display:none;">
-    <button id="addTrackBtn" onclick="document.getElementById('addTrackInput').click()" style="padding:8px 20px;border:none;border-radius:12px;background:rgba(159,122,234,0.15);color:#7b4fa0;font-size:13px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${count}/${MAX_CUSTOM_TRACKS})</button>
+    <button id="addTrackBtn" class="track med-add-btn" data-action="add-track" style="width:100%;text-align:left;font-size:14px;font-weight:600;cursor:pointer;">+ ${t("med_add_track") || "Добавить мелодию"} (${count}/${MAX_CUSTOM_TRACKS})</button>
   `;
 }
 
@@ -602,78 +603,58 @@ function updateProgress(audioState) {
 }
 
 function drawWaveProgress() {
-  if (!waveCtx || !waveCanvas) {
-    waveCanvas = document.getElementById("waveProgress");
-    waveCtx = waveCanvas ? waveCanvas.getContext("2d") : null;
-    if (!waveCtx || !waveCanvas) return;
+  if (!waveCanvas || !waveCtx) return;
+  const w = waveCanvas.width;
+  const h = waveCanvas.height || 60;
+  waveCtx.clearRect(0, 0, w, h);
+
+  const analyser = getAnalyser();
+  const isOcean = document.body.getAttribute('data-theme') === 'deep-ocean';
+
+  if (analyser && running) {
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+
+    const barWidth = w / bufferLength * 2.5;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const v = dataArray[i] / 255;
+      const barHeight = v * h;
+
+      if (isOcean) {
+        const alpha = 0.4 + v * 0.6;
+        waveCtx.fillStyle = `rgba(84,172,191,${alpha})`;
+      } else {
+        waveCtx.fillStyle = `rgba(76,175,135,${0.4 + v * 0.6})`;
+      }
+
+      waveCtx.beginPath();
+      waveCtx.roundRect(x, h - barHeight, barWidth - 1, barHeight, 2);
+      waveCtx.fill();
+      x += barWidth;
+    }
+  } else {
+    const time = performance.now() * 0.001;
+    waveCtx.beginPath();
+    for (let x = 0; x <= w; x++) {
+      const y = h / 2 + Math.sin(x * 0.05 + time) * (h * 0.2) + Math.sin(x * 0.02 + time * 0.7) * (h * 0.1);
+      if (x === 0) waveCtx.moveTo(x, y);
+      else waveCtx.lineTo(x, y);
+    }
+    waveCtx.strokeStyle = isOcean ? 'rgba(84,172,191,0.5)' : 'rgba(76,175,135,0.5)';
+    waveCtx.lineWidth = 2;
+    waveCtx.stroke();
   }
 
-  const current  = getCurrentTime();
   const duration = getDuration();
-  const progress = duration > 0 ? current / duration : 0;
-
-  const W   = waveCanvas.width;
-  const H   = waveCanvas.height;
-  const midY = H / 2;
-  const playX = W * progress;
-  const ZONE  = 5;
-
-  waveCtx.clearRect(0, 0, W, H);
-  waveCtx.lineWidth = 3;
-  waveCtx.lineCap   = "round";
-  waveCtx.lineJoin  = "round";
-
-  const time = performance.now() * 0.003;
-
-  if (playX - ZONE > 0) {
-    const gradPlayed = waveCtx.createLinearGradient(0, 0, playX - ZONE, 0);
-    gradPlayed.addColorStop(0,   "#4f8ef7");
-    gradPlayed.addColorStop(0.5, "#7b5cf5");
-    gradPlayed.addColorStop(1,   "#a855f7");
-    waveCtx.beginPath();
-    waveCtx.strokeStyle = gradPlayed;
-    waveCtx.moveTo(0, midY);
-    waveCtx.lineTo(playX - ZONE, midY);
-    waveCtx.stroke();
+  const current = getCurrentTime();
+  if (duration > 0) {
+    const progress = current / duration;
+    waveCtx.fillStyle = isOcean ? 'rgba(84,172,191,0.25)' : 'rgba(76,175,135,0.25)';
+    waveCtx.fillRect(0, h - 3, w * progress, 3);
   }
-
-  const pulse = (Math.sin(time * 6) * 0.5 + 0.5);
-  const amplitude = 4 + pulse * 10;
-  const zoneStart = Math.max(0, playX - ZONE);
-  const zoneEnd   = Math.min(W, playX + ZONE);
-
-  const gradZone = waveCtx.createLinearGradient(zoneStart, 0, zoneEnd, 0);
-  gradZone.addColorStop(0,   "#a855f7");
-  gradZone.addColorStop(0.5, "#c084fc");
-  gradZone.addColorStop(1,   "#a855f7");
-
-  waveCtx.beginPath();
-  waveCtx.strokeStyle = gradZone;
-  for (let x = zoneStart; x <= zoneEnd; x += 0.5) {
-    const dist     = Math.abs(x - playX) / ZONE;
-    const envelope = 1 - dist;
-    const wave     = Math.sin((x - zoneStart) * 0.8 + time * 8) * amplitude * envelope;
-    const y        = midY + wave;
-    if (x === zoneStart) waveCtx.moveTo(x, y);
-    else                 waveCtx.lineTo(x, y);
-  }
-  waveCtx.stroke();
-
-  if (playX + ZONE < W) {
-    waveCtx.beginPath();
-    waveCtx.strokeStyle = "rgba(120, 100, 200, 0.22)";
-    waveCtx.moveTo(playX + ZONE, midY);
-    waveCtx.lineTo(W, midY);
-    waveCtx.stroke();
-  }
-
-  waveCtx.beginPath();
-  waveCtx.arc(playX, midY, 4, 0, Math.PI * 2);
-  waveCtx.fillStyle = "#c084fc";
-  waveCtx.shadowColor = "#a855f7";
-  waveCtx.shadowBlur  = 6;
-  waveCtx.fill();
-  waveCtx.shadowBlur = 0;
 }
 
 function showPlayer() {

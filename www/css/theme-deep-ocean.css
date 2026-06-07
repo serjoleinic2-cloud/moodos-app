@@ -872,3 +872,59 @@ body[data-theme="deep-ocean"] #breathingNotHelped {
 body[data-theme="deep-ocean"] #breathingFeedback > div:first-child {
   color: #ffffff !important;
 }
+
+/* ── Практика: Медитация ── */
+
+/* Треки — голубой текст, тёмный фон, без свечения */
+body[data-theme="deep-ocean"] .track {
+  background: #023859 !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .track.active {
+  background: rgba(84,172,191,0.25) !important;
+  color: #54ACBF !important;
+  box-shadow: 0 0 12px rgba(84,172,191,0.3), inset 3px 3px 6px rgba(0,0,0,0.3) !important;
+}
+body[data-theme="deep-ocean"] .med-add-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+}
+
+/* Иконки плейера медитации — белые */
+body[data-theme="deep-ocean"] #playIcon,
+body[data-theme="deep-ocean"] #loopBtn img,
+body[data-theme="deep-ocean"] #chainBtn img {
+  filter: grayscale(1) invert(1) !important;
+}
+
+/* Кнопки плейера */
+body[data-theme="deep-ocean"] #centerButton,
+body[data-theme="deep-ocean"] #loopBtn,
+body[data-theme="deep-ocean"] #chainBtn {
+  background: #023859 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #loopBtn.active,
+body[data-theme="deep-ocean"] #chainBtn.active {
+  background: rgba(84,172,191,0.2) !important;
+}
+
+/* Кнопки помогло/не помогло */
+body[data-theme="deep-ocean"] #medHelped {
+  background: #023859 !important;
+  color: #4caf87 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #medNotHelped {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+
+/* Текст "Добавить мелодии" если нет premium */
+body[data-theme="deep-ocean"] #addTrackWrap [style*="color:#aaa"],
+body[data-theme="deep-ocean"] #addTrackWrap [style*="color: #aaa"] {
+  color: #54ACBF !important;
+}
