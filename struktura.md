@@ -20,7 +20,8 @@ D:\moodos-app\
 │   ├── sw.js                  # Service worker
 │   ├── css/
 │   │   ├── style.css
-│   │   └── avatar.css
+│   │   ├── avatar.css
+│   │   └── theme-deep-ocean.css
 │   ├── styles/
 │   │   └── design-system.css
 │   ├── assets/
@@ -52,8 +53,12 @@ D:\moodos-app\
 │   │   │   ├── avatar-letters-es.js
 │   │   │   ├── avatar-letters-uk.js
 │   │   │   ├── avatar-letters-hi.js
-│   │   │   ├── home-greetings-ru.js
+│   │   │   ├── home-greetings.js
+│   │   │   ├── challenge-texts-en.js
+│   │   │   ├── challenge-texts-es.js
+│   │   │   ├── challenge-texts-hi.js
 │   │   │   ├── challenge-texts-ru.js
+│   │   │   ├── challenge-texts-uk.js
 │   │   │   └── medals-texts-ru.js
 │   │   ├── core/                    # ARL layer
 │   │   │   ├── appRuntime.js
