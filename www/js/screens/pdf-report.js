@@ -290,6 +290,7 @@ export function showPdfReportModal() {
         '<div class="pr-period-row" id="prPeriodRow">' + periodsHTML + '</div>' +
         '<button class="pr-auto-save" id="prAutoSave">' + t("pr_save_schedule") + '</button>' +
         '<div class="pr-auto-status" id="prAutoStatus">' + autoStatusText + '</div>' +
+      '<button id="prBackBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;margin-top:8px;">${t(\'back\') || t(\'btn_back\') || \'←\'}</button>' +
       '</div>' +
     '</div>';
 
@@ -325,6 +326,10 @@ export function showPdfReportModal() {
   } else {
     console.warn('[pdf-report] #prBack not found');
   }
+
+  screen.querySelector('#prBackBtn')?.addEventListener('click', () => {
+    screen.remove();
+  });
 
   let selectedDays = autoDays.slice();
   screen.querySelectorAll(".pr-day").forEach(function(btn) {

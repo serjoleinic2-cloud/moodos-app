@@ -698,3 +698,131 @@ body[data-theme="deep-ocean"] #premiumBlock [style*="color:#aaa"],
 body[data-theme="deep-ocean"] #premiumBlock [style*="color: #aaa"] {
   color: #54ACBF !important;
 }
+
+/* ── История: кнопка поделиться без свечения ── */
+body[data-theme="deep-ocean"] .hist-share-btn {
+  box-shadow: none !important;
+  background: #023859 !important;
+  color: #54ACBF !important;
+}
+
+/* ── Настройки: модалки (приём лекарств, базовое состояние, цветовая схема, язык) ── */
+body[data-theme="deep-ocean"] .health-modal {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+body[data-theme="deep-ocean"] .health-modal .modal-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .health-modal .modal-subtitle { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .health-modal .modal-option { 
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .health-modal .modal-option.selected {
+  color: #ffffff !important;
+  background: rgba(84,172,191,0.2) !important;
+}
+body[data-theme="deep-ocean"] .health-modal .modal-save-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .health-modal .modal-cancel {
+  background: #023859 !important;
+  color: #89CCD8 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+/* Подсказки "Это помогает...", "Это моя точка...", "Выбери оформление...", "Выбери язык..." */
+body[data-theme="deep-ocean"] .health-modal .modal-hint,
+body[data-theme="deep-ocean"] .health-modal [style*="color:#888"],
+body[data-theme="deep-ocean"] .health-modal [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+
+/* ── Сводный отчёт: убрать свечение, исправить поля дат ── */
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-card {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-date-row {
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-date-col {
+  width: 100% !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+body[data-theme="deep-ocean"] #pdfReportScreen .pr-btn {
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+
+/* ── Медали ── */
+body[data-theme="deep-ocean"] .medals-wrap {
+  background: transparent !important;
+}
+body[data-theme="deep-ocean"] .medals-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .medals-progress-label { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .medals-category-label { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .medal-card {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .medal-name { color: #54ACBF !important; }
+/* Горизонтальный скролл убрать */
+body[data-theme="deep-ocean"] .medals-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  overflow-x: visible !important;
+}
+/* Попап медали */
+body[data-theme="deep-ocean"] .medal-modal {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+}
+body[data-theme="deep-ocean"] .medal-modal-name { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .medal-modal-desc { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .medal-modal-close {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+
+/* ── Как это работает ── */
+body[data-theme="deep-ocean"] .info-screen { background: transparent !important; }
+body[data-theme="deep-ocean"] .info-hero-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .info-hero-sub { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .info-section {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] .info-title { color: #ffffff !important; }
+body[data-theme="deep-ocean"] .info-text { color: #54ACBF !important; }
+body[data-theme="deep-ocean"] .info-divider {
+  background: rgba(84,172,191,0.15) !important;
+}
+body[data-theme="deep-ocean"] .info-back-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] .info-footer { color: #89CCD8 !important; }
+
+/* ── Хранение данных ── */
+body[data-theme="deep-ocean"] .info-export-btn {
+  background: linear-gradient(145deg, #4caf87, #3a9a6e) !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.08) !important;
+}
+body[data-theme="deep-ocean"] .info-section-warning {
+  border-left-color: #e05555 !important;
+}
+body[data-theme="deep-ocean"] .info-label { color: #4caf87 !important; }
+body[data-theme="deep-ocean"] .info-label-warn { color: #e05555 !important; }
+body[data-theme="deep-ocean"] .info-premium-tag {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+}
+
+body[data-theme="deep-ocean"] #prBackBtn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4) !important;
+}
