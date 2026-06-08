@@ -605,65 +605,74 @@ function updateProgress(audioState) {
 function drawWaveProgress() {
   if (!waveCanvas || !waveCtx) return;
   const w = waveCanvas.width;
-  const h = waveCanvas.height || 60;
+  const h = waveCanvas.height || 36;
   waveCtx.clearRect(0, 0, w, h);
 
   const isOcean = document.body.getAttribute('data-theme') === 'deep-ocean';
-  const waveColor = isOcean ? '84,172,191' : '76,175,135';
+  const accentRGB = isOcean ? '84,172,191' : '76,175,135';
   const time = performance.now() * 0.001;
-
-  let amplitude = h * 0.15;
-  const analyser = getAnalyser();
-  if (analyser && running) {
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
-    const bassEnd = Math.floor(dataArray.length * 0.1);
-    let bassSum = 0;
-    for (let i = 0; i < bassEnd; i++) bassSum += dataArray[i];
-    const bassAvg = bassSum / bassEnd / 255;
-    let totalSum = 0;
-    for (let i = 0; i < dataArray.length; i++) totalSum += dataArray[i];
-    const totalAvg = totalSum / dataArray.length / 255;
-    amplitude = h * (0.1 + bassAvg * 0.4 + totalAvg * 0.2);
-  }
-
-  const gradient = waveCtx.createLinearGradient(0, 0, w, 0);
-  gradient.addColorStop(0,   `rgba(${waveColor},0.2)`);
-  gradient.addColorStop(0.5, `rgba(${waveColor},0.8)`);
-  gradient.addColorStop(1,   `rgba(${waveColor},0.2)`);
-
-  waveCtx.beginPath();
-  waveCtx.moveTo(0, h);
-  for (let x = 0; x <= w; x++) {
-    const y = h / 2
-      + Math.sin(x * 0.04 + time * 1.2) * amplitude
-      + Math.sin(x * 0.02 + time * 0.7) * amplitude * 0.4;
-    waveCtx.lineTo(x, y);
-  }
-  waveCtx.lineTo(w, h);
-  waveCtx.closePath();
-  waveCtx.fillStyle = `rgba(${waveColor},0.15)`;
-  waveCtx.fill();
-
-  waveCtx.beginPath();
-  for (let x = 0; x <= w; x++) {
-    const y = h / 2
-      + Math.sin(x * 0.04 + time * 1.2) * amplitude
-      + Math.sin(x * 0.02 + time * 0.7) * amplitude * 0.4;
-    if (x === 0) waveCtx.moveTo(x, y);
-    else waveCtx.lineTo(x, y);
-  }
-  waveCtx.strokeStyle = gradient;
-  waveCtx.lineWidth = 2.5;
-  waveCtx.stroke();
 
   const duration = getDuration();
   const current = getCurrentTime();
-  if (duration > 0) {
-    const progress = current / duration;
-    waveCtx.fillStyle = `rgba(${waveColor},0.4)`;
-    waveCtx.fillRect(0, h - 3, w * progress, 3);
+  const progress = duration > 0 ? Math.max(0, Math.min(1, current / duration)) : 0;
+  const headX = Math.round(progress * w);
+  const cy = Math.round(h / 2);
+  const trackH = 3;
+
+  // 1. Фоновый трек — полоса по всей ширине
+  waveCtx.fillStyle = `rgba(${accentRGB},0.18)`;
+  waveCtx.fillRect(0, cy - trackH / 2, w, trackH);
+
+  // 2. Хвост — пройденная часть
+  if (headX > 0) {
+    waveCtx.fillStyle = `rgba(${accentRGB},0.65)`;
+    waveCtx.fillRect(0, cy - trackH / 2, headX, trackH);
   }
+
+  // 3. Синусоид на голове ползунка (только в зоне перед головой)
+  const waveWidth = Math.min(52, headX);
+  if (waveWidth > 6) {
+    const waveStartX = headX - waveWidth;
+
+    let amp = 4;
+    const analyser = getAnalyser();
+    if (analyser && running) {
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      const end = Math.floor(dataArray.length * 0.15);
+      for (let i = 0; i < end; i++) sum += dataArray[i];
+      const avg = sum / end / 255;
+      amp = 4 + avg * 5;
+    }
+
+    waveCtx.save();
+    waveCtx.beginPath();
+    waveCtx.rect(waveStartX, 0, waveWidth, h);
+    waveCtx.clip();
+
+    waveCtx.beginPath();
+    for (let x = waveStartX; x <= headX; x++) {
+      const fade = (x - waveStartX) / waveWidth;
+      const y = cy + Math.sin(x * 0.38 + time * 4.0) * amp * fade;
+      if (x === waveStartX) waveCtx.moveTo(x, y);
+      else waveCtx.lineTo(x, y);
+    }
+    waveCtx.strokeStyle = `rgba(${accentRGB},0.85)`;
+    waveCtx.lineWidth = 1.8;
+    waveCtx.stroke();
+    waveCtx.restore();
+  }
+
+  // 4. Кружок-голова ползунка
+  const radius = 7;
+  waveCtx.beginPath();
+  waveCtx.arc(headX, cy, radius, 0, Math.PI * 2);
+  waveCtx.fillStyle = `rgba(${accentRGB},1)`;
+  waveCtx.fill();
+  waveCtx.strokeStyle = `rgba(255,255,255,0.55)`;
+  waveCtx.lineWidth = 1.5;
+  waveCtx.stroke();
 }
 
 function showPlayer() {
