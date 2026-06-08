@@ -711,6 +711,7 @@ function showFeedback() {
   const progressWrap = document.getElementById("progressWrap");
   const feedback = document.getElementById("meditationFeedback");
   if (playerControls) playerControls.style.display = "none";
+  document.getElementById('centerButton')?.classList.remove('playing');
   if (progressWrap) progressWrap.style.display = "none";
   if (feedback) feedback.style.display = "flex";
 }
@@ -744,6 +745,7 @@ function toggleMeditation() {
     setTimeout(() => {
       trackingActive = true;
       updatePlayButton({ isPlaying: true });
+      document.getElementById('centerButton')?.classList.add('playing');
     }, 500);
     
     SystemCore.analyzeMoodOnly(moodBeforeSession).then(result => {
@@ -754,6 +756,7 @@ function toggleMeditation() {
     trackingActive = false;
     pause();
     cancelAnimationFrame(animationId);
+    document.getElementById('centerButton')?.classList.remove('playing');
     showFeedback();
     updatePlayButton({ isPlaying: false });
   }
