@@ -423,7 +423,14 @@ body[data-theme="deep-ocean"] #toolsVisualFocus,
 body[data-theme="deep-ocean"] #toolsMindDump,
 body[data-theme="deep-ocean"] #toolsTapCalm,
 body[data-theme="deep-ocean"] #toolsSupportTexts,
-body[data-theme="deep-ocean"] #toolsBack {
+body[data-theme="deep-ocean"] #toolsBack,
+body[data-theme="deep-ocean"] #toolsBreathing *,
+body[data-theme="deep-ocean"] #toolsMeditation *,
+body[data-theme="deep-ocean"] #toolsVisualFocus *,
+body[data-theme="deep-ocean"] #toolsMindDump *,
+body[data-theme="deep-ocean"] #toolsTapCalm *,
+body[data-theme="deep-ocean"] #toolsSupportTexts *,
+body[data-theme="deep-ocean"] #toolsBack * {
   background: rgba(20,45,70,0.95) !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
   color: #ffffff !important;
