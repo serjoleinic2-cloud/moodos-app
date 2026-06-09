@@ -210,7 +210,7 @@ async function saveSessionWithResult(res) {
     result: result
   });
   
-  showToast('✓ ' + t("saved_check"));
+  showToast(t("saved_check"));
   
   sessionStartTime = null;
   moodBeforeSession = null;

@@ -434,10 +434,13 @@ async function initDailyChallenge() {
             skipBtn.style.display = 'none';
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
           } else {
-            doneBtn.textContent = `⏱ ${fmtTime(state.msLeft)}`;
+            doneBtn.textContent = `⏱ ${fmtTime(state.msLeft)} — ${t('challenge_timer_hint')}`;
             doneBtn.disabled    = true;
             doneBtn.style.background = 'rgba(180,180,180,0.2)';
             doneBtn.style.color      = '#aaa';
+            if (state.msLeft <= 0) {
+              bar.style.display = 'none';
+            }
           }
         }
 

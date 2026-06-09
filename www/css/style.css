@@ -12,14 +12,22 @@
   --theme-shadow:       6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;
 }
 
-/* ===== RESET ===== */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { 
-  height: 100%; 
-  margin: 0; 
-  touch-action: auto !important;
-  pointer-events: auto !important;
+/* ===== DEEP OCEAN THEME — MEDITATION TRACKS ===== */
+body[data-theme="deep-ocean"] .track > span:first-child {
+  color: #54ACBF;
 }
+body[data-theme="deep-ocean"] .track.active > span:first-child {
+  color: #ffffff;
+  font-weight: 600;
+}
+body[data-theme="deep-ocean"] .track-list-fixed .track > span:first-child {
+  color: #54ACBF;
+}
+body[data-theme="deep-ocean"] .track-list-fixed .track.active > span:first-child {
+  color: #ffffff;
+  font-weight: 600;
+}
+
 
 /* ===== ГРАДИЕНТНЫЙ ФОН ===== */
 body {
@@ -210,7 +218,7 @@ h2 { font-size: 20px; color: #3a3530; }
   padding: 10px 28px; border: none; border-radius: 14px; cursor: pointer;
   background: linear-gradient(145deg, #f5efe6, #ede5d8);
   box-shadow: inset 3px 3px 6px #c8bfb2, inset -3px -3px 6px #ffffff;
-  font-size: 15px; font-weight: 700; color: #7a6a58;
+  font-size: 15px; font-weight: 700; color: #7eb8d4;
   -webkit-tap-highlight-color: transparent;
 }
 .mood-ok-btn:active { box-shadow: inset 3px 3px 7px #c8bfb2, inset -3px -3px 7px #ffffff; }

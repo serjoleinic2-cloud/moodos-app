@@ -789,6 +789,52 @@ export async function showRemindersModal() {
   `;
   document.body.appendChild(overlay);
 
+  // Deep Ocean theme — apply dark styles to reminder form
+  const isOcean = document.body.getAttribute('data-theme') === 'deep-ocean';
+  if (isOcean) {
+    const modal = overlay.querySelector('.health-modal');
+    if (modal) {
+      modal.style.background = 'linear-gradient(160deg,#0d2137,#142d46)';
+      modal.style.color = '#ffffff';
+    }
+    // Стили для карточки формы добавления
+    const applyOceanForm = (form) => {
+      if (!form) return;
+      form.style.background = 'rgba(20,45,70,0.95)';
+      form.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+      form.style.border = 'none';
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(inp => {
+        inp.style.background = 'rgba(255,255,255,0.08)';
+        inp.style.color = '#ffffff';
+        inp.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.3),inset -2px -2px 5px rgba(255,255,255,0.05)';
+      });
+      const title = form.querySelector('div[style*="font-weight:700"]');
+      if (title) title.style.color = '#ffffff';
+    };
+    // Применить к форме добавления когда она станет видимой
+    overlay.querySelector('#addReminderToggle').addEventListener('click', () => {
+      setTimeout(() => applyOceanForm(overlay.querySelector('#addReminderForm')), 10);
+    });
+    // Применить к карточкам списка
+    const styleReminderCards = () => {
+      overlay.querySelectorAll('[data-reminder-card]').forEach(card => {
+        card.style.background = 'rgba(20,45,70,0.95)';
+        card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+        card.querySelectorAll('div[style*="font-size:26px"]').forEach(el => el.style.color = '#ffffff');
+        card.querySelectorAll('div[style*="color:#3d3d3d"]').forEach(el => el.style.color = '#ffffff');
+        card.querySelectorAll('div[style*="color:#805ad5"]').forEach(el => el.style.color = '#54ACBF');
+      });
+    };
+    // Отложенно после рендера списка
+    setTimeout(styleReminderCards, 50);
+    const origRenderList = overlay.querySelector('#remindersList');
+    if (origRenderList) {
+      const observer = new MutationObserver(() => setTimeout(styleReminderCards, 10));
+      observer.observe(origRenderList, { childList: true });
+    }
+  }
+
   // Обработчик кнопки открытия настроек
   overlay.querySelector('#openSoundSettings')?.addEventListener('click', () => {
     try {

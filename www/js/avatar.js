@@ -689,13 +689,13 @@ export function renderAvatar() {
     if (textEl) textEl.textContent = s.message || '';
     if (actionsEl) {
       actionsEl.innerHTML = '';
-      (s.actions || []).slice(0, 2).forEach(action => {
-        const btn = document.createElement('button');
-        btn.className   = 'avatar-action-btn';
-        btn.textContent = action.label;
-        btn.onclick = () => { if (window.navigateTo) window.navigateTo(action.action); _hideBubble(); };
-        actionsEl.appendChild(btn);
-      });
+      const actions = (s.actions || []).slice(0, 2);
+      if (actions.length > 0) {
+        const textEl = document.createElement('div');
+        textEl.style.cssText = 'font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;line-height:1.5;';
+        textEl.textContent = actions.map(a => a.label).join(' · ');
+        actionsEl.appendChild(textEl);
+      }
     }
     container.classList.add('active');
     if (bubble) bubble.classList.add('visible');
