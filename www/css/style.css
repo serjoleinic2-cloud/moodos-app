@@ -231,6 +231,7 @@ textarea {
   background: rgba(255,255,255,0.55);
   box-shadow: inset 3px 3px 7px #c4c9c2, inset -3px -3px 7px #ffffff;
   outline: none; resize: none; font-family: inherit;
+  box-sizing: border-box;
 }
 
 /* ===== ROUND BUTTONS (практики) ===== */

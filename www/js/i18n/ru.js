@@ -106,7 +106,7 @@ export const ru = {
     home_get_insight: "Быстрый инсайт",
     home_insight_hint: "Анализ на основе твоих данных",
     home_ai_listening: "Анализирую...",
-    home_voice_reflection: "Голосовые заметки дня (10 сек)",
+    home_voice_reflection: "Голосовые заметки дня\n(10 сек)",
     home_start_recording: "Начать запись",
     home_waiting: "Ожидание",
     home_stability_index: "Индекс устойчивости",

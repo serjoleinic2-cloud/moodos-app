@@ -106,7 +106,7 @@ export const es = {
     home_get_insight: "Insight Rápido",
     home_insight_hint: "Análisis basado en tus datos",
     home_ai_listening: "Analizando...",
-    home_voice_reflection: "Notas de voz (10 seg)",
+    home_voice_reflection: "Notas de voz\n(10 seg)",
     home_start_recording: "Iniciar grabación",
     home_waiting: "Esperando",
     home_stability_index: "Índice de estabilidad",

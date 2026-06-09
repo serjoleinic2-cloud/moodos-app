@@ -106,7 +106,7 @@ export const uk = {
     home_get_insight: "Швидкий інсайт",
     home_insight_hint: "Аналіз на основі твоїх даних",
     home_ai_listening: "Аналізую...",
-    home_voice_reflection: "Голосові нотатки (10 сек)",
+    home_voice_reflection: "Голосові нотатки\n(10 сек)",
     home_start_recording: "Почати запис",
     home_waiting: "Очікування",
     home_stability_index: "Індекс стійкості",

@@ -62,7 +62,7 @@ export const hi = {
     home_get_insight: "त्वरित अंतर्दृष्टि",
     home_insight_hint: "आपके डेटा के आधार पर विश्लेषण",
     home_ai_listening: "विश्लेषण...",
-    home_voice_reflection: "आवाज़ नोट्स (10 सेकंड)",
+    home_voice_reflection: "आवाज़ नोट्स\n(10 सेकंड)",
     home_start_recording: "रिकॉर्डिंग शुरू करें",
     home_waiting: "प्रतीक्षा",
     home_stability_index: "स्थिरता सूचकांक",
