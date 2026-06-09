@@ -681,6 +681,156 @@ body[data-theme="deep-ocean"] #breathingFeedback > div:first-child { color: #fff
 
 body[data-theme="deep-ocean"] #addTrackWrap [style*="color:#aaa"],
 body[data-theme="deep-ocean"] #addTrackWrap [style*="color: #aaa"] { color: #54ACBF !important; }
+
+/* ── Инсайт, Отчёт, Баланс: перебить инлайн-стили ── */
+
+/* Фоны карточек инсайта */
+body[data-theme="deep-ocean"] #insight-content [style*="background:rgba(232,237,230"],
+body[data-theme="deep-ocean"] #insight-content [style*="background: rgba(232,237,230"],
+body[data-theme="deep-ocean"] #insight-content [style*="background:rgba(220,228,218"],
+body[data-theme="deep-ocean"] #insight-content [style*="background: rgba(220,228,218"],
+body[data-theme="deep-ocean"] #insight-content .rec-card,
+body[data-theme="deep-ocean"] #insight-content .flip-front,
+body[data-theme="deep-ocean"] #insight-content .flip-back,
+body[data-theme="deep-ocean"] #insight-content .state-row,
+body[data-theme="deep-ocean"] #insight-content .insight-card {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+
+/* Вложенные инлайн-фоны внутри карточек инсайта */
+body[data-theme="deep-ocean"] #insight-content [style*="background:rgba(159,122,234,0.12)"] {
+  background: rgba(84,172,191,0.12) !important;
+}
+
+/* Тексты инсайта */
+body[data-theme="deep-ocean"] #insight-content [style*="color:#888"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #888"],
+body[data-theme="deep-ocean"] #insight-content .insight-section-title,
+body[data-theme="deep-ocean"] #insight-content .state-header,
+body[data-theme="deep-ocean"] #insight-content .state-header * {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#aaa"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #aaa"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#555"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #555"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#444"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #444"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#666"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #666"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] #insight-content [style*="color:#92400e"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: #92400e"] {
+  color: #89CCD8 !important;
+}
+
+/* Слова поддержки и накопление данных */
+body[data-theme="deep-ocean"] #insight-content .practice-subtext,
+body[data-theme="deep-ocean"] #insight-content [style*="color:rgba(0,0,0,0.6)"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: rgba(0,0,0,0.6)"],
+body[data-theme="deep-ocean"] #insight-content [style*="color:rgba(0,0,0,0.7)"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: rgba(0,0,0,0.7)"],
+body[data-theme="deep-ocean"] #insight-content [style*="color:rgba(0,0,0,0.5)"],
+body[data-theme="deep-ocean"] #insight-content [style*="color: rgba(0,0,0,0.5)"] {
+  color: #54ACBF !important;
+}
+
+/* Кнопки периода */
+body[data-theme="deep-ocean"] #insight-content .period-btn {
+  background: #023859 !important;
+  color: #54ACBF !important;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+}
+body[data-theme="deep-ocean"] #insight-content .period-btn.active {
+  background: rgba(84,172,191,0.25) !important;
+  color: #ffffff !important;
+}
+
+/* Кнопка Premium trigger */
+body[data-theme="deep-ocean"] #insight-content [style*="background:linear-gradient(135deg,rgba(255,200,50"],
+body[data-theme="deep-ocean"] #insight-content [style*="background: linear-gradient(135deg,rgba(255,200,50"] {
+  background: rgba(20,45,70,0.95) !important;
+  border-color: rgba(84,172,191,0.4) !important;
+}
+
+/* Отчёт */
+body[data-theme="deep-ocean"] #report-content [style*="background:rgba(232,237,230"],
+body[data-theme="deep-ocean"] #report-content [style*="background: rgba(232,237,230"],
+body[data-theme="deep-ocean"] #report-content .rec-card,
+body[data-theme="deep-ocean"] #report-content .flip-front,
+body[data-theme="deep-ocean"] #report-content .flip-back {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #report-content [style*="color:#888"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #888"],
+body[data-theme="deep-ocean"] #report-content .insight-section-title {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #report-content [style*="color:#555"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #555"],
+body[data-theme="deep-ocean"] #report-content [style*="color:#444"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #444"],
+body[data-theme="deep-ocean"] #report-content [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #report-content [style*="color:#aaa"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #aaa"],
+body[data-theme="deep-ocean"] #report-content [style*="color:#666"],
+body[data-theme="deep-ocean"] #report-content [style*="color: #666"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] #report-content [style*="color:rgba(0,0,0"],
+body[data-theme="deep-ocean"] #report-content [style*="color: rgba(0,0,0"] {
+  color: #54ACBF !important;
+}
+
+/* Баланс */
+body[data-theme="deep-ocean"] #stability-content [style*="background:rgba(232,237,230"],
+body[data-theme="deep-ocean"] #stability-content [style*="background: rgba(232,237,230"],
+body[data-theme="deep-ocean"] #stability-content .rec-card,
+body[data-theme="deep-ocean"] #stability-content .flip-front,
+body[data-theme="deep-ocean"] #stability-content .flip-back {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+}
+body[data-theme="deep-ocean"] #stability-content [style*="color:#888"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #888"],
+body[data-theme="deep-ocean"] #stability-content .insight-section-title {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #stability-content [style*="color:#555"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #555"],
+body[data-theme="deep-ocean"] #stability-content [style*="color:#444"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #444"],
+body[data-theme="deep-ocean"] #stability-content [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #stability-content [style*="color:#aaa"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #aaa"],
+body[data-theme="deep-ocean"] #stability-content [style*="color:#666"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: #666"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] #stability-content [style*="color:rgba(0,0,0"],
+body[data-theme="deep-ocean"] #stability-content [style*="color: rgba(0,0,0"] {
+  color: #54ACBF !important;
+}
+
 /* ── Медитация: треки и плейер ── */
 body[data-theme="deep-ocean"] .track {
   background: #023859 !important;
