@@ -92,6 +92,7 @@ export function initNavigation() {
     menuPanel.style.height    = "100vh";
     menuPanel.style.overflowY = "auto";
     menuPanel.style.zIndex    = "201";
+    menuPanel.style.paddingTop = "calc(env(safe-area-inset-top, 24px) + 24px)";
     menuOverlay.style.display = "none";
   }
 
@@ -101,6 +102,7 @@ export function initNavigation() {
     toolsPanel.style.top       = "0";
     toolsPanel.style.height    = "100vh";
     toolsPanel.style.overflowY = "auto";
+    toolsPanel.style.paddingTop = "calc(env(safe-area-inset-top, 24px) + 24px)";
     toolsPanel.style.zIndex    = "101";
     toolsOverlay.style.display = "none";
   }
