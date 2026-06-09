@@ -102,10 +102,7 @@ body[data-theme="deep-ocean"] #homePatternText {
   color: #54ACBF !important;
 }
 
-/* ── Пульсация под кнопкой Play (deep-ocean) ── */
-body[data-theme="deep-ocean"] #centerButton.playing::before {
-  background: radial-gradient(circle, rgba(84,172,191,0.55) 0%, rgba(84,172,191,0) 70%) !important;
-}
+
 
 /* Текст "Добавить мелодии" если нет premium */
 body[data-theme="deep-ocean"] #addTrackWrap [style*="color:#aaa"],

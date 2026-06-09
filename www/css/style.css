@@ -896,28 +896,5 @@ body[data-theme="warm-sunset"] textarea {
   100% { transform: translateY(80px); opacity: 0; }
 }
 
-/* ── Пульсация под кнопкой Play ── */
-@keyframes playPulse {
-  0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.45; }
-  50%  { transform: translate(-50%, -50%) scale(1.55); opacity: 0.15; }
-  100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.45; }
-}
 
-#centerButton {
-  position: relative;
-}
-
-#centerButton.playing::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(76,175,135,0.55) 0%, rgba(76,175,135,0) 70%);
-  animation: playPulse 2.4s ease-in-out infinite;
-  pointer-events: none;
-  z-index: -1;
-}
 
