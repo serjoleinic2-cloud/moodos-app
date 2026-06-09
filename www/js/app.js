@@ -679,6 +679,25 @@ if (!window.__neyraAppRunning) {
     
     try {
       applyTheme(getTheme());
+
+      // Определяем высоту navigation bar для корректного padding
+      (function() {
+        function updateNavBarHeight() {
+          const windowH = window.innerHeight;
+          const screenH = window.screen.height;
+          let navBarH = 0;
+          if (window.visualViewport) {
+            navBarH = Math.round(screenH - window.visualViewport.height - window.visualViewport.offsetTop);
+          }
+          navBarH = Math.max(navBarH, 16);
+          document.documentElement.style.setProperty('--nav-bar-height', navBarH + 'px');
+          console.log('[INSETS] navBarH:', navBarH);
+        }
+        updateNavBarHeight();
+        window.addEventListener('resize', updateNavBarHeight);
+        window.visualViewport?.addEventListener('resize', updateNavBarHeight);
+      })();
+
       console.log('[THEME] applied:', getTheme(), 'body attr:', document.body.getAttribute('data-theme'));
       initNavigation();
       window._splashReady = true;
