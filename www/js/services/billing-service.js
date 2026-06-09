@@ -39,7 +39,7 @@ export function initBilling() {
       console.log('[billing] approved:', transaction.products[0]?.id);
       const productId = transaction.products?.[0]?.id;
       if (productId) {
-        // Активируем без проверки store.owned() — approved = Google подтвердил
+        window._premiumApprovedThisSession = true;
         activatePremiumPaid(productId);
         window._trustedSetBillingPremium?.(true);
         if (window.systemState) window.systemState.premium = true;
@@ -82,16 +82,16 @@ export function initBilling() {
         // или если update() не вернул покупки (смена устройства/чистка данных)
         const monthly = store.get('premium_monthly');
         const yearly  = store.get('premium_yearly');
-        const alreadyOwned = (monthly && store.owned(monthly)) || (yearly && store.owned(yearly));
-        if (!alreadyOwned) {
+          const isActive = getPremiumFromBilling();
+        if (!isActive) {
           console.log('[billing] not owned after update — trying restorePurchases');
           try {
             await store.restorePurchases();
           } catch(e) {
             console.warn('[billing] restorePurchases failed:', e);
           }
+          getPremiumFromBilling();
         }
-        getPremiumFromBilling();
       })
       .catch(err => {
         console.error('[billing] init failed:', err);
@@ -106,7 +106,18 @@ export function getPremiumFromBilling() {
   try {
     const monthly = store.get("premium_monthly");
     const yearly = store.get("premium_yearly");
-    const isPremiumBilling = store.owned(monthly) || store.owned(yearly);
+
+    const isOwnedSafe = (product) => {
+      if (!product || !store.owned(product)) return false;
+      const tx = product.transactions?.[0];
+      if (!tx) return false;
+      if (tx.expirationDate) {
+        return new Date(tx.expirationDate).getTime() > Date.now();
+      }
+      return window._premiumApprovedThisSession === true;
+    };
+
+    const isPremiumBilling = isOwnedSafe(monthly) || isOwnedSafe(yearly);
 
     if (isPremiumBilling) {
       enqueueBillingStateUpdate(true);
@@ -114,13 +125,8 @@ export function getPremiumFromBilling() {
     }
 
     const profile = getProfile();
-    const profileHasValid = profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now();
-    if (profileHasValid) {
-      console.warn('[billing] store.owned()=false but profile has valid expiry — trusting profile');
-      return true;
-    }
-    if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt <= Date.now()) {
-      console.warn('[billing] profile premium expired — deactivating');
+    if (profile?.premium_type === 'paid') {
+      console.warn('[billing] store says not owned — deactivating profile premium');
       deactivateExpiredPremium();
     }
 

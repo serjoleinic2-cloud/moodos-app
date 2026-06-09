@@ -150,23 +150,25 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
-  // 1. Runtime-флаг (установлен billing через store.approved)
-  if (window.__NEYRA_SECURITY__?.billingPremium === true) return true;
-  // 2. Store.owned() если store готов
-  try {
-    const s = window.store;
-    if (s && window._billingInitialized && !window._billingInitializing) {
-      const monthly = s.get?.('premium_monthly');
-      const yearly  = s.get?.('premium_yearly');
-      if ((monthly && s.owned(monthly)) || (yearly && s.owned(yearly))) {
+  // 1. Runtime-флаг — доверяем только если billing уже инициализирован
+  if (window.__NEYRA_SECURITY__?.billingPremium === true) {
+    if (window._billingInitialized && !window._billingInitializing) {
+      const profile = getProfile();
+      if (profile?.premium_type === 'paid' && profile?.premiumExpiresAt > Date.now()) {
         return true;
       }
+      setBillingPremium(false);
+      return false;
     }
-  } catch(e) {}
-  // 3. Profile как последний fallback (пока store загружается)
-  const profile = getProfile();
-  if (!profile) return false;
-  if (profile.premium_type === 'paid' && profile.premiumExpiresAt > Date.now()) return true;
+    return true;
+  }
+  // 2. Store.owned() не используем напрямую — небезопасен без проверки expirationDate.
+  // 3. Profile как fallback (пока store загружается)
+  if (!window._billingInitialized || window._billingInitializing) {
+    const profile = getProfile();
+    if (!profile) return false;
+    if (profile.premium_type === 'paid' && profile.premiumExpiresAt > Date.now()) return true;
+  }
   return false;
 }
 
