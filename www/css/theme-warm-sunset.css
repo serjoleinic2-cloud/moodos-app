@@ -1,0 +1,115 @@
+/* ============================================================
+   ТЕМА: Warm Sunset (Premium)
+   ============================================================ */
+
+body[data-theme="warm-sunset"] {
+  background: linear-gradient(160deg, #f8e8d8 0%, #f8d8d0 100%) !important;
+  --theme-bg:           #f8d8d0;
+  --theme-card-bg:      rgba(248,232,216,0.97);
+  --theme-btn-bg:       rgba(248,232,216,0.97);
+  --theme-text-primary: #6a3020;
+  --theme-text-accent:  #906050;
+  --theme-text-muted:   #b08070;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #6a3020;
+  --theme-chart-grid:   rgba(144,96,80,0.12);
+  --theme-shadow:       5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff;
+}
+
+body[data-theme="warm-sunset"] .card,
+body[data-theme="warm-sunset"] .mo-metric,
+body[data-theme="warm-sunset"] .hist-card,
+body[data-theme="warm-sunset"] .flip-front,
+body[data-theme="warm-sunset"] .flip-back,
+body[data-theme="warm-sunset"] .stab-entry,
+body[data-theme="warm-sunset"] .meditation-player-card,
+body[data-theme="warm-sunset"] .flip-front-home,
+body[data-theme="warm-sunset"] .flip-back-home,
+body[data-theme="warm-sunset"] .neyra-card,
+body[data-theme="warm-sunset"] .accordion-item {
+  background: rgba(248,232,216,0.97) !important;
+  box-shadow: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff !important;
+}
+
+body[data-theme="warm-sunset"] .bottom-nav {
+  background: rgba(248,232,216,0.98) !important;
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.08) !important;
+}
+body[data-theme="warm-sunset"] .bottom-nav button { color: #b08070 !important; }
+body[data-theme="warm-sunset"] .bottom-nav button.active { color: #906050 !important; }
+
+body[data-theme="warm-sunset"] h1,
+body[data-theme="warm-sunset"] h2,
+body[data-theme="warm-sunset"] h3,
+body[data-theme="warm-sunset"] .mo-metric-value,
+body[data-theme="warm-sunset"] .flip-value,
+body[data-theme="warm-sunset"] #moodValue,
+body[data-theme="warm-sunset"] .hist-card-sub,
+body[data-theme="warm-sunset"] .flip-value-home,
+body[data-theme="warm-sunset"] .flip-label-home,
+body[data-theme="warm-sunset"] .settings-title {
+  color: #6a3020 !important;
+}
+
+body[data-theme="warm-sunset"] .mo-metric-label,
+body[data-theme="warm-sunset"] .mo-metric-sub,
+body[data-theme="warm-sunset"] .flip-label,
+body[data-theme="warm-sunset"] .flip-sub,
+body[data-theme="warm-sunset"] .hist-card-title,
+body[data-theme="warm-sunset"] .hist-card-time,
+body[data-theme="warm-sunset"] .hist-day-label,
+body[data-theme="warm-sunset"] .mo-section-title,
+body[data-theme="warm-sunset"] .saved-label,
+body[data-theme="warm-sunset"] .flip-sub-home {
+  color: #906050 !important;
+}
+
+body[data-theme="warm-sunset"] .mo-btn,
+body[data-theme="warm-sunset"] .card button,
+body[data-theme="warm-sunset"] .mood-ok-btn,
+body[data-theme="warm-sunset"] .mainBtn,
+body[data-theme="warm-sunset"] .smallBtn,
+body[data-theme="warm-sunset"] .modal-option,
+body[data-theme="warm-sunset"] .modal-save-btn,
+body[data-theme="warm-sunset"] .modal-cancel {
+  background: linear-gradient(145deg, #faf0e8, #f0e0d0) !important;
+  box-shadow: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff !important;
+  color: #906050 !important;
+}
+
+body[data-theme="warm-sunset"] textarea {
+  box-shadow: inset 3px 3px 7px #d0b8a0, inset -3px -3px 7px #ffffff !important;
+  background: rgba(255,255,255,0.45) !important;
+  color: #6a3020 !important;
+}
+
+body[data-theme="warm-sunset"] .track {
+  background: linear-gradient(145deg, #faf0e8, #f0e0d0) !important;
+  color: #906050 !important;
+  box-shadow: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff !important;
+}
+body[data-theme="warm-sunset"] .track.active {
+  background: rgba(144,96,80,0.15) !important;
+  color: #6a3020 !important;
+  font-weight: 600 !important;
+}
+
+body[data-theme="warm-sunset"] #menuPanel,
+body[data-theme="warm-sunset"] #toolsPanel {
+  background: linear-gradient(160deg, #f8e8d8 0%, #f8d8d0 100%) !important;
+}
+body[data-theme="warm-sunset"] .menuItem,
+body[data-theme="warm-sunset"] #menuBack,
+body[data-theme="warm-sunset"] #toolsBreathing,
+body[data-theme="warm-sunset"] #toolsMeditation,
+body[data-theme="warm-sunset"] #toolsVisualFocus,
+body[data-theme="warm-sunset"] #toolsMindDump,
+body[data-theme="warm-sunset"] #toolsTapCalm,
+body[data-theme="warm-sunset"] #toolsSupportTexts,
+body[data-theme="warm-sunset"] #toolsBack {
+  background: rgba(248,232,216,0.97) !important;
+  box-shadow: 5px 5px 10px #d0b8a0, -5px -5px 10px #ffffff !important;
+  color: #6a3020 !important;
+}
+
+body[data-theme="warm-sunset"] #neyra-splash { background: #f8e8d8 !important; }

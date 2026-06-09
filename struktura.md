@@ -21,7 +21,10 @@ D:\moodos-app\
 │   ├── css/
 │   │   ├── style.css
 │   │   ├── avatar.css
-│   │   └── theme-deep-ocean.css
+│   │   ├── theme-deep-ocean.css      # Premium theme
+│   │   ├── theme-purple-blue.css     # Free theme
+│   │   ├── theme-purple-pink.css     # Free theme
+│   │   └── theme-warm-sunset.css     # Premium theme
 │   ├── styles/
 │   │   └── design-system.css
 │   ├── assets/

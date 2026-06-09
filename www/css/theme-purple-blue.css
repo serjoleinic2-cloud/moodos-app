@@ -1,0 +1,115 @@
+/* ============================================================
+   ТЕМА: Purple Blue
+   ============================================================ */
+
+body[data-theme="purple-blue"] {
+  background: linear-gradient(160deg, #d6d0f0 0%, #c8d8f5 100%) !important;
+  --theme-bg:           #c8d8f5;
+  --theme-card-bg:      rgba(214,208,240,0.97);
+  --theme-btn-bg:       rgba(214,208,240,0.97);
+  --theme-text-primary: #3a3070;
+  --theme-text-accent:  #7b5ea7;
+  --theme-text-muted:   #8878b8;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #3a3070;
+  --theme-chart-grid:   rgba(123,94,167,0.12);
+  --theme-shadow:       5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff;
+}
+
+body[data-theme="purple-blue"] .card,
+body[data-theme="purple-blue"] .mo-metric,
+body[data-theme="purple-blue"] .hist-card,
+body[data-theme="purple-blue"] .flip-front,
+body[data-theme="purple-blue"] .flip-back,
+body[data-theme="purple-blue"] .stab-entry,
+body[data-theme="purple-blue"] .meditation-player-card,
+body[data-theme="purple-blue"] .flip-front-home,
+body[data-theme="purple-blue"] .flip-back-home,
+body[data-theme="purple-blue"] .neyra-card,
+body[data-theme="purple-blue"] .accordion-item {
+  background: rgba(214,208,240,0.97) !important;
+  box-shadow: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff !important;
+}
+
+body[data-theme="purple-blue"] .bottom-nav {
+  background: rgba(214,208,240,0.98) !important;
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.08) !important;
+}
+body[data-theme="purple-blue"] .bottom-nav button { color: #8878b8 !important; }
+body[data-theme="purple-blue"] .bottom-nav button.active { color: #7b5ea7 !important; }
+
+body[data-theme="purple-blue"] h1,
+body[data-theme="purple-blue"] h2,
+body[data-theme="purple-blue"] h3,
+body[data-theme="purple-blue"] .mo-metric-value,
+body[data-theme="purple-blue"] .flip-value,
+body[data-theme="purple-blue"] #moodValue,
+body[data-theme="purple-blue"] .hist-card-sub,
+body[data-theme="purple-blue"] .flip-value-home,
+body[data-theme="purple-blue"] .flip-label-home,
+body[data-theme="purple-blue"] .settings-title {
+  color: #3a3070 !important;
+}
+
+body[data-theme="purple-blue"] .mo-metric-label,
+body[data-theme="purple-blue"] .mo-metric-sub,
+body[data-theme="purple-blue"] .flip-label,
+body[data-theme="purple-blue"] .flip-sub,
+body[data-theme="purple-blue"] .hist-card-title,
+body[data-theme="purple-blue"] .hist-card-time,
+body[data-theme="purple-blue"] .hist-day-label,
+body[data-theme="purple-blue"] .mo-section-title,
+body[data-theme="purple-blue"] .saved-label,
+body[data-theme="purple-blue"] .flip-sub-home {
+  color: #7b5ea7 !important;
+}
+
+body[data-theme="purple-blue"] .mo-btn,
+body[data-theme="purple-blue"] .card button,
+body[data-theme="purple-blue"] .mood-ok-btn,
+body[data-theme="purple-blue"] .mainBtn,
+body[data-theme="purple-blue"] .smallBtn,
+body[data-theme="purple-blue"] .modal-option,
+body[data-theme="purple-blue"] .modal-save-btn,
+body[data-theme="purple-blue"] .modal-cancel {
+  background: linear-gradient(145deg, #e8e0f8, #d8d0f0) !important;
+  box-shadow: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff !important;
+  color: #6b5ea7 !important;
+}
+
+body[data-theme="purple-blue"] textarea {
+  box-shadow: inset 3px 3px 7px #b0a8d8, inset -3px -3px 7px #ffffff !important;
+  background: rgba(255,255,255,0.45) !important;
+  color: #3a3070 !important;
+}
+
+body[data-theme="purple-blue"] .track {
+  background: linear-gradient(145deg, #e8e0f8, #d8d0f0) !important;
+  color: #7b5ea7 !important;
+  box-shadow: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff !important;
+}
+body[data-theme="purple-blue"] .track.active {
+  background: rgba(123,94,167,0.15) !important;
+  color: #3a3070 !important;
+  font-weight: 600 !important;
+}
+
+body[data-theme="purple-blue"] #menuPanel,
+body[data-theme="purple-blue"] #toolsPanel {
+  background: linear-gradient(160deg, #d6d0f0 0%, #c8d8f5 100%) !important;
+}
+body[data-theme="purple-blue"] .menuItem,
+body[data-theme="purple-blue"] #menuBack,
+body[data-theme="purple-blue"] #toolsBreathing,
+body[data-theme="purple-blue"] #toolsMeditation,
+body[data-theme="purple-blue"] #toolsVisualFocus,
+body[data-theme="purple-blue"] #toolsMindDump,
+body[data-theme="purple-blue"] #toolsTapCalm,
+body[data-theme="purple-blue"] #toolsSupportTexts,
+body[data-theme="purple-blue"] #toolsBack {
+  background: rgba(214,208,240,0.97) !important;
+  box-shadow: 5px 5px 10px #b0a8d8, -5px -5px 10px #ffffff !important;
+  color: #3a3070 !important;
+}
+
+body[data-theme="purple-blue"] #neyra-splash { background: #d6d0f0 !important; }
