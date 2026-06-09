@@ -74,29 +74,35 @@ export function initNavigation() {
   const toolsOverlay = document.getElementById("toolsOverlay");
 
   function closeMenu() {
-    menuPanel.style.bottom = "-400px";
-    setTimeout(() => { menuOverlay.style.display = "none"; }, 350);
+    menuPanel.style.bottom = "-100vh";
+    menuPanel.style.top    = "";
+    menuPanel.style.height = "";
   }
 
   function closeToolsMenu() {
-    toolsPanel.style.bottom = "-560px";
-    setTimeout(() => { toolsOverlay.style.display = "none"; }, 350);
+    toolsPanel.style.bottom = "-100vh";
+    toolsPanel.style.top    = "";
+    toolsPanel.style.height = "";
   }
 
   function openMenu() {
     closeToolsMenu();
     menuPanel.style.bottom    = "0";
-    menuOverlay.style.display = "block";
-    menuOverlay.style.zIndex  = "200";
+    menuPanel.style.top       = "0";
+    menuPanel.style.height    = "100vh";
+    menuPanel.style.overflowY = "auto";
     menuPanel.style.zIndex    = "201";
+    menuOverlay.style.display = "none";
   }
 
   function openToolsMenu() {
     closeMenu();
     toolsPanel.style.bottom    = "0";
-    toolsOverlay.style.display = "block";
-    toolsOverlay.style.zIndex  = "100";
+    toolsPanel.style.top       = "0";
+    toolsPanel.style.height    = "100vh";
+    toolsPanel.style.overflowY = "auto";
     toolsPanel.style.zIndex    = "101";
+    toolsOverlay.style.display = "none";
   }
 
   window.openToolsMenuDirect = openToolsMenu;
