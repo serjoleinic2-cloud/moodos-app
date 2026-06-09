@@ -51,6 +51,9 @@ body[data-theme="deep-ocean"] .bottom-nav button small { color: inherit !importa
 body[data-theme="deep-ocean"] #menuPanel,
 body[data-theme="deep-ocean"] #toolsPanel {
   background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+  padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), var(--nav-bar-height, 16px)) + 16px) !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 60px) !important;
 }
 
 body[data-theme="deep-ocean"] h1,

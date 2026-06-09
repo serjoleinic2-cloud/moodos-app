@@ -12,21 +12,12 @@
   --theme-shadow:       6px 6px 14px #b8c4b4,-6px -6px 14px #ffffff;
 }
 
-/* ===== DEEP OCEAN THEME — MEDITATION TRACKS ===== */
-body[data-theme="deep-ocean"] .track > span:first-child {
-  color: #54ACBF;
+#menuPanel, #toolsPanel {
+  padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), var(--nav-bar-height, 16px)) + 16px) !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 60px) !important;
 }
-body[data-theme="deep-ocean"] .track.active > span:first-child {
-  color: #ffffff;
-  font-weight: 600;
-}
-body[data-theme="deep-ocean"] .track-list-fixed .track > span:first-child {
-  color: #54ACBF;
-}
-body[data-theme="deep-ocean"] .track-list-fixed .track.active > span:first-child {
-  color: #ffffff;
-  font-weight: 600;
-}
+
 
 
 /* ===== ГРАДИЕНТНЫЙ ФОН ===== */
