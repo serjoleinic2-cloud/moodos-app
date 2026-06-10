@@ -1020,3 +1020,31 @@ body[data-theme="deep-ocean"] [style*="color:#4a7c59"] {
 body[data-theme="deep-ocean"] [style*="color:#666"] {
   color: #89CCD8 !important;
 }
+
+/* ── Meditation track list ── */
+body[data-theme="deep-ocean"] #trackList .track {
+  color: #89CCD8 !important;
+  background: rgba(255,255,255,0.04) !important;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3), -2px -2px 6px rgba(255,255,255,0.04) !important;
+}
+body[data-theme="deep-ocean"] #trackList .track > span:first-child {
+  color: inherit !important;
+}
+
+body[data-theme="deep-ocean"] #trackList .track.active {
+  color: #ffffff !important;
+  background: rgba(84,172,191,0.22) !important;
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3), inset -2px -2px 6px rgba(255,255,255,0.05) !important;
+  border-left: 3px solid #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #trackList .track.active > span:first-child {
+  color: inherit !important;
+}
+
+body[data-theme="deep-ocean"] #trackList .track .del-track {
+  color: rgba(137,204,216,0.6) !important;
+}
+
+body[data-theme="deep-ocean"] #trackList .track.active .del-track {
+  color: rgba(255,255,255,0.6) !important;
+}
