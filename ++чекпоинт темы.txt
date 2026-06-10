@@ -1,0 +1,87 @@
+Чекпоинт: система тем в Neyra (для новой сессии)
+
+Стек приложения
+Capacitor 8 + Vite. Исходники в www/. Сборка: npm run build → npx cap copy android.
+
+Как работают темы
+Тема применяется через document.body.setAttribute('data-theme', 'deep-ocean') при старте в app.js:
+jsapplyTheme(getTheme()); // вызывается перед initNavigation()
+Каждая тема — отдельный CSS-файл в www/css/. Подключены в index.html после style.css:
+html<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/theme-deep-ocean.css">
+
+Стандарт цветов темы deep-ocean
+НазначениеЦветФон страницыlinear-gradient(160deg, #0d2137, #0a1a2e)Фон карточекrgba(20,45,70,0.95)Фон кнопок#023859Текст белый (заголовки, цифры)#ffffffТекст голубой (лейблы, подписи)#54ACBFТекст светло-голубой (muted)#89CCD8Зелёный (везде оставить)#4caf87Тени карточек0 4px 16px rgba(0,0,0,0.35)Chart.js текст#ffffffChart.js сеткаrgba(84,172,191,0.15)
+
+CSS-переменные (объявлены в теме, JS читает через window.themeVar)
+cssbody[data-theme="deep-ocean"] {
+  --theme-bg:           #0a1a2e;
+  --theme-card-bg:      rgba(20,45,70,0.95);
+  --theme-btn-bg:       #023859;
+  --theme-text-primary: #ffffff;
+  --theme-text-accent:  #54ACBF;
+  --theme-text-muted:   #89CCD8;
+  --theme-text-green:   #4caf87;
+  --theme-chart-text:   #ffffff;
+  --theme-chart-grid:   rgba(84,172,191,0.15);
+  --theme-shadow:       0 4px 16px rgba(0,0,0,0.35);
+}
+JS в insight.js, report.js, stability.js читает их так:
+jsfunction chartTextColor() {
+  return window.themeVar ? window.themeVar('--theme-chart-text') : '#888';
+}
+window.themeVar определён в app.js:
+jswindow.themeVar = function(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+};
+
+Что покрыто в theme-deep-ocean.css
+
+Фон страницы и все карточки (.card, .mo-metric, .hist-card, .flip-front/back, .stab-entry и др.)
+Нижняя навигация
+Панели меню (#menuPanel) и практик (#toolsPanel) + все пункты
+Белый текст: заголовки h1/h2/h3, .mo-metric-value, .flip-value, #moodValue и др.
+Голубой текст: .mo-metric-label, .flip-label, .mo-section-title и др.
+Кнопки: все .mo-btn, .mainBtn, .smallBtn, .mood-ok-btn и др.
+Иконки плейеров: инверсия через filter: grayscale(1) invert(1)
+Триггеры: фон #023859, голубые лейблы, инвертированные иконки
+Слайдер настроения: голубой кружок
+Textarea: тёмный фон, белый текст
+Flip-карточки главной (.flip-front-home, .flip-back-home, .flip-label-home и др.)
+Карточки "Инсайт дня", "Золотые часы", "Вызов дня"
+История: карточки, дата-инпут, попап удаления
+Инсайт экран, Отчёт, Баланс (stability)
+Calendario настроений (оверлей, попап дня, навигация)
+Письма от Нейры
+PDF-отчёт
+Экран Премиум
+Настройки (карточка бэкапа, блок "Важно", премиум-блок)
+Кнопка (i): белая с чёрной буквой
+Попапы и оверлеи
+Splash-экран
+
+
+Как создать новую тему
+
+Скопировать theme-deep-ocean.css → theme-НАЗВАНИЕ.css
+Find & replace: deep-ocean → НАЗВАНИЕ
+Поменять только цвета в переменных вверху файла
+Подключить в index.html после style.css
+Добавить в settings.js в объект themeLabels:
+
+js'НАЗВАНИЕ': 'Название для пользователя',
+
+Что ещё не покрыто / под вопросом
+
+Некоторые инлайн-цвета в insight.js ещё могут быть хардкодными (частично заменены на var(--theme-...))
+Онбординг — тема там не проверялась
+Paywall экран — не проверялся
+
+
+Файлы темы
+
+www/css/theme-deep-ocean.css — основной файл темы
+www/css/style.css — базовые стили без темы (блок deep-ocean удалён)
+www/js/app.js — applyTheme(getTheme()) и window.themeVar
+www/js/screens/settings.js — список тем в themeLabels
+
