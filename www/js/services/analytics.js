@@ -14,11 +14,18 @@ export function calculateStabilityScore(history) {
 
 export function calculateTrend(history) {
   if (!history || history.length < 6) return "learning";
-  const recent   = history.slice(-3).reduce((s, h) => s + h.value, 0) / 3;
-  const previous = history.slice(-6, -3).reduce((s, h) => s + h.value, 0) / 3;
-  // Threshold увеличен с ±2 до ±5 для уменьшения ложных трендов
-  if (recent > previous + 5) return "improving";
-  if (recent < previous - 5) return "declining";
+
+  // Берём по 5 записей для сглаживания случайных выбросов
+  const recentSlice   = history.slice(-5);
+  const previousSlice = history.slice(-10, -5);
+  if (previousSlice.length < 3) return "learning";
+
+  const recent   = recentSlice.reduce((s, h) => s + h.value, 0) / recentSlice.length;
+  const previous = previousSlice.reduce((s, h) => s + h.value, 0) / previousSlice.length;
+
+  // Порог ±7 — игнорируем мелкие колебания
+  if (recent > previous + 7) return "improving";
+  if (recent < previous - 7) return "declining";
   return "stable";
 }
 

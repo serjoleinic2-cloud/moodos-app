@@ -293,6 +293,8 @@ export const en = {
     trend_exp_no_data: "Not enough data. Make more entries.",
     trend_exp_up: "Recent entries are better than previous. You're on the rise — keep going!",
     trend_exp_down: "Recent entries are lower. Consider more rest and practice.",
+    trend_exp_down_support: "A small dip is a normal part of any journey. You're already noticing it — and that's what matters. Try breathing or a short meditation.",
+    insight_period_fluctuation: "Small fluctuation — that's normal",
     trend_exp_stable: "Your state is stable without sharp changes.",
     state_low: "😔 Low", state_stressed: "😤 Stressed", state_neutral: "😐 Neutral", state_good: "😊 Good", state_high: "🤩 Excellent",
     report_period_label: "For", report_all_time: "All time", report_days: "days",

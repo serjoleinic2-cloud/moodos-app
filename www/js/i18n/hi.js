@@ -306,6 +306,8 @@ export const hi = {
     trend_exp_no_data: "पर्याप्त डेटा नहीं। अधिक प्रविष्टियां करें।",
     trend_exp_up: "हाल की प्रविष्टियां पिछले से बेहतर हैं। आप उठाव पर हैं — जारी रखें!",
     trend_exp_down: "हाल की प्रविष्टियां कम हैं। अधिक आराम और अभ्यास पर विचार करें।",
+    trend_exp_down_support: "थोड़ी गिरावट हर सफर का सामान्य हिस्सा है। आप इसे नोटिस कर रहे हैं — और यही सबसे जरूरी है। सांस लेने की प्रैक्टिस या छोटा ध्यान आजमाएं।",
+    insight_period_fluctuation: "छोटा उतार-चढ़ाव — यह सामान्य है",
     trend_exp_stable: "आपकी स्थिति स्थिर है, बिना तेज़ बदलाव के।",
     state_low: "😔 कम", state_stressed: "😤 तनावित", state_neutral: "😐 तटस्थ", state_good: "😊 अच्छा", state_high: "🤩 उत्कृष्ट",
     report_period_label: "के लिए", report_all_time: "पूरा समय", report_days: "दिन",

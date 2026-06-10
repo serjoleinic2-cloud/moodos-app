@@ -287,6 +287,8 @@ export const es = {
     trend_exp_no_data: "Datos insuficientes. Haz más registros.",
     trend_exp_up: "Registros recientes mejores que anteriores. ¡Vas en ascenso!",
     trend_exp_down: "Registros recientes más bajos. Considera más descanso y práctica.",
+    trend_exp_down_support: "Una pequeña bajada es parte normal de cualquier camino. Ya lo estás notando — y eso es lo más importante. Prueba respiración o una meditación corta.",
+    insight_period_fluctuation: "Pequeña fluctuación — es normal",
     trend_exp_stable: "Tu estado es estable sin cambios bruscos.",
     state_low: "😔 Bajo", state_stressed: "😤 Estresado", state_neutral: "😐 Neutral", state_good: "😊 Bien", state_high: "🤩 Excelente",
     report_period_label: "Durante", report_all_time: "Todo el tiempo", report_days: "días",

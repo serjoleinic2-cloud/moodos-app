@@ -164,7 +164,7 @@ function getPeriodLabel(period) {
 function trendExplain(tr) {
   if (!tr || tr === "learning") return t("trend_exp_no_data");
   if (tr === "improving") return t("trend_exp_up");
-  if (tr === "declining") return t("trend_exp_down");
+  if (tr === "declining") return t("trend_exp_down_support");
   return t("trend_exp_stable");
 }
 function sColor(s) { if (!s) return "#888"; return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
@@ -196,7 +196,7 @@ function computeComparison(current, previous) {
     trend = "stable";
   } else {
     // Абсолютное изменение (в пунктах 0-100)
-    percent = Math.abs(delta);
+    percent = Math.abs(Math.round(delta));
     if (delta > 0) trend = "up";
     if (delta < 0) trend = "down";
   }
@@ -338,14 +338,15 @@ function buildPeriodComparisonHTML(history, days) {
   const currentColor = cmp.currentAvg !== null ? mColor(cmp.currentAvg) : "#888";
 
   let extraBlock = '';
-  if (comparison.trend === 'stable') {
+  const absDelta = Math.abs(comparison.delta);
+  if (comparison.isZero || absDelta < 4) {
     extraBlock = '<div class="insight-label neutral">' + t('insight_no_change') + '</div>';
   } else if (comparison.trend === 'up') {
-    extraBlock = '<div class="insight-delta positive">' + comparison.arrow + ' ' + comparison.percent + '%</div>' +
+    extraBlock = '<div class="insight-delta positive">' + comparison.arrow + ' ' + comparison.percent + ' ' + t('pts') + '</div>' +
                  '<div class="insight-label positive">' + t('insight_better') + '</div>';
   } else if (comparison.trend === 'down') {
-    extraBlock = '<div class="insight-delta negative">' + comparison.arrow + ' ' + comparison.percent + '%</div>' +
-                 '<div class="insight-label negative">' + t('insight_worse') + '</div>';
+    extraBlock = '<div class="insight-delta neutral" style="color:#f0a500;">' + comparison.arrow + ' ' + comparison.percent + ' ' + t('pts') + '</div>' +
+                 '<div class="insight-label neutral" style="color:#888;">' + t('insight_period_fluctuation') + '</div>';
   }
 
   const html = '<div class="insight-section">' +
@@ -490,7 +491,8 @@ export async function onEnter() {
   const calcHistory = filteredHistory.length >= 3 ? filteredHistory : history;
   
   const stability  = calculateStabilityScore(calcHistory);
-  const trend      = calculateTrend(calcHistory);
+  const trendHistory = filteredHistory.length >= 10 ? filteredHistory : history;
+  const trend      = calculateTrend(trendHistory);
   const golden     = calculateGoldenHour(calcHistory);
   const avgMood    = calcHistory.length > 0
     ? Math.round(calcHistory.reduce((s,h)=>s+h.value,0)/calcHistory.length)
