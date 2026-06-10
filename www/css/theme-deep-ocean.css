@@ -242,6 +242,29 @@ body[data-theme="deep-ocean"] #deleteConfirmPopup #deleteConfirmYes {
   color: #ffffff !important;
 }
 
+body[data-theme="deep-ocean"] #challengeDonePopup > div {
+  background: rgba(20,45,70,0.98) !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5) !important;
+}
+body[data-theme="deep-ocean"] #challengeDonePopup > div > div[style*="color:#3a3530"],
+body[data-theme="deep-ocean"] #challengeDonePopup > div > div[style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #challengeDonePopup > div > div[style*="color:#888"],
+body[data-theme="deep-ocean"] #challengeDonePopup > div > div[style*="color: #888"] {
+  color: #89CCD8 !important;
+}
+body[data-theme="deep-ocean"] #challengePopupNo {
+  background: linear-gradient(145deg,#e05555,#c04040) !important;
+  box-shadow: 4px 4px 10px rgba(224,85,85,0.3) !important;
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #challengePopupYes {
+  background: linear-gradient(145deg,#4caf87,#3a9a72) !important;
+  box-shadow: 4px 4px 10px rgba(76,175,135,0.3) !important;
+  color: #ffffff !important;
+}
+
 body[data-theme="deep-ocean"] .letter-overlay-inner,
 body[data-theme="deep-ocean"] .letter-overlay-inner * { color: #ffffff !important; }
 

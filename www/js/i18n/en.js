@@ -1031,4 +1031,8 @@ premium_feature_themes: "Themes",
     letter_history_title: 'Letter history',
     letter_history_empty: 'No letters yet.\nNeyra will write in a few days.',
     letter_new_badge: 'New',
+    challenge_done_confirm: 'Challenge completed?',
+    challenge_done_confirm_sub: 'Confirm the result',
+    challenge_done_yes: 'Yes',
+    challenge_done_no: 'No',
   };

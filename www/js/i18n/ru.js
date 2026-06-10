@@ -1050,4 +1050,8 @@ premium_feature_themes: "Темы",
     letter_history_title: 'История писем',
     letter_history_empty: 'Писем пока нет.\nНейра напишет через несколько дней.',
     letter_new_badge: 'Новое',
+    challenge_done_confirm: 'Вызов выполнен?',
+    challenge_done_confirm_sub: 'Подтверди результат',
+    challenge_done_yes: 'Да',
+    challenge_done_no: 'Нет',
   };

@@ -397,11 +397,11 @@ function _challengeRender(bar, textEl, btn, ch, completed) {
     overlay.innerHTML = `
       <div style="background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px;padding:28px 24px;width:100%;max-width:300px;box-shadow:0 16px 48px rgba(0,0,0,0.2);text-align:center;">
         <div style="font-size:36px;margin-bottom:12px;">🎯</div>
-        <div style="font-size:17px;font-weight:700;color:#3a3530;margin-bottom:8px;">Вызов выполнен?</div>
-        <div style="font-size:13px;color:#888;margin-bottom:24px;">Подтверди результат</div>
+        <div style="font-size:17px;font-weight:700;color:#3a3530;margin-bottom:8px;">${t('challenge_done_confirm')}</div>
+        <div style="font-size:13px;color:#888;margin-bottom:24px;">${t('challenge_done_confirm_sub')}</div>
         <div style="display:flex;gap:10px;">
-          <button id="challengePopupNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;">Нет</button>
-          <button id="challengePopupYes" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#4caf87,#3a9a72);box-shadow:4px 4px 10px rgba(76,175,135,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">Да</button>
+          <button id="challengePopupNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;">${t('challenge_done_no')}</button>
+          <button id="challengePopupYes" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#4caf87,#3a9a72);box-shadow:4px 4px 10px rgba(76,175,135,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">${t('challenge_done_yes')}</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
