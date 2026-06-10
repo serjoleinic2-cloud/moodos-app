@@ -129,8 +129,8 @@ function renderTodaySection(todaySummary) {
       .flip-front-stab { position:relative; width:100%; }
       .flip-back-stab  { position:absolute; top:0; left:0; width:100%; height:100%; transform:rotateY(180deg); }
     </style>
-    ${best  && best.value  >= 65 ? flipCard('best',  bestFront,  bestBack,  '#4caf87') : ''}
-    ${worst && worst.value <= 45 && worst.value < (best?.value ?? 100) - 20 ? flipCard('worst', worstFront, worstBack, '#e05555') : ''}`;
+    ${best  && best.value  >= 55 ? flipCard('best',  bestFront,  bestBack,  '#4caf87') : ''}
+    ${worst && worst.value <= 38 && worst.value < (best?.value ?? 100) - 15 ? flipCard('worst', worstFront, worstBack, '#e05555') : ''}`;
 }
 
 let cachedStability = null;
@@ -187,7 +187,18 @@ export function onEnter() {
   }
 
   const trendText  = calcTrend(history);
-  const trendColor = trendText.includes("📈")?"#4caf87":trendText.includes("📉")?"#e05555":"#888";
+  function getTrendRaw(h) {
+    if (h.length < 4) return "stable";
+    const half = Math.floor(h.length / 2);
+    const recent = h.slice(-half).reduce((s,x) => s + x.value, 0) / half;
+    const prev   = h.slice(0, half).reduce((s,x) => s + x.value, 0) / half;
+    const diff   = recent - prev;
+    if (diff > 5)  return "up";
+    if (diff < -5) return "down";
+    return "stable";
+  }
+  const trendRaw   = getTrendRaw(history);
+  const trendColor = trendRaw === "up" ? "#4caf87" : trendRaw === "down" ? "#f0a500" : "#888";
 
   function sc(s){ return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
   function mc(v){ return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
@@ -261,7 +272,7 @@ export function onEnter() {
         <div class="mo-metric">${infoBtn("stab")}<div class="mo-metric-label">${t("stab_metric_stab")}</div><div class="mo-metric-value" style="color:${sc(stability)}">${stability}%</div><div class="mo-metric-sub">${levelText}</div></div>
         <div class="mo-metric">${infoBtn("vol")}<div class="mo-metric-label">${t("stab_metric_vol")}</div><div class="mo-metric-value" style="color:${sc(100-volatility)}">${volatility}%</div><div class="mo-metric-sub">${t("stab_metric_vol_sub")}</div></div>
         <div class="mo-metric">${infoBtn("avg14")}<div class="mo-metric-label">${t("stab_metric_avg14")}</div><div class="mo-metric-value" style="color:${avg14?mc(avg14):'#888'}">${avg14!==null?avg14+'%':'—'}</div><div class="mo-metric-sub">${hist14.length} ${t("stab_entries_count")}</div></div>
-        <div class="mo-metric">${infoBtn("trend")}<div class="mo-metric-label">${t("stab_metric_trend")}</div><div class="mo-metric-value" style="font-size:16px;color:${trendColor}">${trendText}</div><div class="mo-metric-sub">${t("stab_metric_trend_sub")}</div></div>
+        <div class="mo-metric">${infoBtn("trend")}<div class="mo-metric-label">${t("stab_metric_trend")}</div><div class="mo-metric-value" style="font-size:16px;color:${trendColor}">${trendText}</div><div class="mo-metric-sub" style="color:${trendRaw==='down'?'#f0a500':''};">${trendRaw === 'down' ? t('stab_trend_down_support') : t("stab_metric_trend_sub")}</div></div>
       </div>
 
       <div class="mo-section-title" style="margin-top:16px;">${t("stab_dynamics")}</div>

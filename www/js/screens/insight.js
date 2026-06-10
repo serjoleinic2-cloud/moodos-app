@@ -6,6 +6,7 @@ import { calculateStabilityScore, calculateTrend, calculateGoldenHour } from "..
 import { getEffectivenessRate, getAverageMoodLift, getEffectivenessByState, getFullSessionStats, getPersonalRecommendation, getEffectiveSessionCount, getPracticeComparison, getUserBaseline, compareToBaseline, TIME_HORIZONS } from "../services/session-analytics.js";
 import { getStateLabel } from "../services/state-engine.js";
 import { isPremium } from "../services/user-profile.js";
+import { showPremiumModal } from "../premium-modal.js";
 import SystemCore from "../system-core.js";
 import { getMood } from "../state.js";
 import { t } from "../i18n.js";
@@ -551,24 +552,8 @@ export async function onEnter() {
   }
 
   let yearComparisonHTML = '';
-  if (selectedTimeRange === 'year') {
-    if (isPremium()) {
-      yearComparisonHTML = buildYearComparisonBlock();
-    } else {
-      yearComparisonHTML = 
-        '<div class="insight-section">' +
-          '<div class="insight-section-title">' + t("year_comparison_title") + '</div>' +
-          '<div style="padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(255,200,50,0.08),rgba(255,140,0,0.04));border:1.5px solid rgba(255,180,0,0.5);">' +
-            '<div style="display:flex;align-items:center;gap:10px;">' +
-              '<div style="font-size:20px;">🔒</div>' +
-              '<div>' +
-                '<div style="font-size:13px;color:var(--theme-text-accent,#666);">' + t("year_comparison_locked").replace("🔒 ", "") + '</div>' +
-                '<div style="font-size:11px;color:var(--theme-text-accent,#888);margin-top:2px;">' + t("year_comparison_sell") + '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-    }
+  if (selectedTimeRange === 'year' && isPremium()) {
+    yearComparisonHTML = buildYearComparisonBlock();
   }
   const periodComparisonHTML = selectedTimeRange !== 'year' ? buildPeriodComparisonHTML(history, periodDays) : '';
 
@@ -578,14 +563,13 @@ export async function onEnter() {
       '<button class="period-btn' + (selectedTimeRange === 'week' ? ' active' : '') + '" data-period="week" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'week' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'week' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_7d") + '</button>' +
       '<button class="period-btn' + (selectedTimeRange === 'month' ? ' active' : '') + '" data-period="month" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'month' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'month' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_30d") + '</button>' +
       '<button class="period-btn' + (selectedTimeRange === 'quarter' ? ' active' : '') + '" data-period="quarter" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'quarter' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'quarter' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_90d") + '</button>' +
-      '<button class="period-btn' + (selectedTimeRange === 'year' ? ' active' : '') + '" data-period="year" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'year' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'year' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;">' + t("period_365d") + '</button>' +
+      '<button class="period-btn' + (selectedTimeRange === 'year' ? ' active' : '') + '" data-period="year" style="padding:6px 10px;border:none;border-radius:12px;background:' + (selectedTimeRange === 'year' ? '#4caf87' : 'rgba(232,237,230,0.9)') + ';color:' + (selectedTimeRange === 'year' ? 'white' : '#555') + ';font-size:12px;font-weight:600;cursor:pointer;position:relative;">' + t("period_365d") + (isPremium() ? '' : ' 🔒') + '</button>' +
     '</div>';
 
   // ПРАВИЛА ОТОБРАЖЕНИЯ ПРАКТИК
   const practicesHTML = activePractices.length > 0 ? (
     '<div class="insight-section">' +
       '<div class="insight-section-title">' + t("practices_eff") + '</div>' +
-      periodSelectorHTML +
       activePractices.map(function(p) {
         const cardData = formatPracticeCard(p.key, practiceData);
         
@@ -662,7 +646,7 @@ export async function onEnter() {
 
     '<div style="padding:4px 0 60px 0;">' +
       '<h2 style="margin-bottom:4px;">' + t("insight_title") + '</h2>' +
-      '<div style="font-size:12px;color:var(--theme-text-muted,#aaa);margin-bottom:16px;">' + (t("insight_period_label") || "Период анализа") + ': <strong style="color:var(--theme-text-muted,#555);">' + getPeriodLabel(selectedTimeRange) + '</strong></div>' +
+      periodSelectorHTML +
       '<div style="font-size:13px;color:var(--theme-text-accent,#888);margin-bottom:20px;">' + t("current_state") + ': <strong style="color:var(--theme-text-primary,#3a3530);">' + stateLabelTr + '</strong></div>' +
 
       memoryBlockHTML +
@@ -780,6 +764,13 @@ export async function onEnter() {
   container.querySelectorAll(".period-btn").forEach(function(btn) {
     btn.addEventListener("click", function() {
       const period = btn.getAttribute("data-period");
+      if (period === 'year' && !isPremium()) {
+        showPremiumModal({
+          title: t("premium_year_title") || t("free_history_limit_title"),
+          desc: t("premium_year_desc") || t("free_history_limit_desc")
+        });
+        return;
+      }
       if (period && TIME_HORIZONS[period]) {
         setSelectedPeriod(period);
         onEnter();
