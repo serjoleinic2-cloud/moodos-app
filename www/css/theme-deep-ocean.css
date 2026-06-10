@@ -56,6 +56,11 @@ body[data-theme="deep-ocean"] #toolsPanel {
   max-height: calc(100vh - 60px) !important;
 }
 
+body[data-theme="deep-ocean"] #menuBack,
+body[data-theme="deep-ocean"] #toolsBack {
+  color: #ffffff !important;
+}
+
 body[data-theme="deep-ocean"] h1,
 body[data-theme="deep-ocean"] h2,
 body[data-theme="deep-ocean"] h3,

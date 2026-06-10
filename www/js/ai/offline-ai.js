@@ -184,7 +184,7 @@ function shouldUseTimeDimension(timeStats, event) {
   
   console.log('[TIME DIMENSION CHECK]', { event, periods: periods.length, validPeriods, diff });
   
-  return diff >= 15;
+  return diff >= 10;
 }
 
 function analyzeEventImpact(history) {
@@ -309,7 +309,7 @@ function analyzeEventImpact(history) {
 }
 
 function findBestPatterns(patterns, limit = 1) {
-  const filtered = patterns.filter(p => p.count >= 3 && Math.abs(p.score) >= 5);
+  const filtered = patterns.filter(p => p.count >= 2 && Math.abs(p.score) >= 4);
   return filtered.slice(0, limit);
 }
 

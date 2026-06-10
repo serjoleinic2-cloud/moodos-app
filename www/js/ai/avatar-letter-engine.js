@@ -17,7 +17,7 @@ async function getLettersForLang() {
 
 const LETTER_STORAGE_KEY = 'neyra_letters';
 const LETTER_CHECK_KEY   = 'neyra_letter_last_check';
-const CHECK_INTERVAL     = 3 * 24 * 60 * 60 * 1000; // 3 дня
+const CHECK_INTERVAL     = 1 * 24 * 60 * 60 * 1000; // 1 день
 
 // ─── Сезон ───────────────────────────────────────────────────
 

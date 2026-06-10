@@ -348,147 +348,219 @@ function showProfileUpdateBanner() {
 }
 
 
-async function initDailyChallenge() {
+const challengeUI = {
+  start:     t('challenge_start'),
+  done:      t('challenge_done'),
+  skipped:   t('challenge_skipped'),
+  completed: t('challenge_done'),
+}
+
+function initDailyChallenge() {
   try {
     const bar    = document.getElementById('dailyChallengeBar');
     const textEl = document.getElementById('challengeText');
-    let btn    = document.getElementById('challengeBtn');
+    let btn      = document.getElementById('challengeBtn');
     if (!bar || !textEl || !btn) return;
 
     bar.style.display = 'block';
 
     const completed = isChallengeCompleted();
-    let challenge   = await getCurrentPoolChallenge();
 
-    console.log('[CHALLENGE DEBUG]', JSON.stringify(challenge));
-    if (!challenge || !challenge.text) {
-      bar.style.display = 'none';
+    Promise.resolve(getCurrentPoolChallenge()).then(ch => {
+      if (!ch || !ch.text) { bar.style.display = 'none'; return; }
+      _challengeRender(bar, textEl, btn, ch, completed);
+    }).catch(() => { bar.style.display = 'none'; });
+
+  } catch(e) {
+    console.warn('[CHALLENGE] init failed:', e);
+  }
+}
+
+function _challengeRender(bar, textEl, btn, ch, completed) {
+
+  // ── утилиты ──────────────────────────────────────────────
+  function fmtTime(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  // Попап "Вызов выполнен?" — стиль из history.js
+  function showDoneConfirm(onYes, onNo) {
+    const existing = document.getElementById('challengeDonePopup');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'challengeDonePopup';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2000;display:flex;align-items:center;justify-content:center;padding:32px;';
+    overlay.innerHTML = `
+      <div style="background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px;padding:28px 24px;width:100%;max-width:300px;box-shadow:0 16px 48px rgba(0,0,0,0.2);text-align:center;">
+        <div style="font-size:36px;margin-bottom:12px;">🎯</div>
+        <div style="font-size:17px;font-weight:700;color:#3a3530;margin-bottom:8px;">Вызов выполнен?</div>
+        <div style="font-size:13px;color:#888;margin-bottom:24px;">Подтверди результат</div>
+        <div style="display:flex;gap:10px;">
+          <button id="challengePopupNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;">Нет</button>
+          <button id="challengePopupYes" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#4caf87,#3a9a72);box-shadow:4px 4px 10px rgba(76,175,135,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">Да</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('challengePopupNo').addEventListener('click', () => { overlay.remove(); onNo(); });
+    document.getElementById('challengePopupYes').addEventListener('click', () => { overlay.remove(); onYes(); });
+  }
+
+  // Свернуть и исчезнуть
+  function collapseAndHide(barEl) {
+    barEl.style.transition = 'opacity 0.3s ease';
+    barEl.style.opacity = '0';
+    setTimeout(() => {
+      barEl.style.display = 'none';
+      barEl.style.opacity = '';
+      barEl.style.transition = '';
+    }, 300);
+  }
+
+  // ── рендер состояний ─────────────────────────────────────
+  function render(challenge, isCompleted) {
+    textEl.textContent = challenge.text;
+
+    // Чистим всё что могли добавить
+    document.getElementById('challengeBtnWrap')?.remove();
+    document.getElementById('challengeCollapsed')?.remove();
+
+    // Восстанавливаем оригинальный btn если был скрыт
+    btn.style.display = 'block';
+
+    if (isCompleted) {
+      // Уже выполнено сегодня — показываем статус, больше ничего
+      btn.textContent   = challengeUI.done;
+      btn.disabled      = true;
+      btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
       return;
     }
 
-    let timerInterval = null;
+    const timerState = getChallengeTimerState();
 
-    function fmtTime(ms) {
-      const h = Math.floor(ms / 3600000);
-      const m = Math.floor((ms % 3600000) / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (!timerState.active) {
+      // ── Состояние: не начато ─────────────────────────────
+      btn.textContent   = challengeUI.start;
+      btn.disabled      = false;
+      btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
+
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      btn = newBtn;
+
+      btn.addEventListener('click', () => {
+        startChallengeTimer();
+        setTimeout(() => renderCollapsed(challenge), 50);
+      });
+
+    } else {
+      // Таймер уже идёт — сразу показываем свёрнутый вид
+      btn.style.display = 'none';
+      renderCollapsed(challenge);
     }
+  }
 
-    function renderChallenge(ch) {
-      textEl.textContent = ch.text;
+  // ── Свёрнутый вид пока идёт таймер ──────────────────────
+  let timerInterval = null;
 
-      const oldWrap = document.getElementById('challengeBtnWrap');
-      if (oldWrap) oldWrap.remove();
-      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  function renderCollapsed(challenge) {
+    document.getElementById('challengeBtnWrap')?.remove();
+    document.getElementById('challengeCollapsed')?.remove();
+    btn.style.display = 'none';
 
-      if (completed) {
-        btn.textContent   = t('challenge_done');
-        btn.disabled      = true;
-        btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+    const wrap = document.createElement('div');
+    wrap.id = 'challengeCollapsed';
+    wrap.style.cssText = 'margin-top:10px;';
+
+    // Строка: [↻ Другое]  [таймер]  [✕ Закрыть]
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+    const otherBtn = document.createElement('button');
+    otherBtn.textContent = '↻ Другое';
+    otherBtn.style.cssText = 'flex:1;background:rgba(224,85,85,0.1);color:#e05555;border:1px solid rgba(224,85,85,0.3);border-radius:14px;padding:10px 6px;font-size:13px;font-weight:600;cursor:pointer;';
+
+    const timerEl = document.createElement('div');
+    timerEl.style.cssText = 'flex:1.2;text-align:center;font-size:15px;font-weight:700;color:#9f7aea;font-variant-numeric:tabular-nums;';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Закрыть';
+    closeBtn.style.cssText = 'flex:1;background:rgba(180,180,180,0.15);color:#aaa;border:1px solid rgba(180,180,180,0.25);border-radius:14px;padding:10px 6px;font-size:13px;font-weight:500;cursor:pointer;';
+
+    row.appendChild(otherBtn);
+    row.appendChild(timerEl);
+    row.appendChild(closeBtn);
+    wrap.appendChild(row);
+    btn.parentNode.insertBefore(wrap, btn.nextSibling);
+
+    // Обновляем таймер каждую секунду
+    function tick() {
+      const state = getChallengeTimerState();
+      if (!state.active) {
+        timerEl.textContent = '✓';
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         return;
       }
+      timerEl.textContent = state.ready ? '✓ Готово' : fmtTime(state.msLeft);
+    }
+    tick();
+    timerInterval = setInterval(tick, 1000);
 
-      const timerState = getChallengeTimerState();
+    // ── Кнопка "↻ Другое" ────────────────────────────────
+    otherBtn.addEventListener('click', () => {
+      resetChallengeTimer();
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      Promise.resolve(skipToNext()).then(next => {
+        const nextCh = next || challenge;
+        render(nextCh, false);
+      });
+    });
 
-      if (!timerState.active) {
-        btn.textContent   = t('challenge_start');
-        btn.disabled      = false;
-        btn.style.cssText = 'background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;';
-        btn.style.display = 'block';
-
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        btn = newBtn;
-
-        btn.addEventListener('click', () => {
-          startChallengeTimer();
-          // Небольшая задержка чтобы таймер успел записаться
-          setTimeout(() => renderChallenge(ch), 50);
-        });
-      } else {
-        btn.style.display = 'none';
-
-        const wrap = document.createElement('div');
-        wrap.id = 'challengeBtnWrap';
-        wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-top:10px;';
-
-        const doneBtn = document.createElement('button');
-        doneBtn.style.cssText = 'width:100%;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;';
-
-        const skipBtn = document.createElement('button');
-        skipBtn.textContent = `↻ ${t('challenge_skipped')}`;
-        skipBtn.style.cssText = 'width:100%;background:rgba(224,85,85,0.1);color:#e05555;border:1px solid rgba(224,85,85,0.35);border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;';
-
-        wrap.appendChild(doneBtn);
-        wrap.appendChild(skipBtn);
-        btn.parentNode.insertBefore(wrap, btn.nextSibling);
-
-        function updateDoneBtn() {
-          const state = getChallengeTimerState();
-          if (state.ready) {
-            doneBtn.textContent = `✓ ${t('challenge_done')}`;
-            doneBtn.disabled    = false;
-            doneBtn.style.background = 'linear-gradient(145deg,#4caf87,#3a9a72)';
-            doneBtn.style.color      = '#fff';
-            skipBtn.style.display = 'none';
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-          } else {
-            doneBtn.textContent = `⏱ ${fmtTime(state.msLeft)} — ${t('challenge_timer_hint')}`;
-            doneBtn.disabled    = true;
-            doneBtn.style.background = 'rgba(180,180,180,0.2)';
-            doneBtn.style.color      = '#aaa';
-            if (state.msLeft <= 0) {
-              bar.style.display = 'none';
-            }
-          }
-        }
-
-        updateDoneBtn();
-        timerInterval = setInterval(updateDoneBtn, 1000);
-
-        doneBtn.addEventListener('click', async () => {
-          if (doneBtn.disabled) return;
-          completeChallenge();
+    // ── Кнопка "✕ Закрыть" → попап ──────────────────────
+    closeBtn.addEventListener('click', () => {
+      showDoneConfirm(
+        // Да — выполнено
+        async () => {
           resetChallengeTimer();
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          completeChallenge();
 
-          if (ch.trigger) {
+          if (challenge.trigger) {
             try {
               const counts = JSON.parse(localStorage.getItem('trigger_challenges_completed') || '{}');
-              counts[ch.trigger] = (counts[ch.trigger] || 0) + 1;
+              counts[challenge.trigger] = (counts[challenge.trigger] || 0) + 1;
               localStorage.setItem('trigger_challenges_completed', JSON.stringify(counts));
             } catch(e) {}
           }
-
-          wrap.remove();
-          btn.style.display = 'block';
-          btn.textContent   = t('challenge_done');
-          btn.disabled      = true;
-          btn.style.cssText = 'background:rgba(76,175,135,0.3);color:#4caf87;border:none;border-radius:14px;padding:10px 20px;font-size:14px;font-weight:600;cursor:default;width:100%;margin-top:10px;';
-          textEl.textContent = ch.text;
 
           try {
             const { checkAndUpdateMedals } = await import('../services/medals-engine.js');
             checkAndUpdateMedals();
           } catch(e) {}
-        });
 
-        skipBtn.addEventListener('click', async () => {
+          collapseAndHide(bar);
+        },
+        // Нет — новое задание
+        () => {
           resetChallengeTimer();
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-          const next = await skipToNext();
-          challenge  = next || challenge;
-          renderChallenge(challenge);
-        });
-      }
-    }
-
-    renderChallenge(challenge);
-
-  } catch(e) {
-    console.warn('[CHALLENGE] init failed:', e);
+          Promise.resolve(skipToNext()).then(next => {
+            const nextCh = next || challenge;
+            render(nextCh, false);
+          });
+        }
+      );
+    });
   }
+
+  // Запуск
+  render(ch, completed);
 }
 
 function initResilienceCard() {
