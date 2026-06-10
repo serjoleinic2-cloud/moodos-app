@@ -15,10 +15,14 @@ async function saveAudioToFile(audioData) {
     const ts = Date.now();
     const fileName = `voice_${ts}.webm`;
     await Filesystem.writeFile({ path: `Neyra/${fileName}`, data: base64, directory: "Documents" });
+    // Verify file exists before returning URI
     const fileInfo = await Filesystem.getUri({ path: `Neyra/${fileName}`, directory: "Documents" });
-    return fileInfo.uri || audioData;
+    if (!fileInfo?.uri) return audioData;
+    // Double-check file is readable
+    await Filesystem.stat({ path: `Neyra/${fileName}`, directory: "Documents" });
+    return fileInfo.uri;
   } catch(e) {
-    console.warn('[VOICE] Filesystem save failed:', e);
+    console.warn('[VOICE] Filesystem save failed, falling back to base64:', e);
     return audioData;
   }
 }

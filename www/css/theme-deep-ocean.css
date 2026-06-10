@@ -1048,3 +1048,18 @@ body[data-theme="deep-ocean"] #trackList .track .del-track {
 body[data-theme="deep-ocean"] #trackList .track.active .del-track {
   color: rgba(255,255,255,0.6) !important;
 }
+
+/* ── История: кнопка Поделиться в деталях ── */
+body[data-theme="deep-ocean"] #histShareBtn {
+  background: rgba(20,45,70,0.95) !important;
+  box-shadow: none !important;
+  color: #54ACBF !important;
+}
+
+/* ── История: карточки сессий — название и время белым ── */
+body[data-theme="deep-ocean"] .hist-card .hist-card-title {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] .hist-card .hist-card-sub {
+  color: #89CCD8 !important;
+}

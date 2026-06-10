@@ -339,10 +339,12 @@ function showMoodCalendarOverlay() {
       const key = year + "-" + String(month+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
       const v = dayAvg[key];
       const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
-      const hasData = v !== undefined;
+      const hasVoiceDay = (dayVoiceMap[key] || []).length > 0;
+      const hasData = v !== undefined || hasVoiceDay;
       html += `<div class="cal-day ${hasData ? 'cal-day-clickable' : ''}" data-key="${key}" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:${moodBg(v)};border:${isToday?"2px solid #6667AB":"1px solid rgba(0,0,0,0.06)"};box-sizing:border-box;cursor:${hasData ? 'pointer' : 'default'};">
         <span style="font-size:9px;color:var(--theme-text-muted,#bbb);">${day}</span>
         ${v !== undefined ? `<span style="font-size:10px;font-weight:700;color:${moodFg(v)};line-height:1.1;">${v}%</span>` : ""}
+        ${hasVoiceDay && v === undefined ? `<span style="font-size:8px;">🎤</span>` : ''}
       </div>`;
     }
     html += `</div>`;
@@ -352,7 +354,6 @@ function showMoodCalendarOverlay() {
   
   function showDayPopup(key) {
     const v = dayAvg[key];
-    if (v === undefined) return;
     
     const sessions = daySessions[key] || 0;
     const voices = dayVoiceMap[key] || [];
@@ -391,96 +392,12 @@ function showMoodCalendarOverlay() {
     popup.innerHTML = `
       <div style="text-align:center;margin-bottom:16px;">
         <div style="font-size:14px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${dateFormatted}</div>
+        ${v !== undefined ? `
         <div style="font-size:36px;font-weight:700;color:${moodColor};">${v}%</div>
         <div style="font-size:12px;color:var(--theme-text-muted,#aaa);">${t("hist_mood") || "Настроение"}</div>
-      </div>
-      ${practicesHTML ? `<div style="margin-bottom:12px;">
-        <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">${t("practices_eff") || "Практики"}</div>
-        ${practicesHTML}
-      </div>` : ''}
-      ${hasVoice ? `
-        <div style="margin-bottom:12px;">
-          <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">🎤 ${t("hist_voice_diary")}</div>
-          ${voices.map((src, i) => `
-            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:6px;">
-              <audio id="voice-player-${i}" src="${src}" preload="none" style="display:none;"></audio>
-                <button class="voice-btn" data-index="${i}" style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                  <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="Play">
-                </button>
-              <div style="font-size:12px;color:var(--theme-text-muted,#555);">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:var(--theme-text-muted,#aaa);margin-bottom:12px;">${t("no_data_short")}</div>` : ''}
-      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:var(--theme-text-accent,#888);">${t("close")}</div>
-    `;
-    
-    const overlay = document.createElement("div");
-    overlay.id = "dayPopupOverlay";
-    overlay.style.cssText = "position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.3);";
-    overlay.onclick = () => {
-      popup.remove();
-      overlay.remove();
-    };
-    
-    document.body.appendChild(overlay);
-    document.body.appendChild(popup);
-    
-    popup.querySelector("#dayPopupClose").onclick = () => {
-      popup.remove();
-      overlay.remove();
-    };
-    
-    // Voice button handlers
-    popup.querySelectorAll(".voice-btn").forEach(btn => {
-      btn.onclick = () => {
-        const idx = btn.dataset.index;
-        const audio = document.getElementById("voice-player-" + idx);
-        if (!audio) return;
-        if (audio.paused) {
-          audio.play();
-          btn.querySelector("img").src = "/icons/player/pause.svg?v=2";
-        } else {
-          audio.pause();
-          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
-        }
-        audio.onended = () => {
-          btn.querySelector("img").src = "/icons/player/play.svg?v=2";
-        };
-      };
-    });
-  }
-
-  const overlay = document.createElement("div");
-  overlay.id = "moodCalendarOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:flex;align-items:flex-end;";
-
-  function build() {
-    const { gridHtml, monthLabel } = renderGrid(viewYear, viewMonth);
-    return `
-      <div style="width:100%;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 16px 120px;box-sizing:border-box;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-          <div style="font-size:17px;font-weight:700;color:var(--theme-text-primary,#3a3530);">📅 ${t("cal_title")}</div>
-          <div id="calClose" style="font-size:22px;color:var(--theme-text-muted,#aaa);cursor:pointer;padding:4px 10px;">✕</div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">‹</div>
-          <div style="font-size:16px;font-weight:600;color:var(--theme-text-primary,#3a3530);">${monthLabel}</div>
-          <div id="calNext" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">›</div>
-        </div>
-        ${gridHtml}
-        <div style="display:flex;gap:14px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
-            <div style="width:14px;height:14px;border-radius:4px;background:#4caf8733;border:1px solid rgba(0,0,0,0.08);"></div>≥70%
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
-            <div style="width:14px;height:14px;border-radius:4px;background:#f0a50033;border:1px solid rgba(0,0,0,0.08);"></div>40–69%
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
-            <div style="width:14px;height:14px;border-radius:4px;background:#e0555533;border:1px solid rgba(0,0,0,0.08);"></div>&lt;40%
-          </div>
-        </div>
+        ` : `
+        <div style="font-size:14px;color:var(--theme-text-muted,#aaa);margin-bottom:8px;">${t("hist_voice_diary") || "Голосовая заметка"}</div>
+        `}
       </div>`;
   }
 
