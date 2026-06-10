@@ -53,9 +53,7 @@ export function getMoodStability() {
 
   const stability = Math.max(0, Math.round(100 - (filteredSd / 20) * 100));
 
-  const avgBonus = avg >= 75 ? 10 : avg >= 60 ? 5 : 0;
-
-  return Math.min(100, stability + avgBonus);
+  return stability;
 }
 
 // ---- ВОЛАТИЛЬНОСТЬ ----
@@ -86,6 +84,7 @@ export function getResilienceTrend() {
 
   const sd1    = stdDev(sorted.slice(0, half));
   const sd2    = stdDev(sorted.slice(half));
+  if (sd1 === 0) return { change: 0, direction: 'stable' };
   const change = Math.round((sd1 - sd2) / sd1 * 100);
 
   return {
@@ -124,7 +123,7 @@ export function getResilienceIndex() {
     if (avg14 >= 70 && lowRatio < 0.2) score += 10;
     else if (avg14 >= 60 && lowRatio < 0.15) score += 5;
 
-    if (lowCount > 0 && avg14 >= 65) score += 5;
+    if (lowCount > 0 && avg14 >= 65 && lowRatio < 0.3) score += 5;
   }
 
   return Math.min(100, Math.max(0, Math.round(score)));
