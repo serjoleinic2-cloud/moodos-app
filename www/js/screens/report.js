@@ -399,6 +399,22 @@ function showMoodCalendarOverlay() {
         <div style="font-size:14px;color:var(--theme-text-muted,#aaa);margin-bottom:8px;">${t("hist_voice_diary") || "Голосовая заметка"}</div>
         `}
       </div>`;
+
+    const dayOverlay = document.createElement("div");
+    dayOverlay.id = "dayPopupOverlay";
+    dayOverlay.style.cssText = "position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.3);";
+    dayOverlay.onclick = () => {
+      popup.remove();
+      dayOverlay.remove();
+    };
+
+    document.body.appendChild(dayOverlay);
+    document.body.appendChild(popup);
+
+    popup.querySelector("#dayPopupClose").onclick = () => {
+      popup.remove();
+      dayOverlay.remove();
+    };
   }
 
   overlay.innerHTML = build();
