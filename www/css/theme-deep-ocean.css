@@ -1063,3 +1063,8 @@ body[data-theme="deep-ocean"] .hist-card .hist-card-title {
 body[data-theme="deep-ocean"] .hist-card .hist-card-sub {
   color: #89CCD8 !important;
 }
+
+/* ── История: плей/пауза кнопка голосовой заметки ── */
+body[data-theme="deep-ocean"] .voice-play-btn img {
+  filter: invert(1) !important;
+}

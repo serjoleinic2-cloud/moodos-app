@@ -400,7 +400,7 @@ function _challengeRender(bar, textEl, btn, ch, completed) {
         <div style="font-size:17px;font-weight:700;color:#3a3530;margin-bottom:8px;">${t('challenge_done_confirm')}</div>
         <div style="font-size:13px;color:#888;margin-bottom:24px;">${t('challenge_done_confirm_sub')}</div>
         <div style="display:flex;gap:10px;">
-          <button id="challengePopupNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;font-size:15px;font-weight:700;color:#888;cursor:pointer;">${t('challenge_done_no')}</button>
+          <button id="challengePopupNo" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#e74c3c,#c0392b);box-shadow:4px 4px 10px rgba(231,76,60,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">${t('challenge_done_no')}</button>
           <button id="challengePopupYes" style="flex:1;padding:14px;border:none;border-radius:16px;background:linear-gradient(145deg,#4caf87,#3a9a72);box-shadow:4px 4px 10px rgba(76,175,135,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;">${t('challenge_done_yes')}</button>
         </div>
       </div>`;

@@ -102,7 +102,7 @@
 
   <!-- VOICE REFLECTION -->
   <div class="card">
-    <div style="font-size:14px; color:#999; margin-bottom:8px; white-space:pre-line;" data-i18n="home_voice_reflection">Голосовые заметки дня (10 сек)</div>
+    <div style="font-size:14px; color:#999; margin-bottom:8px;" data-i18n="home_voice_reflection">Голосовые заметки дня</div>
     <div style="display:flex; align-items:center; gap:12px; margin-top:0;">
   <button id="recordVoiceBtn" data-i18n="home_start_recording"></button>
   <span id="voiceTimer" style="font-size:22px; font-weight:700; color:#4a90d9; min-width:24px;"></span>
@@ -218,9 +218,10 @@
   box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
   padding-top: calc(env(safe-area-inset-top, 24px) + 16px);
 ">
-  <div class="menuItem" data-nav="history" style="padding:16px;margin-bottom:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="menu_history">📖 История</div>
-  <div class="menuItem" data-nav="settings" style="padding:16px;margin-bottom:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="menu_settings">⚙️ Настройки</div>
-  <div class="menuItem" data-nav="premium" style="padding:16px;margin-bottom:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#9f7aea;font-size:17px;cursor:pointer;" data-i18n="menu_premium">👑 Премиум</div>
+  <div class="menuItem" data-nav="history" style="padding:16px;margin-bottom:12px;margin-top:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="menu_history">📖 История</div>
+  <div class="menuItem" data-nav="settings" style="padding:16px;margin-bottom:12px;margin-top:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="menu_settings">⚙️ Настройки</div>
+  <div class="menuItem" data-nav="medals" style="padding:16px;margin-bottom:12px;margin-top:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="nav_medals">🏅 Достижения</div>
+  <div class="menuItem" data-nav="premium" style="padding:16px;margin-bottom:12px;margin-top:12px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#9f7aea;font-size:17px;cursor:pointer;" data-i18n="menu_premium">👑 Премиум</div>
   <div id="menuBack" style="padding:16px;margin-top:12px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;text-align:center;" data-i18n="back">← Назад</div>
 </div>
 
@@ -236,13 +237,13 @@
   box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
   padding-top: calc(env(safe-area-inset-top, 24px) + 16px);
 ">
-  <div id="toolsBreathing"   style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_breathing">🫁 Дыхание</div>
-  <div id="toolsMeditation"  style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_meditation">🧘 Медитация</div>
-  <div id="toolsVisualFocus" class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_visual">👁 Зрительный якорь 🔒</div>
-  <div id="toolsMindDump"    class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_mind">🧠 Выгрузка мыслей 🔒</div>
-  <div id="toolsTapCalm"     class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_tap">✋ Тактильная разрядка 🔒</div>
-  <div id="toolsSupportTexts" class="premium-tool" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_support">💌 Тексты поддержки 🔒</div>
-  <div id="toolsBack" style="padding:16px;margin-bottom:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;text-align:center;" data-i18n="back">← Назад</div>
+  <div id="toolsBreathing"   style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_breathing">🫁 Дыхание</div>
+  <div id="toolsMeditation"  style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;" data-i18n="tools_meditation">🧘 Медитация</div>
+  <div id="toolsVisualFocus" class="premium-tool" style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_visual">👁 Зрительный якорь 🔒</div>
+  <div id="toolsMindDump"    class="premium-tool" style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_mind">🧠 Выгрузка мыслей 🔒</div>
+  <div id="toolsTapCalm"     class="premium-tool" style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_tap">✋ Тактильная разрядка 🔒</div>
+  <div id="toolsSupportTexts" class="premium-tool" style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;opacity:0.7;" data-i18n="tools_support">💌 Тексты поддержки 🔒</div>
+  <div id="toolsBack" style="padding:16px;margin-bottom:10px;margin-top:10px;border-radius:16px;background:rgba(232,237,230,0.9);box-shadow:6px 6px 12px #b8c4b4,-6px -6px 12px #ffffff;color:#555;font-size:17px;cursor:pointer;text-align:center;" data-i18n="back">← Назад</div>
 </div><!-- tools -->
 </div><!-- #app -->
 
