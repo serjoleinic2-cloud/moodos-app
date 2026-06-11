@@ -17,6 +17,8 @@ import {
   getCurrentPoolChallenge, isChallengeCompleted, completeChallenge,
   skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
 } from '../services/challenge-engine.js';
+import { getCalmIndex, getCalmLabel } from "../services/calm-engine.js";
+import { showCalmOverlay } from "./calm-overlay.js";
 
 function getTimeBucket() {
   const h = new Date().getHours();
@@ -252,6 +254,8 @@ export function onEnter() {
   initLetterEngine();
   const homeContainer = document.getElementById('home-screen') || document.querySelector('[data-screen="home"]');
   if (homeContainer) renderLetterCard(homeContainer);
+
+  _initCalmCard();
 }
 
 function showInsightCard(insight) {
@@ -780,3 +784,40 @@ document.addEventListener("languageChanged", () => {
   renderInsightCard();
   initDailyChallenge();
 });
+
+function _initCalmCard() {
+  const card = document.getElementById('calmIndexCard');
+  if (!card) return;
+
+  const index = getCalmIndex();
+  if (index === null) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+
+  const label    = getCalmLabel(index);
+  const color    = label === 'high' ? '#4caf87' : label === 'medium' ? '#f0c040' : '#f07a40';
+  const circumf  = 2 * Math.PI * 22;
+  const dashVal  = Math.round(circumf * index / 100);
+
+  const arc    = document.getElementById('calmRingArc');
+  const valEl  = document.getElementById('calmRingVal');
+  const title  = document.getElementById('calmCardTitle');
+  const phrase = document.getElementById('calmCardPhrase');
+
+  if (arc)    { arc.setAttribute('stroke', color); arc.setAttribute('stroke-dasharray', dashVal + ' 999'); }
+  if (valEl)  valEl.textContent = index;
+  if (title)  title.textContent = t('calm_card_title') || 'Спокойствие';
+  if (phrase) {
+    if (label === 'high')   phrase.textContent = t('calm_card_phrase_high')   || 'Внутри тихо · нажми чтобы узнать больше';
+    if (label === 'medium') phrase.textContent = t('calm_card_phrase_medium') || 'Небольшое напряжение · нажми чтобы узнать больше';
+    if (label === 'low')    phrase.textContent = t('calm_card_phrase_low')    || 'Чуть повышенное напряжение · нажми чтобы узнать больше';
+    if (label === 'very_low') phrase.textContent = t('calm_card_phrase_very_low') || 'Сейчас непросто · нажми чтобы узнать больше';
+  }
+
+  const newCard = card.cloneNode(true);
+  card.parentNode.replaceChild(newCard, card);
+  newCard.addEventListener('click', () => showCalmOverlay());
+
+  const arc2 = newCard.querySelector('#calmRingArc');
+  if (arc2) { arc2.setAttribute('stroke', color); arc2.setAttribute('stroke-dasharray', dashVal + ' 999'); }
+}
