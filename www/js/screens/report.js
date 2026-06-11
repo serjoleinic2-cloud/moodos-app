@@ -209,7 +209,6 @@ function showMoodCalendarOverlay() {
   const existing = document.getElementById("moodCalendarOverlay");
   if (existing) existing.remove();
 
-  // Строим единый timeline как в history.js
   const allItems = [];
   getMoodHistory().forEach(e => {
     const ts = resolveTimestamp(e);
@@ -224,9 +223,7 @@ function showMoodCalendarOverlay() {
   getSessionHistory().forEach(e => {
     const ts = resolveTimestamp(e);
     if (!ts) return;
-    allItems.push({ type: "session", ts,
-      sessionType: e.type || e.sessionType,
-      result: e.result });
+    allItems.push({ type: "session", ts, sessionType: e.type || e.sessionType, result: e.result });
   });
   getVoiceHistory().forEach(e => {
     const ts = resolveTimestamp(e);
@@ -239,13 +236,10 @@ function showMoodCalendarOverlay() {
     allItems.push({ type: "reflection", ts });
   });
 
-  // dayAvg только из mood записей
   const byDay = {};
   allItems.filter(i => i.type === "mood").forEach(i => {
     const d = new Date(i.ts);
-    const key = d.getFullYear() + "-" +
-      String(d.getMonth()+1).padStart(2,"0") + "-" +
-      String(d.getDate()).padStart(2,"0");
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
     if (!byDay[key]) byDay[key] = [];
     byDay[key].push(i.value);
   });
@@ -254,7 +248,6 @@ function showMoodCalendarOverlay() {
     dayAvg[k] = Math.round(byDay[k].reduce((a,b)=>a+b,0)/byDay[k].length);
   });
 
-  // daySessions и dayPracticeCounts из allItems
   const daySessions = {};
   const dayPracticeCounts = {};
   allItems.filter(i => i.type === "session").forEach(i => {
@@ -266,7 +259,6 @@ function showMoodCalendarOverlay() {
     dayPracticeCounts[key][type] = (dayPracticeCounts[key][type] || 0) + 1;
   });
 
-  // dayVoiceMap из allItems
   const dayVoiceMap = {};
   allItems.filter(i => i.type === "voice_note" && i.audio).forEach(i => {
     const d = new Date(i.ts);
@@ -288,7 +280,7 @@ function showMoodCalendarOverlay() {
     'tap-calm':     '✋ ' + (t('tools_tap') || 'Тактильная разрядка').replace(/^\S+\s/, ''),
     'support_texts':'💬 ' + (t('support_texts_title') || 'Тексты поддержки').replace(/^\S+\s/, '')
   };
-  
+
   function normalizePracticeType(type) {
     if (!type) return 'other';
     const normalized = type.toLowerCase().replace(/[-_]/g, '-');
@@ -321,7 +313,6 @@ function showMoodCalendarOverlay() {
   function renderGrid(year, month) {
     const MONTH_NAMES = getMonthNames();
     const DOW_NAMES   = getDowNames();
-
     const firstDay = new Date(year, month, 1);
     const lastDay  = new Date(year, month+1, 0);
     let dow = firstDay.getDay();
@@ -348,33 +339,29 @@ function showMoodCalendarOverlay() {
       </div>`;
     }
     html += `</div>`;
-
     return { gridHtml: html, monthLabel: `${MONTH_NAMES[month]} ${year}` };
   }
-  
+
   function showDayPopup(key) {
     const v = dayAvg[key];
-    
-    const sessions = daySessions[key] || 0;
     const voices = dayVoiceMap[key] || [];
     const hasVoice = voices.length > 0;
-    
     const date = new Date(key + "T12:00:00");
     const day = String(date.getDate()).padStart(2, '0');
     const mon = String(date.getMonth() + 1).padStart(2, '0');
     const dateFormatted = `${day}.${mon}.${date.getFullYear()}`;
-    
+
     const popup = document.createElement("div");
     popup.id = "dayPopup";
     popup.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:300;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:20px;padding:24px;width:280px;box-shadow:0 10px 40px rgba(0,0,0,0.3);";
-    
-    const moodColor = v >= 70 ? "#4caf87" : v >= 40 ? "#f0a500" : "#e05555";
-    
+
+    const moodColor = v !== undefined ? (v >= 70 ? "#4caf87" : v >= 40 ? "#f0a500" : "#e05555") : "#888";
+
     const practiceMap = dayPracticeCounts[key] || {};
     const practiceEntries = Object.entries(practiceMap || {}).sort((a, b) => b[1] - a[1]);
     const displayPractices = practiceEntries.slice(0, 3);
     const remainingCount = practiceEntries.length - 3;
-    
+
     let practicesHTML = '';
     if (displayPractices.length > 0) {
       practicesHTML = displayPractices.map(([type, count]) => {
@@ -388,59 +375,50 @@ function showMoodCalendarOverlay() {
         practicesHTML += `<div style="font-size:11px;color:var(--theme-text-accent,#888);text-align:center;padding:6px;">+ ${remainingCount} ещё</div>`;
       }
     }
-    
+
     popup.innerHTML = `
       <div style="text-align:center;margin-bottom:16px;">
         <div style="font-size:14px;color:var(--theme-text-accent,#888);margin-bottom:4px;">${dateFormatted}</div>
         ${v !== undefined ? `
-        <div style="font-size:36px;font-weight:700;color:${moodColor};">${v}%</div>
-        <div style="font-size:12px;color:var(--theme-text-muted,#aaa);">${t("hist_mood") || "Настроение"}</div>
+          <div style="font-size:36px;font-weight:700;color:${moodColor};">${v}%</div>
+          <div style="font-size:12px;color:var(--theme-text-muted,#aaa);">${t("hist_mood") || "Настроение"}</div>
         ` : `
-        <div style="font-size:14px;color:var(--theme-text-muted,#aaa);margin-bottom:8px;">${t("hist_voice_diary") || "Голосовая заметка"}</div>
+          <div style="font-size:13px;color:var(--theme-text-muted,#aaa);">${t("hist_voice_diary") || "Голосовая заметка"}</div>
         `}
-      </div>`;
+      </div>
+      ${practicesHTML ? `<div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">${t("practices_eff") || "Практики"}</div>
+        ${practicesHTML}
+      </div>` : ''}
+      ${hasVoice ? `
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--theme-text-accent,#888);margin-bottom:6px;">🎤 ${t("hist_voice_diary")}</div>
+          ${voices.map((src, i) => `
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:10px;margin-bottom:6px;">
+              <audio id="voice-player-${i}" src="${src}" preload="none" style="display:none;"></audio>
+              <button class="voice-btn" data-index="${i}" style="width:36px;height:36px;border:none;border-radius:50%;background:rgba(159,122,234,0.15);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <img src="/icons/player/play.svg" style="width:18px;height:18px;" alt="Play">
+              </button>
+              <div style="font-size:12px;color:var(--theme-text-muted,#555);">${t("hist_voice_diary")} ${voices.length > 1 ? (i+1) : ''}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${!practicesHTML && !hasVoice ? `<div style="text-align:center;font-size:12px;color:var(--theme-text-muted,#aaa);margin-bottom:12px;">${t("no_data_short")}</div>` : ''}
+      <div id="dayPopupClose" style="margin-top:8px;text-align:center;padding:10px;background:rgba(255,255,255,0.5);border-radius:10px;cursor:pointer;font-size:13px;color:var(--theme-text-accent,#888);">${t("close")}</div>
+    `;
 
     const dayOverlay = document.createElement("div");
     dayOverlay.id = "dayPopupOverlay";
     dayOverlay.style.cssText = "position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.3);";
-    dayOverlay.onclick = () => {
-      popup.remove();
-      dayOverlay.remove();
-    };
+    dayOverlay.onclick = () => { popup.remove(); dayOverlay.remove(); };
 
     document.body.appendChild(dayOverlay);
     document.body.appendChild(popup);
 
-    popup.querySelector("#dayPopupClose").onclick = () => {
-      popup.remove();
-      dayOverlay.remove();
-    };
-  }
+    popup.querySelector("#dayPopupClose").onclick = () => { popup.remove(); dayOverlay.remove(); };
 
-  overlay.innerHTML = build();
-  document.body.appendChild(overlay);
-
-  function rebind() {
-    overlay.querySelector("#calClose").onclick = () => overlay.remove();
-    overlay.querySelector("#calPrev").onclick = () => {
-      viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
-      overlay.innerHTML = build(); rebind();
-    };
-    overlay.querySelector("#calNext").onclick = () => {
-      viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
-      overlay.innerHTML = build(); rebind();
-    };
-    
-    overlay.querySelectorAll(".cal-day-clickable").forEach(el => {
-      el.onclick = () => showDayPopup(el.dataset.key);
-    });
-    
-    overlay.addEventListener("click", e => { 
-      if (e.target === overlay) overlay.remove(); 
-    });
-    
-    // Voice button handlers
-    overlay.querySelectorAll(".voice-btn").forEach(btn => {
+    popup.querySelectorAll(".voice-btn").forEach(btn => {
       btn.onclick = () => {
         const idx = btn.dataset.index;
         const audio = document.getElementById("voice-player-" + idx);
@@ -452,9 +430,75 @@ function showMoodCalendarOverlay() {
           audio.pause();
           btn.querySelector("img").src = "/icons/player/play.svg?v=2";
         }
-        audio.onended = () => {
+        audio.onended = () => { btn.querySelector("img").src = "/icons/player/play.svg?v=2"; };
+      };
+    });
+  }
+
+  const calOverlay = document.createElement("div");
+  calOverlay.id = "moodCalendarOverlay";
+  calOverlay.style.cssText = "position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:flex;align-items:flex-end;";
+
+  function build() {
+    const { gridHtml, monthLabel } = renderGrid(viewYear, viewMonth);
+    return `
+      <div style="width:100%;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#d4ede8,#e8e0d5);border-radius:24px 24px 0 0;padding:20px 16px 120px;box-sizing:border-box;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div style="font-size:17px;font-weight:700;color:var(--theme-text-primary,#3a3530);">📅 ${t("cal_title")}</div>
+          <div id="calClose" style="font-size:22px;color:var(--theme-text-muted,#aaa);cursor:pointer;padding:4px 10px;">✕</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div id="calPrev" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">‹</div>
+          <div style="font-size:16px;font-weight:600;color:var(--theme-text-primary,#3a3530);">${monthLabel}</div>
+          <div id="calNext" style="padding:8px 18px;border-radius:12px;background:var(--theme-card-bg,rgba(232,237,230,0.9));box-shadow:3px 3px 6px #b8c4b4,-3px -3px 6px #ffffff;cursor:pointer;font-size:20px;color:var(--theme-text-accent,#888);">›</div>
+        </div>
+        ${gridHtml}
+        <div style="display:flex;gap:14px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
+            <div style="width:14px;height:14px;border-radius:4px;background:#4caf8733;border:1px solid rgba(0,0,0,0.08);"></div>≥70%
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
+            <div style="width:14px;height:14px;border-radius:4px;background:#f0a50033;border:1px solid rgba(0,0,0,0.08);"></div>40–69%
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--theme-text-accent,#888);">
+            <div style="width:14px;height:14px;border-radius:4px;background:#e0555533;border:1px solid rgba(0,0,0,0.08);"></div>&lt;40%
+          </div>
+        </div>
+      </div>`;
+  }
+
+  calOverlay.innerHTML = build();
+  document.body.appendChild(calOverlay);
+
+  function rebind() {
+    calOverlay.querySelector("#calClose").onclick = () => calOverlay.remove();
+    calOverlay.querySelector("#calPrev").onclick = () => {
+      viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      calOverlay.innerHTML = build(); rebind();
+    };
+    calOverlay.querySelector("#calNext").onclick = () => {
+      viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      calOverlay.innerHTML = build(); rebind();
+    };
+    calOverlay.querySelectorAll(".cal-day-clickable").forEach(el => {
+      el.onclick = () => showDayPopup(el.dataset.key);
+    });
+    calOverlay.addEventListener("click", e => {
+      if (e.target === calOverlay) calOverlay.remove();
+    });
+    calOverlay.querySelectorAll(".voice-btn").forEach(btn => {
+      btn.onclick = () => {
+        const idx = btn.dataset.index;
+        const audio = document.getElementById("voice-player-" + idx);
+        if (!audio) return;
+        if (audio.paused) {
+          audio.play();
+          btn.querySelector("img").src = "/icons/player/pause.svg?v=2";
+        } else {
+          audio.pause();
           btn.querySelector("img").src = "/icons/player/play.svg?v=2";
-        };
+        }
+        audio.onended = () => { btn.querySelector("img").src = "/icons/player/play.svg?v=2"; };
       };
     });
   }
