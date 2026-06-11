@@ -97,6 +97,12 @@ function renderMedalCard(medal) {
   `;
 }
 
+function _medalDesc(id) {
+  const key = 'medal_' + id + '_desc';
+  const val = t(key);
+  return (val && val !== key) ? val : '';
+}
+
 window.__showMedalModal = function(medalId) {
   const medals = getAllMedalsWithState();
   const medal = medals.find(m => m.id === medalId);
@@ -112,7 +118,7 @@ window.__showMedalModal = function(medalId) {
     <div class="medal-modal">
       <span class="medal-modal-emoji">${medal.emoji}</span>
       <div class="medal-modal-name">${t('medal_' + medal.id) || medal.id}</div>
-      <div class="medal-modal-desc">${t('medal_' + medal.id + '_desc') || ''}</div>
+      <div class="medal-modal-desc">${_medalDesc(medal.id)}</div>
       <div class="medal-modal-status ${medal.earned ? 'earned' : 'locked'}">
         ${medal.earned
           ? `✅ ${t('medals_earned') || 'Получено'}${medal.count > 1 ? ' · ' + medal.count + ' ' + (t('medals_times') || 'раз') : ''}`

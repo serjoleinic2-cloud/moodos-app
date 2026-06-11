@@ -10,14 +10,39 @@ D:\moodos-app\
 ├── gradle.properties          # Gradle config
 ├── .gitignore
 ├── android/
-│   └── app/src/main/
-│       ├── java/com/neyra/app/
-│       │   └── MainActivity.java
-│       └── AndroidManifest.xml
-├── www/                        # Source web files
+│   ├── .gitignore
+│   ├── app/
+│   │   ├── build.gradle
+│   │   ├── capacitor.build.gradle
+│   │   ├── proguard-rules.pro
+│   │   ├── google-services.json.example
+│   │   ├── neyra-release-key.jks
+│   │   └── src/main/
+│   │       ├── AndroidManifest.xml
+│   │       ├── java/com/neyra/app/
+│   │       │   └── MainActivity.java
+│   │       ├── assets/
+│   │       │   ├── capacitor.config.json
+│   │       │   ├── capacitor.plugins.json
+│   │       │   └── public/        # Копия dist для APK
+│   │       ├── res/               # Android resources
+│   │       └── ic_launcher-playstore.png
+│   └── gradle/
+├── dist/                        # Vite build output
+│   ├── index.html
+│   ├── assets/                  # Bundled JS/CSS (hash names)
+│   ├── css/
+│   ├── styles/
+│   ├── icons/
+│   ├── audio/meditation/
+│   ├── avatar/
+│   ├── bg/
+│   ├── manifest.json
+│   └── sw.js
+├── www/                         # Source web files
 │   ├── index.html
 │   ├── manifest.json
-│   ├── sw.js                  # Service worker
+│   ├── sw.js                   # Service worker
 │   ├── css/
 │   │   ├── style.css
 │   │   ├── avatar.css
@@ -93,7 +118,7 @@ D:\moodos-app\
 │   │   │   └── medals.js
 │   │   ├── services/               # Business logic
 │   │   │   ├── user-profile.js     # ⭐ Premium logic
-│   │   │   ├── billing-service.js # ⭐ In-app purchases
+│   │   │   ├── billing-service.js  # ⭐ In-app purchases
 │   │   │   ├── memory.js
 │   │   │   ├── analytics.js
 │   │   │   ├── daily-snapshots.js
@@ -114,7 +139,7 @@ D:\moodos-app\
 │   │   │   ├── reminders-service.js
 │   │   │   ├── challenge-engine.js
 │   │   │   └── medals-engine.js
-│   │   ├── i18n/                  # Translations (5 langs)
+│   │   ├── i18n/                    # Translations (5 langs)
 │   │   │   ├── ru.js
 │   │   │   ├── en.js
 │   │   │   ├── es.js
@@ -123,4 +148,3 @@ D:\moodos-app\
 │   │   └── ui/
 │   │       ├── avatar-controller.js
 │   │       └── letter-overlay.js
-└── dist/                       # Vite build output

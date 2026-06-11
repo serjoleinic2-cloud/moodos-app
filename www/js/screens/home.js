@@ -483,14 +483,14 @@ function _challengeRender(bar, textEl, btn, ch, completed) {
     row.style.cssText = 'display:flex;align-items:center;gap:8px;';
 
     const otherBtn = document.createElement('button');
-    otherBtn.textContent = '↻ Другое';
+    otherBtn.textContent = '↻ ' + t('challenge_other');
     otherBtn.style.cssText = 'flex:1;background:rgba(224,85,85,0.1);color:#e05555;border:1px solid rgba(224,85,85,0.3);border-radius:14px;padding:10px 6px;font-size:13px;font-weight:600;cursor:pointer;';
 
     const timerEl = document.createElement('div');
     timerEl.style.cssText = 'flex:1.2;text-align:center;font-size:15px;font-weight:700;color:#9f7aea;font-variant-numeric:tabular-nums;';
 
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Закрыть';
+    closeBtn.textContent = '✕ ' + t('challenge_close');
     closeBtn.style.cssText = 'flex:1;background:rgba(180,180,180,0.15);color:#aaa;border:1px solid rgba(180,180,180,0.25);border-radius:14px;padding:10px 6px;font-size:13px;font-weight:500;cursor:pointer;';
 
     row.appendChild(otherBtn);
