@@ -1136,4 +1136,5 @@ premium_feature_themes: "थीम्स",
     calm_chart_premium_desc: '30 / 90 / 365 दिन — Premium में उपलब्ध',
     calm_disclaimer: 'यह चिकित्सा निदान नहीं है। अगर चिंता जीवन को प्रभावित कर रही है — किसी विशेषज्ञ से बात करें।',
     hours_short: 'घं.',
+    year_label: 'वर्ष',
   };

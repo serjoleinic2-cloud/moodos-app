@@ -68,7 +68,7 @@ export function showCalmOverlay() {
 
     return `<div style="margin:16px 0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted,rgba(255,255,255,0.5));">${t('calm_chart_title') || 'Спокойствие'}</div>
+        <div id="calmChartLabel" style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted,rgba(255,255,255,0.5));">30 ${t('days_together_5') || 'дней'}</div>
         <div style="display:flex;gap:6px;">
           <button class="calm-period-btn active" data-days="30"  style="padding:4px 10px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(76,175,135,0.3);color:#4caf87;">30д</button>
           <button class="calm-period-btn"        data-days="90"  style="padding:4px 10px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(128,128,128,0.15);color:var(--calm-muted,#aaa);">90д</button>
@@ -171,6 +171,14 @@ export function showCalmOverlay() {
       btn.style.background = 'rgba(76,175,135,0.3)';
       btn.style.color      = '#4caf87';
       btn.classList.add('active');
+
+      const labelEl = document.getElementById('calmChartLabel');
+      if (labelEl) {
+        const d = parseInt(btn.getAttribute('data-days'));
+        if (d === 30)  labelEl.textContent = '30 ' + (t('days_together_5') || 'дней');
+        if (d === 90)  labelEl.textContent = '90 ' + (t('days_together_5') || 'дней');
+        if (d === 365) labelEl.textContent = '1 ' + (t('year_label') || 'год');
+      }
 
       const days   = parseInt(btn.getAttribute('data-days'));
       const canvas = document.getElementById('calmChart');

@@ -1079,4 +1079,5 @@ premium_feature_themes: "Themes",
     calm_chart_premium_desc: '30 / 90 / 365 days — available in Premium',
     calm_disclaimer: 'This is not a medical diagnosis. If anxiety is affecting your life — talk to a professional.',
     hours_short: 'hrs.',
+    year_label: 'year',
   };

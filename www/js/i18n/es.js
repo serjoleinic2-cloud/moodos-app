@@ -1076,4 +1076,5 @@ premium_feature_themes: "Temas",
     calm_chart_premium_desc: '30 / 90 / 365 días — disponible en Premium',
     calm_disclaimer: 'Esto no es un diagnóstico médico. Si la ansiedad afecta tu vida — habla con un especialista.',
     hours_short: 'h.',
+    year_label: 'año',
   };

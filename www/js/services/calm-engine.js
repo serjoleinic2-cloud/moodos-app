@@ -120,7 +120,7 @@ export function getCalmPatterns() {
 
   const anxiety = [], calm = [];
   Object.entries(eventStats).forEach(([ev, s]) => {
-    if (s.total < 2) return;
+    if (s.total < 4) return;
     const lowRate  = s.low  / s.total;
     const highRate = s.high / s.total;
     if (lowRate  >= 0.4) anxiety.push({ trigger: ev, rate: Math.round(lowRate  * 100) });

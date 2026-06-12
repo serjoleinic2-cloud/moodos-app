@@ -1076,4 +1076,5 @@ premium_feature_themes: "Теми",
     calm_chart_premium_desc: '30 / 90 / 365 днів — доступно в Premium',
     calm_disclaimer: 'Це не медичний діагноз. Якщо тривога заважає життю — поговори зі спеціалістом.',
     hours_short: 'год.',
+    year_label: 'рік',
   };

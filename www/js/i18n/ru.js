@@ -1098,4 +1098,5 @@ premium_feature_themes: "Темы",
     calm_chart_premium_desc: '30 / 90 / 365 дней — доступно в Premium',
     calm_disclaimer: 'Это не медицинский диагноз. Если тревога мешает жизни — поговори со специалистом.',
     hours_short: 'ч.',
+    year_label: 'год',
   };
