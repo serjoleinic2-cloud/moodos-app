@@ -11,7 +11,8 @@ export function renderLetterCard(container) {
   const existing = container.querySelector('#neyra-letter-card');
   if (existing) existing.remove();
 
-  const unread = getUnreadLetters();
+  const currentLang = localStorage.getItem('app_language') || 'ru';
+  const unread = getUnreadLetters().filter(l => (l.lang || 'ru') === currentLang);
   if (!unread.length) return;
 
   const letter = unread[0];
@@ -317,7 +318,8 @@ function _closeOverlay(overlay, letter) {
 // ─── Просмотр истории писем (без анимации) ───────────────────
 
 export function openLetterHistory() {
-  const all = getAllLetters();
+  const currentLang = localStorage.getItem('app_language') || 'ru';
+  const all = getAllLetters().filter(l => (l.lang || 'ru') === currentLang);
 
   const existing = document.getElementById('letter-history-overlay');
   if (existing) existing.remove();

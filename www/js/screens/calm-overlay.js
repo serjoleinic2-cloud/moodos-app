@@ -99,8 +99,9 @@ export function showCalmOverlay() {
 
       <div style="height:44px;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-        <div style="font-size:18px;font-weight:700;color:var(--calm-title,#fff);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
-        <button id="calmClose" style="background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title,#fff);font-size:13px;padding:8px 14px;cursor:pointer;">✕</button>
+        <button id="calmClose" style="display:flex;align-items:center;gap:6px;background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title,#3a3530);font-size:14px;font-weight:600;padding:8px 14px;cursor:pointer;">‹ ${t('back') || 'Назад'}</button>
+        <div style="font-size:16px;font-weight:700;color:var(--calm-title,#3a3530);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
+        <div style="width:80px;"></div>
       </div>
 
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">

@@ -110,11 +110,13 @@ export async function generateLetter() {
   const text = letters[triggerKey][type];
   if (!text) return null;
 
+  const lang = localStorage.getItem('app_language') || 'ru';
   const letter = {
     id:        Date.now(),
     trigger:   triggerKey,
     type,
     text,
+    lang,
     season:    getSeason(),
     createdAt: Date.now(),
     read:      false,
@@ -131,8 +133,9 @@ export function shouldGenerateLetter() {
   const lastCheck = parseInt(localStorage.getItem(LETTER_CHECK_KEY) || '0');
   if (Date.now() - lastCheck < CHECK_INTERVAL) return false;
 
-  // Есть ли непрочитанное — не спамим
-  const unread = getUnreadLetters();
+  // Есть ли непрочитанное НА ТЕКУЩЕМ языке — не спамим
+  const currentLang = localStorage.getItem('app_language') || 'ru';
+  const unread = getUnreadLetters().filter(l => (l.lang || 'ru') === currentLang);
   if (unread.length > 0) return false;
 
   // Есть ли вообще триггеры за последние 5 дней
@@ -179,6 +182,18 @@ export function markLetterRead(id) {
 // ─── Инициализация — вызывать при старте приложения ──────────
 
 export async function initLetterEngine() {
+  // Если сменился язык и нет непрочитанных на новом языке — сбрасываем таймер
+  // чтобы новое письмо сгенерировалось на текущем языке (история других языков сохраняется)
+  const currentLang = localStorage.getItem('app_language') || 'ru';
+  const storedLang  = localStorage.getItem('neyra_letter_lang') || 'ru';
+  if (currentLang !== storedLang) {
+    localStorage.setItem('neyra_letter_lang', currentLang);
+    const unreadCurrent = getUnreadLetters().filter(l => (l.lang || 'ru') === currentLang);
+    if (unreadCurrent.length === 0) {
+      // Сбрасываем только таймер — история писем не трогается
+      localStorage.removeItem(LETTER_CHECK_KEY);
+    }
+  }
   if (shouldGenerateLetter()) {
     await generateLetter();
   }
