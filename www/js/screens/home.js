@@ -820,4 +820,20 @@ function _initCalmCard() {
 
   const arc2 = newCard.querySelector('#calmRingArc');
   if (arc2) { arc2.setAttribute('stroke', color); arc2.setAttribute('stroke-dasharray', dashVal + ' 999'); }
+  const valEl2 = newCard.querySelector('#calmRingVal');
+  const isOcean2 = document.body.getAttribute('data-theme') === 'deep-ocean';
+  if (valEl2) valEl2.setAttribute('fill', isOcean2 ? '#ffffff' : '#3a3530');
+  // Адаптируем фон карточки к теме
+  if (!isOcean2) {
+    newCard.style.background = 'linear-gradient(145deg,#d4ede8,#e8e0d5)';
+    newCard.style.boxShadow  = '4px 4px 12px rgba(184,196,180,0.6),-4px -4px 12px #ffffff';
+  } else {
+    newCard.style.background = 'linear-gradient(145deg,#0d2137,#1a3a5c)';
+    newCard.style.boxShadow  = '4px 4px 12px rgba(13,33,55,0.4)';
+  }
+  // Адаптируем текст карточки
+  const titleEl2  = newCard.querySelector('#calmCardTitle');
+  const phraseEl2 = newCard.querySelector('#calmCardPhrase');
+  if (titleEl2)  titleEl2.style.color  = isOcean2 ? 'rgba(255,255,255,0.5)' : '#999';
+  if (phraseEl2) phraseEl2.style.color = isOcean2 ? 'rgba(255,255,255,0.85)' : '#3a3530';
 }

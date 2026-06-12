@@ -61,18 +61,28 @@ export function showCalmOverlay() {
       return `<div style="margin:16px 0;padding:20px;border-radius:16px;background:rgba(159,122,234,0.12);border:1px solid rgba(159,122,234,0.25);text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">📈</div>
         <div style="font-size:14px;font-weight:600;color:#9f7aea;margin-bottom:6px;">${t('calm_chart_premium_title') || 'График спокойствия'}</div>
-        <div style="font-size:12px;color:var(--calm-muted);margin-bottom:14px;">${t('calm_chart_premium_desc') || '30 / 90 / 365 дней — в Premium'}</div>
+        <div style="font-size:12px;color:var(--calm-muted,rgba(255,255,255,0.5));margin-bottom:14px;">${t('calm_chart_premium_desc') || '30 / 90 / 365 дней — в Premium'}</div>
         <button id="calmPremiumBtn" style="padding:10px 24px;border:none;border-radius:12px;background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">${t('premium_try_btn') || 'Активировать Premium'}</button>
       </div>`;
     }
 
-    const chartData  = getCalmHistory(30);
-    const hasValues  = chartData.some(d => d.value !== null);
-    if (!hasValues) return '';
-
     return `<div style="margin:16px 0;">
-      <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted);margin-bottom:10px;">${t('calm_chart_title') || 'Спокойствие за 30 дней'}</div>
-      <canvas id="calmChart" style="width:100%;height:80px;"></canvas>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted,rgba(255,255,255,0.5));">${t('calm_chart_title') || 'Спокойствие'}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="calm-period-btn active" data-days="30"  style="padding:4px 10px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(76,175,135,0.3);color:#4caf87;">30д</button>
+          <button class="calm-period-btn"        data-days="90"  style="padding:4px 10px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(128,128,128,0.15);color:var(--calm-muted,#aaa);">90д</button>
+          <button class="calm-period-btn"        data-days="365" style="padding:4px 10px;border:none;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(128,128,128,0.15);color:var(--calm-muted,#aaa);">1г</button>
+        </div>
+      </div>
+      <div style="position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;position:absolute;right:0;top:0;bottom:0;justify-content:space-between;pointer-events:none;">
+          <span style="font-size:9px;color:#e05555;opacity:0.7;">тревога</span>
+          <span style="font-size:9px;color:#9f7aea;opacity:0.7;"></span>
+          <span style="font-size:9px;color:#4caf87;opacity:0.7;">спокой.</span>
+        </div>
+        <canvas id="calmChart" style="width:100%;height:100px;display:block;"></canvas>
+      </div>
     </div>`;
   }
 
@@ -83,13 +93,14 @@ export function showCalmOverlay() {
   overlay.innerHTML = `
     <div id="calmInner" style="
       min-height:100%;
-      padding:env(safe-area-inset-top,24px) 20px calc(env(safe-area-inset-bottom,24px) + 24px) 20px;
+      padding:env(safe-area-inset-top,24px) 20px calc(env(safe-area-inset-bottom,0px) + 100px) 20px;
       box-sizing:border-box;
     ">
 
+      <div style="height:44px;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-        <div style="font-size:18px;font-weight:700;color:var(--calm-title);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
-        <button id="calmClose" style="background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title);font-size:13px;padding:8px 14px;cursor:pointer;">✕</button>
+        <div style="font-size:18px;font-weight:700;color:var(--calm-title,#fff);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
+        <button id="calmClose" style="background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title,#fff);font-size:13px;padding:8px 14px;cursor:pointer;">✕</button>
       </div>
 
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">
@@ -149,6 +160,28 @@ export function showCalmOverlay() {
 
   document.getElementById('calmClose')?.addEventListener('click', () => overlay.remove());
 
+  // Переключение периодов графика
+  overlay.querySelectorAll('.calm-period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      overlay.querySelectorAll('.calm-period-btn').forEach(b => {
+        b.style.background = 'rgba(128,128,128,0.15)';
+        b.style.color      = 'rgba(180,180,180,0.8)';
+        b.classList.remove('active');
+      });
+      btn.style.background = 'rgba(76,175,135,0.3)';
+      btn.style.color      = '#4caf87';
+      btn.classList.add('active');
+
+      const days   = parseInt(btn.getAttribute('data-days'));
+      const canvas = document.getElementById('calmChart');
+      if (canvas) {
+        const data   = getCalmHistory(days);
+        const values = data.map(d => d.value);
+        _drawCalmChart(canvas, values);
+      }
+    });
+  });
+
   document.getElementById('calmPremiumBtn')?.addEventListener('click', () => {
     showPremiumModal({
       title: t('calm_chart_premium_title') || 'График спокойствия',
@@ -169,39 +202,46 @@ export function showCalmOverlay() {
 function _drawCalmChart(canvas, values) {
   const dpr = window.devicePixelRatio || 1;
   const w   = canvas.offsetWidth  || 300;
-  const h   = canvas.offsetHeight || 80;
+  const h   = canvas.offsetHeight || 100;
   canvas.width  = w * dpr;
   canvas.height = h * dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  const valid  = values.filter(v => v !== null);
+  const valid = values.filter(v => v !== null);
   if (valid.length < 2) return;
 
-  const min    = Math.min(...valid);
-  const max    = Math.max(...valid);
-  const range  = Math.max(max - min, 10);
-  const padX   = 4;
-  const padY   = 6;
-  const drawW  = w - padX * 2;
-  const drawH  = h - padY * 2;
+  const min   = Math.min(...valid);
+  const max   = Math.max(...valid);
+  const range = Math.max(max - min, 10);
+  const padX  = 4;
+  const padY  = 8;
+  const drawW = w - padX * 2 - 28; // отступ для подписей справа
+  const drawH = h - padY * 2;
 
   const points = [];
-  let xi = 0;
   values.forEach((v, i) => {
-    if (v === null) { xi++; return; }
+    if (v === null) return;
     const x = padX + (i / (values.length - 1)) * drawW;
     const y = padY + drawH - ((v - min) / range) * drawH;
-    points.push({ x, y });
-    xi++;
+    points.push({ x, y, v });
   });
 
   if (points.length < 2) return;
 
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0,   'rgba(76,175,135,0.4)');
-  grad.addColorStop(1,   'rgba(76,175,135,0.0)');
+  // Градиент линии: красный (верх=тревога) → фиолетовый (середина) → зелёный (низ=спокой)
+  const lineGrad = ctx.createLinearGradient(0, padY, 0, padY + drawH);
+  lineGrad.addColorStop(0,    '#e05555'); // верх — тревога
+  lineGrad.addColorStop(0.45, '#9f7aea'); // середина — нейтрально
+  lineGrad.addColorStop(1,    '#4caf87'); // низ — спокойствие
 
+  // Заливка под кривой — тот же градиент, полупрозрачный
+  const fillGrad = ctx.createLinearGradient(0, padY, 0, padY + drawH);
+  fillGrad.addColorStop(0,    'rgba(224,85,85,0.25)');
+  fillGrad.addColorStop(0.45, 'rgba(159,122,234,0.15)');
+  fillGrad.addColorStop(1,    'rgba(76,175,135,0.08)');
+
+  // Заливка
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   for (let i = 1; i < points.length; i++) {
@@ -211,16 +251,36 @@ function _drawCalmChart(canvas, values) {
   ctx.lineTo(points[points.length-1].x, h);
   ctx.lineTo(points[0].x, h);
   ctx.closePath();
-  ctx.fillStyle = grad;
+  ctx.fillStyle = fillGrad;
   ctx.fill();
 
+  // Линия
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   for (let i = 1; i < points.length; i++) {
     const cp = (points[i].x + points[i-1].x) / 2;
     ctx.bezierCurveTo(cp, points[i-1].y, cp, points[i].y, points[i].x, points[i].y);
   }
-  ctx.strokeStyle = '#4caf87';
-  ctx.lineWidth   = 2;
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth   = 2.5;
   ctx.stroke();
+
+  // Горизонтальная линия середины (нейтральная зона)
+  const midY = padY + drawH * 0.5;
+  ctx.beginPath();
+  ctx.setLineDash([4, 6]);
+  ctx.moveTo(padX, midY);
+  ctx.lineTo(padX + drawW, midY);
+  ctx.strokeStyle = 'rgba(159,122,234,0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Точка последнего значения
+  const last = points[points.length - 1];
+  const dotColor = last.v >= 65 ? '#4caf87' : last.v >= 40 ? '#9f7aea' : '#e05555';
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, 4 * dpr / dpr, 0, Math.PI * 2);
+  ctx.fillStyle = dotColor;
+  ctx.fill();
 }
