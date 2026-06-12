@@ -30,20 +30,20 @@ export function showCalmOverlay() {
   function renderPatterns() {
     const rows = [];
     patterns.calm.forEach(p => {
-      rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
+      rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--calm-border);">
         <span style="font-size:18px;">🟢</span>
         <div style="flex:1;font-size:13px;color:var(--calm-text);">${t('event_' + p.trigger) || p.trigger}</div>
         <div style="font-size:12px;font-weight:700;color:#4caf87;">${p.rate}%</div>
       </div>`);
     });
     patterns.anxiety.forEach(p => {
-      rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
+      rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--calm-border);">
         <span style="font-size:18px;">🔴</span>
         <div style="flex:1;font-size:13px;color:var(--calm-text);">${t('event_' + p.trigger) || p.trigger}</div>
         <div style="font-size:12px;font-weight:700;color:#f07a40;">${p.rate}%</div>
       </div>`);
     });
-    if (rows.length === 0) return `<div style="font-size:13px;color:rgba(255,255,255,0.5);text-align:center;padding:16px 0;">${t('calm_no_patterns') || 'Паттерны появятся после нескольких недель записей'}</div>`;
+    if (rows.length === 0) return `<div style="font-size:13px;color:var(--calm-muted);text-align:center;padding:16px 0;">${t('calm_no_patterns') || 'Паттерны появятся после нескольких недель записей'}</div>`;
     return rows.join('');
   }
 
@@ -61,7 +61,7 @@ export function showCalmOverlay() {
       return `<div style="margin:16px 0;padding:20px;border-radius:16px;background:rgba(159,122,234,0.12);border:1px solid rgba(159,122,234,0.25);text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">📈</div>
         <div style="font-size:14px;font-weight:600;color:#9f7aea;margin-bottom:6px;">${t('calm_chart_premium_title') || 'График спокойствия'}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px;">${t('calm_chart_premium_desc') || '30 / 90 / 365 дней — в Premium'}</div>
+        <div style="font-size:12px;color:var(--calm-muted);margin-bottom:14px;">${t('calm_chart_premium_desc') || '30 / 90 / 365 дней — в Premium'}</div>
         <button id="calmPremiumBtn" style="padding:10px 24px;border:none;border-radius:12px;background:linear-gradient(145deg,#9f7aea,#805ad5);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">${t('premium_try_btn') || 'Активировать Premium'}</button>
       </div>`;
     }
@@ -71,7 +71,7 @@ export function showCalmOverlay() {
     if (!hasValues) return '';
 
     return `<div style="margin:16px 0;">
-      <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px;">${t('calm_chart_title') || 'Спокойствие за 30 дней'}</div>
+      <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted);margin-bottom:10px;">${t('calm_chart_title') || 'Спокойствие за 30 дней'}</div>
       <canvas id="calmChart" style="width:100%;height:80px;"></canvas>
     </div>`;
   }
@@ -81,17 +81,15 @@ export function showCalmOverlay() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:1500;overflow-y:auto;';
 
   overlay.innerHTML = `
-    <div style="
+    <div id="calmInner" style="
       min-height:100%;
-      background:linear-gradient(160deg,#0d2137 0%,#1a3a5c 50%,#0d2137 100%);
       padding:env(safe-area-inset-top,24px) 20px calc(env(safe-area-inset-bottom,24px) + 24px) 20px;
       box-sizing:border-box;
-      --calm-text: rgba(255,255,255,0.9);
     ">
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-        <div style="font-size:18px;font-weight:700;color:#fff;">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
-        <button id="calmClose" style="background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#fff;font-size:13px;padding:8px 14px;cursor:pointer;">✕</button>
+        <div style="font-size:18px;font-weight:700;color:var(--calm-title);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
+        <button id="calmClose" style="background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title);font-size:13px;padding:8px 14px;cursor:pointer;">✕</button>
       </div>
 
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">
@@ -106,7 +104,7 @@ export function showCalmOverlay() {
           </svg>
         </div>
         <div style="flex:1;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;letter-spacing:0.5px;">${t('calm_not_medical') || 'На основе паттернов · не медицинский показатель'}</div>
+          <div style="font-size:13px;color:var(--calm-muted);margin-bottom:6px;letter-spacing:0.5px;">${t('calm_not_medical') || 'На основе паттернов · не медицинский показатель'}</div>
           <div style="font-size:14px;color:var(--calm-text);line-height:1.5;">${getSupportPhrase()}</div>
         </div>
       </div>
@@ -116,12 +114,12 @@ export function showCalmOverlay() {
       ${renderChart()}
 
       <div style="margin:16px 0;">
-        <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px;">${t('calm_patterns_title') || 'Что влияет на твоё состояние'}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:10px;">${t('calm_patterns_hint') || 'На основе записей за последние 30 дней'}</div>
+        <div style="font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--calm-muted);margin-bottom:10px;">${t('calm_patterns_title') || 'Что влияет на твоё состояние'}</div>
+        <div style="font-size:11px;color:var(--calm-muted);margin-bottom:10px;opacity:0.7;">${t('calm_patterns_hint') || 'На основе записей за последние 30 дней'}</div>
         ${renderPatterns()}
       </div>
 
-      <div style="margin-top:24px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.05);font-size:12px;color:rgba(255,255,255,0.35);line-height:1.5;text-align:center;">
+      <div style="margin-top:24px;padding:14px;border-radius:12px;background:var(--calm-block-bg);font-size:12px;color:var(--calm-muted);line-height:1.5;text-align:center;">
         ${t('calm_disclaimer') || 'Это не медицинский диагноз. Если тревога мешает жизни — поговори со специалистом.'}
       </div>
 
@@ -129,6 +127,25 @@ export function showCalmOverlay() {
   `;
 
   document.body.appendChild(overlay);
+
+  // Адаптируем цвета к текущей теме
+  const isDark = document.body.getAttribute('data-theme') === 'deep-ocean';
+  const inner  = document.getElementById('calmInner');
+  if (isDark) {
+    inner.style.background  = 'linear-gradient(160deg,#0d2137 0%,#1a3a5c 50%,#0d2137 100%)';
+    inner.style.setProperty('--calm-text', 'rgba(255,255,255,0.9)');
+    inner.style.setProperty('--calm-muted', 'rgba(255,255,255,0.5)');
+    inner.style.setProperty('--calm-title', '#ffffff');
+    inner.style.setProperty('--calm-border', 'rgba(255,255,255,0.1)');
+    inner.style.setProperty('--calm-block-bg', 'rgba(255,255,255,0.05)');
+  } else {
+    inner.style.background  = 'linear-gradient(160deg,#d4ede8 0%,#e8e0d5 100%)';
+    inner.style.setProperty('--calm-text', '#3a3530');
+    inner.style.setProperty('--calm-muted', '#999');
+    inner.style.setProperty('--calm-title', '#3a3530');
+    inner.style.setProperty('--calm-border', 'rgba(0,0,0,0.08)');
+    inner.style.setProperty('--calm-block-bg', 'rgba(232,237,230,0.98)');
+  }
 
   document.getElementById('calmClose')?.addEventListener('click', () => overlay.remove());
 
