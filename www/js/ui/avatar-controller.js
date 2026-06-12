@@ -84,10 +84,19 @@ export function avatarReactToEvent(type) {
 function setBrowPositions(browId, pos) {
   const brow = document.getElementById(browId);
   if (!brow) return;
-  brow.setAttribute('x1', pos.x1);
-  brow.setAttribute('y1', pos.y1);
-  brow.setAttribute('x2', pos.x2);
-  brow.setAttribute('y2', pos.y2);
+  // Новый SVG использует path для бровей — обновляем d атрибут
+  if (brow.tagName === 'path' || brow.tagName === 'PATH') {
+    if (browId === 'browLeft') {
+      brow.setAttribute('d', `M${pos.x1},${pos.y1} Q${Math.round((pos.x1+pos.x2)/2)},${pos.y1-1} ${pos.x2},${pos.y2}`);
+    } else {
+      brow.setAttribute('d', `M${pos.x1},${pos.y1} Q${Math.round((pos.x1+pos.x2)/2)},${pos.y1-1} ${pos.x2},${pos.y2}`);
+    }
+  } else {
+    brow.setAttribute('x1', pos.x1);
+    brow.setAttribute('y1', pos.y1);
+    brow.setAttribute('x2', pos.x2);
+    brow.setAttribute('y2', pos.y2);
+  }
 }
 
 function animateBrows(target) {

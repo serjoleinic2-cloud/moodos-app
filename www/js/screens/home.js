@@ -18,6 +18,7 @@ import {
   skipToNext, startChallengeTimer, getChallengeTimerState, resetChallengeTimer
 } from '../services/challenge-engine.js';
 import { getCalmIndex, getCalmLabel } from "../services/calm-engine.js";
+import { getNeyraReaction } from "../ai/neyra-reactions.js";
 import { showCalmOverlay } from "./calm-overlay.js";
 
 function getTimeBucket() {
@@ -204,6 +205,32 @@ export function onEnter() {
 
       showAvatarForMood(moodValue);
       avatarReact();
+
+      // Живая реакция Нейры
+      try {
+        const { dayStreak, daysSinceLastEntry } = _getDayStats();
+        const reaction = getNeyraReaction({
+          mood:               moodValue,
+          events:             selectedEvents,
+          timeBucket:         timeBucket,
+          dayStreak,
+          daysSinceLastEntry,
+        });
+        if (reaction) {
+          const bubbleText = document.getElementById('avatar-text');
+          const bubble     = document.getElementById('avatar-bubble');
+          if (bubbleText && bubble) {
+            bubbleText.textContent = reaction;
+            bubble.classList.add('visible');
+            clearTimeout(window._neyraReactionTimer);
+            window._neyraReactionTimer = setTimeout(() => {
+              bubble.classList.remove('visible');
+            }, 4000);
+          }
+        }
+      } catch(e) {
+        console.warn('[NEYRA REACTION]', e);
+      }
 
       setTimeout(() => {
         initResilienceCard();
@@ -784,6 +811,45 @@ document.addEventListener("languageChanged", () => {
   renderInsightCard();
   initDailyChallenge();
 });
+
+function _getDayStats() {
+  try {
+    const history = JSON.parse(localStorage.getItem('mood_history') || '[]');
+    if (history.length === 0) return { dayStreak: 1, daysSinceLastEntry: 0 };
+
+    const sorted = [...history].sort((a, b) =>
+      (b.time || b.timestamp || b.date || 0) - (a.time || a.timestamp || a.date || 0)
+    );
+
+    const now     = Date.now();
+    const todayMs = new Date().setHours(0,0,0,0);
+
+    // Дней с момента последней записи
+    const lastEntry   = sorted[0];
+    const lastTime    = lastEntry.time || lastEntry.timestamp || lastEntry.date || 0;
+    const daysSince   = Math.floor((now - lastTime) / 86400000);
+
+    // Серия дней подряд
+    const uniqueDays = [...new Set(
+      history.map(e => new Date(e.time || e.timestamp || e.date || 0).setHours(0,0,0,0))
+    )].sort((a, b) => b - a);
+
+    let streak = 0;
+    let expected = todayMs;
+    for (const day of uniqueDays) {
+      if (day === expected || day === expected - 86400000) {
+        streak++;
+        expected = day - 86400000;
+      } else {
+        break;
+      }
+    }
+
+    return { dayStreak: Math.max(1, streak), daysSinceLastEntry: daysSince };
+  } catch(e) {
+    return { dayStreak: 1, daysSinceLastEntry: 0 };
+  }
+}
 
 function _initCalmCard() {
   const card = document.getElementById('calmIndexCard');
