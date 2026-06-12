@@ -155,9 +155,9 @@ export function initNavigation() {
     }
     openMenu();
   });
-  menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); });
+  menuOverlay.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); syncNavActive(); });
   menuPanel.addEventListener("click", (e) => e.stopPropagation());
-  document.getElementById("menuBack").onclick = () => closeMenu();
+  document.getElementById("menuBack").onclick = () => { closeMenu(); syncNavActive(); };
 
   document.querySelectorAll(".menuItem").forEach(item => {
     item.addEventListener("click", () => { 
@@ -184,9 +184,9 @@ export function initNavigation() {
     }
     openToolsMenu(); 
   });
-  toolsOverlay.addEventListener("click", () => closeToolsMenu());
+  toolsOverlay.addEventListener("click", () => { closeToolsMenu(); syncNavActive(); });
   toolsPanel.addEventListener("click", (e) => e.stopPropagation());
-  document.getElementById("toolsBack").onclick = () => closeToolsMenu();
+  document.getElementById("toolsBack").onclick = () => { closeToolsMenu(); syncNavActive(); };
 
   document.getElementById("toolsBreathing").onclick = async () => {
     openScreen("tools");
@@ -335,6 +335,14 @@ export function initNavigation() {
   }, 3000);
 
   openScreen("home");
+
+  // Синхронизация активной кнопки при закрытии меню/панелей
+  function syncNavActive() {
+    if (!currentScreen) return;
+    buttons.forEach(b => { if (b.id !== "hamburgerBtn") b.classList.remove("active"); });
+    const btn = document.querySelector(`[data-nav="${currentScreen}"]`);
+    if (btn && btn.id !== "hamburgerBtn") btn.classList.add("active");
+  }
 
   document.addEventListener("languageChanged", () => {
     Object.keys(loadedScreens).forEach(k => delete loadedScreens[k]);
