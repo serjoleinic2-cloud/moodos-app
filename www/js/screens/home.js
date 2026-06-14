@@ -538,7 +538,7 @@ function _challengeRender(bar, textEl, btn, ch, completed) {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         return;
       }
-      timerEl.textContent = state.ready ? '✓ Готово' : fmtTime(state.msLeft);
+      timerEl.textContent = state.ready ? '✓ ' + t('challenge_done_timer') : fmtTime(state.msLeft);
     }
     tick();
     timerInterval = setInterval(tick, 1000);
