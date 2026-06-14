@@ -223,9 +223,9 @@ function renderReport() {
             const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
             return `<div style="padding:10px;border-radius:12px;background:rgba(0,0,0,0.03);text-align:center;">
               <div style="font-size:20px;">${icons[k]}</div>
-              <div style="font-size:11px;color:#888;margin-top:2px;">${t('time_'+k)||k}</div>
+              <div style="font-size:11px;color:#333;margin-top:2px;">${t('time_'+k)||k}</div>
               <div style="font-size:18px;font-weight:700;color:${color};">${s.avg}%</div>
-              <div style="font-size:10px;color:#bbb;">${s.count} ${t('report_entries')||'зап.'}</div>
+              <div style="font-size:10px;color:#333;">${s.count} ${t('report_entries')||'зап.'}</div>
             </div>`;
           }).join('')}
         </div>
@@ -236,13 +236,17 @@ function renderReport() {
       <div class="mo-metric" style="padding:12px;">
         <div style="display:flex;align-items:flex-end;gap:4px;height:70px;">
           ${dowStats.map((s, i) => {
-            if (!s) return `<div style="flex:1;"></div>`;
-            const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
-            const h = Math.round(s.avg * 0.6);
             const dn = ['dow_mon','dow_tue','dow_wed','dow_thu','dow_fri','dow_sat','dow_sun'];
+            if (!s) return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="font-size:9px;color:transparent;">0%</div>
+              <div style="width:100%;height:10px;background:rgba(0,0,0,0.08);border-radius:4px 4px 0 0;"></div>
+              <div style="font-size:9px;color:#aaa;">${(t(dn[i])||'').slice(0,2)}</div>
+            </div>`;
+            const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
+            const h = Math.max(10, Math.round(s.avg * 0.55));
             return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
-              <div style="font-size:9px;color:#888;">${s.avg}%</div>
-              <div style="width:100%;height:${h}px;background:${color};border-radius:4px 4px 0 0;"></div>
+              <div style="font-size:9px;color:#888;text-align:center;width:100%;overflow:hidden;">${s.avg}%</div>
+              <div style="width:80%;height:${h}px;background:${color};border-radius:4px 4px 0 0;"></div>
               <div style="font-size:9px;color:#aaa;">${(t(dn[i])||'').slice(0,2)}</div>
             </div>`;
           }).join('')}
