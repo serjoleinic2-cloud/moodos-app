@@ -1,6 +1,5 @@
 import { getCalmIndex, getCalmLabel, getCalmHistory, getCalmPatterns, getPastRecovery } from "../services/calm-engine.js";
 import { isPremium } from "../services/user-profile.js";
-import { showPremiumModal } from "../premium-modal.js";
 import { t } from "../i18n.js";
 
 export function showCalmOverlay() {
@@ -192,10 +191,7 @@ export function showCalmOverlay() {
   });
 
   document.getElementById('calmPremiumBtn')?.addEventListener('click', () => {
-    showPremiumModal({
-      title: t('calm_chart_premium_title') || 'График спокойствия',
-      desc:  t('calm_chart_premium_desc')  || 'Динамика за 30 / 90 / 365 дней доступна в Premium'
-    });
+    if (window.navigateTo) window.navigateTo('paywall');
   });
 
   if (premium) {
