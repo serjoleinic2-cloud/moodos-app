@@ -8,6 +8,7 @@ import { isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { getYearComparison } from "../services/year-comparison.js";
 import { getTriggerStats, getTimeBucketStats, getDowStats, buildInsights } from "../services/report-analytics.js";
+import { showPdfReportModal } from "./pdf-report.js";
 
 function isOceanTheme() {
   return document.body.getAttribute('data-theme') === 'deep-ocean';
@@ -276,7 +277,7 @@ function renderReport() {
   }
   
   const pdfBtn = container.querySelector('#rptPdfBtn');
-  if (pdfBtn) pdfBtn.onclick = () => generatePdfReport({ filtered, average, stability, activeDays, triggerStats, timeBucketStats, dowStats, insights, periodLabel, t });
+  if (pdfBtn) pdfBtn.onclick = () => showPdfReportModal();
 
   const pdfLocked = container.querySelector('#rptPdfLocked');
   if (pdfLocked) pdfLocked.onclick = () => showPremiumModal({ title: t('report_pdf_btn'), desc: t('report_pdf_premium_hint') });
@@ -697,84 +698,4 @@ function filterByDays(history, days) {
   });
 }
 
-function generatePdfReport({ filtered, average, stability, activeDays, triggerStats, timeBucketStats, dowStats, insights, periodLabel, t }) {
-  const lang    = localStorage.getItem('app_language') || 'ru';
-  const dateStr = new Date().toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US');
-  const dowKeys = ['dow_mon','dow_tue','dow_wed','dow_thu','dow_fri','dow_sat','dow_sun'];
 
-  const triggersTable = triggerStats.length >= 2
-    ? `<h3>${t('report_triggers_title') || 'Триггеры'}</h3>
-       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
-         <tr style="background:#f0f0f0;"><th>${t('event_label')||'Событие'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('report_diff')||'Влияние'}</th><th>${t('entries_label')||'Записей'}</th></tr>
-         ${triggerStats.map(s=>`<tr><td>${t('event_'+s.trigger)||s.trigger}</td><td>${s.avg}%</td><td>${s.diff>0?'+':''}${s.diff}</td><td>${s.total}</td></tr>`).join('')}
-       </table>`
-    : '';
-
-  const timeTable = Object.keys(timeBucketStats).length
-    ? `<h3>${t('report_time_title')||'По времени суток'}</h3>
-       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
-         <tr style="background:#f0f0f0;"><th>${t('time_label')||'Время'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('entries_label')||'Записей'}</th></tr>
-         ${['morning','day','evening','night'].filter(k=>timeBucketStats[k]).map(k=>`<tr><td>${t('time_'+k)||k}</td><td>${timeBucketStats[k].avg}%</td><td>${timeBucketStats[k].count}</td></tr>`).join('')}
-       </table>`
-    : '';
-
-  const dowTable = dowStats.filter(Boolean).length >= 3
-    ? `<h3>${t('report_dow_title')||'По дням недели'}</h3>
-       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
-         <tr style="background:#f0f0f0;"><th>${t('day_label')||'День'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('entries_label')||'Записей'}</th></tr>
-         ${dowStats.map((s,i)=>s?`<tr><td>${t(dowKeys[i])||i}</td><td>${s.avg}%</td><td>${s.count}</td></tr>`:'').join('')}
-       </table>`
-    : '';
-
-  const insightsBlock = `<h3>${t('report_insights_title')||'Наблюдения'}</h3>
-    <ul>${insights.map(i=>`<li style="margin-bottom:6px;">${i.icon} ${i.text}</li>`).join('')}</ul>`;
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-    <title>${t('report_pdf_title')||'Отчёт настроения — Neyra'}</title>
-    <style>
-      body { font-family: Arial, sans-serif; padding: 32px; color: #222; max-width: 700px; margin: auto; }
-      h1 { color: #4caf87; font-size: 22px; }
-      h2 { font-size: 16px; color: #555; margin-top: 0; }
-      h3 { font-size: 14px; color: #333; margin-top: 24px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-      table { margin-bottom: 16px; }
-      .metrics { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0; }
-      .metric { padding: 12px 16px; border-radius: 10px; background: #f8f8f8; min-width: 120px; }
-      .metric-val { font-size: 24px; font-weight: 700; color: #4caf87; }
-      .metric-label { font-size: 11px; color: #888; margin-top: 2px; }
-      .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #aaa; }
-      .neyra-promo { margin-top: 32px; padding: 16px; background: #f0f9f5; border-radius: 12px; border-left: 4px solid #4caf87; }
-    </style>
-  </head><body>
-    <h1>🌿 Neyra — ${t('report_pdf_title')||'Отчёт настроения'}</h1>
-    <h2>${t('report_period_label')||'Период'}: ${periodLabel} · ${t('report_pdf_generated')||'Сформирован'}: ${dateStr}</h2>
-
-    <div class="metrics">
-      <div class="metric"><div class="metric-val">${average}%</div><div class="metric-label">${t('report_avg')||'Среднее настроение'}</div></div>
-      <div class="metric"><div class="metric-val">${stability||'—'}%</div><div class="metric-label">${t('report_stab')||'Стабильность'}</div></div>
-      <div class="metric"><div class="metric-val">${filtered.length}</div><div class="metric-label">${t('report_entries')||'Записей'}</div></div>
-      <div class="metric"><div class="metric-val">${activeDays}</div><div class="metric-label">${t('report_active_days')||'Активных дней'}</div></div>
-    </div>
-
-    ${triggersTable}
-    ${timeTable}
-    ${dowTable}
-    ${insightsBlock}
-
-    <div class="neyra-promo">
-      <strong>Neyra</strong> — ${t('report_pdf_promo')||'приложение для отслеживания настроения и эмоционального благополучия.'}<br>
-      <a href="https://play.google.com/store/apps/details?id=com.neyra.app&hl=ru" style="color:#4caf87;">Google Play</a>
-    </div>
-
-    <div class="footer">
-      ${t('report_pdf_disclaimer')||'Данный отчёт не является медицинским заключением. Для диагностики и лечения обратитесь к специалисту.'}
-    </div>
-  </body></html>`;
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `neyra-report-${Date.now()}.html`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
