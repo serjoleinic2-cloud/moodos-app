@@ -79,8 +79,27 @@ function collectAllData(premiumMode = false) {
       const value = localStorage.getItem(key);
       if (!value) return;
 
-      // Free: исключаем voice_history, photo_history и neyra_letters
-      if (!premiumMode && (key === 'voice_history' || key === 'photo_history' || key === 'neyra_letters')) return;
+      // Free: исключаем photo_history и neyra_letters; voice_history включаем но только base64
+      if (!premiumMode && (key === 'photo_history' || key === 'neyra_letters')) return;
+      if (!premiumMode && key === 'voice_history') {
+        try {
+          const arr = JSON.parse(value);
+          if (Array.isArray(arr)) {
+            const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const filtered = arr.filter(item => {
+              const ts = item?.time ?? item?.date ?? item?.timestamp ?? null;
+              const n = ts ? Number(ts) : NaN;
+              return !isNaN(n) ? n >= cutoff : false;
+            }).map(item => ({
+              ...item,
+              // file:// ссылки не переносятся — только base64
+              audio: item.audio && item.audio.startsWith('data:') ? item.audio : null
+            })).filter(item => item.audio);
+            if (filtered.length > 0) data[key] = JSON.stringify(filtered);
+          }
+        } catch(e) {}
+        return;
+      }
 
       if (!premiumMode && ARRAY_KEYS.includes(key)) {
         try {

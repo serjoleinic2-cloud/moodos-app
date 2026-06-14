@@ -198,8 +198,9 @@ export async function initLetterEngine() {
     localStorage.setItem('neyra_letter_lang', currentLang);
     const unreadCurrent = getUnreadLetters().filter(l => (l.lang || 'ru') === currentLang);
     if (unreadCurrent.length === 0) {
-      // Сбрасываем только таймер — история писем не трогается
-      localStorage.removeItem(LETTER_CHECK_KEY);
+      // Сбрасываем таймер но ставим задержку 2 часа чтобы не генерировать сразу
+      const twoHoursAgo = Date.now() - (CHECK_INTERVAL - 2 * 60 * 60 * 1000);
+      localStorage.setItem(LETTER_CHECK_KEY, String(twoHoursAgo));
     }
   }
   if (shouldGenerateLetter()) {
