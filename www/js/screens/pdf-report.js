@@ -5,6 +5,7 @@ import { getMoodHistory, getSessionHistory } from "../services/memory.js";
 import { getProfile, isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
+import { getTriggerStats, getTimeBucketStats, getDowStats, buildInsights } from "../services/report-analytics.js";
 import { t, getLang } from "../i18n.js";
 import { canPlaySound } from "../services/reminders-service.js";
 
@@ -429,6 +430,11 @@ async function generatePdf(fromStr, toStr) {
   const profile   = getProfile();
   const stability = calculateStabilityScore(moodHistory);
   const trend     = calculateTrend(allMoodHistory);
+  const triggerStats    = getTriggerStats(moodHistory);
+  const timeBucketStats = getTimeBucketStats(moodHistory);
+  const dowStats        = getDowStats(moodHistory);
+  const tEvent          = (key) => t('event_' + key) || key;
+  const insights        = buildInsights({ triggerStats, timeBucketStats, dowStats, t, tEvent });
 
   console.log('PDF DATA:', { moodCount: moodHistory.length, sessionCount: sessions.length, moodHistory: moodHistory.slice(0, 5), sessions: sessions.slice(0, 5) });
 
@@ -626,6 +632,96 @@ async function generatePdf(fromStr, toStr) {
       '</div>';
   }
 
+  // Блок триггеров
+  let triggersBlock = "";
+  if (triggerStats.length > 0) {
+    const rows = triggerStats.map(function(s) {
+      const color = s.diff > 0 ? "#4caf87" : "#e05555";
+      const sign  = s.diff > 0 ? "+" : "";
+      const label = t('event_' + s.trigger) || s.trigger;
+      return '<tr>' +
+        '<td style="padding:5px 8px;font-size:12px">' + label + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;font-size:12px">' + s.total + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;font-size:12px;font-weight:700;color:' + color + '">' + sign + s.diff + ' пт</td>' +
+        '<td style="padding:5px 8px;text-align:center;font-size:12px">' + s.avg + '%</td>' +
+      '</tr>';
+    }).join("");
+    triggersBlock =
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + (t('report_triggers_title') || 'Влияние событий') + '</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+          '<thead><tr style="background:#e8ede6;">' +
+            '<th style="padding:6px 8px;text-align:left;color:#888">' + (t('report_col_event') || 'Событие') + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + (t('report_col_count') || 'Раз') + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + (t('report_col_impact') || 'Влияние') + '</th>' +
+            '<th style="padding:6px 8px;text-align:center;color:#888">' + (t('report_col_avg') || 'Среднее') + '</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+  }
+
+  // Блок времени суток
+  let timeBlock = "";
+  const timeBucketOrder = ['morning','day','evening','night'];
+  const timeBucketLabels = {
+    morning: t('time_morning') || 'Утро',
+    day:     t('time_day')     || 'День',
+    evening: t('time_evening') || 'Вечер',
+    night:   t('time_night')   || 'Ночь',
+  };
+  const timeCells = timeBucketOrder
+    .filter(function(k) { return timeBucketStats[k]; })
+    .map(function(k) {
+      const d = timeBucketStats[k];
+      return '<div style="flex:1;min-width:80px;background:#f5faf5;border-radius:8px;padding:10px 12px;text-align:center;">' +
+        '<div style="font-size:16px;font-weight:700;color:' + (d.avg >= 65 ? '#4caf87' : d.avg >= 40 ? '#f0a500' : '#e05555') + '">' + d.avg + '%</div>' +
+        '<div style="font-size:11px;color:#aaa;margin-top:4px">' + timeBucketLabels[k] + '</div>' +
+        '<div style="font-size:10px;color:#ccc">' + d.count + ' зап.</div>' +
+      '</div>';
+    }).join("");
+  if (timeCells) {
+    timeBlock =
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + (t('report_time_title') || 'Настроение по времени суток') + '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + timeCells + '</div>' +
+      '</div>';
+  }
+
+  // Блок дней недели
+  let dowBlock = "";
+  const dowKeys = ['dow_mon','dow_tue','dow_wed','dow_thu','dow_fri','dow_sat','dow_sun'];
+  const dowCells = dowStats.map(function(d, i) {
+    if (!d) return '<div style="flex:1;min-width:36px;background:#f5f5f5;border-radius:8px;padding:10px 8px;text-align:center;"><div style="font-size:11px;color:#ddd">—</div><div style="font-size:10px;color:#ccc;margin-top:4px">' + (t(dowKeys[i]) || i) + '</div></div>';
+    return '<div style="flex:1;min-width:36px;background:#f5faf5;border-radius:8px;padding:10px 8px;text-align:center;">' +
+      '<div style="font-size:14px;font-weight:700;color:' + (d.avg >= 65 ? '#4caf87' : d.avg >= 40 ? '#f0a500' : '#e05555') + '">' + d.avg + '%</div>' +
+      '<div style="font-size:10px;color:#aaa;margin-top:4px">' + (t(dowKeys[i]) || i) + '</div>' +
+    '</div>';
+  }).join("");
+  if (dowStats.some(function(d) { return d !== null; })) {
+    dowBlock =
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + (t('report_dow_title') || 'По дням недели') + '</div>' +
+        '<div style="display:flex;gap:6px;">' + dowCells + '</div>' +
+      '</div>';
+  }
+
+  // Блок инсайтов
+  let insightsBlock = "";
+  if (insights.length > 0) {
+    const insightRows = insights.map(function(ins) {
+      return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;">' +
+        '<span style="font-size:16px">' + ins.icon + '</span>' +
+        '<div style="font-size:12px;color:#555;line-height:1.5">' + ins.text + '</div>' +
+      '</div>';
+    }).join("");
+    insightsBlock =
+      '<div style="margin-bottom:18px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">' + (t('report_insights_title') || 'Паттерны и инсайты') + '</div>' +
+        insightRows +
+      '</div>';
+  }
+
   let journalBlock = "";
   if (moodHistory.length > 0) {
     journalBlock =
@@ -650,7 +746,7 @@ async function generatePdf(fromStr, toStr) {
         '<div style="font-size:11px;opacity:0.7;margin-top:6px;">' + t("pr_from") + ': ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' · ' + new Date().toLocaleDateString(locale) + '</div>' +
       '</div>' +
       '<div style="padding:20px 24px;">' +
-        patientBlock + factorsBlock + statsBlock + recsBlock + practicesBlock + journalBlock +
+        patientBlock + factorsBlock + statsBlock + recsBlock + triggersBlock + timeBlock + dowBlock + insightsBlock + practicesBlock + journalBlock +
         '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">' + t("pdf_footer") + '</div>' +
       '</div>' +
     '</div>';
