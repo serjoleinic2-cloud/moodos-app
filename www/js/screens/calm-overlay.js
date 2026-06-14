@@ -191,6 +191,8 @@ export function showCalmOverlay() {
   });
 
   document.getElementById('calmPremiumBtn')?.addEventListener('click', () => {
+    const overlay = document.getElementById('calmOverlay');
+    if (overlay) overlay.remove();
     if (window.navigateTo) window.navigateTo('paywall');
   });
 
