@@ -119,7 +119,6 @@ export async function generateLetter() {
   const text = letters[triggerKey][type];
   if (!text) return null;
 
-  const lang = localStorage.getItem('app_language') || 'ru';
   const letter = {
     id:        Date.now(),
     trigger:   triggerKey,

@@ -150,6 +150,11 @@ export function getPremiumInfo() {
 }
 
 export function isPremium() {
+  const DEV_FORCE_PREMIUM = false;
+  if (DEV_FORCE_PREMIUM) {
+    console.log('[DEV] Premium forced ON');
+    return true;
+  }
   // 1. Runtime-флаг — доверяем только если billing уже инициализирован
   if (window.__NEYRA_SECURITY__?.billingPremium === true) {
     if (window._billingInitialized && !window._billingInitializing) {
