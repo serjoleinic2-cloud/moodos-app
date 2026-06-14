@@ -98,10 +98,8 @@ export function showCalmOverlay() {
     ">
 
       <div style="height:44px;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-        <button id="calmClose" style="display:flex;align-items:center;gap:6px;background:rgba(128,128,128,0.15);border:none;border-radius:12px;color:var(--calm-title,#3a3530);font-size:14px;font-weight:600;padding:8px 14px;cursor:pointer;">‹ ${t('back') || 'Назад'}</button>
-        <div style="font-size:16px;font-weight:700;color:var(--calm-title,#3a3530);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
-        <div style="width:80px;"></div>
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:18px;font-weight:700;color:var(--calm-title,#3a3530);">${t('calm_overlay_title') || 'Карта спокойствия'}</div>
       </div>
 
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">
@@ -134,6 +132,8 @@ export function showCalmOverlay() {
       <div style="margin-top:24px;padding:14px;border-radius:12px;background:var(--calm-block-bg);font-size:12px;color:var(--calm-muted);line-height:1.5;text-align:center;">
         ${t('calm_disclaimer') || 'Это не медицинский диагноз. Если тревога мешает жизни — поговори со специалистом.'}
       </div>
+
+      <button id="calmClose" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:16px;background:rgba(128,128,128,0.15);border:none;border-radius:16px;color:var(--calm-title,#3a3530);font-size:15px;font-weight:600;padding:14px;cursor:pointer;">‹ ${t('back') || 'Назад'}</button>
 
     </div>
   `;

@@ -4,14 +4,22 @@
 
 import { triggerKeyMap } from './avatar-letters-ru.js';
 
-async function getLettersForLang() {
-  const lang = localStorage.getItem('app_language') || 'ru';
+const _lettersCache = {};
+
+async function getLettersForLang(lang) {
+  if (_lettersCache[lang]) return _lettersCache[lang];
   try {
     const mod = await import(`./avatar-letters-${lang}.js`);
-    return mod.letters;
-  } catch (e) {
-    const fallback = await import('./avatar-letters-ru.js');
-    return fallback.letters;
+    const letters = mod.letters || {};
+    _lettersCache[lang] = letters;
+    return letters;
+  } catch(e) {
+    console.warn('[LETTERS] failed to load lang:', lang, e);
+    if (!_lettersCache['ru']) {
+      const fallback = await import('./avatar-letters-ru.js');
+      _lettersCache['ru'] = fallback.letters || {};
+    }
+    return _lettersCache['ru'];
   }
 }
 
@@ -91,7 +99,8 @@ function pickLetterType(triggerKey) {
 // ─── Генерация письма ────────────────────────────────────────
 
 export async function generateLetter() {
-  const letters = await getLettersForLang();
+  const lang = localStorage.getItem('app_language') || 'ru';
+  const letters = await getLettersForLang(lang);
   const triggers = getRecentTriggers(5);
   if (!triggers.length) return null;
 
