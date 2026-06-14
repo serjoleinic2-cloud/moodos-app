@@ -7,6 +7,7 @@ import { t } from "../i18n.js";
 import { isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { getYearComparison } from "../services/year-comparison.js";
+import { getTriggerStats, getTimeBucketStats, getDowStats, buildInsights } from "../services/report-analytics.js";
 
 function isOceanTheme() {
   return document.body.getAttribute('data-theme') === 'deep-ocean';
@@ -96,6 +97,13 @@ function renderReport() {
   const worst     = filtered.reduce((a,b)=>a.value<b.value?a:b);
   const stability = calculateStabilityScore(filtered);
   const activeDays = countActiveDays(filtered);
+  const triggerStats    = getTriggerStats(filtered);
+  const timeBucketStats = getTimeBucketStats(filtered);
+  const dowStats        = getDowStats(filtered);
+  const insights        = buildInsights({
+    triggerStats, timeBucketStats, dowStats, t,
+    tEvent: key => t('event_' + key) || key,
+  });
 
   function mc(v){ return v>=70?"#4caf87":v>=40?"#f0a500":"#e05555"; }
   function sc(s){ if(!s) return "#888"; return s>=75?"#4caf87":s>=50?"#f0a500":"#e05555"; }
@@ -181,6 +189,82 @@ function renderReport() {
       <div class="mo-metric">
         <div style="font-size:15px;color:#444;line-height:1.6;">${stateText}</div>
       </div>
+
+      ${triggerStats.length >= 2 ? `
+      <div class="mo-section-title" style="margin-top:20px;">${t('report_triggers_title') || 'Триггеры'}</div>
+      <div class="mo-metric" style="padding:12px;">
+        ${triggerStats.map(s => {
+          const bar   = Math.min(100, Math.max(0, s.avg));
+          const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
+          const arrow = s.diff > 0 ? `<span style="color:#4caf87;font-size:11px;">▲+${s.diff}</span>`
+                                   : s.diff < 0 ? `<span style="color:#e05555;font-size:11px;">▼${s.diff}</span>`
+                                   : `<span style="color:#888;font-size:11px;">→</span>`;
+          return `<div style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+              <span style="font-size:13px;color:#555;">${t('event_'+s.trigger)||s.trigger}</span>
+              <span style="font-size:12px;font-weight:600;color:${color};">${s.avg}% ${arrow}</span>
+            </div>
+            <div style="height:6px;border-radius:4px;background:rgba(0,0,0,0.06);overflow:hidden;">
+              <div style="height:100%;width:${bar}%;background:${color};border-radius:4px;transition:width 0.4s;"></div>
+            </div>
+          </div>`;
+        }).join('')}
+        <div style="font-size:11px;color:#aaa;margin-top:4px;">${t('report_triggers_hint') || '▲▼ — разница со средним настроением за период'}</div>
+      </div>` : ''}
+
+      ${Object.keys(timeBucketStats).length >= 2 ? `
+      <div class="mo-section-title" style="margin-top:20px;">${t('report_time_title') || 'По времени суток'}</div>
+      <div class="mo-metric" style="padding:12px;">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+          ${['morning','day','evening','night'].filter(k=>timeBucketStats[k]).map(k => {
+            const s = timeBucketStats[k];
+            const icons = { morning:'🌅', day:'☀️', evening:'🌆', night:'🌙' };
+            const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
+            return `<div style="padding:10px;border-radius:12px;background:rgba(0,0,0,0.03);text-align:center;">
+              <div style="font-size:20px;">${icons[k]}</div>
+              <div style="font-size:11px;color:#888;margin-top:2px;">${t('time_'+k)||k}</div>
+              <div style="font-size:18px;font-weight:700;color:${color};">${s.avg}%</div>
+              <div style="font-size:10px;color:#bbb;">${s.count} ${t('report_entries')||'зап.'}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
+
+      ${dowStats.filter(Boolean).length >= 3 ? `
+      <div class="mo-section-title" style="margin-top:20px;">${t('report_dow_title') || 'По дням недели'}</div>
+      <div class="mo-metric" style="padding:12px;">
+        <div style="display:flex;align-items:flex-end;gap:4px;height:70px;">
+          ${dowStats.map((s, i) => {
+            if (!s) return `<div style="flex:1;"></div>`;
+            const color = s.avg >= 70 ? '#4caf87' : s.avg >= 40 ? '#f0a500' : '#e05555';
+            const h = Math.round(s.avg * 0.6);
+            const dn = ['dow_mon','dow_tue','dow_wed','dow_thu','dow_fri','dow_sat','dow_sun'];
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="font-size:9px;color:#888;">${s.avg}%</div>
+              <div style="width:100%;height:${h}px;background:${color};border-radius:4px 4px 0 0;"></div>
+              <div style="font-size:9px;color:#aaa;">${(t(dn[i])||'').slice(0,2)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="mo-section-title" style="margin-top:20px;">${t('report_insights_title') || 'Наблюдения Нейры'}</div>
+      <div class="mo-metric" style="padding:14px;">
+        ${insights.map(ins => `
+          <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+            <span style="font-size:18px;flex-shrink:0;">${ins.icon}</span>
+            <span style="font-size:13px;color:#555;line-height:1.5;">${ins.text}</span>
+          </div>`).join('')}
+      </div>
+
+      ${isPremium() ? `
+      <button id="rptPdfBtn" style="width:100%;padding:15px;border:none;border-radius:16px;background:linear-gradient(135deg,#4caf87,#3a9a72);box-shadow:6px 6px 14px rgba(76,175,135,0.3),-4px -4px 10px rgba(255,255,255,0.3);font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-top:16px;">
+        📄 ${t('report_pdf_btn') || 'Отчёт для врача (PDF)'}</button>` : `
+      <div id="rptPdfLocked" style="margin-top:16px;padding:16px;border-radius:16px;background:rgba(159,122,234,0.08);border:1.5px solid rgba(159,122,234,0.25);cursor:pointer;text-align:center;">
+        <div style="font-size:13px;color:#9f7aea;font-weight:600;">🔒 ${t('report_pdf_btn') || 'Отчёт для врача (PDF)'}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:4px;">${t('report_pdf_premium_hint') || 'Доступно в Premium'}</div>
+      </div>`}
+
     </div>`;
 
   bindPeriodBtns(container);
@@ -191,6 +275,12 @@ function renderReport() {
     calBtn.onclick = () => showMoodCalendarOverlay();
   }
   
+  const pdfBtn = container.querySelector('#rptPdfBtn');
+  if (pdfBtn) pdfBtn.onclick = () => generatePdfReport({ filtered, average, stability, activeDays, triggerStats, timeBucketStats, dowStats, insights, periodLabel, t });
+
+  const pdfLocked = container.querySelector('#rptPdfLocked');
+  if (pdfLocked) pdfLocked.onclick = () => showPremiumModal({ title: t('report_pdf_btn'), desc: t('report_pdf_premium_hint') });
+
   const lockedBtn = container.querySelector("#yearComparisonLocked");
   if (lockedBtn) {
     lockedBtn.addEventListener("click", () => {
@@ -605,4 +695,86 @@ function filterByDays(history, days) {
     const ts = resolveTimestamp(e);
     return ts !== null && (now - ts) <= limit;
   });
+}
+
+function generatePdfReport({ filtered, average, stability, activeDays, triggerStats, timeBucketStats, dowStats, insights, periodLabel, t }) {
+  const lang    = localStorage.getItem('app_language') || 'ru';
+  const dateStr = new Date().toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US');
+  const dowKeys = ['dow_mon','dow_tue','dow_wed','dow_thu','dow_fri','dow_sat','dow_sun'];
+
+  const triggersTable = triggerStats.length >= 2
+    ? `<h3>${t('report_triggers_title') || 'Триггеры'}</h3>
+       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
+         <tr style="background:#f0f0f0;"><th>${t('event_label')||'Событие'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('report_diff')||'Влияние'}</th><th>${t('entries_label')||'Записей'}</th></tr>
+         ${triggerStats.map(s=>`<tr><td>${t('event_'+s.trigger)||s.trigger}</td><td>${s.avg}%</td><td>${s.diff>0?'+':''}${s.diff}</td><td>${s.total}</td></tr>`).join('')}
+       </table>`
+    : '';
+
+  const timeTable = Object.keys(timeBucketStats).length
+    ? `<h3>${t('report_time_title')||'По времени суток'}</h3>
+       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
+         <tr style="background:#f0f0f0;"><th>${t('time_label')||'Время'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('entries_label')||'Записей'}</th></tr>
+         ${['morning','day','evening','night'].filter(k=>timeBucketStats[k]).map(k=>`<tr><td>${t('time_'+k)||k}</td><td>${timeBucketStats[k].avg}%</td><td>${timeBucketStats[k].count}</td></tr>`).join('')}
+       </table>`
+    : '';
+
+  const dowTable = dowStats.filter(Boolean).length >= 3
+    ? `<h3>${t('report_dow_title')||'По дням недели'}</h3>
+       <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px;">
+         <tr style="background:#f0f0f0;"><th>${t('day_label')||'День'}</th><th>${t('report_avg')||'Среднее'}</th><th>${t('entries_label')||'Записей'}</th></tr>
+         ${dowStats.map((s,i)=>s?`<tr><td>${t(dowKeys[i])||i}</td><td>${s.avg}%</td><td>${s.count}</td></tr>`:'').join('')}
+       </table>`
+    : '';
+
+  const insightsBlock = `<h3>${t('report_insights_title')||'Наблюдения'}</h3>
+    <ul>${insights.map(i=>`<li style="margin-bottom:6px;">${i.icon} ${i.text}</li>`).join('')}</ul>`;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>${t('report_pdf_title')||'Отчёт настроения — Neyra'}</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 32px; color: #222; max-width: 700px; margin: auto; }
+      h1 { color: #4caf87; font-size: 22px; }
+      h2 { font-size: 16px; color: #555; margin-top: 0; }
+      h3 { font-size: 14px; color: #333; margin-top: 24px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+      table { margin-bottom: 16px; }
+      .metrics { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0; }
+      .metric { padding: 12px 16px; border-radius: 10px; background: #f8f8f8; min-width: 120px; }
+      .metric-val { font-size: 24px; font-weight: 700; color: #4caf87; }
+      .metric-label { font-size: 11px; color: #888; margin-top: 2px; }
+      .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #aaa; }
+      .neyra-promo { margin-top: 32px; padding: 16px; background: #f0f9f5; border-radius: 12px; border-left: 4px solid #4caf87; }
+    </style>
+  </head><body>
+    <h1>🌿 Neyra — ${t('report_pdf_title')||'Отчёт настроения'}</h1>
+    <h2>${t('report_period_label')||'Период'}: ${periodLabel} · ${t('report_pdf_generated')||'Сформирован'}: ${dateStr}</h2>
+
+    <div class="metrics">
+      <div class="metric"><div class="metric-val">${average}%</div><div class="metric-label">${t('report_avg')||'Среднее настроение'}</div></div>
+      <div class="metric"><div class="metric-val">${stability||'—'}%</div><div class="metric-label">${t('report_stab')||'Стабильность'}</div></div>
+      <div class="metric"><div class="metric-val">${filtered.length}</div><div class="metric-label">${t('report_entries')||'Записей'}</div></div>
+      <div class="metric"><div class="metric-val">${activeDays}</div><div class="metric-label">${t('report_active_days')||'Активных дней'}</div></div>
+    </div>
+
+    ${triggersTable}
+    ${timeTable}
+    ${dowTable}
+    ${insightsBlock}
+
+    <div class="neyra-promo">
+      <strong>Neyra</strong> — ${t('report_pdf_promo')||'приложение для отслеживания настроения и эмоционального благополучия.'}<br>
+      <a href="https://play.google.com/store/apps/details?id=com.neyra.app&hl=ru" style="color:#4caf87;">Google Play</a>
+    </div>
+
+    <div class="footer">
+      ${t('report_pdf_disclaimer')||'Данный отчёт не является медицинским заключением. Для диагностики и лечения обратитесь к специалисту.'}
+    </div>
+  </body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `neyra-report-${Date.now()}.html`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }

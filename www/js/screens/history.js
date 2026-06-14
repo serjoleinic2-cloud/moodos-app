@@ -31,25 +31,26 @@ let allItemsCache = [];
 function buildShareText(item) {
   const date = formatDate(item.ts);
   const time = formatTime(item.ts);
+  const promo = `\n\n${t('share_sent_via') || 'Отправлено через Neyra'} 🌿\n${t('share_download') || 'Скачать'}: https://play.google.com/store/apps/details?id=com.neyra.app&hl=ru`;
 
   if (item.type === "mood") {
-    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}\n\n— Neyra`;
+    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "note") {
-    return `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— Neyra`;
+    return `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "session") {
     const meta = SESSION_META();
     const m = meta[item.sessionType] || { icon:"🛠", label: item.sessionType };
     const result = item.result === "positive" ? t("hist_helped") : t("hist_not_helped");
-    return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}\n\n— Neyra`;
+    return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "photo") {
-    return `📷 ${t("hist_photo")}\n${item.note || t("hist_photo_mood")}\n📅 ${date} ${time}\n— Neyra`;
+    return `📷 ${t("hist_photo")}\n${item.note || t("hist_photo_mood")}\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "reflection") {
     const moodText = item.mood ? ` (${item.mood}%)` : "";
-    return `📝 ${t("hist_reflection") || "Рефлексия"}${moodText}\n\n"${item.text}"\n\n📅 ${date} ${time}\n— Neyra`;
+    return `📝 ${t("hist_reflection") || "Рефлексия"}${moodText}\n\n"${item.text}"\n\n📅 ${date} ${time}${promo}`;
   }
   return null;
 }

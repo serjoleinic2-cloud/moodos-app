@@ -57,7 +57,26 @@ D:\moodos-app\
 │   │   ├── bg/
 │   │   ├── audio/meditation/
 │   │   └── icons/
-│   │       └── player/
+│   │       ├── player/
+│   │       │   ├── play.svg
+│   │       │   ├── pause.svg
+│   │       │   ├── next.svg
+│   │       │   └── loop.svg
+│   │       ├── coffee.svg
+│   │       ├── walk.svg
+│   │       ├── work.svg
+│   │       ├── sport.svg
+│   │       ├── social.svg
+│   │       ├── sleep.svg
+│   │       ├── music.svg
+│   │       ├── food.svg
+│   │       ├── rest.svg
+│   │       ├── stress.svg
+│   │       ├── alcohol.svg
+│   │       ├── nature.svg
+│   │       ├── screen.svg
+│   │       ├── period.svg
+│   │       └── creative.svg
 │   ├── js/
 │   │   ├── app.js
 │   │   ├── navigation.js
@@ -87,7 +106,8 @@ D:\moodos-app\
 │   │   │   ├── challenge-texts-hi.js
 │   │   │   ├── challenge-texts-ru.js
 │   │   │   ├── challenge-texts-uk.js
-│   │   │   └── medals-texts-ru.js
+│   │   │   ├── medals-texts-ru.js
+│   │   │   └── neyra-reactions.js
 │   │   ├── core/                    # ARL layer
 │   │   │   ├── appRuntime.js
 │   │   │   ├── audioController.js
@@ -102,6 +122,7 @@ D:\moodos-app\
 │   │   │   ├── report.js
 │   │   │   ├── stability.js
 │   │   │   ├── settings.js
+│   │   │   ├── calm-overlay.js
 │   │   │   ├── premium.js
 │   │   │   ├── paywall.js
 │   │   │   ├── tools.js
@@ -121,6 +142,8 @@ D:\moodos-app\
 │   │   │   ├── billing-service.js  # ⭐ In-app purchases
 │   │   │   ├── memory.js
 │   │   │   ├── analytics.js
+│   │   │   ├── calm-engine.js
+│   │   │   ├── report-analytics.js
 │   │   │   ├── daily-snapshots.js
 │   │   │   ├── insight-engine.js
 │   │   │   ├── pattern-engine.js
