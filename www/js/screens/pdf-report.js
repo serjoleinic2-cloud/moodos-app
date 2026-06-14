@@ -2,6 +2,7 @@
 // Neyra PDF Report — Share API + Push
 // =====================================
 import { getMoodHistory, getSessionHistory } from "../services/memory.js";
+import { getCalmIndex, getCalmLabel, getCalmHistory, getCalmPatterns, getPastRecovery } from '../services/calm-engine.js';
 import { getProfile, isPremium } from "../services/user-profile.js";
 import { showPremiumModal } from "../premium-modal.js";
 import { calculateStabilityScore, calculateTrend } from "../services/analytics.js";
@@ -722,6 +723,128 @@ async function generatePdf(fromStr, toStr) {
       '</div>';
   }
 
+  // ── CALM SECTION ──
+  const calmIndex   = getCalmIndex();
+  const calmLabel   = getCalmLabel(calmIndex);
+  const calmHistory = getCalmHistory(30);
+  const calmPatterns = getCalmPatterns();
+  const pastRecovery = getPastRecovery();
+
+  const calmLabelText = {
+    high:     lang === 'ru' ? 'Высокое спокойствие' : lang === 'uk' ? 'Висока спокійність' : lang === 'es' ? 'Alta calma' : lang === 'hi' ? 'उच्च शांति' : 'High Calm',
+    medium:   lang === 'ru' ? 'Умеренное спокойствие' : lang === 'uk' ? 'Помірна спокійність' : lang === 'es' ? 'Calma moderada' : lang === 'hi' ? 'मध्यम शांति' : 'Moderate Calm',
+    low:      lang === 'ru' ? 'Пониженное спокойствие' : lang === 'uk' ? 'Знижена спокійність' : lang === 'es' ? 'Calma baja' : lang === 'hi' ? 'कम शांति' : 'Low Calm',
+    very_low: lang === 'ru' ? 'Низкое спокойствие' : lang === 'uk' ? 'Низька спокійність' : lang === 'es' ? 'Calma muy baja' : lang === 'hi' ? 'बहुत कम शांति' : 'Very Low Calm',
+  }[calmLabel] || '';
+
+  const calmColor = calmIndex === null ? '#aaa'
+    : calmIndex >= 80 ? '#4caf87'
+    : calmIndex >= 60 ? '#7eb8d4'
+    : calmIndex >= 40 ? '#f0a500'
+    : '#e05555';
+
+  // SVG sparkline для истории Calm (30 дней)
+  const calmPoints = calmHistory.filter(p => p.value !== null);
+  let calmSparkline = '';
+  if (calmPoints.length >= 3) {
+    const W = 480, H = 80;
+    const minV = 0, maxV = 100;
+    const pts = calmPoints.map((p, i) => {
+      const x = Math.round((i / (calmPoints.length - 1)) * W);
+      const y = Math.round(H - ((p.value - minV) / (maxV - minV)) * H);
+      return `${x},${y}`;
+    }).join(' ');
+    calmSparkline = `
+      <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:80px;display:block;margin:12px 0;">
+        <defs>
+          <linearGradient id="calmGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${calmColor}" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="${calmColor}" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <polyline points="${pts}" fill="none" stroke="${calmColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#calmGrad)"/>
+      </svg>`;
+  }
+
+  // Паттерны тревоги и спокойствия
+  const triggerLabel = (key) => t('trigger_' + key) || key;
+  const anxietyRows = (calmPatterns.anxiety || []).map(p =>
+    `<tr><td style="padding:6px 10px;color:#e05555;">⚡ ${triggerLabel(p.trigger)}</td><td style="padding:6px 10px;text-align:right;color:#e05555;font-weight:600;">${p.rate}%</td></tr>`
+  ).join('');
+  const calmRows = (calmPatterns.calm || []).map(p =>
+    `<tr><td style="padding:6px 10px;color:#4caf87;">✦ ${triggerLabel(p.trigger)}</td><td style="padding:6px 10px;text-align:right;color:#4caf87;font-weight:600;">${p.rate}%</td></tr>`
+  ).join('');
+
+  const recoveryBlock = pastRecovery ? `
+    <div style="margin-top:14px;padding:12px 16px;background:#f0f7ff;border-radius:10px;border-left:4px solid #7eb8d4;">
+      <div style="font-size:11px;font-weight:700;color:#7eb8d4;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;">
+        ${lang === 'ru' ? 'Скорость восстановления' : lang === 'uk' ? 'Швидкість відновлення' : lang === 'es' ? 'Velocidad de recuperación' : lang === 'hi' ? 'रिकवरी गति' : 'Recovery Speed'}
+      </div>
+      <div style="font-size:14px;color:#3d3d3d;">
+        ${lang === 'ru' ? `В среднем <b>${pastRecovery.avgHours} ч.</b> от низкого настроения до восстановления (${pastRecovery.count} случаев)` 
+        : lang === 'uk' ? `В середньому <b>${pastRecovery.avgHours} год.</b> від низького настрою до відновлення (${pastRecovery.count} випадків)`
+        : lang === 'es' ? `Promedio de <b>${pastRecovery.avgHours} h.</b> para recuperarse del estado bajo (${pastRecovery.count} casos)`
+        : lang === 'hi' ? `निम्न मूड से रिकवरी में औसतन <b>${pastRecovery.avgHours} घंटे</b> (${pastRecovery.count} मामले)`
+        : `Average <b>${pastRecovery.avgHours} h.</b> to recover from low mood (${pastRecovery.count} episodes)`}
+      </div>
+    </div>` : '';
+
+  const calmSection = `
+    <div style="margin-bottom:28px;page-break-inside:avoid;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:14px;">
+        ${lang === 'ru' ? 'Индекс спокойствия' : lang === 'uk' ? 'Індекс спокійності' : lang === 'es' ? 'Índice de calma' : lang === 'hi' ? 'शांति सूचकांक' : 'Calm Index'}
+      </div>
+      ${calmIndex !== null ? `
+        <div style="display:flex;align-items:center;gap:20px;margin-bottom:8px;">
+          <div style="width:72px;height:72px;border-radius:50%;background:${calmColor}22;border:3px solid ${calmColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:22px;font-weight:800;color:${calmColor};">${calmIndex}</span>
+          </div>
+          <div>
+            <div style="font-size:17px;font-weight:700;color:${calmColor};">${calmLabelText}</div>
+            <div style="font-size:12px;color:#aaa;margin-top:3px;">
+              ${lang === 'ru' ? 'Составной показатель за последние 14 дней' 
+              : lang === 'uk' ? 'Складовий показник за останні 14 днів'
+              : lang === 'es' ? 'Indicador compuesto de los últimos 14 días'
+              : lang === 'hi' ? 'पिछले 14 दिनों का समग्र संकेतक'
+              : 'Composite indicator for the last 14 days'}
+            </div>
+          </div>
+        </div>
+        ${calmSparkline ? `
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">
+            ${lang === 'ru' ? 'Динамика за 30 дней' : lang === 'uk' ? 'Динаміка за 30 днів' : lang === 'es' ? 'Dinámica de 30 días' : lang === 'hi' ? '30 दिनों की गतिशीलता' : '30-day trend'}
+          </div>
+          ${calmSparkline}
+        ` : ''}
+        ${(anxietyRows || calmRows) ? `
+          <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">
+            ${anxietyRows ? `
+              <tr><td colspan="2" style="padding:6px 10px 2px;font-size:11px;font-weight:700;color:#aaa;letter-spacing:0.8px;text-transform:uppercase;">
+                ${lang === 'ru' ? 'Факторы тревоги' : lang === 'uk' ? 'Фактори тривоги' : lang === 'es' ? 'Factores de ansiedad' : lang === 'hi' ? 'चिंता कारक' : 'Anxiety triggers'}
+              </td></tr>
+              ${anxietyRows}
+            ` : ''}
+            ${calmRows ? `
+              <tr><td colspan="2" style="padding:10px 10px 2px;font-size:11px;font-weight:700;color:#aaa;letter-spacing:0.8px;text-transform:uppercase;">
+                ${lang === 'ru' ? 'Факторы спокойствия' : lang === 'uk' ? 'Фактори спокійності' : lang === 'es' ? 'Factores de calma' : lang === 'hi' ? 'शांति कारक' : 'Calm triggers'}
+              </td></tr>
+              ${calmRows}
+            ` : ''}
+          </table>
+        ` : ''}
+        ${recoveryBlock}
+      ` : `
+        <div style="color:#bbb;font-size:13px;padding:10px 0;">
+          ${lang === 'ru' ? 'Недостаточно данных (минимум 5 записей за 14 дней)' 
+          : lang === 'uk' ? 'Недостатньо даних (мінімум 5 записів за 14 днів)'
+          : lang === 'es' ? 'Datos insuficientes (mínimo 5 registros en 14 días)'
+          : lang === 'hi' ? 'अपर्याप्त डेटा (14 दिनों में कम से कम 5 रिकॉर्ड)'
+          : 'Insufficient data (minimum 5 records in 14 days)'}
+        </div>
+      `}
+    </div>`;
+
   let journalBlock = "";
   if (moodHistory.length > 0) {
     journalBlock =
@@ -746,7 +869,7 @@ async function generatePdf(fromStr, toStr) {
         '<div style="font-size:11px;opacity:0.7;margin-top:6px;">' + t("pr_from") + ': ' + fmtDate(fromDate) + ' — ' + fmtDate(toDate) + ' · ' + new Date().toLocaleDateString(locale) + '</div>' +
       '</div>' +
       '<div style="padding:20px 24px;">' +
-        patientBlock + factorsBlock + statsBlock + recsBlock + triggersBlock + timeBlock + dowBlock + insightsBlock + practicesBlock + journalBlock +
+        patientBlock + factorsBlock + statsBlock + recsBlock + triggersBlock + timeBlock + dowBlock + insightsBlock + calmSection + practicesBlock + journalBlock +
         '<div style="border-top:1px solid #e0e0e0;padding-top:10px;font-size:10px;color:#aaa;">' + t("pdf_footer") + '</div>' +
       '</div>' +
     '</div>';
