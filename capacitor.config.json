@@ -12,9 +12,6 @@
       "iconColor": "#4caf87",
       "sound": "default",
       "importance": 5
-    },
-    "Media": {
-      "androidGalleryMode": false
     }
   }
 }
