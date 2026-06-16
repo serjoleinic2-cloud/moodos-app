@@ -1068,3 +1068,44 @@ body[data-theme="deep-ocean"] .hist-card .hist-card-sub {
 body[data-theme="deep-ocean"] .voice-play-btn img {
   filter: invert(1) !important;
 }
+
+/* ── История: фото-меню в теме Deep Ocean ── */
+body[data-theme="deep-ocean"] #photoMenuOverlay > div {
+  background: linear-gradient(160deg, #0d2137, #0a1a2e) !important;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.5) !important;
+}
+body[data-theme="deep-ocean"] #photoMenuOverlay #pmCamera,
+body[data-theme="deep-ocean"] #photoMenuOverlay #pmGallery,
+body[data-theme="deep-ocean"] #photoMenuOverlay #pmCancel {
+  background: #023859 !important;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.04) !important;
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #photoMenuOverlay [style*="color:#3a3530"],
+body[data-theme="deep-ocean"] #photoMenuOverlay [style*="color: #3a3530"] {
+  color: #ffffff !important;
+}
+
+/* ── История: детальный экран практики — белый текст ── */
+body[data-theme="deep-ocean"] #history-content [style*="font-size:22px"][style*="font-weight:600"] {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #history-content [style*="font-size:56px"] + div {
+  color: #ffffff !important;
+}
+body[data-theme="deep-ocean"] #history-content .mo-metric [style*="color:#888"],
+body[data-theme="deep-ocean"] #history-content .mo-metric [style*="color: #888"] {
+  color: #54ACBF !important;
+}
+body[data-theme="deep-ocean"] #history-content [style*="color:${moodColor"] {
+  color: inherit !important;
+}
+/* Секунды и циклы в деталях практики */
+body[data-theme="deep-ocean"] #history-content .mo-metric span[style*="color:#4caf87"],
+body[data-theme="deep-ocean"] #history-content .mo-metric span[style*="color: #4caf87"] {
+  color: #4caf87 !important;
+}
+body[data-theme="deep-ocean"] #history-content .mo-metric span[style*="color:#888"],
+body[data-theme="deep-ocean"] #history-content .mo-metric span[style*="color: #888"] {
+  color: #54ACBF !important;
+}

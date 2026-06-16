@@ -34,16 +34,26 @@ function buildShareText(item) {
   const promo = `\n\n${t('share_sent_via') || 'Отправлено через Neyra'} 🌿\n${t('share_download') || 'Скачать'}: https://play.google.com/store/apps/details?id=com.neyra.app&hl=ru`;
 
   if (item.type === "mood") {
-    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%\n📅 ${date} ${time}${promo}`;
+    const eventsText = item.events && item.events.length
+      ? '\n🏷 ' + item.events.map(ev => t('event_' + ev) || ev).join(', ')
+      : '';
+    return `${moodEmoji(item.value)} ${t("hist_mood")}: ${item.value}%${eventsText}\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "note") {
     return `📝 ${t("hist_note")}\n\n"${item.text}"\n\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "session") {
     const meta = SESSION_META();
-    const m = meta[item.sessionType] || { icon:"🛠", label: item.sessionType };
+    const normalizedType = item.sessionType?.replace(/_/g, '-').toLowerCase();
+    const m = meta[normalizedType] || meta[item.sessionType] || { icon:"🛠", label: item.sessionType };
     const result = item.result === "positive" ? t("hist_helped") : t("hist_not_helped");
-    return `${m.icon} ${m.label}: ${result}\n📅 ${date} ${time}${promo}`;
+    const dur = item.duration ? fmtSec(item.duration) : null;
+    const moodChange = (item.moodBefore != null && item.moodAfter != null)
+      ? `${item.moodBefore}% → ${item.moodAfter}%`
+      : null;
+    const taps = item.tapCount ? `${item.tapCount} taps` : null;
+    const details = [dur, moodChange, taps].filter(Boolean).join(' · ');
+    return `${m.icon} ${m.label}\n${result}${details ? '\n' + details : ''}\n📅 ${date} ${time}${promo}`;
   }
   if (item.type === "photo") {
     return `📷 ${t("hist_photo")}\n${item.note || t("hist_photo_mood")}\n📅 ${date} ${time}${promo}`;
@@ -751,7 +761,7 @@ function renderDetail(item, filterDate) {
     const dur=min>0?`${min} ${t("hist_min")} ${sec} ${t("hist_sec")}`:`${sec} ${t("hist_sec")}`;
     body=`<div style="text-align:center;margin-top:30px;">
       <div style="font-size:56px;">${m.icon || '🛠'}</div>
-      <div style="font-size:22px;font-weight:600;margin-top:10px;">${m.label || '—'}</div>
+      <div style="font-size:22px;font-weight:600;margin-top:10px;color:var(--theme-text-primary,#3a3530);">${m.label || '—'}</div>
     </div>
     <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
       ${detRow(t("hist_result"),`<span style="color:${rc};font-weight:600;">${rt}</span>`)}
@@ -796,7 +806,7 @@ function renderDetail(item, filterDate) {
 
 function detRow(label, valHTML) {
   return `<div class="mo-metric" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;">
-    <span style="color:#888;">${label}</span>${valHTML}</div>`;
+    <span style="color:var(--theme-text-muted,#888);">${label}</span>${valHTML}</div>`;
 }
 
 export function onExit() {

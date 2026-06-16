@@ -646,6 +646,40 @@ async function importFromZip(file, resolve) {
 
     restoreMediaFromMap(mediaMap);
 
+    // Restore voice files to Filesystem
+    if (mediaFolder) {
+      const voiceFiles = Object.keys(zip.files).filter(n => n.startsWith('media/voice_') && n.endsWith('.webm'));
+      for (const name of voiceFiles) {
+        const fileObj = zip.file(name);
+        if (!fileObj) continue;
+        try {
+          const b64 = await fileObj.async('base64');
+          const fileName = name.replace('media/', '');
+          const { Filesystem } = await import('@capacitor/filesystem');
+          await Filesystem.writeFile({
+            path: `Neyra/${fileName}`,
+            data: b64,
+            directory: 'Documents',
+            recursive: true,
+          });
+          const { uri } = await Filesystem.getUri({ path: `Neyra/${fileName}`, directory: 'Documents' });
+          // Обновляем voice_history с новым file:// путём
+          const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
+          const parts = fileName.replace('.webm','').split('_');
+          const ts = parseInt(parts[1]);
+          const entry = vh.find(e => Math.abs(Number(e.time ?? e.date ?? 0) - ts) <= 1000);
+          if (entry) {
+            entry.audio = uri;
+          } else {
+            vh.push({ time: ts, date: ts, audio: uri, duration: 0, mood: 50 });
+          }
+          localStorage.setItem('voice_history', JSON.stringify(vh));
+        } catch(e) {
+          console.warn('[BACKUP] Failed to restore voice file:', name, e);
+        }
+      }
+    }
+
     // Restore photos from Filesystem photos folder
     const photosFolder = zip.folder('photos');
     if (photosFolder) {
@@ -779,12 +813,26 @@ function restoreMediaFromMap(mediaMap) {
 
   mediaMap.forEach((dataUrl, filename) => {
     if (filename.startsWith('voice_')) {
-      const parts = filename.split('_');
+      // Имя файла: voice_{ts}_{idx}.webm
+      const parts = filename.replace('.webm','').split('_');
       const ts = parseInt(parts[1]);
-      const match = voiceHistory.find(item =>
-        (item.time || item.timestamp || item.date) === ts
-      );
-      if (match) match.audio = dataUrl;
+      // Ищем по ts с допуском ±1000мс
+      const match = voiceHistory.find(item => {
+        const itemTs = Number(item.time ?? item.date ?? item.timestamp ?? 0);
+        return Math.abs(itemTs - ts) <= 1000;
+      });
+      if (match) {
+        match.audio = dataUrl;
+      } else {
+        // Запись не найдена по ts — добавляем новую
+        voiceHistory.push({
+          time: ts,
+          date: ts,
+          audio: dataUrl,
+          duration: 0,
+          mood: 50,
+        });
+      }
     }
     if (filename.startsWith('photo_')) {
       const parts = filename.split('_');
