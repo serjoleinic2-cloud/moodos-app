@@ -167,8 +167,8 @@ function getMediaInfo(data) {
       return;
     }
     
-    const photoData = item.dataUrl || item.photo;
-    const photoUri = item.uri || "";
+    const photoData = typeof (item.dataUrl || item.photo) === 'string' ? (item.dataUrl || item.photo) : null;
+    const photoUri = item.uri || (typeof item.photo === 'object' && item.photo?.uri) || "";
     
     if (photoData && photoData.startsWith('data:')) {
       const key = `${item.timestamp || item.time}_${idx}_photo`;
