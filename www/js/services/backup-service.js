@@ -275,6 +275,43 @@ export async function exportData() {
       }))
     };
 
+    // Voice files from Documents/Neyra/ — для ВСЕХ пользователей (нативные платформы)
+    const existingMediaNames = new Set(backup.media.map(m => m.name));
+    const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
+    if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
+      try {
+        const voiceDir = await FilesystemPlugin.readdir({ path: 'Neyra', directory: 'Documents' });
+        for (const file of voiceDir?.files || []) {
+          const fileName = file.name || file;
+          if (typeof fileName === 'string' && fileName.startsWith('voice_') && fileName.endsWith('.webm')) {
+            if (existingMediaNames.has(fileName)) continue;
+            try {
+              const fileResult = await FilesystemPlugin.readFile({
+                path: `Neyra/${fileName}`,
+                directory: 'Documents'
+              });
+              if (fileResult?.data) {
+                const sizeMB = (fileResult.data.length * 3) / 4 / (1024 * 1024);
+                if (sizeMB <= MAX_FILE_SIZE_MB) {
+                  backup.media.push({
+                    type: 'audio',
+                    name: fileName,
+                    data: `data:audio/webm;base64,${fileResult.data}`,
+                    sizeMB
+                  });
+                }
+              }
+            } catch(e) {
+              console.warn('[BACKUP] Failed to read voice file:', fileName, e);
+            }
+          }
+        }
+        console.log('[BACKUP] Added voice files from filesystem, total media:', backup.media.length);
+      } catch(e) {
+        console.warn('[BACKUP] Voice files read failed:', e);
+      }
+    }
+
     // PART 1: Size check
 
     // Size check AFTER adding gallery photos
