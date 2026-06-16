@@ -137,14 +137,15 @@ function getMediaInfo(data) {
 
   voiceHistory.forEach((item, idx) => {
     if (item.audio && item.audio.startsWith('data:')) {
-      const key = `${item.time}_${idx}_voice`;
+      const itemTs = item.time ?? item.date ?? item.timestamp ?? null;
+      const key = `${itemTs}_${idx}_voice`;
       if (!mediaMap.has(key)) {
         const sizeMB = (item.audio.length * 3) / 4 / (1024 * 1024);
         mediaMap.set(key, {
           type: 'audio',
           key: 'voice_history',
           index: idx,
-          name: `voice_${item.time || Date.now()}_${idx}.webm`,
+          name: `voice_${itemTs || Date.now()}_${idx}.webm`,
           data: item.audio,
           sizeMB: sizeMB
         });
@@ -817,8 +818,10 @@ function restoreMediaFromMap(mediaMap) {
 
   mediaMap.forEach((dataUrl, filename) => {
     if (filename.startsWith('voice_')) {
-      // Имя файла: voice_{ts}_{idx}.webm
-      const parts = filename.replace('.webm','').split('_');
+      // Имя файла: voice_{ts}_{idx}.webm — ts это второй сегмент
+      const withoutExt = filename.replace('.webm', '');
+      const parts = withoutExt.split('_');
+      // parts[0]='voice', parts[1]=ts (13-значный), parts[2]=idx
       const ts = parseInt(parts[1]);
       // Ищем по ts с допуском ±1000мс
       const match = voiceHistory.find(item => {
@@ -829,13 +832,15 @@ function restoreMediaFromMap(mediaMap) {
         match.audio = dataUrl;
       } else {
         // Запись не найдена по ts — добавляем новую
-        voiceHistory.push({
-          time: ts,
-          date: ts,
-          audio: dataUrl,
-          duration: 0,
-          mood: 50,
-        });
+        if (!isNaN(ts) && ts > 0) {
+          voiceHistory.push({
+            time: ts,
+            date: ts,
+            audio: dataUrl,
+            duration: 0,
+            mood: 50,
+          });
+        }
       }
     }
     if (filename.startsWith('photo_')) {
