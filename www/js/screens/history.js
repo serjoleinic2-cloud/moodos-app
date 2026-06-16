@@ -86,35 +86,21 @@ async function sharePhoto(item) {
   const text = buildShareText(item);
   const Share = window.Capacitor?.Plugins?.Share;
   const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-  const Media = window.Capacitor?.Plugins?.Media;
-  const Capacitor = window.Capacitor;
-  
-  let imgSrc = item.uri || item.dataUrl || item.photo?.uri;
-  let isFromGallery = item.source === 'gallery';
-  
-  if (isFromGallery && Media && Capacitor?.isNativePlatform()) {
+  let imgSrc = item.photo?.uri || item.uri || item.dataUrl || null;
+
+  if (!imgSrc && item.photo?.path) {
     try {
-      const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
-      const photo = albumPhotos?.medias?.find(p => {
-      const photoTs = typeof p.creationDate === 'number'
-        ? p.creationDate
-        : new Date(p.creationDate).getTime();
-      return Math.abs(photoTs - item.ts) < 5000;
-    });
-      if (photo?.identifier) {
-        const fullPhoto = await Media.getMedias({
-          identifiers: [photo.identifier],
-          thumbnail: false
-        });
-        if (fullPhoto?.medias?.[0]?.webPath) {
-          imgSrc = fullPhoto.medias[0].webPath;
-        }
-      }
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      const file = await Filesystem.readFile({
+        path: item.photo.path,
+        directory: Directory.Data,
+      });
+      imgSrc = 'data:image/jpeg;base64,' + file.data;
     } catch(e) {
-      console.warn("[share] Could not get full photo, using thumbnail:", e);
+      console.warn('[share] Could not read photo from filesystem:', e);
     }
   }
-  
+
   if (!imgSrc) return;
   
   const img = new Image();
@@ -495,34 +481,6 @@ function showPhotoMenu(container, photoInput) {
 async function savePhoto(dataUrl) {
   try {
     const timestamp = Date.now();
-    const fileName = `neyra_${timestamp}.jpg`;
-    const Capacitor = window.Capacitor;
-    const Media = Capacitor?.Plugins?.Media || Capacitor?.Plugins?.CapacitorCommunityMedia;
-    
-    if (Media && Capacitor?.isNativePlatform()) {
-      try {
-        await Media.savePhoto({
-          path: dataUrl,
-          album: { name: 'Neyra' }
-        });
-        console.log('[PHOTO] Saved to gallery album Neyra');
-        
-        const arr = JSON.parse(localStorage.getItem('photo_history') || '[]');
-        arr.push({
-          timestamp,
-          albumName: 'Neyra',
-          fileName,
-          note: '',
-          source: 'gallery'
-        });
-        if (arr.length > 20) arr.splice(0, arr.length - 20);
-        localStorage.setItem('photo_history', JSON.stringify(arr));
-        return;
-      } catch(mediaErr) {
-        console.warn('[PHOTO] Gallery save failed:', mediaErr);
-      }
-    }
-    
     await _savePhotoFallback(dataUrl, timestamp);
   } catch(e) {
     console.error('[PHOTO] savePhoto error:', e);
@@ -753,17 +711,8 @@ function renderDetail(item, filterDate) {
     }
   }
   if (item.type==="photo") {
-    if (item.source === 'gallery') {
-      body = `<div style="text-align:center;margin-top:40px;">
-        <div style="font-size:64px;">📷</div>
-        <div style="margin-top:16px;color:#888;font-size:14px;">
-          ${t("photo_in_gallery") || "Фото сохранено в альбоме «Neyra» в галерее"}
-        </div>
-        <div id="openGalleryBtn" style="margin-top:20px;padding:14px 24px;border-radius:20px;background:rgba(76,175,135,0.15);color:#4caf87;font-size:16px;cursor:pointer;display:inline-block;">
-          📂 ${t("open_gallery") || "Открыть галерею"}
-        </div>
-        ${item.note ? `<div style="margin-top:12px;color:#666;">${item.note}</div>` : ""}
-      </div>`;
+    if (false) {
+      // gallery source removed
     } else if (item.photo?.path) {
       body = `<div style="margin-top:20px;text-align:center;">
         <div id="histPhotoImg" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;min-height:60px;display:flex;align-items:center;justify-content:center;color:#888;">${t("hist_loading") || "Загрузка..."}</div>
@@ -843,14 +792,6 @@ function renderDetail(item, filterDate) {
     document.getElementById("histShareBtn").addEventListener("click", () => shareItem(item));
   }
 
-  if (item.type === 'photo' && item.source === 'gallery') {
-    document.getElementById('openGalleryBtn')?.addEventListener('click', () => {
-      const Media = window.Capacitor?.Plugins?.Media;
-      if (Media?.openAlbum) {
-        Media.openAlbum({ name: 'Neyra' }).catch(() => {});
-      }
-    });
-  }
 }
 
 function detRow(label, valHTML) {

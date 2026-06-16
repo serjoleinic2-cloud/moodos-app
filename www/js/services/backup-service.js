@@ -792,7 +792,26 @@ function restoreMediaFromMap(mediaMap) {
       const match = photoHistory.find(item =>
         (item.timestamp || item.time) === ts
       );
-      if (match) match.dataUrl = dataUrl;
+      if (match) {
+        (async () => {
+          try {
+            const { Filesystem, Directory } = await import('@capacitor/filesystem');
+            const { savePhotoMeta } = await import('./photo-meta.js');
+            const b64 = dataUrl.split(',')[1];
+            const path = 'photos/photo_' + ts + '.jpg';
+            await Filesystem.writeFile({
+              path, data: b64, directory: Directory.Data, recursive: true
+            });
+            const { uri } = await Filesystem.getUri({ path, directory: Directory.Data });
+            match.photo = { source: 'filesystem', path, uri };
+            match.source = 'filesystem';
+            delete match.dataUrl;
+            await savePhotoMeta(String(ts), { path, uri, ts });
+          } catch(e) {
+            console.warn('[BACKUP] restore photo to filesystem failed:', e);
+          }
+        })();
+      }
     }
   });
 
