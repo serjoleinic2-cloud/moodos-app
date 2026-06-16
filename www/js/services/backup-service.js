@@ -86,16 +86,19 @@ function collectAllData(premiumMode = false) {
         try {
           const arr = JSON.parse(value);
           if (Array.isArray(arr)) {
-            const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const cutoffFree = Date.now() - 7 * 24 * 60 * 60 * 1000;
             const filtered = arr.filter(item => {
               const ts = item?.time ?? item?.date ?? item?.timestamp ?? null;
               const n = ts ? Number(ts) : NaN;
-              return !isNaN(n) ? n >= cutoff : false;
+              return !isNaN(n) ? n >= cutoffFree : false;
             }).map(item => ({
               ...item,
-              // file:// ссылки не переносятся — только base64
+              // Сохраняем метаданные, аудио только если base64
+              // file:// ссылки убираем — они не переносятся
               audio: item.audio && item.audio.startsWith('data:') ? item.audio : null
-            })).filter(item => item.audio);
+            }));
+            // Включаем ВСЕ записи с метаданными (даже без audio)
+            // чтобы при восстановлении запись существовала и можно было матчить аудио файл
             if (filtered.length > 0) data[key] = JSON.stringify(filtered);
           }
         } catch(e) {}
@@ -273,40 +276,6 @@ export async function exportData() {
     };
 
     // PART 1: Size check
-    // Voice files from Documents/Neyra/ — для ВСЕХ пользователей
-    const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
-    if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
-      try {
-        const voiceDir = await FilesystemPlugin.readdir({ path: 'Neyra', directory: 'Documents' });
-        for (const file of voiceDir?.files || []) {
-          const fileName = file.name || file;
-          if (typeof fileName === 'string' && fileName.startsWith('voice_') && fileName.endsWith('.webm')) {
-            try {
-              const fileResult = await FilesystemPlugin.readFile({
-                path: `Neyra/${fileName}`,
-                directory: 'Documents'
-              });
-              if (fileResult?.data) {
-                const sizeMB = (fileResult.data.length * 3) / 4 / (1024 * 1024);
-                if (sizeMB <= MAX_FILE_SIZE_MB) {
-                  backup.media.push({
-                    type: 'audio',
-                    name: fileName,
-                    data: `data:audio/webm;base64,${fileResult.data}`,
-                    sizeMB
-                  });
-                }
-              }
-            } catch(e) {
-              console.warn('[BACKUP] Failed to read voice file:', fileName, e);
-            }
-          }
-        }
-        console.log('[BACKUP] Added voice files from filesystem');
-      } catch(e) {
-        console.warn('[BACKUP] Voice files read failed:', e);
-      }
-    }
 
     // Size check AFTER adding gallery photos
     const estimatedSize = JSON.stringify(backup).length / (1024 * 1024);
@@ -622,65 +591,61 @@ async function importFromZip(file, resolve) {
       return;
     }
 
-    console.log('[BACKUP] Backup data keys:', Object.keys(backup.data || {}));
-    restoreData(backup.data);
-
+    // ШАГ 1: Сначала восстанавливаем аудио файлы в Filesystem
     const mediaFolder = zip.folder('media');
     const mediaMap = new Map();
 
     if (mediaFolder) {
-      const mediaFiles = Object.keys(mediaFolder.files).filter(name => name !== 'media/');
+      const mediaFiles = Object.keys(zip.files).filter(
+        n => n.startsWith('media/') && n !== 'media/'
+      );
       console.log('[BACKUP] Media files to restore:', mediaFiles.length);
 
       for (const name of mediaFiles) {
-        const fileObj = mediaFolder.file(name);
-        if (fileObj) {
-          try {
-            const blob = await fileObj.async('blob');
-            const dataUrl = await blobToDataUrl(blob);
-            mediaMap.set(name, dataUrl);
-          } catch (e) {
-            console.warn('[BACKUP] Failed to extract media:', name, e);
-          }
-        }
-      }
-    }
-
-    restoreMediaFromMap(mediaMap);
-
-    // Restore voice files to Filesystem
-    if (mediaFolder) {
-      const voiceFiles = Object.keys(zip.files).filter(n => n.startsWith('media/voice_') && n.endsWith('.webm'));
-      for (const name of voiceFiles) {
+        const shortName = name.replace('media/', '');
         const fileObj = zip.file(name);
         if (!fileObj) continue;
         try {
-          const b64 = await fileObj.async('base64');
-          const fileName = name.replace('media/', '');
-          const { Filesystem } = await import('@capacitor/filesystem');
-          await Filesystem.writeFile({
-            path: `Neyra/${fileName}`,
-            data: b64,
-            directory: 'Documents',
-            recursive: true,
-          });
-          const { uri } = await Filesystem.getUri({ path: `Neyra/${fileName}`, directory: 'Documents' });
-          // Обновляем voice_history с новым file:// путём
-          const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
-          const parts = fileName.replace('.webm','').split('_');
-          const ts = parseInt(parts[1]);
-          const entry = vh.find(e => Math.abs(Number(e.time ?? e.date ?? 0) - ts) <= 1000);
-          if (entry) {
-            entry.audio = uri;
+          if (shortName.startsWith('voice_') && shortName.endsWith('.webm')) {
+            // Аудио → пишем в Filesystem
+            const b64 = await fileObj.async('base64');
+            const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
+            if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
+              await FilesystemPlugin.writeFile({
+                path: `Neyra/${shortName}`,
+                data: b64,
+                directory: 'Documents',
+                recursive: true,
+              });
+              const { uri } = await FilesystemPlugin.getUri({
+                path: `Neyra/${shortName}`,
+                directory: 'Documents'
+              });
+              // В mediaMap кладём file:// uri чтобы audio поле стало рабочим
+              mediaMap.set(shortName, uri);
+            } else {
+              // Браузер / не нативная платформа — кладём base64
+              const blob = await fileObj.async('blob');
+              const dataUrl = await blobToDataUrl(blob);
+              mediaMap.set(shortName, dataUrl);
+            }
           } else {
-            vh.push({ time: ts, date: ts, audio: uri, duration: 0, mood: 50 });
+            // Фото → в mediaMap как dataUrl
+            const blob = await fileObj.async('blob');
+            const dataUrl = await blobToDataUrl(blob);
+            mediaMap.set(shortName, dataUrl);
           }
-          localStorage.setItem('voice_history', JSON.stringify(vh));
-        } catch(e) {
-          console.warn('[BACKUP] Failed to restore voice file:', name, e);
+        } catch (e) {
+          console.warn('[BACKUP] Failed to extract media:', name, e);
         }
       }
     }
+
+    // ШАГ 2: Восстанавливаем текстовые данные
+    restoreData(backup.data);
+
+    // ШАГ 3: Применяем медиа (аудио uri / фото dataUrl) к записям
+    restoreMediaFromMap(mediaMap);
 
     // Restore photos from Filesystem photos folder
     const photosFolder = zip.folder('photos');
