@@ -89,7 +89,7 @@ async function sharePhoto(item) {
   const Media = window.Capacitor?.Plugins?.Media;
   const Capacitor = window.Capacitor;
   
-  let imgSrc = item.uri || item.dataUrl;
+  let imgSrc = item.uri || item.dataUrl || item.photo?.uri;
   let isFromGallery = item.source === 'gallery';
   
   if (isFromGallery && Media && Capacitor?.isNativePlatform()) {
@@ -174,12 +174,12 @@ function buildTimeline() {
     photos.forEach(e => items.push({
       type: "photo",
       ts: e.timestamp||e.time||Date.now(),
-      dataUrl: e.source === 'gallery' ? null : (e.dataUrl||e.photo||null),
-      thumbnail: e.thumbnail||null,
+      dataUrl: e.source === 'gallery' ? null : (e.dataUrl||null),
       uri: e.uri||null,
       source: e.source||'base64',
       albumName: e.albumName||null,
-      note: e.note||""
+      note: e.note||"",
+      photo: e.photo||null
     }));
   } catch(e) {}
   getSessionHistory().forEach(e => items.push({
@@ -205,7 +205,7 @@ function groupByDay(items) {
   return g;
 }
 
-function deleteItem(item) {
+async function deleteItem(item) {
   try {
     if (item.type==="mood") {
       const arr = getMoodHistory().filter(e => new Date(e.time).getTime() !== item.ts);
@@ -229,21 +229,18 @@ function deleteItem(item) {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
       const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
       if (toDelete) {
-        const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-        if (Filesystem) {
-          // Удаляем по uri
-          if (toDelete.uri && toDelete.uri.startsWith("file://")) {
-            const m = toDelete.uri.match(/\/([^\/]+)$/);
-            if (m) Filesystem.deleteFile({ path: m[1], directory: "Documents" }).catch(()=>{});
-          }
-          // Удаляем по fileName напрямую
-          if (toDelete.fileName) {
-            Filesystem.deleteFile({ path: toDelete.fileName, directory: "Documents" }).catch(()=>{});
-          }
-          // Удаляем по паттерну имени из dataUrl timestamp
-          if (!toDelete.uri && !toDelete.fileName && toDelete.timestamp) {
-            Filesystem.deleteFile({ path: `neyra-${toDelete.timestamp}.jpg`, directory: "Documents" }).catch(()=>{});
-          }
+        if (toDelete.photo?.path) {
+          try {
+            const { Filesystem, Directory } = await import('@capacitor/filesystem');
+            await Filesystem.deleteFile({
+              path: toDelete.photo.path,
+              directory: Directory.Data,
+            }).catch(() => {});
+          } catch(e) {}
+          try {
+            const { deletePhotoMeta } = await import('../services/photo-meta.js');
+            await deletePhotoMeta(String(toDelete.timestamp));
+          } catch(e) {}
         }
       }
       const filtered = arr.filter(e => (e.timestamp||e.time) !== item.ts);
@@ -299,8 +296,7 @@ function showDeleteConfirm(item, filterDate) {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('deleteConfirmYes').addEventListener('click', () => {
     overlay.remove();
-    deleteItem(item);
-    renderHistory(filterDate);
+    deleteItem(item).then(() => renderHistory(filterDate));
   });
 }
 
@@ -500,9 +496,6 @@ async function savePhoto(dataUrl) {
   try {
     const timestamp = Date.now();
     const fileName = `neyra_${timestamp}.jpg`;
-    
-    const thumbnail = await compressImage(dataUrl, 100, 0.6);
-    
     const Capacitor = window.Capacitor;
     const Media = Capacitor?.Plugins?.Media || Capacitor?.Plugins?.CapacitorCommunityMedia;
     
@@ -514,60 +507,71 @@ async function savePhoto(dataUrl) {
         });
         console.log('[PHOTO] Saved to gallery album Neyra');
         
-        const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
+        const arr = JSON.parse(localStorage.getItem('photo_history') || '[]');
         arr.push({
           timestamp,
           albumName: 'Neyra',
           fileName,
-          note: "",
-          source: 'gallery',
-          thumbnail
+          note: '',
+          source: 'gallery'
         });
         if (arr.length > 20) arr.splice(0, arr.length - 20);
-        localStorage.setItem("photo_history", JSON.stringify(arr));
+        localStorage.setItem('photo_history', JSON.stringify(arr));
         return;
       } catch(mediaErr) {
         console.warn('[PHOTO] Gallery save failed:', mediaErr);
       }
     }
     
-    await _savePhotoFallback(dataUrl, timestamp, thumbnail);
+    await _savePhotoFallback(dataUrl, timestamp);
   } catch(e) {
     console.error('[PHOTO] savePhoto error:', e);
   }
 }
 
-async function _savePhotoFallback(dataUrl, timestamp, thumbnail) {
+async function _savePhotoFallback(dataUrl, timestamp) {
   try {
-    const Capacitor = window.Capacitor;
-    const Filesystem = Capacitor?.Plugins?.Filesystem;
     const ts = timestamp || Date.now();
-    const fileName = "neyra-" + ts + ".jpg";
-    const base64 = dataUrl.split(",")[1];
-    
+    const fileName = 'photo_' + ts + '.jpg';
+    const base64data = dataUrl.split(',')[1];
     let uri = dataUrl;
-    
-    if (Filesystem && base64) {
+    const Capacitor = window.Capacitor;
+
+    if (Capacitor?.isNativePlatform?.()) {
       try {
-        await Filesystem.writeFile({ path: fileName, data: base64, directory: "Documents" });
-        const fileInfo = await Filesystem.getUri({ path: fileName, directory: "Documents" });
-        uri = fileInfo.uri || dataUrl;
+        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        await Filesystem.writeFile({
+          path: 'photos/' + fileName,
+          data: base64data,
+          directory: Directory.Data,
+          recursive: true,
+        });
+        const fileInfo = await Filesystem.getUri({
+          path: 'photos/' + fileName,
+          directory: Directory.Data,
+        });
+        uri = fileInfo.uri;
       } catch(e) {
-        console.warn("[photo] Filesystem write failed:", e);
+        console.warn('[photo] Filesystem write failed:', e);
       }
     }
-    
-    const arr = JSON.parse(localStorage.getItem("photo_history") || "[]");
-    arr.push({
-      dataUrl: dataUrl,
-      thumbnail: thumbnail,
+
+    const arr = JSON.parse(localStorage.getItem('photo_history') || '[]');
+    const entry = {
       timestamp: ts,
-      note: "",
-      source: 'base64'
-    });
+      note: '',
+      source: 'filesystem',
+      photo: { source: 'filesystem', path: 'photos/' + fileName, uri }
+    };
+    arr.push(entry);
     if (arr.length > 20) arr.splice(0, arr.length - 20);
-    localStorage.setItem("photo_history", JSON.stringify(arr));
-    
+    localStorage.setItem('photo_history', JSON.stringify(arr));
+
+    try {
+      const { savePhotoMeta } = await import('../services/photo-meta.js');
+      await savePhotoMeta(String(ts), { path: 'photos/' + fileName, uri, ts });
+    } catch(e) {}
+
     if (window.scheduleCloudSync) window.scheduleCloudSync();
   } catch(e) {}
 }
@@ -614,10 +618,9 @@ function renderCard(item) {
   }
 
   if (item.type === "photo") {
-    const previewSrc = item.thumbnail || item.uri || item.dataUrl || "";
     return `<div class="hist-card" data-ts="${item.ts}" data-type="photo" data-clickable="1" style="border-left:3px solid #f0a500;">
       <div class="hist-card-left" style="background:#fff8e1;overflow:hidden;border-radius:12px;">
-        ${previewSrc ? `<img src="${previewSrc}" style="width:44px;height:44px;object-fit:cover;border-radius:12px;">` : `<span style="font-size:20px;">📷</span>`}
+        <span style="font-size:20px;">📷</span>
       </div>
       <div class="hist-card-body">
         <div class="hist-card-title">${t("hist_photo")}</div>
@@ -761,12 +764,34 @@ function renderDetail(item, filterDate) {
         </div>
         ${item.note ? `<div style="margin-top:12px;color:#666;">${item.note}</div>` : ""}
       </div>`;
-    } else {
-      const photoSrc = item.dataUrl || item.uri || "";
-      body=`<div style="margin-top:20px;text-align:center;">
-        ${photoSrc?`<img src="${photoSrc}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`:t("hist_no_image")}
+    } else if (item.photo?.path) {
+      body = `<div style="margin-top:20px;text-align:center;">
+        <div id="histPhotoImg" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;min-height:60px;display:flex;align-items:center;justify-content:center;color:#888;">${t("hist_loading") || "Загрузка..."}</div>
         ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
       </div>`;
+      (async () => {
+        try {
+          const { Filesystem, Directory } = await import('@capacitor/filesystem');
+          const file = await Filesystem.readFile({
+            path: item.photo.path,
+            directory: Directory.Data,
+          });
+          const el = document.getElementById('histPhotoImg');
+          if (el) el.innerHTML = `<img src="data:image/jpeg;base64,${file.data}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`;
+        } catch(e) {
+          const el = document.getElementById('histPhotoImg');
+          if (el) el.innerHTML = item.photo.uri
+            ? `<img src="${item.photo.uri}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`
+            : (t("hist_no_image") || '❌');
+        }
+      })();
+    } else if (item.dataUrl) {
+      body = `<div style="margin-top:20px;text-align:center;">
+        <img src="${item.dataUrl}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
+        ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
+      </div>`;
+    } else {
+      body = `<div style="margin-top:20px;text-align:center;color:#888;">${t("hist_no_image") || ""}</div>`;
     }
   }
   if (item.type==="session") {

@@ -8,6 +8,7 @@ import { t } from '../i18n.js';
 import { isPremium } from './user-profile.js';
 import { canExportBackup, markBackupSuccess } from './backup-reminder.js';
 import { disableExitGuardForReload } from './exit-guard.js';
+import { savePhotoMeta } from './photo-meta.js';
 
 const getId = (item) =>
   item?.timestamp ??
@@ -272,39 +273,10 @@ export async function exportData() {
     };
 
     // PART 1: Size check
-    // PREMIUM: read gallery photos and voice files and pack to ZIP
+    // PREMIUM: read voice files and pack to ZIP
     if (isPremium()) {
-      const Media = window.Capacitor?.Plugins?.Media;
       const Filesystem = window.Capacitor?.Plugins?.Filesystem;
       const Capacitor = window.Capacitor;
-      
-      // Gallery photos
-      if (Media && Capacitor?.isNativePlatform()) {
-        try {
-          const albumPhotos = await Media.getMedias({ albumName: 'Neyra', quantity: 100 });
-          for (const photo of albumPhotos?.medias || []) {
-            try {
-              if (Filesystem) {
-                const fileResult = await Filesystem.readFile({ path: photo.identifier });
-                if (fileResult?.data) {
-                  const name = `gallery_${photo.creationDate || Date.now()}.jpg`;
-                  backup.media.push({
-                    type: 'photo',
-                    name,
-                    data: `data:image/jpeg;base64,${fileResult.data}`,
-                    sizeMB: (fileResult.data.length * 3) / 4 / (1024 * 1024)
-                  });
-                }
-              }
-            } catch(e) {
-              console.warn('[BACKUP] Failed to read gallery photo:', e);
-            }
-          }
-          console.log('[BACKUP] Premium: added gallery photos:', albumPhotos?.medias?.length);
-        } catch(e) {
-          console.warn('[BACKUP] Premium gallery read failed:', e);
-        }
-      }
       
       // Voice files from Documents/Neyra/
       if (Filesystem && Capacitor?.isNativePlatform()) {
@@ -380,6 +352,31 @@ export async function exportData() {
       }
 
       console.log('[BACKUP] Media files added to ZIP:', addedMedia);
+
+      // Premium: add photos from Filesystem
+      if (isPremium()) {
+        try {
+          const { getAllPhotoMeta } = await import('./photo-meta.js');
+          const allMeta = await getAllPhotoMeta();
+          const photosFolder = zip.folder('photos');
+          if (photosFolder && allMeta.length > 0) {
+            for (const meta of allMeta) {
+              try {
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                const file = await Filesystem.readFile({
+                  path: meta.path,
+                  directory: Directory.Data,
+                });
+                photosFolder.file(meta.entryId + '.jpg', file.data, { base64: true });
+              } catch(e) {
+                console.warn('[BACKUP] photo read failed:', meta.path, e);
+              }
+            }
+          }
+        } catch(e) {
+          console.warn('[BACKUP] photos collection failed:', e);
+        }
+      }
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const date = new Date().toISOString().split('T')[0];
@@ -648,6 +645,31 @@ async function importFromZip(file, resolve) {
     }
 
     restoreMediaFromMap(mediaMap);
+
+    // Restore photos from Filesystem photos folder
+    const photosFolder = zip.folder('photos');
+    if (photosFolder) {
+      const files = [];
+      photosFolder.forEach((path, file) => files.push({ path, file }));
+      for (const { path, file } of files) {
+        try {
+          const b64 = await file.async('base64');
+          const entryId = path.replace('photos/', '').replace('.jpg', '');
+          const filePath = 'photos/photo_' + entryId + '.jpg';
+          const { Filesystem, Directory } = await import('@capacitor/filesystem');
+          await Filesystem.writeFile({
+            path: filePath,
+            data: b64,
+            directory: Directory.Data,
+            recursive: true,
+          });
+          const { uri } = await Filesystem.getUri({ path: filePath, directory: Directory.Data });
+          await savePhotoMeta(entryId, { path: filePath, uri, ts: Date.now() });
+        } catch(e) {
+          console.warn('[BACKUP] Failed to restore photo:', path, e);
+        }
+      }
+    }
 
     console.log('[BACKUP] >>> Reloading page...');
     // Ставим флаг — после перезагрузки показать баннер уточнения профиля
