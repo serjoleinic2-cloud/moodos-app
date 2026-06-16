@@ -127,6 +127,7 @@ export function onEnter() {
   slider.parentNode.replaceChild(newSlider, slider);
   newSlider.id = "moodSlider";
   newSlider.value = currentMood;
+  let sliderTouched = false;
   showAvatarHint(Number(currentMood));
   
   if (eventsContainer) {
@@ -153,6 +154,7 @@ export function onEnter() {
   }
 
   newSlider.addEventListener("input", () => {
+    sliderTouched = true;
     valueLabel.textContent = newSlider.value + "%";
     showAvatarHint(Number(newSlider.value));
     setAvatarMood(Number(newSlider.value));
@@ -173,13 +175,14 @@ export function onEnter() {
     if (newBtn.disabled) return;
     newBtn.disabled = true;
 
-    const moodValue = Number(newSlider.value);
+    const moodValue = sliderTouched ? Number(newSlider.value) : null;
     const selectedEvents = getSelectedEvents();
     const timeBucket = getTimeBucket();
     
     try {
       const result = await SystemCore.dispatch('MOOD_SUBMIT', { 
-        mood: moodValue, 
+        mood: moodValue,
+        moodSet: sliderTouched,
         events: selectedEvents,
         timeBucket: timeBucket
       });
@@ -203,7 +206,7 @@ export function onEnter() {
       if (savedLabel) savedLabel.textContent = `${time} (${date})`;
       try { localStorage.setItem('neyra_last_saved_time', `${time} (${date})`); } catch(e) {}
 
-      showAvatarForMood(moodValue);
+      if (moodValue !== null) showAvatarForMood(moodValue);
       avatarReact();
 
       // Живая реакция Нейры
@@ -238,11 +241,13 @@ export function onEnter() {
         renderInsightCard();
       }, 300);
 
-      try {
-        const { showAvatarForMood: showAvatarForMood2 } = await import("../avatar.js");
-        showAvatarForMood2(moodValue);
-      } catch(e) {
-        console.warn('[home] avatar insight error:', e);
+      if (moodValue !== null) {
+        try {
+          const { showAvatarForMood: showAvatarForMood2 } = await import("../avatar.js");
+          showAvatarForMood2(moodValue);
+        } catch(e) {
+          console.warn('[home] avatar insight error:', e);
+        }
       }
 
       if (selectedEvents.length > 0) {

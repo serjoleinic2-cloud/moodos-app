@@ -144,9 +144,9 @@ const SystemCore = {
 
         case 'MOOD_SUBMIT':
           console.log('[AVATAR DEBUG] MOOD_SUBMIT with payload:', payload);
-          const moodValue = typeof payload === 'object' ? payload.mood : payload;
           result = await this.handleMoodFlow(payload)
-          showAvatarForMood(moodValue)
+          const submittedMood = result?.mood ?? (typeof payload === 'object' ? payload.mood : payload);
+          if (submittedMood != null) showAvatarForMood(submittedMood)
           break
 
         case 'SAVE_NOTE':

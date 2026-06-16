@@ -33,7 +33,7 @@ export function save(data) {
     }));
   }
   
-  if (data.mood !== undefined) {
+  if (data.mood !== undefined && data.mood !== null) {
     const history = getMoodHistory();
     history.push({
       value: data.mood,

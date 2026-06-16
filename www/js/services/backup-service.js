@@ -273,36 +273,38 @@ export async function exportData() {
     };
 
     // PART 1: Size check
-    // PREMIUM: read voice files and pack to ZIP
-    if (isPremium()) {
-      const Filesystem = window.Capacitor?.Plugins?.Filesystem;
-      const Capacitor = window.Capacitor;
-      
-      // Voice files from Documents/Neyra/
-      if (Filesystem && Capacitor?.isNativePlatform()) {
-        try {
-          const voiceDir = await Filesystem.readDir({ path: 'Neyra', directory: 'Documents' });
-          for (const file of voiceDir?.files || []) {
-            if (file.name?.startsWith('voice_') && file.name?.endsWith('.webm')) {
-              try {
-                const fileResult = await Filesystem.readFile({ path: `Neyra/${file.name}`, directory: 'Documents' });
-                if (fileResult?.data) {
+    // Voice files from Documents/Neyra/ — для ВСЕХ пользователей
+    const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
+    if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
+      try {
+        const voiceDir = await FilesystemPlugin.readdir({ path: 'Neyra', directory: 'Documents' });
+        for (const file of voiceDir?.files || []) {
+          const fileName = file.name || file;
+          if (typeof fileName === 'string' && fileName.startsWith('voice_') && fileName.endsWith('.webm')) {
+            try {
+              const fileResult = await FilesystemPlugin.readFile({
+                path: `Neyra/${fileName}`,
+                directory: 'Documents'
+              });
+              if (fileResult?.data) {
+                const sizeMB = (fileResult.data.length * 3) / 4 / (1024 * 1024);
+                if (sizeMB <= MAX_FILE_SIZE_MB) {
                   backup.media.push({
                     type: 'audio',
-                    name: file.name,
+                    name: fileName,
                     data: `data:audio/webm;base64,${fileResult.data}`,
-                    sizeMB: (fileResult.data.length * 3) / 4 / (1024 * 1024)
+                    sizeMB
                   });
                 }
-              } catch(e) {
-                console.warn('[BACKUP] Failed to read voice file:', e);
               }
+            } catch(e) {
+              console.warn('[BACKUP] Failed to read voice file:', fileName, e);
             }
           }
-          console.log('[BACKUP] Premium: added voice files from filesystem');
-        } catch(e) {
-          console.warn('[BACKUP] Premium voice read failed:', e);
         }
+        console.log('[BACKUP] Added voice files from filesystem');
+      } catch(e) {
+        console.warn('[BACKUP] Voice files read failed:', e);
       }
     }
 
