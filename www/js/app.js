@@ -942,6 +942,7 @@ if (!window.__neyraAppRunning) {
               date: data.date
             });
           }
+          import('./screens/home.js').then(m => m.updateVoiceQuotaHint());
         }).catch(() => {
           cleanup();
           if (voiceStatus) voiceStatus.textContent = "❌";

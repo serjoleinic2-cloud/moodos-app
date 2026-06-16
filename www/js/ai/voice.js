@@ -1,6 +1,25 @@
 import { t } from "../i18n.js";
 import { getMood } from "../state.js";
 
+const VOICE_LIMIT_FREE    = 5;
+const VOICE_LIMIT_PREMIUM = 50;
+
+export function getVoiceQuota() {
+  const isPremium = window.__isPremium?.() || false;
+  const limit = isPremium ? VOICE_LIMIT_PREMIUM : VOICE_LIMIT_FREE;
+  try {
+    const history = JSON.parse(localStorage.getItem('voice_history') || '[]');
+    const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recent = history.filter(item => {
+      const ts = item?.time ?? item?.date ?? item?.timestamp ?? null;
+      return ts ? Number(ts) >= cutoff : false;
+    });
+    return { used: recent.length, limit, remaining: Math.max(0, limit - recent.length) };
+  } catch(e) {
+    return { used: 0, limit, remaining: limit };
+  }
+}
+
 let mediaRecorder;
 let chunks = [];
 let recordingStartTime = null;
@@ -28,6 +47,11 @@ async function saveAudioToFile(audioData) {
 }
 
 export async function startVoiceRecording(statusEl, onFinish) {
+  const quota = getVoiceQuota();
+  if (quota.remaining <= 0) {
+    if (statusEl) statusEl.textContent = t('voice_limit_reached');
+    return;
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);

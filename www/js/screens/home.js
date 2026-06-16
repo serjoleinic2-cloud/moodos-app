@@ -2,6 +2,7 @@ import { getMood } from "../state.js";
 import SystemCore from "../system-core.js";
 import { showAvatarHint, showAvatarAfterSave, showAvatar } from "../avatar.js";
 import { initEventsModule, renderEventsGrid, getSelectedEvents, clearSelectedEvents, updateEventsUI, cleanupEventsListener } from "../events.js";
+import { getVoiceQuota } from "../ai/voice.js";
 
 import { showAvatarForMood } from "../avatar.js";
 import { AppRuntime } from "../core/appRuntime.js";
@@ -288,7 +289,29 @@ export function onEnter() {
   if (homeContainer) renderLetterCard(homeContainer);
 
   _initCalmCard();
+  updateVoiceQuotaHint();
 }
+
+function updateVoiceQuotaHint() {
+  const hintEl = document.getElementById('voiceQuotaHint');
+  if (!hintEl) return;
+  const { remaining, limit } = getVoiceQuota();
+  const isPremium = window.__isPremium?.() || false;
+  if (isPremium && limit >= 50) { hintEl.style.display = 'none'; return; }
+  hintEl.style.display = 'block';
+  if (remaining <= 0) {
+    hintEl.textContent = t('voice_limit_reached');
+    hintEl.style.color = '#e05555';
+  } else if (remaining <= 2) {
+    hintEl.textContent = t('voice_quota_low').replace('{n}', remaining);
+    hintEl.style.color = '#f0a500';
+  } else {
+    hintEl.textContent = t('voice_quota_ok').replace('{n}', remaining);
+    hintEl.style.color = '#aaa';
+  }
+}
+
+export { updateVoiceQuotaHint };
 
 function showInsightCard(insight) {
   const card = document.getElementById("homeInsightCard");
