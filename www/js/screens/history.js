@@ -225,15 +225,12 @@ async function deleteItem(item) {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
       const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
       if (toDelete) {
-        if (toDelete.uri && toDelete.uri.startsWith("file://")) {
+        if (toDelete.source === 'filesystem' && toDelete.uri && toDelete.uri.startsWith("file://")) {
           const Filesystem = window.Capacitor?.Plugins?.Filesystem;
           if (Filesystem) {
             const m = toDelete.uri.match(/Neyra\/([^\/]+)$/);
             if (m) {
               Filesystem.deleteFile({ path: `Neyra/${m[1]}`, directory: "Documents" }).catch(()=>{});
-            } else {
-              const mFallback = toDelete.uri.match(/\/([^\/]+)$/);
-              if (mFallback) Filesystem.deleteFile({ path: mFallback[1], directory: "Documents" }).catch(()=>{});
             }
           }
         }
@@ -542,7 +539,7 @@ async function _savePhotoFallback(dataUrl, timestamp) {
 
     try {
       const { savePhotoMeta } = await import('../services/photo-meta.js');
-      await savePhotoMeta(String(ts), { path: 'photos/' + fileName, uri, ts });
+      await savePhotoMeta(String(ts), { path: fileName, uri, ts });
     } catch(e) {}
 
     if (window.scheduleCloudSync) window.scheduleCloudSync();
@@ -728,27 +725,14 @@ function renderDetail(item, filterDate) {
   if (item.type==="photo") {
     if (false) {
       // gallery source removed
-    } else if (item.photo?.path) {
+    } else if (item.uri && item.uri.startsWith('file://')) {
+      const displayUri = window.Capacitor?.convertFileSrc
+        ? window.Capacitor.convertFileSrc(item.uri)
+        : item.uri;
       body = `<div style="margin-top:20px;text-align:center;">
-        <div id="histPhotoImg" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;min-height:60px;display:flex;align-items:center;justify-content:center;color:#888;">${t("hist_loading") || "Загрузка..."}</div>
+        <img src="${displayUri}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
         ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
       </div>`;
-      (async () => {
-        try {
-          const { Filesystem, Directory } = await import('@capacitor/filesystem');
-          const file = await Filesystem.readFile({
-            path: item.photo.path,
-            directory: Directory.Data,
-          });
-          const el = document.getElementById('histPhotoImg');
-          if (el) el.innerHTML = `<img src="data:image/jpeg;base64,${file.data}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`;
-        } catch(e) {
-          const el = document.getElementById('histPhotoImg');
-          if (el) el.innerHTML = item.photo.uri
-            ? `<img src="${item.photo.uri}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">`
-            : (t("hist_no_image") || '❌');
-        }
-      })();
     } else if (item.dataUrl) {
       body = `<div style="margin-top:20px;text-align:center;">
         <img src="${item.dataUrl}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
