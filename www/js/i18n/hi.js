@@ -160,6 +160,8 @@ export const hi = {
     hist_note: "नोट",
     hist_reflection: "चिंतन",
     hist_photo: "फोटो",
+    hist_gallery_unavailable: 'ऐप पुनः इंस्टॉल के बाद गैलरी फ़ोटो उपलब्ध नहीं है',
+    hist_photo_unavailable: 'फ़ोटो उपलब्ध नहीं है',
     hist_voice: "आवाज़ रिकॉर्डिंग",
     hist_voice_diary: "आवाज़ डायरी",
     hist_voice_no_audio: "🔇 ऑडियो सहेजा नहीं गया",

@@ -204,6 +204,8 @@ export const ru = {
     hist_note: "Заметка",
     hist_reflection: "Рефлексия",
     hist_photo: "Фото",
+    hist_gallery_unavailable: 'Фото из галереи недоступно после переустановки приложения',
+    hist_photo_unavailable: 'Фото недоступно',
     hist_voice: "Голосовая запись",
     hist_voice_diary: "Голосовой дневник",
     hist_voice_no_audio: "🔇 Аудио не сохранено",

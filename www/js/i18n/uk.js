@@ -204,6 +204,8 @@ export const uk = {
     hist_note: "Нотатка",
     hist_reflection: "Рефлексія",
     hist_photo: "Фото",
+    hist_gallery_unavailable: 'Фото з галереї недоступне після перевстановлення застосунку',
+    hist_photo_unavailable: 'Фото недоступне',
     hist_voice: "Голосовий запис",
     hist_voice_diary: "Голосовий щоденник",
     hist_voice_no_audio: "🔇 Аудіо не збережено",

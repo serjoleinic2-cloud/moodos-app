@@ -205,6 +205,8 @@ export const en = {
     hist_note: "Note",
     hist_reflection: "Reflection",
     hist_photo: "Photo",
+    hist_gallery_unavailable: 'Gallery photo unavailable after app reinstall',
+    hist_photo_unavailable: 'Photo unavailable',
     hist_voice: "Voice Recording",
     hist_voice_diary: "Voice Diary",
     hist_voice_no_audio: "🔇 Audio not saved",

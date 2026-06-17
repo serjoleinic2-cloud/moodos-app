@@ -723,14 +723,20 @@ function renderDetail(item, filterDate) {
     }
   }
   if (item.type==="photo") {
-    if (false) {
-      // gallery source removed
+    if (item.source === 'gallery') {
+      body = `<div style="margin-top:20px;text-align:center;padding:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">🖼</div>
+        <div style="font-size:14px;color:#aaa;line-height:1.6;">${t("hist_gallery_unavailable") || "Фото из галереи недоступно после переустановки приложения"}</div>
+        ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
+      </div>`;
     } else if (item.uri && item.uri.startsWith('file://')) {
       const displayUri = window.Capacitor?.convertFileSrc
         ? window.Capacitor.convertFileSrc(item.uri)
         : item.uri;
       body = `<div style="margin-top:20px;text-align:center;">
-        <img src="${displayUri}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;">
+        <img src="${displayUri}" style="max-width:100%;border-radius:18px;box-shadow:4px 4px 10px #b8c4b4,-4px -4px 10px #ffffff;"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div style="display:none;font-size:13px;color:#aaa;padding:20px;">${t("hist_photo_unavailable") || "Фото недоступно"}</div>
         ${item.note?`<div style="margin-top:12px;color:#666;font-size:15px;">${item.note}</div>`:""}
       </div>`;
     } else if (item.dataUrl) {
