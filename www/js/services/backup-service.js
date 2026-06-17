@@ -277,7 +277,7 @@ export async function exportData() {
       return { success: false, error: 'no_data' };
     }
 
-    let media = getMediaInfo(data);
+    let media = await getMediaInfo(data);
     console.log('[BACKUP] Media found:', media.length);
 
     // PART 3: Remove duplicates (by name)
@@ -733,7 +733,7 @@ async function importFromZip(file, resolve) {
     } catch(e) {}
 
     // ШАГ 3: Применяем медиа (аудио uri / фото dataUrl) к записям
-    restoreMediaFromMap(mediaMap);
+    await restoreMediaFromMap(mediaMap);
 
     // Restore photos from Filesystem photos folder
     const photosFolder = zip.folder('photos');
@@ -860,20 +860,18 @@ function blobToDataUrl(blob) {
   });
 }
 
-function restoreMediaFromMap(mediaMap) {
+async function restoreMediaFromMap(mediaMap) {
   console.log('[BACKUP] restoreMediaFromMap started, files:', mediaMap.size);
-  
+
   const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
   const photoHistory = JSON.parse(localStorage.getItem('photo_history') || '[]');
+  const photoPromises = [];
 
   mediaMap.forEach((dataUrl, filename) => {
     if (filename.startsWith('voice_')) {
-      // Имя файла: voice_{ts}_{idx}.webm — ts это второй сегмент
       const withoutExt = filename.replace('.webm', '');
       const parts = withoutExt.split('_');
-      // parts[0]='voice', parts[1]=ts (13-значный), parts[2]=idx
       const ts = parseInt(parts[1]);
-      // Ищем по ts с допуском ±1000мс
       const match = voiceHistory.find(item => {
         const itemTs = Number(item.time ?? item.date ?? item.timestamp ?? 0);
         return Math.abs(itemTs - ts) <= 1000;
@@ -881,7 +879,6 @@ function restoreMediaFromMap(mediaMap) {
       if (match) {
         match.audio = dataUrl;
       } else {
-        // Запись не найдена по ts — добавляем новую
         if (!isNaN(ts) && ts > 0) {
           voiceHistory.push({
             time: ts,
@@ -900,7 +897,7 @@ function restoreMediaFromMap(mediaMap) {
         (item.timestamp || item.time) === ts
       );
       if (match) {
-        (async () => {
+        photoPromises.push((async () => {
           try {
             const { Filesystem, Directory } = await import('@capacitor/filesystem');
             const { savePhotoMeta } = await import('./photo-meta.js');
@@ -917,10 +914,13 @@ function restoreMediaFromMap(mediaMap) {
           } catch(e) {
             console.warn('[BACKUP] restore photo to filesystem failed:', e);
           }
-        })();
+        })());
       }
     }
   });
+
+  // Дожидаемся всех фото-операций ДО сохранения localStorage
+  await Promise.all(photoPromises);
 
   try {
     localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
