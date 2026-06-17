@@ -917,6 +917,7 @@ async function restoreMediaFromMap(mediaMap) {
         }
       }
     }
+    console.log('[BACKUP] Processing file:', filename, 'type:', typeof dataUrl, 'len:', typeof dataUrl === 'string' ? dataUrl.length : JSON.stringify(dataUrl).length);
     if (filename.startsWith('photo_') || filename.startsWith('neyra-')) {
       let ts;
       if (filename.startsWith('photo_')) {
@@ -930,6 +931,8 @@ async function restoreMediaFromMap(mediaMap) {
       let match = photoHistory.find(item =>
         Math.abs((item.timestamp || item.time || 0) - ts) <= 2000
       );
+      console.log('[BACKUP] Photo ts:', ts, 'photoHistory count:', photoHistory.length, 'match found:', !!match);
+      photoHistory.forEach((item, i) => console.log('[BACKUP] photoHistory['+i+']:', item.timestamp, item.time, item.source));
 
       // Если не нашли — создаём новую запись
       if (!match && !isNaN(ts) && ts > 0) {
@@ -993,6 +996,7 @@ async function restoreMediaFromMap(mediaMap) {
 
   // Дожидаемся всех фото-операций ДО сохранения localStorage
   await Promise.all(photoPromises);
+  console.log('[BACKUP] photo_history after restore:', JSON.parse(localStorage.getItem('photo_history') || '[]').map(p => ({ts: p.timestamp, uri: p.uri, source: p.source, hasDataUrl: !!p.dataUrl})));
 
   try {
     localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
