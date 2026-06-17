@@ -756,22 +756,6 @@ async function importFromZip(file, resolve) {
       localStorage.setItem('voice_history', JSON.stringify(cleaned));
     } catch(e) {}
 
-    // ШАГ 2.6: Зачищаем битые file:// в photo_history (не трогаем те что есть в mediaMap)
-    try {
-      const ph = JSON.parse(localStorage.getItem('photo_history') || '[]');
-      const cleanedPhotos = ph.map(item => {
-        if (item.uri && item.uri.startsWith('file://') && item.source === 'filesystem') {
-          const fileName = item.uri.split('/').pop();
-          if (!mediaMap.has(fileName)) {
-            item.uri = null;
-            item.source = 'unavailable';
-          }
-        }
-        return item;
-      });
-      localStorage.setItem('photo_history', JSON.stringify(cleanedPhotos));
-    } catch(e) {}
-
     // ШАГ 3: Применяем медиа (аудио uri / фото dataUrl) к записям
     // ВАЖНО: читаем из localStorage ПОСЛЕ restoreData чтобы получить актуальные записи
     await restoreMediaFromMap(mediaMap);
@@ -939,41 +923,68 @@ async function restoreMediaFromMap(mediaMap) {
         const parts = filename.split('_');
         ts = parseInt(parts[1]);
       } else {
-        // neyra-1234567890.jpg
         ts = parseInt(filename.replace('neyra-', '').replace('.jpg', ''));
       }
-      const match = photoHistory.find(item =>
+
+      // Ищем совпадение в photoHistory по timestamp
+      let match = photoHistory.find(item =>
         Math.abs((item.timestamp || item.time || 0) - ts) <= 2000
       );
+
+      // Если не нашли — создаём новую запись
+      if (!match && !isNaN(ts) && ts > 0) {
+        const newEntry = { timestamp: ts, time: ts, note: '', source: 'filesystem', uri: null };
+        photoHistory.push(newEntry);
+        match = newEntry;
+      }
+
       if (match) {
         photoPromises.push((async () => {
           try {
             const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
-            const { savePhotoMeta } = await import('./photo-meta.js');
-            if (!FilesystemPlugin || !window.Capacitor?.isNativePlatform?.()) return;
-            const b64 = dataUrl.split(',')[1] || dataUrl;
-            const restoreFileName = filename;
-            const restorePath = `Neyra/${restoreFileName}`;
-            try {
-              await FilesystemPlugin.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
-            } catch(e) { /* папка уже есть */ }
-            await FilesystemPlugin.writeFile({
-              path: restorePath,
-              data: b64,
-              directory: 'Documents',
-              recursive: true
-            });
-            const { uri } = await FilesystemPlugin.getUri({
-              path: restorePath,
-              directory: 'Documents'
-            });
-            match.uri = uri;
-            match.source = 'filesystem';
-            match.dataUrl = null;
-            delete match.photo;
-            await savePhotoMeta(String(ts), { path: restorePath, uri, ts });
+            const isNative = window.Capacitor?.isNativePlatform?.();
+
+            if (FilesystemPlugin && isNative) {
+              // Нативная платформа — пишем в Filesystem
+              const b64 = typeof dataUrl === 'string' && dataUrl.includes(',')
+                ? dataUrl.split(',')[1]
+                : dataUrl;
+              const restorePath = `Neyra/${filename}`;
+              try {
+                await FilesystemPlugin.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+              } catch(e) { /* папка уже есть */ }
+              await FilesystemPlugin.writeFile({
+                path: restorePath,
+                data: b64,
+                directory: 'Documents',
+                recursive: true
+              });
+              const { uri } = await FilesystemPlugin.getUri({
+                path: restorePath,
+                directory: 'Documents'
+              });
+              match.uri = uri;
+              match.source = 'filesystem';
+              match.dataUrl = dataUrl; // dataUrl как fallback если file:// не откроется
+              delete match.photo;
+              try {
+                const { savePhotoMeta } = await import('./photo-meta.js');
+                await savePhotoMeta(String(ts), { path: restorePath, uri, ts });
+              } catch(e) {}
+              console.log('[BACKUP] Photo restored to filesystem:', filename, '->', uri);
+            } else {
+              // Браузер / не нативная — сохраняем dataUrl напрямую
+              match.dataUrl = dataUrl;
+              match.source = 'base64';
+              match.uri = null;
+              console.log('[BACKUP] Photo restored as dataUrl:', filename);
+            }
           } catch(e) {
-            console.warn('[BACKUP] restore photo to filesystem failed:', e);
+            // Filesystem упал — сохраняем dataUrl как запасной вариант
+            console.warn('[BACKUP] restore photo to filesystem failed, using dataUrl:', e);
+            match.dataUrl = dataUrl;
+            match.source = 'base64';
+            match.uri = null;
           }
         })());
       }
