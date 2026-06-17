@@ -372,7 +372,31 @@ export async function exportData() {
         }
         
         if (m.type === 'photo_uri') {
-          console.log('[BACKUP] Skipped (device file reference):', m.name);
+          // Файл хранится в Neyra/ — читаем и кладём в ZIP
+          const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
+          if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
+            try {
+              const fileResult = await FilesystemPlugin.readFile({
+                path: `Neyra/${m.name}`,
+                directory: 'Documents'
+              });
+              if (fileResult?.data) {
+                const sizeMB = (fileResult.data.length * 3) / 4 / (1024 * 1024);
+                if (sizeMB <= MAX_FILE_SIZE_MB) {
+                  const binaryString = atob(fileResult.data);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                  }
+                  mediaFolder.file(m.name, bytes);
+                  addedMedia++;
+                  console.log('[BACKUP] Added photo from Neyra/:', m.name);
+                }
+              }
+            } catch(e) {
+              console.warn('[BACKUP] Failed to read photo from Neyra/:', m.name, e);
+            }
+          }
           continue;
         }
 
@@ -890,11 +914,17 @@ async function restoreMediaFromMap(mediaMap) {
         }
       }
     }
-    if (filename.startsWith('photo_')) {
-      const parts = filename.split('_');
-      const ts = parseInt(parts[1]);
+    if (filename.startsWith('photo_') || filename.startsWith('neyra-')) {
+      let ts;
+      if (filename.startsWith('photo_')) {
+        const parts = filename.split('_');
+        ts = parseInt(parts[1]);
+      } else {
+        // neyra-1234567890.jpg
+        ts = parseInt(filename.replace('neyra-', '').replace('.jpg', ''));
+      }
       const match = photoHistory.find(item =>
-        (item.timestamp || item.time) === ts
+        Math.abs((item.timestamp || item.time || 0) - ts) <= 2000
       );
       if (match) {
         photoPromises.push((async () => {
