@@ -929,19 +929,30 @@ async function restoreMediaFromMap(mediaMap) {
       if (match) {
         photoPromises.push((async () => {
           try {
-            const { Filesystem, Directory } = await import('@capacitor/filesystem');
+            const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
             const { savePhotoMeta } = await import('./photo-meta.js');
-            const b64 = dataUrl.split(',')[1];
-            const path = 'photos/photo_' + ts + '.jpg';
-            await Filesystem.writeFile({
-              path, data: b64, directory: Directory.Data, recursive: true
+            if (!FilesystemPlugin || !window.Capacitor?.isNativePlatform?.()) return;
+            const b64 = dataUrl.split(',')[1] || dataUrl;
+            const restoreFileName = filename;
+            const restorePath = `Neyra/${restoreFileName}`;
+            try {
+              await FilesystemPlugin.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+            } catch(e) { /* папка уже есть */ }
+            await FilesystemPlugin.writeFile({
+              path: restorePath,
+              data: b64,
+              directory: 'Documents',
+              recursive: true
             });
-            const { uri } = await Filesystem.getUri({ path, directory: Directory.Data });
+            const { uri } = await FilesystemPlugin.getUri({
+              path: restorePath,
+              directory: 'Documents'
+            });
             match.uri = uri;
             match.source = 'filesystem';
             match.dataUrl = null;
             delete match.photo;
-            await savePhotoMeta(String(ts), { path, uri, ts });
+            await savePhotoMeta(String(ts), { path: restorePath, uri, ts });
           } catch(e) {
             console.warn('[BACKUP] restore photo to filesystem failed:', e);
           }
