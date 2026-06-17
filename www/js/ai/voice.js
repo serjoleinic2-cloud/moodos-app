@@ -33,7 +33,12 @@ async function saveAudioToFile(audioData) {
     if (!base64) return audioData;
     const ts = Date.now();
     const fileName = `voice_${ts}.webm`;
-    await Filesystem.writeFile({ path: `Neyra/${fileName}`, data: base64, directory: "Documents" });
+    try {
+      await Filesystem.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+    } catch(mkdirErr) {
+      // папка уже существует — норм
+    }
+    await Filesystem.writeFile({ path: `Neyra/${fileName}`, data: base64, directory: 'Documents', recursive: true });
     // Verify file exists before returning URI
     const fileInfo = await Filesystem.getUri({ path: `Neyra/${fileName}`, directory: "Documents" });
     if (!fileInfo?.uri) return audioData;

@@ -129,30 +129,62 @@ function collectAllData(premiumMode = false) {
   return data;
 }
 
-function getMediaInfo(data) {
+async function getMediaInfo(data) {
   const mediaMap = new Map();
 
-  const voiceHistory = data.voice_history ? JSON.parse(data.voice_history) : [];
-  const photoHistory = data.photo_history ? JSON.parse(data.photo_history) : [];
+  // Voice notes — всегда конвертируем в base64 включая file://
+  const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+  const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
+  const cutoffVoice = isPremium ? 0 : Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const MAX_VOICE_MB_FREE = 10;
+  const MAX_VOICE_MB_PREMIUM = 50;
+  let totalVoiceMB = 0;
+  const voiceMaxMB = isPremium ? MAX_VOICE_MB_PREMIUM : MAX_VOICE_MB_FREE;
 
-  voiceHistory.forEach((item, idx) => {
-    if (item.audio && item.audio.startsWith('data:')) {
-      const itemTs = item.time ?? item.date ?? item.timestamp ?? null;
-      const key = `${itemTs}_${idx}_voice`;
-      if (!mediaMap.has(key)) {
-        const sizeMB = (item.audio.length * 3) / 4 / (1024 * 1024);
-        mediaMap.set(key, {
-          type: 'audio',
-          key: 'voice_history',
-          index: idx,
-          name: `voice_${itemTs || Date.now()}_${idx}.webm`,
-          data: item.audio,
-          sizeMB: sizeMB
-        });
+  for (let idx = 0; idx < voiceHistory.length; idx++) {
+    const item = voiceHistory[idx];
+    const itemTs = item?.time ?? item?.date ?? item?.timestamp ?? null;
+    if (!itemTs) continue;
+    if (Number(itemTs) < cutoffVoice) continue;
+
+    const key = `${itemTs}_${idx}_voice`;
+    if (mediaMap.has(key)) continue;
+
+    let audioData = item.audio || null;
+
+    // Если file:// — читаем из Filesystem и конвертируем в base64
+    if (audioData && audioData.startsWith('file://') && Filesystem) {
+      try {
+        const fileName = audioData.split('/').pop();
+        const fileResult = await Filesystem.readFile({ path: `Neyra/${fileName}`, directory: 'Documents' });
+        if (fileResult?.data) {
+          audioData = `data:audio/webm;base64,${fileResult.data}`;
+        } else {
+          audioData = null;
+        }
+      } catch(e) {
+        audioData = null;
       }
     }
-  });
 
+    if (!audioData || !audioData.startsWith('data:')) continue;
+
+    const sizeMB = (audioData.length * 3) / 4 / (1024 * 1024);
+    if (totalVoiceMB + sizeMB > voiceMaxMB) continue;
+    if (sizeMB > MAX_FILE_SIZE_MB) continue;
+    totalVoiceMB += sizeMB;
+
+    mediaMap.set(key, {
+      type: 'audio',
+      key: 'voice_history',
+      index: idx,
+      name: `voice_${itemTs}_${idx}.webm`,
+      data: audioData,
+      sizeMB
+    });
+  }
+
+  const photoHistory = data.photo_history ? JSON.parse(data.photo_history) : [];
   photoHistory.forEach((item, idx) => {
     if (item.source === 'gallery') {
       const key = `${item.timestamp}_${idx}_photo`;
@@ -649,6 +681,9 @@ async function importFromZip(file, resolve) {
             const b64 = await fileObj.async('base64');
             const FilesystemPlugin = window.Capacitor?.Plugins?.Filesystem;
             if (FilesystemPlugin && window.Capacitor?.isNativePlatform()) {
+              try {
+                await FilesystemPlugin.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+              } catch(e) { /* папка уже есть */ }
               await FilesystemPlugin.writeFile({
                 path: `Neyra/${shortName}`,
                 data: b64,
