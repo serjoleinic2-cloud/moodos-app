@@ -741,7 +741,7 @@ async function importFromZip(file, resolve) {
     // ШАГ 2: Восстанавливаем текстовые данные
     restoreData(backup.data);
 
-    // ШАГ 2.5: Зачищаем file:// ссылки ТОЛЬКО если нет соответствующего файла в mediaMap
+    // ШАГ 2.5: Зачищаем битые file:// в voice_history (не трогаем те что есть в mediaMap)
     try {
       const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
       const cleaned = vh.map(item => {
@@ -756,7 +756,24 @@ async function importFromZip(file, resolve) {
       localStorage.setItem('voice_history', JSON.stringify(cleaned));
     } catch(e) {}
 
+    // ШАГ 2.6: Зачищаем битые file:// в photo_history (не трогаем те что есть в mediaMap)
+    try {
+      const ph = JSON.parse(localStorage.getItem('photo_history') || '[]');
+      const cleanedPhotos = ph.map(item => {
+        if (item.uri && item.uri.startsWith('file://') && item.source === 'filesystem') {
+          const fileName = item.uri.split('/').pop();
+          if (!mediaMap.has(fileName)) {
+            item.uri = null;
+            item.source = 'unavailable';
+          }
+        }
+        return item;
+      });
+      localStorage.setItem('photo_history', JSON.stringify(cleanedPhotos));
+    } catch(e) {}
+
     // ШАГ 3: Применяем медиа (аудио uri / фото dataUrl) к записям
+    // ВАЖНО: читаем из localStorage ПОСЛЕ restoreData чтобы получить актуальные записи
     await restoreMediaFromMap(mediaMap);
 
     // Restore photos from Filesystem photos folder
@@ -887,8 +904,10 @@ function blobToDataUrl(blob) {
 async function restoreMediaFromMap(mediaMap) {
   console.log('[BACKUP] restoreMediaFromMap started, files:', mediaMap.size);
 
+  // Читаем ПОСЛЕ restoreData — получаем актуальные записи включая восстановленные из бэкапа
   const voiceHistory = JSON.parse(localStorage.getItem('voice_history') || '[]');
   const photoHistory = JSON.parse(localStorage.getItem('photo_history') || '[]');
+  console.log('[BACKUP] voiceHistory count:', voiceHistory.length, 'photoHistory count:', photoHistory.length);
   const photoPromises = [];
 
   mediaMap.forEach((dataUrl, filename) => {
