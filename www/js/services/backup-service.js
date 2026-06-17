@@ -682,6 +682,21 @@ async function importFromZip(file, resolve) {
     // ШАГ 2: Восстанавливаем текстовые данные
     restoreData(backup.data);
 
+    // ШАГ 2.5: Зачищаем file:// ссылки ТОЛЬКО если нет соответствующего файла в mediaMap
+    try {
+      const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
+      const cleaned = vh.map(item => {
+        if (item.audio && item.audio.startsWith('file://')) {
+          const fileName = item.audio.split('/').pop();
+          if (!mediaMap.has(fileName)) {
+            item.audio = null;
+          }
+        }
+        return item;
+      });
+      localStorage.setItem('voice_history', JSON.stringify(cleaned));
+    } catch(e) {}
+
     // ШАГ 3: Применяем медиа (аудио uri / фото dataUrl) к записям
     restoreMediaFromMap(mediaMap);
 
@@ -1005,18 +1020,6 @@ function restoreData(data) {
       console.warn('[BACKUP] restore failed:', key, e);
     }
   });
-
-  // Очищаем битые file:// ссылки на аудио — они не работают после переустановки
-  try {
-    const vh = JSON.parse(localStorage.getItem('voice_history') || '[]');
-    const cleaned = vh.map(item => {
-      if (item.audio && item.audio.startsWith('file://')) {
-        item.audio = null;
-      }
-      return item;
-    });
-    localStorage.setItem('voice_history', JSON.stringify(cleaned));
-  } catch(e) {}
 }
 
 export function getBackupInfo() {
