@@ -225,19 +225,22 @@ async function deleteItem(item) {
       const arr = JSON.parse(localStorage.getItem("photo_history")||"[]");
       const toDelete = arr.find(e => (e.timestamp||e.time) === item.ts);
       if (toDelete) {
-        if (toDelete.photo?.path) {
-          try {
-            const { Filesystem, Directory } = await import('@capacitor/filesystem');
-            await Filesystem.deleteFile({
-              path: toDelete.photo.path,
-              directory: Directory.Data,
-            }).catch(() => {});
-          } catch(e) {}
-          try {
-            const { deletePhotoMeta } = await import('../services/photo-meta.js');
-            await deletePhotoMeta(String(toDelete.timestamp));
-          } catch(e) {}
+        if (toDelete.uri && toDelete.uri.startsWith("file://")) {
+          const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+          if (Filesystem) {
+            const m = toDelete.uri.match(/Neyra\/([^\/]+)$/);
+            if (m) {
+              Filesystem.deleteFile({ path: `Neyra/${m[1]}`, directory: "Documents" }).catch(()=>{});
+            } else {
+              const mFallback = toDelete.uri.match(/\/([^\/]+)$/);
+              if (mFallback) Filesystem.deleteFile({ path: mFallback[1], directory: "Documents" }).catch(()=>{});
+            }
+          }
         }
+        try {
+          const { deletePhotoMeta } = await import('../services/photo-meta.js');
+          await deletePhotoMeta(String(toDelete.timestamp));
+        } catch(e) {}
       }
       const filtered = arr.filter(e => (e.timestamp||e.time) !== item.ts);
       localStorage.setItem("photo_history", JSON.stringify(filtered));
@@ -500,23 +503,25 @@ async function savePhoto(dataUrl) {
 async function _savePhotoFallback(dataUrl, timestamp) {
   try {
     const ts = timestamp || Date.now();
-    const fileName = 'photo_' + ts + '.jpg';
+    const fileName = 'Neyra/neyra-' + ts + '.jpg';
     const base64data = dataUrl.split(',')[1];
     let uri = dataUrl;
     const Capacitor = window.Capacitor;
 
     if (Capacitor?.isNativePlatform?.()) {
       try {
-        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        const { Filesystem } = await import('@capacitor/filesystem');
+        try {
+          await Filesystem.mkdir({ path: 'Neyra', directory: 'Documents', recursive: true });
+        } catch(e) { /* папка уже есть */ }
         await Filesystem.writeFile({
-          path: 'photos/' + fileName,
+          path: fileName,
           data: base64data,
-          directory: Directory.Data,
-          recursive: true,
+          directory: 'Documents',
         });
         const fileInfo = await Filesystem.getUri({
-          path: 'photos/' + fileName,
-          directory: Directory.Data,
+          path: fileName,
+          directory: 'Documents',
         });
         uri = fileInfo.uri;
       } catch(e) {
@@ -529,7 +534,7 @@ async function _savePhotoFallback(dataUrl, timestamp) {
       timestamp: ts,
       note: '',
       source: 'filesystem',
-      photo: { source: 'filesystem', path: 'photos/' + fileName, uri }
+      uri: uri
     };
     arr.push(entry);
     if (arr.length > 20) arr.splice(0, arr.length - 20);

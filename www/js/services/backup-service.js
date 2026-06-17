@@ -907,9 +907,10 @@ async function restoreMediaFromMap(mediaMap) {
               path, data: b64, directory: Directory.Data, recursive: true
             });
             const { uri } = await Filesystem.getUri({ path, directory: Directory.Data });
-            match.photo = { source: 'filesystem', path, uri };
+            match.uri = uri;
             match.source = 'filesystem';
-            delete match.dataUrl;
+            match.dataUrl = null;
+            delete match.photo;
             await savePhotoMeta(String(ts), { path, uri, ts });
           } catch(e) {
             console.warn('[BACKUP] restore photo to filesystem failed:', e);
