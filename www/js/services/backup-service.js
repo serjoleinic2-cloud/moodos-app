@@ -918,6 +918,7 @@ async function restoreMediaFromMap(mediaMap) {
       }
     }
     console.log('[BACKUP] Processing file:', filename, 'type:', typeof dataUrl, 'len:', typeof dataUrl === 'string' ? dataUrl.length : JSON.stringify(dataUrl).length);
+    console.log('[PHOTO-DEBUG] mediaMap entry:', filename, typeof dataUrl === 'string' ? 'string len:'+dataUrl.length : typeof dataUrl);
     if (filename.startsWith('photo_') || filename.startsWith('neyra-')) {
       let ts;
       if (filename.startsWith('photo_')) {
@@ -996,8 +997,11 @@ async function restoreMediaFromMap(mediaMap) {
 
   // Дожидаемся всех фото-операций ДО сохранения localStorage
   await Promise.all(photoPromises);
-  console.log('[BACKUP] photo_history after restore:', JSON.parse(localStorage.getItem('photo_history') || '[]').map(p => ({ts: p.timestamp, uri: p.uri, source: p.source, hasDataUrl: !!p.dataUrl})));
-
+  console.log('[PHOTO-DEBUG] photoHistory before save:', JSON.stringify(photoHistory.map(p => ({ts: p.timestamp, uri: p.uri?.slice(0,50), src: p.source, hasData: !!p.dataUrl}))));
+  localStorage.setItem('photo_history', JSON.stringify(photoHistory));
+  console.log('[PHOTO-DEBUG] photo_history saved to localStorage, count:', photoHistory.length);
+  const verify = JSON.parse(localStorage.getItem('photo_history') || '[]');
+  console.log('[PHOTO-DEBUG] verify from localStorage:', verify.length, 'items');
   try {
     localStorage.setItem('voice_history', JSON.stringify(voiceHistory));
     localStorage.setItem('photo_history', JSON.stringify(photoHistory));
