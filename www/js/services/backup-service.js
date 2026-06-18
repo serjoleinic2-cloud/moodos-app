@@ -80,8 +80,31 @@ function collectAllData(premiumMode = false) {
       const value = localStorage.getItem(key);
       if (!value) return;
 
-      // Free: исключаем photo_history и neyra_letters; voice_history включаем но только base64
-      if (!premiumMode && (key === 'photo_history' || key === 'neyra_letters')) return;
+      // Free: исключаем только neyra_letters; photo_history включаем за 7 дней без dataUrl
+      if (!premiumMode && key === 'neyra_letters') return;
+      if (!premiumMode && key === 'photo_history') {
+        try {
+          const arr = JSON.parse(value);
+          if (Array.isArray(arr)) {
+            const cutoffPhoto = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const filtered = arr.filter(item => {
+              const ts = item?.timestamp ?? item?.time ?? null;
+              const n = ts ? Number(ts) : NaN;
+              return !isNaN(n) ? n >= cutoffPhoto : false;
+            }).map(item => ({
+              timestamp: item.timestamp,
+              time: item.time,
+              note: item.note || '',
+              source: item.source || 'filesystem',
+              uri: item.uri || null,
+              // dataUrl не включаем — он в ZIP как отдельный файл
+              dataUrl: null,
+            }));
+            if (filtered.length > 0) data[key] = JSON.stringify(filtered);
+          }
+        } catch(e) {}
+        return;
+      }
       if (!premiumMode && key === 'voice_history') {
         try {
           const arr = JSON.parse(value);
@@ -184,7 +207,12 @@ async function getMediaInfo(data) {
     });
   }
 
-  const photoHistory = data.photo_history ? JSON.parse(data.photo_history) : [];
+  // Читаем photo_history из localStorage напрямую — data может не содержать его для free
+  const photoHistory = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('photo_history') || '[]');
+    } catch(e) { return []; }
+  })();
   photoHistory.forEach((item, idx) => {
     if (item.source === 'gallery') {
       const key = `${item.timestamp}_${idx}_photo`;
